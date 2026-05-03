@@ -1,0 +1,1649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Elite Movement & Rehab Coaching Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #0a0a0a;
+    --dark: #111318;
+    --card: #16191f;
+    --border: #252830;
+    --accent: #c8f04a;
+    --accent2: #4af0b8;
+    --accent3: #f04a7a;
+    --muted: #6b7280;
+    --text: #e8eaf0;
+    --text2: #9ca3af;
+    --phase1: #4af0b8;
+    --phase2: #f0c44a;
+    --phase3: #f04a7a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--black);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ── LOGIN ── */
+  #loginScreen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(ellipse at 30% 20%, #1a2a0a 0%, var(--black) 60%);
+    position: relative;
+    overflow: hidden;
+  }
+  #loginScreen::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c8f04a' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    pointer-events: none;
+  }
+  .loginBox {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 48px 40px;
+    width: 420px;
+    position: relative;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.6);
+  }
+  .loginBox::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 40px; right: 40px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    border-radius: 0 0 4px 4px;
+  }
+  .loginLogo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 32px;
+    letter-spacing: 3px;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+  .loginSub {
+    font-size: 13px;
+    color: var(--text2);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 36px;
+  }
+  .loginLabel {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text2);
+    margin-bottom: 8px;
+  }
+  .loginInput {
+    width: 100%;
+    background: var(--dark);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    margin-bottom: 20px;
+    transition: border-color 0.2s;
+    outline: none;
+  }
+  .loginInput:focus { border-color: var(--accent); }
+  .loginBtn {
+    width: 100%;
+    background: var(--accent);
+    color: var(--black);
+    border: none;
+    border-radius: 8px;
+    padding: 14px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+    margin-top: 4px;
+  }
+  .loginBtn:hover { opacity: 0.9; transform: translateY(-1px); }
+  .loginErr {
+    background: rgba(240,74,122,0.12);
+    border: 1px solid rgba(240,74,122,0.3);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: var(--accent3);
+    margin-top: 16px;
+    display: none;
+  }
+  .roleTag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 20px;
+    margin-right: 4px;
+    margin-top: 16px;
+  }
+  .roleCoach { background: rgba(200,240,74,0.12); color: var(--accent); border: 1px solid rgba(200,240,74,0.2); }
+  .roleClient { background: rgba(74,240,184,0.12); color: var(--accent2); border: 1px solid rgba(74,240,184,0.2); }
+
+  /* ── MAIN APP ── */
+  #app { display: none; min-height: 100vh; }
+
+  /* Sidebar */
+  .sidebar {
+    position: fixed; top: 0; left: 0; bottom: 0;
+    width: 240px;
+    background: var(--dark);
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    z-index: 100;
+  }
+  .sidebarLogo {
+    padding: 24px 24px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .sidebarLogo span {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 2px;
+    color: var(--accent);
+  }
+  .sidebarLogo small {
+    display: block;
+    font-size: 10px;
+    color: var(--text2);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+  .navItem {
+    display: flex; align-items: center; gap: 10px;
+    padding: 11px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text2);
+    cursor: pointer;
+    border-left: 3px solid transparent;
+    transition: all 0.15s;
+    margin: 1px 0;
+  }
+  .navItem:hover { color: var(--text); background: rgba(255,255,255,0.03); }
+  .navItem.active { color: var(--accent); border-left-color: var(--accent); background: rgba(200,240,74,0.06); }
+  .navItem .icon { font-size: 16px; width: 20px; text-align: center; }
+  .sidebarBottom {
+    margin-top: auto;
+    padding: 16px;
+    border-top: 1px solid var(--border);
+  }
+  .userPill {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px;
+    background: var(--card);
+    border-radius: 8px;
+    font-size: 12px;
+  }
+  .userAvatar {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 11px; color: var(--black);
+    flex-shrink: 0;
+  }
+  .logoutBtn {
+    margin-left: auto; font-size: 11px; color: var(--text2);
+    cursor: pointer; padding: 2px 6px; border-radius: 4px;
+    transition: color 0.15s;
+  }
+  .logoutBtn:hover { color: var(--accent3); }
+
+  /* Main content */
+  .mainContent {
+    margin-left: 240px;
+    min-height: 100vh;
+    padding: 32px 36px;
+  }
+
+  /* Page header */
+  .pageHeader {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    margin-bottom: 32px;
+  }
+  .pageTitle {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 42px;
+    letter-spacing: 2px;
+    line-height: 1;
+    color: var(--text);
+  }
+  .pageTitle span { color: var(--accent); }
+
+  /* Cards */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+  }
+  .cardTitle {
+    font-size: 11px; font-weight: 600;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--text2); margin-bottom: 16px;
+  }
+
+  /* Grid */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+  /* Form elements */
+  label {
+    display: block;
+    font-size: 11px; font-weight: 600;
+    letter-spacing: 1.2px; text-transform: uppercase;
+    color: var(--text2); margin-bottom: 6px;
+  }
+  input, select, textarea {
+    width: 100%;
+    background: var(--dark);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+  textarea { resize: vertical; min-height: 80px; }
+  select option { background: var(--dark); }
+  .formGroup { margin-bottom: 16px; }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 20px;
+    border-radius: 8px; border: none; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600;
+    transition: all 0.15s; letter-spacing: 0.3px;
+  }
+  .btn-primary { background: var(--accent); color: var(--black); }
+  .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+  .btn-ghost { background: transparent; color: var(--text2); border: 1px solid var(--border); }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-danger { background: rgba(240,74,122,0.12); color: var(--accent3); border: 1px solid rgba(240,74,122,0.25); }
+  .btn-danger:hover { background: rgba(240,74,122,0.2); }
+  .btn-success { background: rgba(74,240,184,0.12); color: var(--accent2); border: 1px solid rgba(74,240,184,0.25); }
+  .btn-success:hover { background: rgba(74,240,184,0.2); }
+  .btn-lg { padding: 13px 28px; font-size: 15px; }
+  .btn-sm { padding: 7px 14px; font-size: 12px; }
+
+  /* Phase badges */
+  .phaseBadge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 12px; border-radius: 20px;
+    font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+  }
+  .phase1 { background: rgba(74,240,184,0.1); color: var(--phase1); border: 1px solid rgba(74,240,184,0.25); }
+  .phase2 { background: rgba(240,196,74,0.1); color: var(--phase2); border: 1px solid rgba(240,196,74,0.25); }
+  .phase3 { background: rgba(240,74,122,0.1); color: var(--phase3); border: 1px solid rgba(240,74,122,0.25); }
+
+  /* Phase descriptions */
+  .phaseDesc { font-size: 11px; color: var(--text2); margin-top: 2px; }
+
+  /* Output format selector */
+  .formatSelector {
+    display: flex; gap: 8px; margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+  .formatBtn {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 16px; border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--dark); color: var(--text2);
+    cursor: pointer; font-size: 13px; font-weight: 500;
+    transition: all 0.15s;
+  }
+  .formatBtn:hover { border-color: var(--accent); color: var(--text); }
+  .formatBtn.selected { border-color: var(--accent); color: var(--accent); background: rgba(200,240,74,0.06); }
+  .formatIcon { font-size: 18px; }
+
+  /* Analysis output */
+  .analysisOutput {
+    background: var(--dark);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12.5px;
+    line-height: 1.8;
+    white-space: pre-wrap;
+    color: var(--text2);
+    max-height: 600px;
+    overflow-y: auto;
+    display: none;
+  }
+  .analysisOutput .section-header { color: var(--accent); font-weight: 700; }
+  .analysisOutput .bullet { color: var(--accent2); }
+
+  /* Client list */
+  .clientRow {
+    display: flex; align-items: center;
+    padding: 14px 16px;
+    border-radius: 10px;
+    background: var(--dark);
+    border: 1px solid var(--border);
+    margin-bottom: 8px;
+    gap: 16px;
+    transition: border-color 0.15s;
+  }
+  .clientRow:hover { border-color: rgba(200,240,74,0.2); }
+  .clientAvatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px; color: var(--black);
+    flex-shrink: 0;
+  }
+  .clientName { font-weight: 600; font-size: 14px; }
+  .clientMeta { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .clientActions { margin-left: auto; display: flex; gap: 8px; }
+
+  /* Stats cards */
+  .statCard {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .statLabel { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text2); margin-bottom: 8px; }
+  .statValue { font-family: 'Bebas Neue', sans-serif; font-size: 36px; letter-spacing: 1px; color: var(--text); line-height: 1; }
+  .statSub { font-size: 12px; color: var(--text2); margin-top: 4px; }
+
+  /* Celebration overlay */
+  #celebrationOverlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 999;
+    display: none;
+    align-items: center; justify-content: center;
+    backdrop-filter: blur(8px);
+  }
+  .celebBox {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 48px;
+    max-width: 480px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 60px rgba(200,240,74,0.15);
+  }
+  .celebBox::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(200,240,74,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .celebEmoji { font-size: 64px; margin-bottom: 16px; display: block; animation: bounce 1s ease infinite; }
+  @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+  .celebTitle {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 40px; letter-spacing: 3px;
+    color: var(--accent); margin-bottom: 12px;
+  }
+  .celebMsg { font-size: 15px; color: var(--text2); line-height: 1.6; margin-bottom: 24px; }
+  .confetti {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;
+  }
+
+  /* Section tabs */
+  .tabs { display: flex; gap: 4px; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 0; }
+  .tab {
+    padding: 10px 18px; font-size: 13px; font-weight: 500;
+    color: var(--text2); cursor: pointer; border-bottom: 2px solid transparent;
+    margin-bottom: -1px; transition: all 0.15s;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tabContent { display: none; }
+  .tabContent.active { display: block; }
+
+  /* Loading spinner */
+  .spinner {
+    width: 20px; height: 20px; border: 2px solid var(--border);
+    border-top-color: var(--accent); border-radius: 50%;
+    animation: spin 0.7s linear infinite; display: inline-block;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Toast */
+  #toast {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 20px;
+    font-size: 13px; z-index: 9999;
+    transform: translateY(80px); opacity: 0;
+    transition: all 0.3s; pointer-events: none;
+    display: flex; align-items: center; gap: 10px;
+  }
+  #toast.show { transform: translateY(0); opacity: 1; }
+  #toast.success { border-color: rgba(74,240,184,0.3); }
+  #toast.error { border-color: rgba(240,74,122,0.3); }
+
+  /* YouTube placeholder */
+  .ytPlaceholder {
+    background: var(--dark);
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    padding: 32px;
+    text-align: center;
+    color: var(--text2);
+  }
+  .ytPlaceholder .ytIcon { font-size: 40px; margin-bottom: 12px; display: block; opacity: 0.5; }
+
+  /* Access control */
+  .accessTag {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 10px; border-radius: 20px;
+    font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
+  }
+  .accessCoach { background: rgba(200,240,74,0.1); color: var(--accent); }
+  .accessClient { background: rgba(74,240,184,0.1); color: var(--accent2); }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--dark); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* Print/export result */
+  .outputPanel { display: none; margin-top: 24px; }
+  .outputPanel.visible { display: block; }
+  .downloadBtns { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+
+  /* Assessment grid */
+  .assessGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .assessGroup { margin-bottom: 12px; }
+  .assessGroupTitle {
+    font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--accent); border-bottom: 1px solid rgba(200,240,74,0.15);
+    padding-bottom: 6px; margin-bottom: 10px;
+  }
+  .rowFields { display: flex; gap: 8px; }
+  .rowFields label { white-space: nowrap; }
+
+  /* Section show/hide */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* Divider */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+
+  /* Responsive help text */
+  .helpText { font-size: 12px; color: var(--text2); margin-top: 4px; }
+
+  /* Phase upgrade section */
+  .phaseUpgrade {
+    background: linear-gradient(135deg, rgba(200,240,74,0.04), rgba(74,240,184,0.04));
+    border: 1px solid rgba(200,240,74,0.15);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .phaseUpgrade h3 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px; letter-spacing: 1.5px;
+    color: var(--accent); margin-bottom: 8px;
+  }
+
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="loginScreen">
+  <div class="loginBox">
+    <div class="loginLogo">⚡ KINETIC</div>
+    <div class="loginSub">Elite Movement & Rehab Platform</div>
+    <div class="loginLabel">Email Address</div>
+    <input class="loginInput" type="email" id="loginEmail" placeholder="your@email.com" />
+    <div class="loginLabel">Access Code</div>
+    <input class="loginInput" type="password" id="loginPass" placeholder="••••••••" />
+    <button class="loginBtn" onclick="doLogin()">ENTER PLATFORM</button>
+    <div class="loginErr" id="loginErr">Access denied. Email not authorized.</div>
+    <div style="margin-top:16px">
+      <span class="roleTag roleCoach">🛡 Coach Access</span>
+      <span class="roleTag roleClient">🧑 Client Access</span>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebarLogo">
+      <span>⚡ KINETIC</span>
+      <small>Movement & Rehab Platform</small>
+    </div>
+    <div style="padding: 16px 0; flex:1;">
+      <div class="navItem active" onclick="showSection('dashboard')" id="nav-dashboard">
+        <span class="icon">🏠</span> Dashboard
+      </div>
+      <div class="navItem" onclick="showSection('newSession')" id="nav-newSession">
+        <span class="icon">✦</span> New Session
+      </div>
+      <div class="navItem coach-only" onclick="showSection('clients')" id="nav-clients">
+        <span class="icon">👥</span> Clients
+      </div>
+      <div class="navItem" onclick="showSection('programs')" id="nav-programs">
+        <span class="icon">📋</span> My Programs
+      </div>
+      <div class="navItem coach-only" onclick="showSection('youtube')" id="nav-youtube">
+        <span class="icon">▶️</span> Exercise Library
+      </div>
+      <div class="navItem coach-only" onclick="showSection('access')" id="nav-access">
+        <span class="icon">🔐</span> Access Control
+      </div>
+    </div>
+    <div class="sidebarBottom">
+      <div class="userPill">
+        <div class="userAvatar" id="sidebarAvatar">?</div>
+        <div>
+          <div style="font-weight:600; font-size:12px;" id="sidebarName">User</div>
+          <div style="font-size:10px; color:var(--text2);" id="sidebarRole">–</div>
+        </div>
+        <div class="logoutBtn" onclick="doLogout()">↩</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="mainContent">
+
+    <!-- DASHBOARD -->
+    <div class="section active" id="section-dashboard">
+      <div class="pageHeader">
+        <div>
+          <div class="pageTitle">DASH<span>BOARD</span></div>
+          <div style="color:var(--text2); font-size:13px; margin-top:4px;" id="welcomeMsg">Welcome back</div>
+        </div>
+        <button class="btn btn-primary btn-lg" onclick="showSection('newSession')">+ New Session</button>
+      </div>
+      <div class="grid3" style="margin-bottom:20px;">
+        <div class="statCard">
+          <div class="statLabel">Total Clients</div>
+          <div class="statValue" id="statClients">0</div>
+          <div class="statSub">active in platform</div>
+        </div>
+        <div class="statCard">
+          <div class="statLabel">Sessions Generated</div>
+          <div class="statValue" id="statSessions">0</div>
+          <div class="statSub">this month</div>
+        </div>
+        <div class="statCard">
+          <div class="statLabel">Phase Upgrades</div>
+          <div class="statValue" id="statUpgrades">0</div>
+          <div class="statSub">total progressions</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="cardTitle">Recent Clients</div>
+        <div id="dashboardClientList"></div>
+      </div>
+    </div>
+
+    <!-- NEW SESSION -->
+    <div class="section" id="section-newSession">
+      <div class="pageHeader">
+        <div class="pageTitle">NEW <span>SESSION</span></div>
+      </div>
+
+      <div class="tabs">
+        <div class="tab active" onclick="switchTab('tab-client')">Client Info</div>
+        <div class="tab" onclick="switchTab('tab-subjective')">Subjective</div>
+        <div class="tab" onclick="switchTab('tab-objective')">Objective Assessment</div>
+        <div class="tab" onclick="switchTab('tab-output')">Output & Export</div>
+      </div>
+
+      <!-- Tab: Client Info -->
+      <div class="tabContent active" id="tab-client">
+        <div class="grid2">
+          <div class="card">
+            <div class="cardTitle">Client Information</div>
+            <div class="formGroup">
+              <label>Client Name</label>
+              <input id="f_name" placeholder="e.g. Ahmed Hassan" />
+            </div>
+            <div class="grid2">
+              <div class="formGroup">
+                <label>Age</label>
+                <input id="f_age" type="number" placeholder="e.g. 32" />
+              </div>
+              <div class="formGroup">
+                <label>Phase</label>
+                <select id="f_phase">
+                  <option value="Phase 1">Phase 1 — Mobility / Space</option>
+                  <option value="Phase 2">Phase 2 — Control</option>
+                  <option value="Phase 3">Phase 3 — Load Integration</option>
+                </select>
+              </div>
+            </div>
+            <div class="formGroup">
+              <label>Goal</label>
+              <input id="f_goal" placeholder="e.g. Reduce lower back pain, improve gait" />
+            </div>
+            <div class="formGroup">
+              <label>Injury History</label>
+              <textarea id="f_injury" placeholder="Past injuries, surgeries, chronic conditions..."></textarea>
+            </div>
+          </div>
+          <div>
+            <div class="card" style="margin-bottom:16px">
+              <div class="cardTitle">Phase Guide</div>
+              <div style="display:flex; flex-direction:column; gap:12px;">
+                <div style="display:flex; align-items:flex-start; gap:12px;">
+                  <span class="phaseBadge phase1">Phase 1</span>
+                  <div>
+                    <div style="font-size:13px; font-weight:600;">Mobility / Space Creation</div>
+                    <div class="phaseDesc">No heavy loading. Focus: joint decompression, breathing reset, mobility drills. PRI repositioning, FRC CARs.</div>
+                  </div>
+                </div>
+                <div style="display:flex; align-items:flex-start; gap:12px;">
+                  <span class="phaseBadge phase2">Phase 2</span>
+                  <div>
+                    <div style="font-size:13px; font-weight:600;">Neuromuscular Control</div>
+                    <div class="phaseDesc">Motor control, PAILs/RAILs, body-weight loading. Build stability at end-range positions gained in Phase 1.</div>
+                  </div>
+                </div>
+                <div style="display:flex; align-items:flex-start; gap:12px;">
+                  <span class="phaseBadge phase3">Phase 3</span>
+                  <div>
+                    <div style="font-size:13px; font-weight:600;">Load Integration</div>
+                    <div class="phaseDesc">Progressive external load, compound movement, sport-specific patterns. Full kinetic chain integration.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card coach-only">
+              <div class="cardTitle">⚡ Phase Upgrade</div>
+              <div class="phaseUpgrade">
+                <h3>READY TO ADVANCE?</h3>
+                <p style="font-size:13px; color:var(--text2); margin-bottom:16px;">When client has achieved their current phase goals, upgrade them and send a celebration message.</p>
+                <div class="formGroup">
+                  <label>Client Email (for celebration message)</label>
+                  <input id="upgradeEmail" placeholder="client@email.com" />
+                </div>
+                <button class="btn btn-success" onclick="triggerPhaseUpgrade()">🎉 Upgrade Phase & Celebrate</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:16px; display:flex; justify-content:flex-end;">
+          <button class="btn btn-primary" onclick="switchTab('tab-subjective')">Next: Subjective →</button>
+        </div>
+      </div>
+
+      <!-- Tab: Subjective -->
+      <div class="tabContent" id="tab-subjective">
+        <div class="card">
+          <div class="cardTitle">Subjective Assessment</div>
+          <div class="formGroup">
+            <label>Client's Reported Complaints & History</label>
+            <textarea id="f_subjective" style="min-height:160px;" placeholder="Client reports... Pain location, behaviour, onset, aggravating/easing factors, previous treatments, current medications, sleep quality, stress levels, occupation demands..."></textarea>
+          </div>
+        </div>
+        <div style="margin-top:16px; display:flex; justify-content:space-between;">
+          <button class="btn btn-ghost" onclick="switchTab('tab-client')">← Back</button>
+          <button class="btn btn-primary" onclick="switchTab('tab-objective')">Next: Objective →</button>
+        </div>
+      </div>
+
+      <!-- Tab: Objective -->
+      <div class="tabContent" id="tab-objective">
+        <div class="grid2" style="gap:16px;">
+
+          <div class="card">
+            <div class="assessGroupTitle">🦶 Toe Touch & Foot/Ankle</div>
+            <div class="formGroup">
+              <label>Toe Touch</label>
+              <input id="f_toetouch" placeholder="e.g. Fingers reach mid-shin, L lumbar flexion compensaton" />
+            </div>
+            <div class="formGroup">
+              <label>Foot & Ankle Mobility</label>
+              <input id="f_ankle_mob" placeholder="e.g. Limited L dorsiflexion, rigid midfoot" />
+            </div>
+            <div class="formGroup">
+              <label>Pronation / Supination</label>
+              <input id="f_pronsup" placeholder="e.g. Bilateral over-pronation, R worse" />
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="assessGroupTitle">🦴 Tibia</div>
+            <div class="rowFields">
+              <div class="formGroup" style="flex:1">
+                <label>IR Left</label>
+                <input id="f_tib_ir_l" placeholder="e.g. WNL / Limited" />
+              </div>
+              <div class="formGroup" style="flex:1">
+                <label>IR Right</label>
+                <input id="f_tib_ir_r" placeholder="e.g. WNL / Limited" />
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="grid-column: span 2;">
+            <div class="assessGroupTitle">🏋️ Hip</div>
+            <div style="display:grid; grid-template-columns: repeat(3,1fr); gap:10px;">
+              <div class="formGroup"><label>IR Left</label><input id="f_hip_ir_l" placeholder="e.g. 20° / pain" /></div>
+              <div class="formGroup"><label>IR Right</label><input id="f_hip_ir_r" placeholder="e.g. 35° / NP" /></div>
+              <div></div>
+              <div class="formGroup"><label>ER Left</label><input id="f_hip_er_l" placeholder="" /></div>
+              <div class="formGroup"><label>ER Right</label><input id="f_hip_er_r" placeholder="" /></div>
+              <div></div>
+              <div class="formGroup"><label>Flexion Left</label><input id="f_hip_flex_l" placeholder="" /></div>
+              <div class="formGroup"><label>Flexion Right</label><input id="f_hip_flex_r" placeholder="" /></div>
+              <div></div>
+              <div class="formGroup"><label>Extension Left</label><input id="f_hip_ext_l" placeholder="" /></div>
+              <div class="formGroup"><label>Extension Right</label><input id="f_hip_ext_r" placeholder="" /></div>
+              <div></div>
+              <div class="formGroup"><label>Abduction Left</label><input id="f_hip_abd_l" placeholder="" /></div>
+              <div class="formGroup"><label>Abduction Right</label><input id="f_hip_abd_r" placeholder="" /></div>
+              <div></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="assessGroupTitle">🧠 Spine</div>
+            <div class="rowFields">
+              <div class="formGroup" style="flex:1"><label>Flexion</label><input id="f_sp_flex" placeholder="P / NP" /></div>
+              <div class="formGroup" style="flex:1"><label>Extension</label><input id="f_sp_ext" placeholder="P / NP" /></div>
+            </div>
+            <div class="rowFields">
+              <div class="formGroup" style="flex:1"><label>Lat Flex Left</label><input id="f_sp_lfl" placeholder="P / NP" /></div>
+              <div class="formGroup" style="flex:1"><label>Lat Flex Right</label><input id="f_sp_lfr" placeholder="P / NP" /></div>
+            </div>
+            <div class="rowFields">
+              <div class="formGroup" style="flex:1"><label>Rotation Left</label><input id="f_sp_rotl" placeholder="P / NP" /></div>
+              <div class="formGroup" style="flex:1"><label>Rotation Right</label><input id="f_sp_rotr" placeholder="P / NP" /></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="assessGroupTitle">💪 Shoulder</div>
+            <div class="rowFields">
+              <div class="formGroup" style="flex:1"><label>Flex L</label><input id="f_sh_flex_l" placeholder="" /></div>
+              <div class="formGroup" style="flex:1"><label>Flex R</label><input id="f_sh_flex_r" placeholder="" /></div>
+            </div>
+            <div class="rowFields">
+              <div class="formGroup" style="flex:1"><label>Ext L</label><input id="f_sh_ext_l" placeholder="" /></div>
+              <div class="formGroup" style="flex:1"><label>Ext R</label><input id="f_sh_ext_r" placeholder="" /></div>
+            </div>
+            <div class="rowFields">
+              <div class="formGroup" style="flex:1"><label>IR L</label><input id="f_sh_ir_l" placeholder="" /></div>
+              <div class="formGroup" style="flex:1"><label>IR R</label><input id="f_sh_ir_r" placeholder="" /></div>
+            </div>
+            <div class="rowFields">
+              <div class="formGroup" style="flex:1"><label>ER L</label><input id="f_sh_er_l" placeholder="" /></div>
+              <div class="formGroup" style="flex:1"><label>ER R</label><input id="f_sh_er_r" placeholder="" /></div>
+            </div>
+          </div>
+
+          <div class="card" style="grid-column: span 2;">
+            <div class="assessGroupTitle">⚖️ Load Tolerance Tests</div>
+            <textarea id="f_load" style="min-height:80px;" placeholder="e.g. Single leg squat: R Trendelenburg collapse at 60° / SL RDL: R lateral trunk shift / Overhead squat: bilateral heel rise, forward lean..."></textarea>
+          </div>
+
+        </div>
+        <div style="margin-top:16px; display:flex; justify-content:space-between;">
+          <button class="btn btn-ghost" onclick="switchTab('tab-subjective')">← Back</button>
+          <button class="btn btn-primary" onclick="switchTab('tab-output')">Next: Generate Output →</button>
+        </div>
+      </div>
+
+      <!-- Tab: Output & Export -->
+      <div class="tabContent" id="tab-output">
+        <div class="card" style="margin-bottom:16px;">
+          <div class="cardTitle">Output Format</div>
+          <div class="formatSelector">
+            <div class="formatBtn selected" onclick="selectFormat(this,'all')" data-fmt="all">
+              <span class="formatIcon">✦</span> All 3 Formats
+            </div>
+            <div class="formatBtn" onclick="selectFormat(this,'web')" data-fmt="web">
+              <span class="formatIcon">🌐</span> Website
+            </div>
+            <div class="formatBtn" onclick="selectFormat(this,'pdf')" data-fmt="pdf">
+              <span class="formatIcon">📄</span> PDF Report
+            </div>
+            <div class="formatBtn" onclick="selectFormat(this,'excel')" data-fmt="excel">
+              <span class="formatIcon">📊</span> Excel Sheet
+            </div>
+          </div>
+          <div class="formGroup">
+            <label>Access Control — Who can view this output?</label>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;" id="accessEmailsContainer">
+              <input id="accessEmails" placeholder="coach@email.com, client@email.com (comma separated)" style="flex:1" />
+            </div>
+            <div class="helpText">Leave blank to use the logged-in coach's email. Add client email to share with them.</div>
+          </div>
+        </div>
+
+        <div style="text-align:center; margin-bottom:16px;">
+          <button class="btn btn-primary btn-lg" onclick="generateOutput()" id="generateBtn">
+            <span id="generateBtnText">⚡ Generate Program</span>
+          </button>
+        </div>
+
+        <div class="outputPanel" id="outputPanel">
+          <div class="card" style="margin-bottom:16px;">
+            <div class="cardTitle">Generated Program</div>
+            <div class="analysisOutput" id="analysisText"></div>
+          </div>
+          <div class="downloadBtns" id="downloadBtns">
+            <button class="btn btn-ghost" onclick="previewWebsite()" id="btnWeb" style="display:none">🌐 Preview Website</button>
+            <button class="btn btn-ghost" onclick="downloadPDF()" id="btnPDF" style="display:none">📄 Download PDF</button>
+            <button class="btn btn-ghost" onclick="downloadExcel()" id="btnExcel" style="display:none">📊 Download Excel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CLIENTS -->
+    <div class="section coach-only" id="section-clients">
+      <div class="pageHeader">
+        <div class="pageTitle">CLIENT<span>S</span></div>
+        <button class="btn btn-primary" onclick="openAddClient()">+ Add Client</button>
+      </div>
+      <div id="clientsList"></div>
+    </div>
+
+    <!-- PROGRAMS -->
+    <div class="section" id="section-programs">
+      <div class="pageHeader">
+        <div class="pageTitle">MY <span>PROGRAMS</span></div>
+      </div>
+      <div id="programsList">
+        <div style="color:var(--text2); text-align:center; padding:60px; font-size:14px;">
+          No programs generated yet. Create a new session to get started.
+        </div>
+      </div>
+    </div>
+
+    <!-- YOUTUBE LIBRARY -->
+    <div class="section coach-only" id="section-youtube">
+      <div class="pageHeader">
+        <div class="pageTitle">EXERCISE <span>LIBRARY</span></div>
+      </div>
+      <div class="ytPlaceholder">
+        <span class="ytIcon">▶️</span>
+        <div style="font-family:'Bebas Neue',sans-serif; font-size:24px; letter-spacing:2px; color:var(--text); margin-bottom:8px;">YOUTUBE LIBRARY COMING SOON</div>
+        <p style="font-size:13px; max-width:500px; margin:0 auto; line-height:1.7;">
+          This section will connect to your YouTube channel playlists. When you select <strong>Phase 1, 2, or 3</strong> for a client, exercises will auto-populate from the matching playlist.
+        </p>
+        <div style="margin-top:24px; display:flex; gap:16px; justify-content:center; flex-wrap:wrap;">
+          <div style="background:var(--card); border:1px solid var(--border); border-radius:10px; padding:16px 24px; text-align:left;">
+            <div class="phaseBadge phase1" style="margin-bottom:8px">Phase 1</div>
+            <div style="font-size:12px; color:var(--text2);">Playlist: <em>Mobility & Space</em></div>
+            <div style="font-size:11px; color:var(--border); margin-top:4px;">→ Add playlist URL to link</div>
+          </div>
+          <div style="background:var(--card); border:1px solid var(--border); border-radius:10px; padding:16px 24px; text-align:left;">
+            <div class="phaseBadge phase2" style="margin-bottom:8px">Phase 2</div>
+            <div style="font-size:12px; color:var(--text2);">Playlist: <em>Control & Stability</em></div>
+            <div style="font-size:11px; color:var(--border); margin-top:4px;">→ Add playlist URL to link</div>
+          </div>
+          <div style="background:var(--card); border:1px solid var(--border); border-radius:10px; padding:16px 24px; text-align:left;">
+            <div class="phaseBadge phase3" style="margin-bottom:8px">Phase 3</div>
+            <div style="font-size:12px; color:var(--text2);">Playlist: <em>Load Integration</em></div>
+            <div style="font-size:11px; color:var(--border); margin-top:4px;">→ Add playlist URL to link</div>
+          </div>
+        </div>
+        <div style="margin-top:24px;">
+          <div class="formGroup" style="max-width:400px; margin:0 auto;">
+            <label>Channel Name (for future integration)</label>
+            <input id="ytChannelName" placeholder="Your YouTube channel name" />
+          </div>
+          <button class="btn btn-ghost" style="margin-top:8px;" onclick="saveYTChannel()">Save Channel Name</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACCESS CONTROL -->
+    <div class="section coach-only" id="section-access">
+      <div class="pageHeader">
+        <div class="pageTitle">ACCESS <span>CONTROL</span></div>
+      </div>
+      <div class="grid2">
+        <div class="card">
+          <div class="cardTitle">🛡 Coach Access</div>
+          <div id="coachAccessList"></div>
+          <hr class="divider">
+          <div class="formGroup">
+            <label>Add Coach Email</label>
+            <div style="display:flex; gap:8px;">
+              <input id="newCoachEmail" placeholder="coach@email.com" style="flex:1"/>
+              <button class="btn btn-primary btn-sm" onclick="addAccess('coach')">Add</button>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="cardTitle">🧑 Client Access</div>
+          <div id="clientAccessList"></div>
+          <hr class="divider">
+          <div class="formGroup">
+            <label>Add Client Email</label>
+            <div style="display:flex; gap:8px;">
+              <input id="newClientEmail" placeholder="client@email.com" style="flex:1"/>
+              <button class="btn btn-success btn-sm" onclick="addAccess('client')">Add</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /mainContent -->
+</div><!-- /app -->
+
+<!-- CELEBRATION OVERLAY -->
+<div id="celebrationOverlay">
+  <canvas class="confetti" id="confettiCanvas"></canvas>
+  <div class="celebBox">
+    <span class="celebEmoji">🏆</span>
+    <div class="celebTitle">PHASE COMPLETE!</div>
+    <div class="celebMsg" id="celebMsg">
+      Amazing work! You've successfully completed your current phase and are ready to level up. Your coach will advance your program to the next phase.
+    </div>
+    <div id="celebPhaseShow"></div>
+    <button class="btn btn-primary btn-lg" style="margin-top:16px" onclick="closeCelebration()">Continue →</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast">
+  <span id="toastIcon">✓</span>
+  <span id="toastMsg">Done</span>
+</div>
+
+<script>
+// ──────────────────────────────────────────────
+//  STATE
+// ──────────────────────────────────────────────
+const STATE = {
+  currentUser: null,
+  currentRole: null,
+  selectedFormat: 'all',
+  sessions: JSON.parse(localStorage.getItem('kinetic_sessions') || '[]'),
+  stats: JSON.parse(localStorage.getItem('kinetic_stats') || '{"sessions":0,"upgrades":0}'),
+  access: JSON.parse(localStorage.getItem('kinetic_access') || JSON.stringify({
+    coaches: ['coach@kinetic.com', 'admin@kinetic.com'],
+    clients: ['client1@gmail.com', 'client2@gmail.com', 'client3@gmail.com']
+  })),
+  ytChannel: localStorage.getItem('kinetic_yt') || '',
+};
+
+function saveState() {
+  localStorage.setItem('kinetic_sessions', JSON.stringify(STATE.sessions));
+  localStorage.setItem('kinetic_stats', JSON.stringify(STATE.stats));
+  localStorage.setItem('kinetic_access', JSON.stringify(STATE.access));
+}
+
+// ──────────────────────────────────────────────
+//  AUTH
+// ──────────────────────────────────────────────
+function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+  const pass = document.getElementById('loginPass').value;
+  const err = document.getElementById('loginErr');
+
+  if (!email) { showLoginErr('Please enter your email.'); return; }
+
+  const isCoach = STATE.access.coaches.includes(email);
+  const isClient = STATE.access.clients.includes(email);
+
+  if (!isCoach && !isClient) { showLoginErr('Access denied. Email not authorized.'); return; }
+  if (!pass) { showLoginErr('Please enter your access code.'); return; }
+
+  err.style.display = 'none';
+  STATE.currentUser = email;
+  STATE.currentRole = isCoach ? 'coach' : 'client';
+
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+
+  initApp();
+}
+
+document.getElementById('loginEmail').addEventListener('keypress', e => { if(e.key==='Enter') document.getElementById('loginPass').focus(); });
+document.getElementById('loginPass').addEventListener('keypress', e => { if(e.key==='Enter') doLogin(); });
+
+function showLoginErr(msg) {
+  const err = document.getElementById('loginErr');
+  err.textContent = msg;
+  err.style.display = 'block';
+}
+
+function doLogout() {
+  STATE.currentUser = null;
+  STATE.currentRole = null;
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('loginEmail').value = '';
+  document.getElementById('loginPass').value = '';
+  document.getElementById('loginErr').style.display = 'none';
+}
+
+// ──────────────────────────────────────────────
+//  APP INIT
+// ──────────────────────────────────────────────
+function initApp() {
+  const email = STATE.currentUser;
+  const role = STATE.currentRole;
+
+  // Sidebar user info
+  document.getElementById('sidebarAvatar').textContent = email[0].toUpperCase();
+  document.getElementById('sidebarName').textContent = email;
+  document.getElementById('sidebarRole').textContent = role === 'coach' ? '🛡 Coach' : '🧑 Client';
+
+  // Welcome
+  document.getElementById('welcomeMsg').textContent = `Welcome back, ${email}`;
+
+  // Hide coach-only items for clients
+  document.querySelectorAll('.coach-only').forEach(el => {
+    el.style.display = role === 'coach' ? '' : 'none';
+  });
+
+  renderDashboard();
+  renderAccessControl();
+}
+
+// ──────────────────────────────────────────────
+//  NAVIGATION
+// ──────────────────────────────────────────────
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.navItem').forEach(n => n.classList.remove('active'));
+  document.getElementById('section-' + id).classList.add('active');
+  const navEl = document.getElementById('nav-' + id);
+  if (navEl) navEl.classList.add('active');
+
+  if (id === 'clients') renderClientsList();
+  if (id === 'access') renderAccessControl();
+  if (id === 'dashboard') renderDashboard();
+  if (id === 'programs') renderProgramsList();
+}
+
+function switchTab(id) {
+  document.querySelectorAll('.tabContent').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const tabs = document.querySelectorAll('.tab');
+  const tabMap = { 'tab-client': 0, 'tab-subjective': 1, 'tab-objective': 2, 'tab-output': 3 };
+  if (tabMap[id] !== undefined) tabs[tabMap[id]].classList.add('active');
+}
+
+// ──────────────────────────────────────────────
+//  FORMAT SELECTOR
+// ──────────────────────────────────────────────
+function selectFormat(el, fmt) {
+  document.querySelectorAll('.formatBtn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  STATE.selectedFormat = fmt;
+}
+
+// ──────────────────────────────────────────────
+//  COLLECT FORM DATA
+// ──────────────────────────────────────────────
+function collectFormData() {
+  return {
+    name: v('f_name'), age: v('f_age'), phase: v('f_phase'), goal: v('f_goal'),
+    injury: v('f_injury'), subjective: v('f_subjective'),
+    toetouch: v('f_toetouch'), ankle_mob: v('f_ankle_mob'), pronsup: v('f_pronsup'),
+    tib_ir_l: v('f_tib_ir_l'), tib_ir_r: v('f_tib_ir_r'),
+    hip_ir_l: v('f_hip_ir_l'), hip_ir_r: v('f_hip_ir_r'),
+    hip_er_l: v('f_hip_er_l'), hip_er_r: v('f_hip_er_r'),
+    hip_flex_l: v('f_hip_flex_l'), hip_flex_r: v('f_hip_flex_r'),
+    hip_ext_l: v('f_hip_ext_l'), hip_ext_r: v('f_hip_ext_r'),
+    hip_abd_l: v('f_hip_abd_l'), hip_abd_r: v('f_hip_abd_r'),
+    sp_flex: v('f_sp_flex'), sp_ext: v('f_sp_ext'),
+    sp_lfl: v('f_sp_lfl'), sp_lfr: v('f_sp_lfr'),
+    sp_rotl: v('f_sp_rotl'), sp_rotr: v('f_sp_rotr'),
+    sh_flex_l: v('f_sh_flex_l'), sh_flex_r: v('f_sh_flex_r'),
+    sh_ext_l: v('f_sh_ext_l'), sh_ext_r: v('f_sh_ext_r'),
+    sh_ir_l: v('f_sh_ir_l'), sh_ir_r: v('f_sh_ir_r'),
+    sh_er_l: v('f_sh_er_l'), sh_er_r: v('f_sh_er_r'),
+    load: v('f_load'),
+  };
+}
+function v(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
+
+// ──────────────────────────────────────────────
+//  BUILD CLAUDE PROMPT
+// ──────────────────────────────────────────────
+function buildPrompt(d) {
+  return `You are an elite Movement Specialist and Rehabilitation Coach integrating:
+- Donald Neumann Kinesiology
+- PRI (Postural Restoration Institute)
+- Integrated Kinematic Neurology
+- Expansion/Compression & Limb Arc Model
+- FRC (Functional Range Conditioning)
+
+You analyze clients based on: Biomechanics, Breathing mechanics, Gait phases, Joint interactions (regional interdependence), Load tolerance.
+
+🔹 CLIENT INPUT
+Name: ${d.name || 'Unknown'}
+Age: ${d.age || 'Unknown'}
+Goal: ${d.goal || 'Not specified'}
+Injury history: ${d.injury || 'None reported'}
+Phase: ${d.phase}
+
+🔹 SUBJECTIVE ASSESSMENT:
+${d.subjective || 'None provided'}
+
+🔹 OBJECTIVE ASSESSMENT:
+Toe Touch: ${d.toetouch || 'Not assessed'}
+HIP:
+  IR: L (${d.hip_ir_l || '–'}) / R (${d.hip_ir_r || '–'})
+  ER: L (${d.hip_er_l || '–'}) / R (${d.hip_er_r || '–'})
+  Flexion: L (${d.hip_flex_l || '–'}) / R (${d.hip_flex_r || '–'})
+  Extension: L (${d.hip_ext_l || '–'}) / R (${d.hip_ext_r || '–'})
+  Abduction: L (${d.hip_abd_l || '–'}) / R (${d.hip_abd_r || '–'})
+TIBIA:
+  IR: L (${d.tib_ir_l || '–'}) / R (${d.tib_ir_r || '–'})
+FOOT & ANKLE:
+  Mobility: ${d.ankle_mob || '–'}
+  Pronation/Supination: ${d.pronsup || '–'}
+SPINE:
+  Flexion: ${d.sp_flex || '–'}
+  Extension: ${d.sp_ext || '–'}
+  Lateral Flexion: L (${d.sp_lfl || '–'}) / R (${d.sp_lfr || '–'})
+  Rotation: L (${d.sp_rotl || '–'}) / R (${d.sp_rotr || '–'})
+SHOULDER:
+  Flexion: L (${d.sh_flex_l || '–'}) / R (${d.sh_flex_r || '–'})
+  Extension: L (${d.sh_ext_l || '–'}) / R (${d.sh_ext_r || '–'})
+  IR: L (${d.sh_ir_l || '–'}) / R (${d.sh_ir_r || '–'})
+  ER: L (${d.sh_er_l || '–'}) / R (${d.sh_er_r || '–'})
+LOAD TOLERANCE TESTS: ${d.load || 'Not assessed'}
+
+🔹 YOUR TASKS
+1. PATTERN RECOGNITION: Identify joint restrictions, asymmetries, compensation patterns.
+2. GAIT PHASE ANALYSIS: Determine stuck gait phase and explain WHY.
+3. BREATHING ANALYSIS: Ribcage state and pelvis link.
+4. ROOT CAUSE MODEL: Connect Foot→Tibia→Hip→Pelvis→Spine→Shoulder chain dysfunction.
+5. CLASSIFY CLIENT PHASE: Confirm or note discrepancy from assigned ${d.phase}.
+
+🔹 PROGRAM DESIGN
+STRUCTURE:
+WARM UP: 1. Breathing  2. Mobility  3. PAILs/RAILs  4. Core activation
+CONDITIONING: 2–3 compound + 2–3 accessory exercises (match EXACTLY to dysfunction, respect ${d.phase} loading rules)
+COOLDOWN: Breathing + Mobility
+HOMEWORK: 1–2 breathing, 1–2 mobility, 1–2 activation
+
+EXERCISE SELECTION RULES:
+- Match exercises EXACTLY to the dysfunction found
+- Respect phase: ${d.phase === 'Phase 1' ? 'Phase 1 = NO heavy loading, focus mobility/breathing/PRI repositioning' : d.phase === 'Phase 2' ? 'Phase 2 = motor control, PAILs/RAILs, bodyweight loading only' : 'Phase 3 = progressive external load, compound strength, full kinetic chain'}
+
+🔹 OUTPUT FORMAT (STRICT)
+--- ANALYSIS ---
+Key Findings:
+  • [list]
+Gait Phase Issue:
+  • [explain]
+Breathing Pattern:
+  • [explain]
+Root Cause Chain:
+  • Foot → Tibia → Hip → Pelvis → Spine → Shoulder
+
+--- PROGRAM ---
+WARM UP:
+  1. [exercise — sets/reps/cues]
+  2. [exercise — sets/reps/cues]
+  3. [exercise — sets/reps/cues]
+  4. [exercise — sets/reps/cues]
+
+CONDITIONING:
+  1. [exercise — sets/reps/cues]
+  2. [exercise — sets/reps/cues]
+  3. [exercise — sets/reps/cues]
+
+COOLDOWN:
+  1. [exercise — sets/reps/cues]
+  2. [exercise — sets/reps/cues]
+
+--- HOMEWORK ---
+Daily:
+  1. [exercise — reps/duration/cues]
+  2. [exercise — reps/duration/cues]
+  3. [exercise — reps/duration/cues]
+
+Keep output clean, highly professional, and clinically precise.`;
+}
+
+// ──────────────────────────────────────────────
+//  GENERATE OUTPUT
+// ──────────────────────────────────────────────
+let lastGeneratedText = '';
+let lastGeneratedData = null;
+
+async function generateOutput() {
+  const data = collectFormData();
+  if (!data.name) { showToast('Please enter client name', 'error'); return; }
+
+  const btn = document.getElementById('generateBtn');
+  const btnText = document.getElementById('generateBtnText');
+  btnText.innerHTML = '<span class="spinner"></span> Generating...';
+  btn.disabled = true;
+
+  try {
+    const prompt = buildPrompt(data);
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    const result = await response.json();
+    const text = result.content?.map(i => i.text || '').join('\n') || '';
+    lastGeneratedText = text;
+    lastGeneratedData = { ...data, generatedAt: new Date().toISOString(), output: text };
+
+    // Show output
+    const outEl = document.getElementById('analysisText');
+    outEl.style.display = 'block';
+    outEl.innerHTML = formatOutputHTML(text);
+
+    // Show download buttons
+    const panel = document.getElementById('outputPanel');
+    panel.classList.add('visible');
+
+    const fmt = STATE.selectedFormat;
+    document.getElementById('btnWeb').style.display = (fmt === 'all' || fmt === 'web') ? 'flex' : 'none';
+    document.getElementById('btnPDF').style.display = (fmt === 'all' || fmt === 'pdf') ? 'flex' : 'none';
+    document.getElementById('btnExcel').style.display = (fmt === 'all' || fmt === 'excel') ? 'flex' : 'none';
+
+    // Save session
+    STATE.sessions.unshift(lastGeneratedData);
+    STATE.stats.sessions++;
+    saveState();
+
+    showToast('Program generated successfully!', 'success');
+  } catch(e) {
+    showToast('Error generating program. Check API.', 'error');
+    console.error(e);
+  } finally {
+    btnText.textContent = '⚡ Generate Program';
+    btn.disabled = false;
+  }
+}
+
+function formatOutputHTML(text) {
+  return text
+    .replace(/(---\s*.+?\s*---)/g, '<span style="color:var(--accent);font-weight:700;">$1</span>')
+    .replace(/(Key Findings:|Gait Phase Issue:|Breathing Pattern:|Root Cause Chain:|WARM UP:|CONDITIONING:|COOLDOWN:|Daily:)/g, '<span style="color:var(--accent2);">$1</span>')
+    .replace(/•/g, '<span style="color:var(--accent);">•</span>');
+}
+
+// ──────────────────────────────────────────────
+//  PREVIEW WEBSITE
+// ──────────────────────────────────────────────
+function previewWebsite() {
+  if (!lastGeneratedData) return;
+  const d = lastGeneratedData;
+  const phaseColor = d.phase === 'Phase 1' ? '#4af0b8' : d.phase === 'Phase 2' ? '#f0c44a' : '#f04a7a';
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Program — ${d.name}</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'DM Sans',sans-serif;background:#0a0a0a;color:#e8eaf0;min-height:100vh}
+.hero{background:linear-gradient(135deg,#111318 0%,#0a1a0a 100%);border-bottom:1px solid #252830;padding:48px 0 32px}
+.container{max-width:800px;margin:0 auto;padding:0 32px}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;color:${phaseColor};margin-bottom:32px}
+h1{font-family:'Bebas Neue',sans-serif;font-size:52px;letter-spacing:3px;line-height:1}
+h1 span{color:${phaseColor}}
+.meta{display:flex;gap:16px;margin-top:16px;flex-wrap:wrap}
+.metaItem{font-size:12px;color:#6b7280;text-transform:uppercase;letter-spacing:1px}
+.metaItem strong{color:#e8eaf0}
+.phaseBadge{display:inline-flex;align-items:center;padding:4px 14px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;background:rgba(255,255,255,0.05);border:1px solid ${phaseColor}33;color:${phaseColor};margin-top:16px}
+.section{padding:40px 0;border-bottom:1px solid #1a1d25}
+.section:last-child{border:none}
+.secTitle{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;color:${phaseColor};margin-bottom:20px}
+pre{font-family:'DM Mono',monospace;font-size:13px;line-height:1.9;color:#9ca3af;white-space:pre-wrap}
+.footer{text-align:center;padding:32px;color:#374151;font-size:12px}
+</style>
+</head>
+<body>
+<div class="hero">
+<div class="container">
+<div class="logo">⚡ KINETIC PLATFORM</div>
+<h1>MOVEMENT<br><span>PROGRAM</span></h1>
+<div class="meta">
+<div class="metaItem">Client: <strong>${d.name}</strong></div>
+<div class="metaItem">Age: <strong>${d.age}</strong></div>
+<div class="metaItem">Generated: <strong>${new Date(d.generatedAt).toLocaleDateString()}</strong></div>
+</div>
+<div class="phaseBadge">${d.phase}</div>
+</div>
+</div>
+<div class="container">
+<div class="section">
+<div class="secTitle">Goal</div>
+<pre>${d.goal}</pre>
+</div>
+<div class="section">
+<div class="secTitle">Program Output</div>
+<pre>${d.output}</pre>
+</div>
+</div>
+<div class="footer">Generated by Kinetic Elite Movement Platform • Confidential Client Document</div>
+</body></html>`;
+
+  const blob = new Blob([html], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  window.open(url, '_blank');
+}
+
+// ──────────────────────────────────────────────
+//  DOWNLOAD TRIGGERS (server-side generation)
+// ──────────────────────────────────────────────
+function downloadPDF() {
+  if (!lastGeneratedData) return;
+  // Store in localStorage for the Python script to pick up
+  localStorage.setItem('kinetic_export_pdf', JSON.stringify(lastGeneratedData));
+  showToast('PDF generation requires the server. Use "Preview Website" to print as PDF.', 'error');
+  // In production: POST to backend endpoint that runs the Python PDF generation
+}
+
+function downloadExcel() {
+  if (!lastGeneratedData) return;
+  localStorage.setItem('kinetic_export_excel', JSON.stringify(lastGeneratedData));
+  showToast('Excel generation requires the server. Contact your coach for the Excel file.', 'error');
+  // In production: POST to backend endpoint
+}
+
+// ──────────────────────────────────────────────
+//  DASHBOARD
+// ──────────────────────────────────────────────
+function renderDashboard() {
+  document.getElementById('statClients').textContent = STATE.access.clients.length;
+  document.getElementById('statSessions').textContent = STATE.stats.sessions;
+  document.getElementById('statUpgrades').textContent = STATE.stats.upgrades;
+
+  const list = document.getElementById('dashboardClientList');
+  if (!STATE.sessions.length) {
+    list.innerHTML = '<div style="color:var(--text2);font-size:13px;padding:20px 0;">No sessions yet. Create your first session.</div>';
+    return;
+  }
+  const recent = STATE.sessions.slice(0, 5);
+  list.innerHTML = recent.map(s => `
+    <div class="clientRow">
+      <div class="clientAvatar">${(s.name||'?')[0].toUpperCase()}</div>
+      <div>
+        <div class="clientName">${s.name||'Unknown'}</div>
+        <div class="clientMeta">${s.goal||'No goal'} · ${new Date(s.generatedAt).toLocaleDateString()}</div>
+      </div>
+      <span class="phaseBadge ${s.phase==='Phase 1'?'phase1':s.phase==='Phase 2'?'phase2':'phase3'}">${s.phase}</span>
+    </div>
+  `).join('');
+}
+
+// ──────────────────────────────────────────────
+//  CLIENTS LIST
+// ──────────────────────────────────────────────
+function renderClientsList() {
+  const list = document.getElementById('clientsList');
+  if (!STATE.access.clients.length) {
+    list.innerHTML = '<div style="color:var(--text2);text-align:center;padding:60px;font-size:14px;">No clients added yet.</div>';
+    return;
+  }
+  list.innerHTML = STATE.access.clients.map((email, i) => `
+    <div class="clientRow">
+      <div class="clientAvatar">${email[0].toUpperCase()}</div>
+      <div>
+        <div class="clientName">${email}</div>
+        <div class="clientMeta"><span class="accessTag accessClient">Client</span></div>
+      </div>
+      <div class="clientActions">
+        <button class="btn btn-success btn-sm" onclick="celebrateClient('${email}')">🎉 Phase Up</button>
+        <button class="btn btn-ghost btn-sm" onclick="newSessionForClient('${email}')">+ Session</button>
+        <button class="btn btn-danger btn-sm" onclick="removeAccess('client','${email}')">×</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function newSessionForClient(email) {
+  document.getElementById('f_name').value = email.split('@')[0];
+  showSection('newSession');
+  switchTab('tab-client');
+}
+
+// ──────────────────────────────────────────────
+//  PROGRAMS LIST
+// ──────────────────────────────────────────────
+function renderProgramsList() {
+  const list = document.getElementById('programsList');
+  const sessions = STATE.currentRole === 'coach'
+    ? STATE.sessions
+    : STATE.sessions.filter(s => s.accessEmails?.includes(STATE.currentUser));
+
+  if (!sessions.length) {
+    list.innerHTML = '<div style="color:var(--text2);text-align:center;padding:60px;font-size:14px;">No programs found.</div>';
+    return;
+  }
+  list.innerHTML = sessions.map((s, i) => `
+    <div class="card" style="margin-bottom:12px; cursor:pointer;" onclick="expandProgram(${i})">
+      <div style="display:flex;align-items:center;gap:16px;">
+        <div class="clientAvatar" style="width:44px;height:44px;">${(s.name||'?')[0].toUpperCase()}</div>
+        <div style="flex:1">
+          <div style="font-weight:600; font-size:15px;">${s.name||'Unknown Client'}</div>
+          <div style="font-size:12px; color:var(--text2);">${s.goal||''} · ${new Date(s.generatedAt).toLocaleDateString()}</div>
+        </div>
+        <span class="phaseBadge ${s.phase==='Phase 1'?'phase1':s.phase==='Phase 2'?'phase2':'phase3'}">${s.phase}</span>
+        <span style="color:var(--text2);font-size:18px;">›</span>
+      </div>
+      <div id="prog-${i}" style="display:none; margin-top:16px; padding-top:16px; border-top:1px solid var(--border);">
+        <pre style="font-family:'DM Mono',monospace;font-size:12px;color:var(--text2);white-space:pre-wrap;">${s.output||''}</pre>
+        <div style="margin-top:12px; display:flex; gap:8px;">
+          <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation(); repreviewWeb(${i})">🌐 Web</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function expandProgram(i) {
+  const el = document.getElementById('prog-' + i);
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+function repreviewWeb(i) {
+  lastGeneratedData = STATE.sessions[i];
+  previewWebsite();
+}
+
+// ──────────────────────────────────────────────
+//  ACCESS CONTROL
+// ──────────────────────────────────────────────
+function renderAccessControl() {
+  renderEmailList('coachAccessList', STATE.access.coaches, 'coach');
+  renderEmailList('clientAccessList', STATE.access.clients, 'client');
+}
+
+function renderEmailList(containerId, emails, role) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = emails.map(e => `
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);">
+      <div class="userAvatar" style="width:28px;height:28px;font-size:11px;">${e[0].toUpperCase()}</div>
+      <span style="flex:1;font-size:13px;font-family:'DM Mono',monospace;">${e}</span>
+      <span class="accessTag ${role==='coach'?'accessCoach':'accessClient'}">${role}</span>
+      <button class="btn btn-danger btn-sm" onclick="removeAccess('${role}','${e}')">×</button>
+    </div>
+  `).join('') || '<div style="color:var(--text2);font-size:13px;padding:8px 0;">None added.</div>';
+}
+
+function addAccess(role) {
+  const inputId = role === 'coach' ? 'newCoachEmail' : 'newClientEmail';
+  const email = document.getElementById(inputId).value.trim().toLowerCase();
+  if (!email || !email.includes('@')) { showToast('Enter a valid email', 'error'); return; }
+  const arr = STATE.access[role === 'coach' ? 'coaches' : 'clients'];
+  if (arr.includes(email)) { showToast('Email already exists', 'error'); return; }
+  arr.push(email);
+  saveState();
+  document.getElementById(inputId).value = '';
+  renderAccessControl();
+  showToast(`${email} added as ${role}`, 'success');
+}
+
+function removeAccess(role, email) {
+  const key = role === 'coach' ? 'coaches' : 'clients';
+  STATE.access[key] = STATE.access[key].filter(e => e !== email);
+  saveState();
+  renderAccessControl();
+  renderClientsList();
+  showToast(`${email} removed`, 'success');
+}
+
+// ──────────────────────────────────────────────
+//  PHASE UPGRADE & CELEBRATION
+// ──────────────────────────────────────────────
+function triggerPhaseUpgrade() {
+  const email = document.getElementById('upgradeEmail').value.trim();
+  const name = v('f_name');
+  const currentPhase = v('f_phase');
+
+  const phaseMap = { 'Phase 1': 'Phase 2', 'Phase 2': 'Phase 3', 'Phase 3': 'Phase 3' };
+  const nextPhase = phaseMap[currentPhase] || 'Phase 3';
+
+  if (nextPhase === currentPhase) {
+    showToast('Already at Phase 3 — the highest level!', 'error'); return;
+  }
+
+  STATE.stats.upgrades++;
+  saveState();
+
+  showCelebration(name || 'Client', currentPhase, nextPhase, email);
+  document.getElementById('f_phase').value = nextPhase;
+  showToast(`${name} upgraded to ${nextPhase}!`, 'success');
+}
+
+function celebrateClient(email) {
+  showCelebration(email.split('@')[0], 'Current Phase', 'Next Phase', email);
+}
+
+function showCelebration(name, fromPhase, toPhase, email) {
+  const phaseColor = toPhase === 'Phase 2' ? '#f0c44a' : '#f04a7a';
+  document.getElementById('celebMsg').textContent = `${name} has successfully completed ${fromPhase} and is ready to advance! A congratulations message has been queued for ${email || 'the client'}.`;
+
+  document.getElementById('celebPhaseShow').innerHTML = `
+    <div style="display:flex; align-items:center; justify-content:center; gap:16px; margin:16px 0;">
+      <span class="phaseBadge phase1" style="font-size:13px;">${fromPhase}</span>
+      <span style="font-size:20px; color:${phaseColor}">→</span>
+      <span class="phaseBadge ${toPhase==='Phase 2'?'phase2':'phase3'}" style="font-size:13px;">${toPhase}</span>
+    </div>
+  `;
+
+  document.getElementById('celebrationOverlay').style.display = 'flex';
+  launchConfetti();
+}
+
+function closeCelebration() {
+  document.getElementById('celebrationOverlay').style.display = 'none';
+  stopConfetti();
+}
+
+// ──────────────────────────────────────────────
+//  CONFETTI
+// ──────────────────────────────────────────────
+let confettiAF;
+function launchConfetti() {
+  const canvas = document.getElementById('confettiCanvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = canvas.offsetWidth;
+  canvas.height = canvas.offsetHeight;
+
+  const colors = ['#c8f04a','#4af0b8','#f04a7a','#f0c44a','#fff'];
+  const pieces = Array.from({length: 80}, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height - canvas.height,
+    r: Math.random() * 6 + 3,
+    c: colors[Math.floor(Math.random()*colors.length)],
+    vx: (Math.random()-0.5)*3,
+    vy: Math.random()*3+1,
+    angle: Math.random()*360,
+    spin: (Math.random()-0.5)*6,
+  }));
+
+  function draw() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    pieces.forEach(p => {
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.angle*Math.PI/180);
+      ctx.fillStyle = p.c; ctx.fillRect(-p.r,-p.r/2,p.r*2,p.r);
+      ctx.restore();
+      p.x += p.vx; p.y += p.vy; p.angle += p.spin;
+      if (p.y > canvas.height) { p.y = -10; p.x = Math.random()*canvas.width; }
+    });
+    confettiAF = requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+function stopConfetti() {
+  if (confettiAF) cancelAnimationFrame(confettiAF);
+}
+
+// ──────────────────────────────────────────────
+//  YOUTUBE
+// ──────────────────────────────────────────────
+function saveYTChannel() {
+  const name = document.getElementById('ytChannelName').value.trim();
+  localStorage.setItem('kinetic_yt', name);
+  STATE.ytChannel = name;
+  showToast(`Channel "${name}" saved. Integration coming soon!`, 'success');
+}
+
+// ──────────────────────────────────────────────
+//  TOAST
+// ──────────────────────────────────────────────
+let toastTimer;
+function showToast(msg, type = 'success') {
+  const toast = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  document.getElementById('toastIcon').textContent = type === 'success' ? '✓' : '✕';
+  toast.className = 'show ' + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { toast.className = ''; }, 3200);
+}
+
+// ──────────────────────────────────────────────
+//  INIT
+// ──────────────────────────────────────────────
+// Pre-fill default demo login hint
+document.addEventListener('DOMContentLoaded', () => {
+  // show demo access hint
+});
+</script>
+</body>
+</html>
