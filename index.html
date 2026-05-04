@@ -760,9 +760,6 @@
 <!-- ═══════════════════════ SCRIPTS ═══════════════════════ -->
 <script src="js/supabaseClient.js"></script>
 <script src="js/auth.js"></script>
-<script>
-  window.GEMINI_API_KEY = 'AIzaSyBAbAWw8GyjO36bUhCZ8BF_y7GNcRbJD4Q';
-</script>
 <script src="js/dashboard.js"></script>
 <script src="js/clients.js"></script>
 <script src="js/subscriptions.js"></script>
@@ -846,6 +843,7 @@ const UI = {
 
   _hideLoading() {
     const ol = document.getElementById('loading-overlay');
+    if (!ol) return;
     ol.style.transition = 'opacity 0.4s';
     ol.style.opacity = '0';
     setTimeout(() => ol.remove(), 440);
@@ -871,24 +869,25 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ── BOOT ─────────────────────────────────────────────────────
-// Hard timeout: if init takes > 6s for any reason, show login anyway.
-const _bootTimeout = setTimeout(() => {
+let _bootDone = false;
+function _finishBoot(profile) {
+  if (_bootDone) return;
+  _bootDone = true;
   UI._hideLoading();
-  document.getElementById('screen-login').classList.remove('hidden');
-}, 6000);
+  if (profile) UI._showApp();
+  else document.getElementById('screen-login').classList.remove('hidden');
+}
+
+// Hard fallback: show login after 3s no matter what
+setTimeout(() => _finishBoot(null), 3000);
 
 (async () => {
   try {
     const profile = await Auth.init();
-    clearTimeout(_bootTimeout);
-    UI._hideLoading();
-    if (profile) UI._showApp();
-    else document.getElementById('screen-login').classList.remove('hidden');
+    _finishBoot(profile);
   } catch(e) {
-    clearTimeout(_bootTimeout);
     console.error('Boot error:', e);
-    UI._hideLoading();
-    document.getElementById('screen-login').classList.remove('hidden');
+    _finishBoot(null);
   }
   Auth.listen(event => {
     if (event === 'PASSWORD_RECOVERY') Dashboard.openModal('modal-change-password');

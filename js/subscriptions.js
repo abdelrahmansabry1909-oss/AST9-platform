@@ -58,7 +58,7 @@ const Subscriptions = (() => {
       <tr>
         <td>
           <div class="client-row-name">
-            <div class="avatar avatar-sm">${clientName[0].toUpperCase()}</div>
+            <div class="avatar avatar-sm">${(clientName || '?')[0].toUpperCase()}</div>
             <div class="client-row-info">
               <div class="name">${clientName}</div>
             </div>
@@ -79,7 +79,7 @@ const Subscriptions = (() => {
         </td>
         <td>
           <div style="display:flex;gap:6px">
-            ${isPending ? `<button class="btn btn-teal btn-xs" onclick="Subscriptions.activate('${s.id}','${s.client_id}','${s.plan}','${s.start_date}','${s.end_date}')">Activate</button>` : ''}
+            ${isPending ? `<button class="btn btn-teal btn-xs" onclick="Subscriptions.activate('${_esc(s.id)}','${_esc(s.client_id)}','${_esc(s.plan)}','${_esc(s.start_date)}','${_esc(s.end_date)}')">Activate</button>` : ''}
             <button class="btn btn-rose btn-xs" onclick="Subscriptions.remove('${s.id}')">✕</button>
           </div>
         </td>
@@ -166,6 +166,7 @@ const Subscriptions = (() => {
     } catch(e) { console.warn('Email send error:', e); }
   }
 
+  function _esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/'/g,'&#39;').replace(/"/g,'&quot;'); }
   function _setBtnLoading(btn) {
     if (!btn) return;
     btn.dataset.orig = btn.innerHTML;
