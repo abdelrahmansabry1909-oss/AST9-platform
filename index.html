@@ -870,13 +870,9 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-// ── Auth state listener ───────────────────────────────────────
-Auth.listen(event => {
-  if (event === 'PASSWORD_RECOVERY') Dashboard.openModal('modal-change-password');
-  if (event === 'SIGNED_OUT') UI._showLogin();
-});
-
 // ── BOOT ─────────────────────────────────────────────────────
+// Auth.listen must be registered AFTER Auth.init() to avoid
+// concurrent lock contention on sb.auth token storage.
 (async () => {
   try {
     const profile = await Auth.init();
@@ -888,6 +884,10 @@ Auth.listen(event => {
     UI._hideLoading();
     document.getElementById('screen-login').classList.remove('hidden');
   }
+  Auth.listen(event => {
+    if (event === 'PASSWORD_RECOVERY') Dashboard.openModal('modal-change-password');
+    if (event === 'SIGNED_OUT') UI._showLogin();
+  });
 })();
 </script>
 </body>
