@@ -108,6 +108,7 @@ const Clients = (() => {
         const el = document.getElementById(id); if(el) el.value = '';
       });
       loadAll();
+      Dashboard.refreshClientSelects();
     } catch(e) {
       Dashboard.toast(e.message, 'error');
     } finally {

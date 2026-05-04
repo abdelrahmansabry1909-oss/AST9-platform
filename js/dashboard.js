@@ -71,11 +71,12 @@ const Dashboard = (() => {
     // Lazy-load section data
     const loaders = {
       'clients':          () => Clients.loadAll(),
-      'subscriptions':    () => Subscriptions.loadAll(),
+      'subscriptions':    () => { Subscriptions.loadAll(); _populateClientSelects(); },
       'coaches':          () => Clients.loadCoaches(),
       'dashboard':        () => loadDashboardStats(),
       'programs':         () => renderProgramsList(),
       'exercise-library': () => Clients.loadExercises?.(),
+      'new-session':      () => _populateClientSelects(),
     };
     loaders[id]?.();
   }
@@ -259,18 +260,24 @@ Keep output clean, structured, and clinically precise.`;
     btn.disabled = true;
 
     try {
-      const token = (await sb.auth.getSession()).data.session?.access_token;
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session?.access_token) {
+        toast('Session expired — please sign in again.', 'error');
+        return;
+      }
+
       const res = await fetch(`${SUPABASE_URL}/functions/v1/generate-program`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({ prompt: buildPrompt() }),
       });
 
       const result = await res.json();
-      if (!res.ok || result.error) throw new Error(result.error?.message || 'Generation failed');
+      if (!res.ok) throw new Error(result.error?.message || result.message || `Server error ${res.status}`);
+      if (result.error) throw new Error(result.error?.message || JSON.stringify(result.error));
 
       const text = result.candidates?.[0]?.content?.parts?.[0]?.text || 'No output generated.';
 
@@ -302,8 +309,8 @@ Keep output clean, structured, and clinically precise.`;
 
       toast('Program generated!', 'success');
     } catch(e) {
-      toast('Generation failed. Check API connection.', 'error');
-      console.error(e);
+      toast(e.message || 'Generation failed', 'error');
+      console.error('Generate program error:', e);
     } finally {
       btn.innerHTML = origHTML;
       btn.disabled = false;
@@ -629,6 +636,7 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
     generateProgram, previewWeb, renderProgramsList,
     toggleProgram, rePreviewWeb,
     fillClientFromSelect,
+    refreshClientSelects: _populateClientSelects,
     submitPhaseUpgrade, showCelebration, closeCelebration,
     openModal, closeModal, calcSubEndDate,
     submitChangePassword,
