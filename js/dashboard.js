@@ -260,25 +260,27 @@ Keep output clean, structured, and clinically precise.`;
     btn.disabled = true;
 
     try {
-      const apiKey = window.GEMINI_API_KEY;
-      if (!apiKey) throw new Error('Gemini API key not configured.');
+      const apiKey = window.GROQ_API_KEY;
+      if (!apiKey) throw new Error('Groq API key not configured.');
 
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
+      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
         body: JSON.stringify({
-          contents: [{ role: 'user', parts: [{ text: buildPrompt() }] }],
-          generationConfig: {
-            maxOutputTokens: 4000,
-            temperature: 0.4,
-          }
+          model: 'llama-3.3-70b-versatile',
+          max_tokens: 4096,
+          temperature: 0.4,
+          messages: [{ role: 'user', content: buildPrompt() }]
         })
       });
 
       const result = await res.json();
-      if (!res.ok || result.error) throw new Error(result.error?.message || 'Gemini API error');
+      if (!res.ok) throw new Error(result.error?.message || 'Groq API error');
 
-      const text = result.candidates?.[0]?.content?.parts?.[0]?.text || 'No output generated.';
+      const text = result.choices?.[0]?.message?.content || 'No output generated.';
 
       // Display
       const outEl = document.getElementById('program-output-text');
