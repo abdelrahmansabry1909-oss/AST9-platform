@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="AST9 — Elite Movement & Rehabilitation Coaching Platform"/>
+<title>AST9 — Elite Coaching Platform</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
+<link rel="stylesheet" href="css/styles.css"/>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>"/>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loading-overlay">
+  <div class="loader-logo">AST9</div>
+  <div class="loader-bar"></div>
+</div>
+
+<!-- TOASTS -->
+<div id="toast-container"></div>
+
+<!-- ═══════════════════════ LOGIN ═══════════════════════ -->
+<div id="screen-login">
+  <div class="login-card">
+    <div class="login-shimmer"></div>
+    <div class="login-body">
+      <div class="login-wordmark"><span class="word-ast">AST</span><span class="word-9">9</span></div>
+      <div class="login-tagline">Elite Movement & Rehab Platform</div>
+
+      <div class="login-tab-row">
+        <button class="login-tab-btn active" onclick="UI.switchLoginTab('signin')">Sign In</button>
+        <button class="login-tab-btn" onclick="UI.switchLoginTab('reset')">Reset Password</button>
+      </div>
+
+      <div id="login-error" class="login-error hidden"></div>
+
+      <!-- SIGN IN -->
+      <div id="login-form-signin">
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input id="login-email" type="email" class="form-input" placeholder="your@email.com" autocomplete="email"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input id="login-password" type="password" class="form-input" placeholder="••••••••" autocomplete="current-password"/>
+        </div>
+        <button id="login-btn" class="btn btn-primary w-full btn-xl" style="margin-top:4px" onclick="UI.handleLogin()">Sign In</button>
+        <div style="text-align:center;margin-top:14px">
+          <span style="font-size:12px;color:var(--text-tertiary)">Forgot password? </span>
+          <span style="font-size:12px;color:var(--lime);cursor:pointer;font-weight:600" onclick="UI.switchLoginTab('reset')">Reset it →</span>
+        </div>
+      </div>
+
+      <!-- RESET -->
+      <div id="login-form-reset" class="hidden">
+        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:20px;line-height:1.6">Enter your email and we'll send a reset link to your inbox.</p>
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input id="reset-email" type="email" class="form-input" placeholder="your@email.com"/>
+        </div>
+        <button id="reset-btn" class="btn btn-primary w-full" onclick="UI.handlePasswordReset()">Send Reset Link</button>
+        <div style="text-align:center;margin-top:14px">
+          <span style="font-size:12px;color:var(--lime);cursor:pointer;font-weight:600" onclick="UI.switchLoginTab('signin')">← Back to Sign In</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ APP ═══════════════════════ -->
+<div id="screen-app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-wordmark"><span class="w-ast">AST</span><span class="w-9">9</span></div>
+      <div class="sidebar-sub">Elite Coaching Platform</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Main</div>
+      <div class="nav-item active" id="nav-dashboard" onclick="Dashboard.showSection('dashboard')">
+        <span class="nav-item-icon">⬡</span> Dashboard
+      </div>
+      <div class="nav-item" id="nav-new-session" onclick="Dashboard.showSection('new-session')">
+        <span class="nav-item-icon">✦</span> New Session
+      </div>
+      <div class="nav-item" id="nav-programs" onclick="Dashboard.showSection('programs')">
+        <span class="nav-item-icon">◈</span> Programs
+      </div>
+
+      <div class="nav-section role-coach-admin">Manage</div>
+      <div class="nav-item role-coach-admin" id="nav-clients" onclick="Dashboard.showSection('clients')">
+        <span class="nav-item-icon">◉</span> Clients
+      </div>
+      <div class="nav-item role-coach-admin" id="nav-subscriptions" onclick="Dashboard.showSection('subscriptions')">
+        <span class="nav-item-icon">◌</span> Subscriptions
+      </div>
+      <div class="nav-item role-coach-admin" id="nav-exercise-library" onclick="Dashboard.showSection('exercise-library')">
+        <span class="nav-item-icon">▶</span> Exercise Library
+      </div>
+
+      <div class="nav-section role-admin-only">Admin</div>
+      <div class="nav-item role-admin-only" id="nav-coaches" onclick="Dashboard.showSection('coaches')">
+        <span class="nav-item-icon">◈</span> Coaches
+      </div>
+      <div class="nav-item role-admin-only" id="nav-settings" onclick="Dashboard.showSection('settings')">
+        <span class="nav-item-icon">◎</span> Settings
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="user-avatar-ring">
+          <div class="user-avatar" id="sb-avatar-char">?</div>
+        </div>
+        <div class="user-details">
+          <div class="user-name truncate" id="sb-user-name">–</div>
+          <div class="user-role-tag" id="sb-user-role">–</div>
+        </div>
+        <div class="logout-icon" title="Sign out" onclick="UI.handleLogout()">⏻</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main-content">
+
+    <!-- ── DASHBOARD ── -->
+    <div class="section active" id="section-dashboard">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1 class="page-title">Dash<span class="accent">board</span></h1>
+          <p class="page-subtitle" id="dashboard-greeting"></p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-primary" onclick="Dashboard.showSection('new-session')">+ New Session</button>
+        </div>
+      </div>
+      <div class="grid-4 stagger" style="margin-bottom:var(--sp-5)">
+        <div class="stat-card" style="--stat-color:var(--lime);--stat-color-ghost:var(--lime-ghost);--stat-color-border:rgba(200,240,74,0.15)">
+          <div class="stat-card-bg"></div><div class="stat-icon">◉</div>
+          <div class="stat-label">Active Clients</div>
+          <div class="stat-value" id="stat-clients">–</div>
+          <div class="stat-sub">on platform</div>
+        </div>
+        <div class="stat-card" style="--stat-color:var(--teal);--stat-color-ghost:var(--teal-glow);--stat-color-border:rgba(61,245,193,0.15)">
+          <div class="stat-card-bg"></div><div class="stat-icon">◈</div>
+          <div class="stat-label">Sessions</div>
+          <div class="stat-value" id="stat-sessions">–</div>
+          <div class="stat-sub">generated</div>
+        </div>
+        <div class="stat-card" style="--stat-color:var(--amber);--stat-color-ghost:var(--amber-glow);--stat-color-border:rgba(245,200,66,0.15)">
+          <div class="stat-card-bg"></div><div class="stat-icon">◌</div>
+          <div class="stat-label">Subscriptions</div>
+          <div class="stat-value" id="stat-subs">–</div>
+          <div class="stat-sub">active plans</div>
+        </div>
+        <div class="stat-card" style="--stat-color:var(--rose);--stat-color-ghost:var(--rose-glow);--stat-color-border:rgba(245,66,108,0.15)">
+          <div class="stat-card-bg"></div><div class="stat-icon">⚠</div>
+          <div class="stat-label">Expiring Soon</div>
+          <div class="stat-value" id="stat-expiring">–</div>
+          <div class="stat-sub">within 7 days</div>
+        </div>
+      </div>
+      <div class="grid-2" style="gap:var(--sp-5)">
+        <div class="card card-accent-lime">
+          <div class="card-header">
+            <span class="card-title">Recent Sessions</span>
+            <button class="btn btn-ghost btn-xs" onclick="Dashboard.showSection('programs')">View all →</button>
+          </div>
+          <div id="recent-sessions-list"></div>
+        </div>
+        <div class="card card-accent-teal role-coach-admin">
+          <div class="card-header">
+            <span class="card-title">Client Overview</span>
+            <button class="btn btn-ghost btn-xs" onclick="Dashboard.showSection('clients')">View all →</button>
+          </div>
+          <div id="dashboard-clients-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── NEW SESSION ── -->
+    <div class="section" id="section-new-session">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1 class="page-title">New <span class="accent">Session</span></h1>
+          <p class="page-subtitle">Complete all tabs then generate the AI program</p>
+        </div>
+      </div>
+      <div class="tab-row" id="session-tabs">
+        <button class="tab-btn active" data-tab="tab-info">① Client Info</button>
+        <button class="tab-btn" data-tab="tab-subjective">② Subjective</button>
+        <button class="tab-btn" data-tab="tab-objective">③ Objective</button>
+        <button class="tab-btn" data-tab="tab-generate">④ Generate</button>
+      </div>
+
+      <!-- TAB 1 -->
+      <div class="tab-panel active" id="tab-info">
+        <div class="grid-2" style="align-items:start">
+          <div class="card">
+            <div class="card-header"><span class="card-title">Client Information</span></div>
+            <div class="form-group">
+              <label class="form-label">Select Existing Client</label>
+              <select id="ns-client-select" class="form-input" onchange="Dashboard.fillClientFromSelect()">
+                <option value="">— Enter manually —</option>
+              </select>
+            </div>
+            <hr class="divider"/>
+            <div class="form-group">
+              <label class="form-label">Full Name</label>
+              <input id="ns-name" class="form-input" placeholder="e.g. Ahmed Hassan"/>
+            </div>
+            <div class="input-row">
+              <div class="form-group">
+                <label class="form-label">Age</label>
+                <input id="ns-age" type="number" class="form-input" placeholder="32"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Phase</label>
+                <select id="ns-phase" class="form-input">
+                  <option value="Phase 1">Phase 1 — Mobility</option>
+                  <option value="Phase 2">Phase 2 — Control</option>
+                  <option value="Phase 3">Phase 3 — Load</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Goal</label>
+              <input id="ns-goal" class="form-input" placeholder="e.g. Reduce lower back pain, improve gait"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Injury History</label>
+              <textarea id="ns-injury" class="form-input" placeholder="Past injuries, surgeries, chronic conditions..."></textarea>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:var(--sp-4)">
+            <div class="card">
+              <div class="card-header"><span class="card-title">Phase Guide</span></div>
+              <div class="phase-guide-item">
+                <span class="badge badge-phase1" style="flex-shrink:0;margin-top:2px">P1</span>
+                <div>
+                  <div style="font-size:13px;font-weight:600;margin-bottom:3px">Mobility / Space Creation</div>
+                  <div style="font-size:12px;color:var(--text-tertiary);line-height:1.5">No heavy loading. PRI repositioning, FRC CARs, breathing reset, joint decompression.</div>
+                </div>
+              </div>
+              <div class="phase-guide-item">
+                <span class="badge badge-phase2" style="flex-shrink:0;margin-top:2px">P2</span>
+                <div>
+                  <div style="font-size:13px;font-weight:600;margin-bottom:3px">Neuromuscular Control</div>
+                  <div style="font-size:12px;color:var(--text-tertiary);line-height:1.5">PAILs/RAILs, bodyweight loading. Stability at end-range positions gained in Phase 1.</div>
+                </div>
+              </div>
+              <div class="phase-guide-item">
+                <span class="badge badge-phase3" style="flex-shrink:0;margin-top:2px">P3</span>
+                <div>
+                  <div style="font-size:13px;font-weight:600;margin-bottom:3px">Load Integration</div>
+                  <div style="font-size:12px;color:var(--text-tertiary);line-height:1.5">Progressive external load, compound movement, sport-specific patterns.</div>
+                </div>
+              </div>
+            </div>
+            <div class="card role-coach-admin">
+              <div class="card-header"><span class="card-title">⚡ Phase Upgrade</span></div>
+              <div class="phase-banner">
+                <div style="font-family:var(--font-display);font-size:15px;color:var(--lime);margin-bottom:6px">Client ready to advance?</div>
+                <p style="font-size:12px;color:var(--text-tertiary);line-height:1.5;margin-bottom:14px">Upgrade to next phase and send a celebration notification automatically.</p>
+                <button class="btn btn-teal btn-sm" onclick="Dashboard.openModal('modal-phase-upgrade')">🎉 Upgrade & Celebrate</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-top:var(--sp-4)">
+          <button class="btn btn-primary" onclick="UI.goTab('session-tabs','tab-subjective')">Next: Subjective →</button>
+        </div>
+      </div>
+
+      <!-- TAB 2 -->
+      <div class="tab-panel" id="tab-subjective">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Subjective Assessment</span></div>
+          <div class="form-group">
+            <label class="form-label">Client Reported Complaints & History</label>
+            <textarea id="ns-subjective" class="form-input" style="min-height:160px"
+              placeholder="Pain location, behaviour, onset, aggravating/easing factors, previous treatments, medications, sleep quality, stress levels, occupation demands..."></textarea>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:var(--sp-4)">
+          <button class="btn btn-ghost" onclick="UI.goTab('session-tabs','tab-info')">← Back</button>
+          <button class="btn btn-primary" onclick="UI.goTab('session-tabs','tab-objective')">Next: Objective →</button>
+        </div>
+      </div>
+
+      <!-- TAB 3 -->
+      <div class="tab-panel" id="tab-objective">
+        <div class="assess-grid">
+          <div class="card">
+            <div class="assess-section-head">🦶 Toe Touch & Foot / Ankle</div>
+            <div class="form-group"><label class="form-label">Toe Touch</label><input id="ns-toetouch" class="form-input" placeholder="e.g. Fingers reach mid-shin, L lumbar flex compensation"/></div>
+            <div class="form-group"><label class="form-label">Ankle Mobility</label><input id="ns-ankle-mob" class="form-input" placeholder="e.g. Limited L dorsiflexion, rigid midfoot"/></div>
+            <div class="form-group"><label class="form-label">Pronation / Supination</label><input id="ns-pronsup" class="form-input" placeholder="e.g. Bilateral over-pronation, R worse"/></div>
+          </div>
+          <div class="card">
+            <div class="assess-section-head">🦴 Tibia</div>
+            <div class="input-row">
+              <div class="form-group"><label class="form-label">IR Left</label><input id="ns-tib-ir-l" class="form-input" placeholder="WNL / Limited"/></div>
+              <div class="form-group"><label class="form-label">IR Right</label><input id="ns-tib-ir-r" class="form-input" placeholder="WNL / Limited"/></div>
+            </div>
+          </div>
+          <div class="card" style="grid-column:span 2">
+            <div class="assess-section-head">🏋️ Hip</div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+              <div class="form-group"><label class="form-label">IR Left</label><input id="ns-hip-ir-l" class="form-input" placeholder="20°/P"/></div>
+              <div class="form-group"><label class="form-label">IR Right</label><input id="ns-hip-ir-r" class="form-input" placeholder="35°/NP"/></div>
+              <div class="form-group"><label class="form-label">ER Left</label><input id="ns-hip-er-l" class="form-input"/></div>
+              <div class="form-group"><label class="form-label">ER Right</label><input id="ns-hip-er-r" class="form-input"/></div>
+              <div class="form-group"><label class="form-label">Flex Left</label><input id="ns-hip-flex-l" class="form-input"/></div>
+              <div class="form-group"><label class="form-label">Flex Right</label><input id="ns-hip-flex-r" class="form-input"/></div>
+              <div class="form-group"><label class="form-label">Ext Left</label><input id="ns-hip-ext-l" class="form-input"/></div>
+              <div class="form-group"><label class="form-label">Ext Right</label><input id="ns-hip-ext-r" class="form-input"/></div>
+              <div class="form-group"><label class="form-label">Abd Left</label><input id="ns-hip-abd-l" class="form-input"/></div>
+              <div class="form-group"><label class="form-label">Abd Right</label><input id="ns-hip-abd-r" class="form-input"/></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="assess-section-head">🧠 Spine</div>
+            <div class="input-row">
+              <div class="form-group"><label class="form-label">Flexion</label><input id="ns-sp-flex" class="form-input" placeholder="P / NP"/></div>
+              <div class="form-group"><label class="form-label">Extension</label><input id="ns-sp-ext" class="form-input" placeholder="P / NP"/></div>
+            </div>
+            <div class="input-row">
+              <div class="form-group"><label class="form-label">Lat Flex L</label><input id="ns-sp-lfl" class="form-input" placeholder="P / NP"/></div>
+              <div class="form-group"><label class="form-label">Lat Flex R</label><input id="ns-sp-lfr" class="form-input" placeholder="P / NP"/></div>
+            </div>
+            <div class="input-row">
+              <div class="form-group"><label class="form-label">Rotation L</label><input id="ns-sp-rotl" class="form-input" placeholder="P / NP"/></div>
+              <div class="form-group"><label class="form-label">Rotation R</label><input id="ns-sp-rotr" class="form-input" placeholder="P / NP"/></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="assess-section-head">💪 Shoulder</div>
+            <div class="input-row">
+              <div class="form-group"><label class="form-label">Flex L</label><input id="ns-sh-flex-l" class="form-input"/></div>
+              <div class="form-group"><label class="form-label">Flex R</label><input id="ns-sh-flex-r" class="form-input"/></div>
+            </div>
+            <div class="input-row">
+              <div class="form-group"><label class="form-label">Ext L</label><input id="ns-sh-ext-l" class="form-input"/></div>
+              <div class="form-group"><label class="form-label">Ext R</label><input id="ns-sh-ext-r" class="form-input"/></div>
+            </div>
+            <div class="input-row">
+              <div class="form-group"><label class="form-label">IR L</label><input id="ns-sh-ir-l" class="form-input"/></div>
+              <div class="form-group"><label class="form-label">IR R</label><input id="ns-sh-ir-r" class="form-input"/></div>
+            </div>
+            <div class="input-row">
+              <div class="form-group"><label class="form-label">ER L</label><input id="ns-sh-er-l" class="form-input"/></div>
+              <div class="form-group"><label class="form-label">ER R</label><input id="ns-sh-er-r" class="form-input"/></div>
+            </div>
+          </div>
+          <div class="card" style="grid-column:span 2">
+            <div class="assess-section-head">⚖️ Load Tolerance Tests</div>
+            <textarea id="ns-load" class="form-input" style="min-height:80px"
+              placeholder="e.g. SL squat: R Trendelenburg at 60° / SL RDL: R lateral trunk shift / OH squat: bilateral heel rise, forward lean..."></textarea>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:var(--sp-4)">
+          <button class="btn btn-ghost" onclick="UI.goTab('session-tabs','tab-subjective')">← Back</button>
+          <button class="btn btn-primary" onclick="UI.goTab('session-tabs','tab-generate')">Next: Generate →</button>
+        </div>
+      </div>
+
+      <!-- TAB 4 -->
+      <div class="tab-panel" id="tab-generate">
+        <div class="card" style="margin-bottom:var(--sp-4)">
+          <div class="card-header"><span class="card-title">Output Settings</span></div>
+          <div class="form-group">
+            <label class="form-label">Save to Client Profile</label>
+            <select id="ns-save-client" class="form-input">
+              <option value="">— Don't save to a profile —</option>
+            </select>
+            <div class="form-hint">Saving links this session to the client's history in Supabase.</div>
+          </div>
+        </div>
+        <div style="text-align:center;margin-bottom:var(--sp-5)">
+          <button class="btn btn-primary btn-xl" id="generate-btn" onclick="Dashboard.generateProgram()">⚡ Generate Program</button>
+        </div>
+        <div id="output-panel" class="hidden">
+          <div class="card" style="margin-bottom:var(--sp-4)">
+            <div class="card-header">
+              <span class="card-title">Generated Program</span>
+              <div style="display:flex;gap:var(--sp-2)">
+                <button class="btn btn-ghost btn-sm" onclick="Dashboard.previewWeb()">🌐 Web Preview</button>
+                <button class="btn btn-ghost btn-sm" onclick="Dashboard.previewWeb()">🖨 Print / PDF</button>
+              </div>
+            </div>
+            <div id="program-output-text" class="program-output"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PROGRAMS ── -->
+    <div class="section" id="section-programs">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1 class="page-title">My <span class="accent">Programs</span></h1>
+          <p class="page-subtitle">All generated sessions</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-primary" onclick="Dashboard.showSection('new-session')">+ New Session</button>
+        </div>
+      </div>
+      <div id="programs-list"></div>
+    </div>
+
+    <!-- ── CLIENTS ── -->
+    <div class="section" id="section-clients">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1 class="page-title">Cli<span class="accent">ents</span></h1>
+          <p class="page-subtitle">Manage client accounts and phases</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-primary" onclick="Dashboard.openModal('modal-add-client')">+ Add Client</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Client</th><th>Email</th><th>Phase</th><th>Subscription</th><th>Coach</th><th>Actions</th></tr></thead>
+            <tbody id="clients-tbody">
+              <tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-tertiary)">Loading clients...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SUBSCRIPTIONS ── -->
+    <div class="section" id="section-subscriptions">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1 class="page-title">Subscri<span class="accent">ptions</span></h1>
+          <p class="page-subtitle">Manually manage all client plans</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-primary" onclick="Dashboard.openModal('modal-add-subscription')">+ New Subscription</button>
+        </div>
+      </div>
+      <div class="grid-3 stagger" style="margin-bottom:var(--sp-5)">
+        <div class="stat-card" style="--stat-color:var(--teal);--stat-color-ghost:var(--teal-glow);--stat-color-border:rgba(61,245,193,0.15)">
+          <div class="stat-card-bg"></div><div class="stat-label">Active</div>
+          <div class="stat-value" id="sub-stat-active">–</div>
+        </div>
+        <div class="stat-card" style="--stat-color:var(--amber);--stat-color-ghost:var(--amber-glow);--stat-color-border:rgba(245,200,66,0.15)">
+          <div class="stat-card-bg"></div><div class="stat-label">Expiring in 7 days</div>
+          <div class="stat-value" id="sub-stat-expiring">–</div>
+        </div>
+        <div class="stat-card" style="--stat-color:var(--rose);--stat-color-ghost:var(--rose-glow);--stat-color-border:rgba(245,66,108,0.15)">
+          <div class="stat-card-bg"></div><div class="stat-label">Expired</div>
+          <div class="stat-value" id="sub-stat-expired">–</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Client</th><th>Plan</th><th>Start</th><th>End</th><th>Status</th><th>Progress</th><th>Actions</th></tr></thead>
+            <tbody id="subs-tbody">
+              <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-tertiary)">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── EXERCISE LIBRARY ── -->
+    <div class="section" id="section-exercise-library">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1 class="page-title">Exercise <span class="accent">Library</span></h1>
+          <p class="page-subtitle">Build your coaching catalog</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-primary" onclick="Dashboard.openModal('modal-add-exercise')">+ Add Exercise</button>
+        </div>
+      </div>
+      <div class="coming-soon-banner">
+        <span class="coming-soon-icon">▶</span>
+        <div class="coming-soon-title">YouTube Integration Coming Soon</div>
+        <p style="font-size:13px;color:var(--text-tertiary);max-width:400px;margin:0 auto">Connect your YouTube channel playlists. Phase 1/2/3 exercises will auto-populate from matching playlists.</p>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Exercise Catalog</span></div>
+        <div id="exercise-list">
+          <div class="empty-state">
+            <span class="empty-icon">▶</span>
+            <div class="empty-title">No exercises yet</div>
+            <p class="empty-desc">Add exercises to build your coaching library.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── COACHES ── -->
+    <div class="section" id="section-coaches">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1 class="page-title">Coa<span class="accent">ches</span></h1>
+          <p class="page-subtitle">Manage all coach accounts</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-primary" onclick="Dashboard.openModal('modal-add-coach')">+ Add Coach</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Coach</th><th>Email</th><th>Clients</th><th>Added</th><th>Actions</th></tr></thead>
+            <tbody id="coaches-tbody">
+              <tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-tertiary)">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SETTINGS ── -->
+    <div class="section" id="section-settings">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1 class="page-title">Set<span class="accent">tings</span></h1>
+          <p class="page-subtitle">Platform configuration and account management</p>
+        </div>
+      </div>
+      <div class="grid-2" style="align-items:start">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Account</span></div>
+          <div class="setting-row">
+            <div class="setting-label">
+              <h4>Admin Email</h4>
+              <p id="admin-email-display" class="mono" style="font-size:12px">–</p>
+            </div>
+            <span class="badge badge-admin">Admin</span>
+          </div>
+          <div class="setting-row">
+            <div class="setting-label"><h4>Change Password</h4><p>Update your account password</p></div>
+            <button class="btn btn-ghost btn-sm" onclick="Dashboard.openModal('modal-change-password')">Change</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Platform</span></div>
+          <div class="setting-row">
+            <div class="setting-label"><h4>Platform Name</h4><p>AST9 — Elite Movement & Rehab</p></div>
+          </div>
+          <div class="setting-row">
+            <div class="setting-label"><h4>Supabase Project</h4><p class="mono" style="font-size:12px">byquokhcbagofshsclfy</p></div>
+            <span class="badge badge-active badge-dot">Connected</span>
+          </div>
+          <div class="setting-row">
+            <div class="setting-label"><h4>Email Service</h4><p>Resend — Transactional Email</p></div>
+            <span class="badge badge-pending">Resend</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ═══════════════════════ MODALS ═══════════════════════ -->
+
+<!-- Add Client -->
+<div class="modal-overlay hidden" id="modal-add-client">
+  <div class="modal">
+    <div class="modal-header"><h3>Add New Client</h3><button class="btn-icon" onclick="Dashboard.closeModal('modal-add-client')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Full Name</label><input id="ac-name" class="form-input" placeholder="Ahmed Hassan"/></div>
+      <div class="form-group"><label class="form-label">Email Address</label><input id="ac-email" type="email" class="form-input" placeholder="client@email.com"/></div>
+      <div class="form-group">
+        <label class="form-label">Temporary Password</label>
+        <input id="ac-password" type="text" class="form-input" placeholder="Min 8 characters"/>
+        <div class="form-hint">Client can change this via password reset.</div>
+      </div>
+      <div class="input-row">
+        <div class="form-group"><label class="form-label">Age</label><input id="ac-age" type="number" class="form-input" placeholder="28"/></div>
+        <div class="form-group">
+          <label class="form-label">Starting Phase</label>
+          <select id="ac-phase" class="form-input">
+            <option value="Phase 1">Phase 1</option>
+            <option value="Phase 2">Phase 2</option>
+            <option value="Phase 3">Phase 3</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">Phone (optional)</label><input id="ac-phone" class="form-input" placeholder="+20 100 000 0000"/></div>
+      <div class="form-group">
+        <label class="form-label">Assign to Coach</label>
+        <select id="ac-coach" class="form-input"><option value="">— Select Coach —</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Goal</label><input id="ac-goal" class="form-input" placeholder="e.g. Reduce back pain, improve mobility"/></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="Dashboard.closeModal('modal-add-client')">Cancel</button>
+      <button class="btn btn-primary" id="ac-submit-btn" onclick="Clients.submitAddClient()">Create Account</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Coach -->
+<div class="modal-overlay hidden" id="modal-add-coach">
+  <div class="modal">
+    <div class="modal-header"><h3>Add New Coach</h3><button class="btn-icon" onclick="Dashboard.closeModal('modal-add-coach')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Full Name</label><input id="co-name" class="form-input" placeholder="Coach Name"/></div>
+      <div class="form-group"><label class="form-label">Email Address</label><input id="co-email" type="email" class="form-input" placeholder="coach@email.com"/></div>
+      <div class="form-group">
+        <label class="form-label">Temporary Password</label>
+        <input id="co-password" type="text" class="form-input" placeholder="Min 8 characters"/>
+        <div class="form-hint">Coach can reset this via email after first login.</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="Dashboard.closeModal('modal-add-coach')">Cancel</button>
+      <button class="btn btn-primary" id="co-submit-btn" onclick="Clients.submitAddCoach()">Create Coach Account</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Subscription -->
+<div class="modal-overlay hidden" id="modal-add-subscription">
+  <div class="modal">
+    <div class="modal-header"><h3>New Subscription</h3><button class="btn-icon" onclick="Dashboard.closeModal('modal-add-subscription')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Client</label>
+        <select id="sub-client" class="form-input"><option value="">— Select Client —</option></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Plan Duration</label>
+        <select id="sub-plan" class="form-input" onchange="Dashboard.calcSubEndDate()">
+          <option value="3">3 Months</option>
+          <option value="6">6 Months</option>
+          <option value="12">12 Months</option>
+        </select>
+      </div>
+      <div class="input-row">
+        <div class="form-group"><label class="form-label">Start Date</label><input id="sub-start" type="date" class="form-input" oninput="Dashboard.calcSubEndDate()"/></div>
+        <div class="form-group"><label class="form-label">End Date (auto)</label><input id="sub-end" type="date" class="form-input" readonly/></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Activation</label>
+        <select id="sub-activate" class="form-input">
+          <option value="immediate">✓ Send & Activate Immediately</option>
+          <option value="pending">⏸ Send Without Activation (pending)</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Notes (optional)</label><input id="sub-notes" class="form-input" placeholder="Payment method, amount, reference..."/></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="Dashboard.closeModal('modal-add-subscription')">Cancel</button>
+      <button class="btn btn-primary" id="sub-submit-btn" onclick="Subscriptions.submit()">Create Subscription</button>
+    </div>
+  </div>
+</div>
+
+<!-- Change Password -->
+<div class="modal-overlay hidden" id="modal-change-password">
+  <div class="modal">
+    <div class="modal-header"><h3>Change Password</h3><button class="btn-icon" onclick="Dashboard.closeModal('modal-change-password')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">New Password</label><input id="cp-new" type="password" class="form-input" placeholder="Min 8 characters"/></div>
+      <div class="form-group"><label class="form-label">Confirm New Password</label><input id="cp-confirm" type="password" class="form-input" placeholder="Repeat password"/></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="Dashboard.closeModal('modal-change-password')">Cancel</button>
+      <button class="btn btn-primary" onclick="Dashboard.submitChangePassword()">Update Password</button>
+    </div>
+  </div>
+</div>
+
+<!-- Phase Upgrade -->
+<div class="modal-overlay hidden" id="modal-phase-upgrade">
+  <div class="modal">
+    <div class="modal-header"><h3>🎉 Phase Upgrade</h3><button class="btn-icon" onclick="Dashboard.closeModal('modal-phase-upgrade')">✕</button></div>
+    <div class="modal-body">
+      <div style="text-align:center;padding:16px 0 24px">
+        <span style="font-size:52px;display:block;margin-bottom:14px;animation:loader-pulse 2s ease-in-out infinite">🏆</span>
+        <div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--lime);margin-bottom:6px">Ready to advance!</div>
+        <p style="font-size:13px;color:var(--text-secondary)">Upgrade the client's phase and send a celebration message.</p>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Client</label>
+        <select id="pu-client" class="form-input"><option value="">— Select Client —</option></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Upgrade to Phase</label>
+        <select id="pu-phase" class="form-input">
+          <option value="Phase 2">Phase 2 — Control</option>
+          <option value="Phase 3">Phase 3 — Load Integration</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Celebration Message (sent to client)</label>
+        <textarea id="pu-message" class="form-input" style="min-height:100px">Congratulations! You've successfully completed your current phase and are ready to level up. Your hard work and dedication is paying off — keep pushing! 🏆</textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="Dashboard.closeModal('modal-phase-upgrade')">Cancel</button>
+      <button class="btn btn-teal" onclick="Dashboard.submitPhaseUpgrade()">🎉 Upgrade & Notify</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Exercise -->
+<div class="modal-overlay hidden" id="modal-add-exercise">
+  <div class="modal">
+    <div class="modal-header"><h3>Add Exercise</h3><button class="btn-icon" onclick="Dashboard.closeModal('modal-add-exercise')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Exercise Name</label><input id="ex-name" class="form-input" placeholder="e.g. 90/90 Hip IR PAILs"/></div>
+      <div class="input-row">
+        <div class="form-group">
+          <label class="form-label">Category</label>
+          <select id="ex-category" class="form-input">
+            <option value="Rehab">Rehab</option>
+            <option value="Mobility">Mobility</option>
+            <option value="Strength">Strength</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phase</label>
+          <select id="ex-phase" class="form-input">
+            <option value="Phase 1">Phase 1</option>
+            <option value="Phase 2">Phase 2</option>
+            <option value="Phase 3">Phase 3</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">Video URL (YouTube)</label><input id="ex-video" class="form-input" placeholder="https://youtube.com/watch?v=..."/></div>
+      <div class="form-group"><label class="form-label">Description / Coaching Cues</label><textarea id="ex-desc" class="form-input" placeholder="Coaching cues, common errors, progressions, regressions..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="Dashboard.closeModal('modal-add-exercise')">Cancel</button>
+      <button class="btn btn-primary" onclick="Clients.submitAddExercise()">Add Exercise</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ CELEBRATION ═══════════════════════ -->
+<div id="celebration-overlay" class="hidden">
+  <canvas id="confetti-canvas" style="position:absolute;inset:0;pointer-events:none;width:100%;height:100%"></canvas>
+  <div class="celebration-card">
+    <span class="celebration-emoji">🏆</span>
+    <div class="celebration-title">PHASE COMPLETE!</div>
+    <div class="celebration-msg">
+      Client has been upgraded to <strong id="celebration-phase" style="color:var(--lime)">Phase 2</strong>.<br>
+      A celebration email has been sent. Keep pushing! 💪
+    </div>
+    <button class="btn btn-primary btn-lg" onclick="Dashboard.closeCelebration()">Continue →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════ SCRIPTS ═══════════════════════ -->
+<script src="js/supabaseClient.js"></script>
+<script src="js/auth.js"></script>
+<script>
+  // Google Gemini API Key — Free tier for AI Program Generation
+  window.GEMINI_API_KEY = 'AIzaSyCcQ0-9HBBx604D8FqRIxoZaFmMxITQeO0';
+</script>
+<script src="js/dashboard.js"></script>
+<script src="js/clients.js"></script>
+<script src="js/subscriptions.js"></script>
+<script>
+// ── UI controller (login + boot) ──────────────────────────────
+const UI = {
+
+  switchLoginTab(tab) {
+    document.querySelectorAll('.login-tab-btn').forEach((b, i) => {
+      b.classList.toggle('active', (i === 0 && tab === 'signin') || (i === 1 && tab === 'reset'));
+    });
+    document.getElementById('login-form-signin').classList.toggle('hidden', tab !== 'signin');
+    document.getElementById('login-form-reset').classList.toggle('hidden', tab !== 'reset');
+    document.getElementById('login-error').classList.add('hidden');
+  },
+
+  async handleLogin() {
+    const email = document.getElementById('login-email').value.trim();
+    const pass  = document.getElementById('login-password').value;
+    const btn   = document.getElementById('login-btn');
+    const errEl = document.getElementById('login-error');
+    if (!email || !pass) { UI._loginErr('Please enter your email and password.'); return; }
+    btn.innerHTML = '<span class="spinner"></span> Signing in...';
+    btn.disabled  = true;
+    errEl.classList.add('hidden');
+    try {
+      await Auth.login(email, pass);
+      btn.innerHTML = 'Sign In'; btn.disabled = false;
+      UI._showApp();
+    } catch(e) {
+      UI._loginErr(e.message);
+      btn.innerHTML = 'Sign In'; btn.disabled = false;
+    }
+  },
+
+  async handlePasswordReset() {
+    const email = document.getElementById('reset-email').value.trim();
+    const btn   = document.getElementById('reset-btn');
+    if (!email) { UI._loginErr('Please enter your email.'); return; }
+    btn.innerHTML = '<span class="spinner"></span> Sending...';
+    btn.disabled  = true;
+    try {
+      await Auth.sendPasswordReset(email);
+      const el = document.getElementById('login-error');
+      el.style.cssText = 'background:rgba(61,245,193,0.08);border-color:rgba(61,245,193,0.25);color:var(--teal)';
+      el.textContent = '✓ Reset link sent — check your inbox.';
+      el.classList.remove('hidden');
+    } catch(e) { UI._loginErr(e.message); }
+    finally { btn.innerHTML = 'Send Reset Link'; btn.disabled = false; }
+  },
+
+  async handleLogout() {
+    await Auth.logout();
+    Dashboard.toast('Signed out successfully', 'info');
+    UI._showLogin();
+  },
+
+  goTab(tabRowId, panelId) {
+    const row = document.getElementById(tabRowId);
+    if (row) row.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === panelId));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === panelId));
+  },
+
+  _showApp() {
+    document.getElementById('screen-login').classList.add('hidden');
+    document.getElementById('screen-app').style.display = 'block';
+    Dashboard.initShell();
+    Dashboard.showSection('dashboard');
+  },
+
+  _showLogin() {
+    document.getElementById('screen-login').classList.remove('hidden');
+    document.getElementById('screen-app').style.display = 'none';
+  },
+
+  _loginErr(msg) {
+    const el = document.getElementById('login-error');
+    el.textContent = msg; el.style.cssText = '';
+    el.classList.remove('hidden');
+  },
+
+  _hideLoading() {
+    const ol = document.getElementById('loading-overlay');
+    if (!ol) return;
+    ol.style.transition = 'opacity 0.4s';
+    ol.style.opacity = '0';
+    setTimeout(() => ol.remove(), 440);
+  },
+};
+
+// ── Wire tab buttons ──────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.tab-row').forEach(row => {
+    row.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => UI.goTab(row.id, btn.dataset.tab));
+    });
+  });
+  document.querySelectorAll('.modal-overlay').forEach(ov => {
+    ov.addEventListener('click', e => { if (e.target === ov) ov.classList.add('hidden'); });
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') document.querySelectorAll('.modal-overlay:not(.hidden)').forEach(m => m.classList.add('hidden'));
+    if (e.key === 'Enter' && !document.getElementById('screen-login').classList.contains('hidden')) {
+      if (!document.getElementById('login-form-signin').classList.contains('hidden')) UI.handleLogin();
+    }
+  });
+});
+
+// ── BOOT ─────────────────────────────────────────────────────
+let _bootDone = false;
+function _finishBoot(profile) {
+  if (_bootDone) return;
+  _bootDone = true;
+  UI._hideLoading();
+  if (profile) UI._showApp();
+  else document.getElementById('screen-login').classList.remove('hidden');
+}
+
+// Hard fallback: show login after 3s no matter what
+setTimeout(() => _finishBoot(null), 3000);
+
+(async () => {
+  try {
+    const profile = await Auth.init();
+    _finishBoot(profile);
+  } catch(e) {
+    console.error('Boot error:', e);
+    _finishBoot(null);
+  }
+  Auth.listen(event => {
+    if (event === 'PASSWORD_RECOVERY') Dashboard.openModal('modal-change-password');
+    if (event === 'SIGNED_OUT') UI._showLogin();
+  });
+})();
+</script>
+</body>
+</html>
