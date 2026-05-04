@@ -259,18 +259,20 @@ Keep output clean, structured, and clinically precise.`;
     btn.disabled = true;
 
     try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
+      const token = (await sb.auth.getSession()).data.session?.access_token;
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/generate-program`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 1000,
-          messages: [{ role: 'user', content: buildPrompt() }]
-        })
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ prompt: buildPrompt() }),
       });
 
       const result = await res.json();
-      const text = result.content?.map(i => i.text || '').join('\n') || 'No output generated.';
+      if (!res.ok || result.error) throw new Error(result.error?.message || 'Generation failed');
+
+      const text = result.candidates?.[0]?.content?.parts?.[0]?.text || 'No output generated.';
 
       // Display
       const outEl = document.getElementById('program-output-text');
@@ -383,8 +385,8 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
   function toggleProgram(i, card) {
     const body  = card.querySelector('.prog-body');
     const arrow = card.querySelector('.prog-arrow');
-    const open  = body.classList.toggle('hidden');
-    if (arrow) arrow.style.transform = open ? '' : 'rotate(90deg)';
+    const open = !body.classList.toggle('hidden');
+    if (arrow) arrow.style.transform = open ? 'rotate(90deg)' : '';
   }
 
   function rePreviewWeb(i) {
@@ -412,9 +414,12 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
     ['ns-client-select','ns-save-client','sub-client','pu-client'].forEach(id => {
       const el = document.getElementById(id);
       if (!el) return;
-      const placeholder = el.options[0];
+      const placeholderText = el.options[0] ? el.options[0].textContent : '— Select —';
       el.innerHTML = '';
-      if (placeholder) el.appendChild(placeholder);
+      const opt0 = document.createElement('option');
+      opt0.value = '';
+      opt0.textContent = placeholderText;
+      el.appendChild(opt0);
       data.forEach(c => {
         const opt = document.createElement('option');
         opt.value = c.id;
@@ -469,7 +474,9 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
 
     // Send celebration email
     try {
-      const token = (await sb.auth.getSession()).data.session?.access_token;
+      const sessionData = await sb.auth.getSession();
+      const token = sessionData?.data?.session?.access_token;
+      if (!token) throw new Error('Session expired. Please sign in again.');
       await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },

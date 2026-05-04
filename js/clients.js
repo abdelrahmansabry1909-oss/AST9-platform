@@ -13,7 +13,7 @@ const Clients = (() => {
     if (!tbody) return;
     tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px"><span class="spinner spinner-lg"></span></td></tr>`;
 
-    let q = sb.from('profiles').select('*').eq('role','client').order('created_at', { ascending: false });
+    let q = sb.from('profiles').select('*').eq('role', 'client').order('created_at', { ascending: false });
     if (Auth.isCoach()) q = q.eq('assigned_coach', Auth.getUser()?.id);
 
     const { data, error } = await q;
@@ -27,12 +27,18 @@ const Clients = (() => {
     const subMap = {};
     (subs || []).forEach(s => { subMap[s.client_id] = s; });
 
+    // Fetch coach name map
+    const { data: coaches } = await sb.from('profiles').select('id,full_name,email').in('role',['coach','admin']);
+    const coachMap = {};
+    (coaches || []).forEach(c => { coachMap[c.id] = c.full_name || c.email; });
+
     tbody.innerHTML = data.map(c => {
       const sub = subMap[c.id];
       const subBadge = sub
         ? `<span class="badge badge-active badge-dot">${sub.plan}mo</span>`
         : `<span class="badge badge-expired">No sub</span>`;
       const phaseCls = _phaseBadge(c.current_phase);
+      const coachName = c.assigned_coach ? (coachMap[c.assigned_coach] || '–') : '–';
       return `
       <tr>
         <td>
@@ -47,7 +53,7 @@ const Clients = (() => {
         <td><span class="mono" style="font-size:12px">${c.email}</span></td>
         <td><span class="badge ${phaseCls}">${c.current_phase || 'Phase 1'}</span></td>
         <td>${subBadge}</td>
-        <td style="font-size:12px;color:var(--text-tertiary)">${c.coach_name || '–'}</td>
+        <td style="font-size:12px;color:var(--text-tertiary)">${coachName}</td>
         <td>
           <div style="display:flex;gap:6px">
             <button class="btn btn-ghost btn-xs" onclick="Dashboard.showSection('new-session'); setTimeout(()=>{document.getElementById('ns-name').value='${_esc(c.full_name||'')}';document.getElementById('ns-phase').value='${c.current_phase||'Phase 1'}'},100)">+ Session</button>
@@ -249,7 +255,7 @@ const Clients = (() => {
   // ── Helpers ──────────────────────────────────────────────────
 
   function _gv(id) { const e = document.getElementById(id); return e ? e.value.trim() : ''; }
-  function _esc(s) { return s.replace(/'/g,"\'").replace(/"/g,'&quot;'); }
+  function _esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/'/g,'&#39;').replace(/"/g,'&quot;'); }
   function _emptyRow(msg) {
     return `<div style="text-align:center;padding:40px;color:var(--text-tertiary)">${msg}</div>`;
   }
