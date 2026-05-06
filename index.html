@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <meta name="description" content="AST9 — Elite Movement & Rehabilitation Coaching Platform"/>
 <title>AST9 — Elite Coaching Platform</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="stylesheet" href="css/styles.css"/>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>"/>
 </head>
@@ -21,7 +21,7 @@
 <div id="toast-container"></div>
 
 <!-- ═══════════════════════ LOGIN ═══════════════════════ -->
-<div id="screen-login">
+<div id="screen-login" class="hidden">
   <div class="login-card">
     <div class="login-shimmer"></div>
     <div class="login-body">
@@ -71,6 +71,9 @@
 <!-- ═══════════════════════ APP ═══════════════════════ -->
 <div id="screen-app">
 
+  <!-- SIDEBAR OVERLAY (mobile) -->
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="Dashboard.closeSidebar()"></div>
+
   <!-- SIDEBAR -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
@@ -99,6 +102,15 @@
       <div class="nav-item role-coach-admin" id="nav-exercise-library" onclick="Dashboard.showSection('exercise-library')">
         <span class="nav-item-icon">▶</span> Exercise Library
       </div>
+      <div class="nav-item role-coach-admin" id="nav-progress" onclick="Dashboard.showSection('progress')">
+        <span class="nav-item-icon">◎</span> Progress Charts
+      </div>
+
+      <div class="nav-section">Community</div>
+      <div class="nav-item" id="nav-community" onclick="Dashboard.showSection('community')">
+        <span class="nav-item-icon">◈</span> Community
+        <span id="badge-community" class="nav-badge hidden">0</span>
+      </div>
 
       <div class="nav-section role-admin-only">Admin</div>
       <div class="nav-item role-admin-only" id="nav-coaches" onclick="Dashboard.showSection('coaches')">
@@ -124,6 +136,15 @@
 
   <!-- MAIN -->
   <main class="main-content">
+
+    <!-- Mobile top bar -->
+    <div class="mobile-topbar">
+      <button class="hamburger" id="hamburger-btn" onclick="Dashboard.toggleSidebar()" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="mobile-logo">AST<span style="color:var(--lime)">9</span></div>
+      <div style="width:40px"></div>
+    </div>
 
     <!-- ── DASHBOARD ── -->
     <div class="section active" id="section-dashboard">
@@ -292,83 +313,357 @@
 
       <!-- TAB 3 -->
       <div class="tab-panel" id="tab-objective">
+        <!-- ══ OBJECTIVE ASSESSMENT GRID ══════════════════════════ -->
+        <!-- All IDs match exactly what ScoringEngine.readForm() reads -->
         <div class="assess-grid">
+
+          <!-- TOE TOUCH & FOOT/ANKLE -->
           <div class="card">
             <div class="assess-section-head">🦶 Toe Touch & Foot / Ankle</div>
-            <div class="form-group"><label class="form-label">Toe Touch</label><input id="ns-toetouch" class="form-input" placeholder="e.g. Fingers reach mid-shin, L lumbar flex compensation"/></div>
-            <div class="form-group"><label class="form-label">Ankle Mobility</label><input id="ns-ankle-mob" class="form-input" placeholder="e.g. Limited L dorsiflexion, rigid midfoot"/></div>
-            <div class="form-group"><label class="form-label">Pronation / Supination</label><input id="ns-pronsup" class="form-input" placeholder="e.g. Bilateral over-pronation, R worse"/></div>
+            <div class="form-group">
+              <label class="form-label">Toe Touch Score</label>
+              <select id="ns-toetouch-score" class="form-input">
+                <option value="">— Not assessed —</option>
+                <option value="3">3 — Clean (posterior shift + uniform flexion)</option>
+                <option value="2">2 — No posterior weight shift</option>
+                <option value="1">1 — Flat segment present</option>
+                <option value="0">0 — Both deficits</option>
+                <option value="-1">P — Pain during attempt</option>
+              </select>
+            </div>
+            <div class="input-row">
+              <div class="form-group">
+                <label class="form-label">Dorsiflexion L (cm)</label>
+                <input id="ns-ankle-df-l" type="number" step="0.5" class="form-input" placeholder="e.g. 8.5"/>
+                <div class="form-hint">Norm: 10–12 cm</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Dorsiflexion R (cm)</label>
+                <input id="ns-ankle-df-r" type="number" step="0.5" class="form-input" placeholder="e.g. 10"/>
+              </div>
+            </div>
+            <div class="input-row">
+              <div class="form-group">
+                <label class="form-label">Pronation Left</label>
+                <select id="ns-pronation-l" class="form-input">
+                  <option value="">—</option>
+                  <option value="over">Over-pronation</option>
+                  <option value="normal">Normal</option>
+                  <option value="high">High arch</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Pronation Right</label>
+                <select id="ns-pronation-r" class="form-input">
+                  <option value="">—</option>
+                  <option value="over">Over-pronation</option>
+                  <option value="normal">Normal</option>
+                  <option value="high">High arch</option>
+                </select>
+              </div>
+            </div>
+            <div class="input-row">
+              <div class="form-group">
+                <label class="form-label">Supination Left</label>
+                <select id="ns-supination-l" class="form-input">
+                  <option value="">—</option>
+                  <option value="stuck_supinated">Stuck supinated</option>
+                  <option value="normal">Normal</option>
+                  <option value="stuck_pronated">Stuck pronated</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Supination Right</label>
+                <select id="ns-supination-r" class="form-input">
+                  <option value="">—</option>
+                  <option value="stuck_supinated">Stuck supinated</option>
+                  <option value="normal">Normal</option>
+                  <option value="stuck_pronated">Stuck pronated</option>
+                </select>
+              </div>
+            </div>
           </div>
+
+          <!-- TIBIA -->
           <div class="card">
             <div class="assess-section-head">🦴 Tibia</div>
             <div class="input-row">
-              <div class="form-group"><label class="form-label">IR Left</label><input id="ns-tib-ir-l" class="form-input" placeholder="WNL / Limited"/></div>
-              <div class="form-group"><label class="form-label">IR Right</label><input id="ns-tib-ir-r" class="form-input" placeholder="WNL / Limited"/></div>
+              <div class="form-group">
+                <label class="form-label">IR Left (°)</label>
+                <input id="ns-tib-ir-l" type="number" class="form-input" placeholder="e.g. 22"/>
+                <div class="form-hint">Norm: 20–30°</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">IR Right (°)</label>
+                <input id="ns-tib-ir-r" type="number" class="form-input" placeholder="e.g. 25"/>
+              </div>
             </div>
           </div>
+
+          <!-- HIP (full width) -->
           <div class="card" style="grid-column:span 2">
-            <div class="assess-section-head">🏋️ Hip</div>
-            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
-              <div class="form-group"><label class="form-label">IR Left</label><input id="ns-hip-ir-l" class="form-input" placeholder="20°/P"/></div>
-              <div class="form-group"><label class="form-label">IR Right</label><input id="ns-hip-ir-r" class="form-input" placeholder="35°/NP"/></div>
-              <div class="form-group"><label class="form-label">ER Left</label><input id="ns-hip-er-l" class="form-input"/></div>
-              <div class="form-group"><label class="form-label">ER Right</label><input id="ns-hip-er-r" class="form-input"/></div>
-              <div class="form-group"><label class="form-label">Flex Left</label><input id="ns-hip-flex-l" class="form-input"/></div>
-              <div class="form-group"><label class="form-label">Flex Right</label><input id="ns-hip-flex-r" class="form-input"/></div>
-              <div class="form-group"><label class="form-label">Ext Left</label><input id="ns-hip-ext-l" class="form-input"/></div>
-              <div class="form-group"><label class="form-label">Ext Right</label><input id="ns-hip-ext-r" class="form-input"/></div>
-              <div class="form-group"><label class="form-label">Abd Left</label><input id="ns-hip-abd-l" class="form-input"/></div>
-              <div class="form-group"><label class="form-label">Abd Right</label><input id="ns-hip-abd-r" class="form-input"/></div>
+            <div class="assess-section-head">🏋️ Hip — Enter degrees. Type "P" or -1 for pain.</div>
+            <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;align-items:end">
+              <div></div>
+              <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-tertiary);padding-bottom:4px">Left (°)</div>
+              <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-tertiary);padding-bottom:4px">Right (°)</div>
+              <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-tertiary);padding-bottom:4px">Norm</div>
+              <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-tertiary);padding-bottom:4px">Note</div>
+
+              <div style="font-size:12px;font-weight:600;color:var(--text-secondary);padding:8px 0">IR</div>
+              <input id="ns-hip-ir-l" type="number" class="form-input" placeholder="e.g. 28"/>
+              <input id="ns-hip-ir-r" type="number" class="form-input" placeholder="e.g. 40"/>
+              <div style="font-size:11px;color:var(--text-tertiary)">35–45°</div>
+              <div style="font-size:10px;color:var(--text-tertiary)">Seated 90/90</div>
+
+              <div style="font-size:12px;font-weight:600;color:var(--text-secondary);padding:8px 0">ER</div>
+              <input id="ns-hip-er-l" type="number" class="form-input" placeholder="e.g. 42"/>
+              <input id="ns-hip-er-r" type="number" class="form-input" placeholder="e.g. 48"/>
+              <div style="font-size:11px;color:var(--text-tertiary)">45–60°</div>
+              <div style="font-size:10px;color:var(--text-tertiary)">Seated 90/90</div>
+
+              <div style="font-size:12px;font-weight:600;color:var(--text-secondary);padding:8px 0">Flexion</div>
+              <input id="ns-hip-flex-l" type="number" class="form-input" placeholder="e.g. 115"/>
+              <input id="ns-hip-flex-r" type="number" class="form-input" placeholder="e.g. 125"/>
+              <div style="font-size:11px;color:var(--text-tertiary)">120–135°</div>
+              <div style="font-size:10px;color:var(--text-tertiary)">Supine, knee-to-chest</div>
+
+              <div style="font-size:12px;font-weight:600;color:var(--text-secondary);padding:8px 0">Extension</div>
+              <input id="ns-hip-ext-l" type="number" class="form-input" placeholder="e.g. 8"/>
+              <input id="ns-hip-ext-r" type="number" class="form-input" placeholder="e.g. 12"/>
+              <div style="font-size:11px;color:var(--text-tertiary)">10–15°</div>
+              <div style="font-size:10px;color:var(--text-tertiary)">Prone, knee bent 90°</div>
+
+              <div style="font-size:12px;font-weight:600;color:var(--text-secondary);padding:8px 0">Abduction</div>
+              <input id="ns-hip-abd-l" type="number" class="form-input" placeholder="e.g. 38"/>
+              <input id="ns-hip-abd-r" type="number" class="form-input" placeholder="e.g. 45"/>
+              <div style="font-size:11px;color:var(--text-tertiary)">40–50°</div>
+              <div style="font-size:10px;color:var(--text-tertiary)">Sidelying, test leg up</div>
             </div>
           </div>
+
+          <!-- SPINE — pain checkboxes feed into scoring engine -->
           <div class="card">
-            <div class="assess-section-head">🧠 Spine</div>
-            <div class="input-row">
-              <div class="form-group"><label class="form-label">Flexion</label><input id="ns-sp-flex" class="form-input" placeholder="P / NP"/></div>
-              <div class="form-group"><label class="form-label">Extension</label><input id="ns-sp-ext" class="form-input" placeholder="P / NP"/></div>
+            <div class="assess-section-head">🧠 Spine — Check box if movement is painful</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px;background:var(--bg-raised);border-radius:8px;border:1px solid var(--border-subtle)">
+                <input type="checkbox" id="ns-sp-flex-pain" style="width:15px;height:15px;accent-color:var(--rose)"/>
+                <span style="font-size:12px;font-weight:500">Flexion — Pain</span>
+              </label>
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px;background:var(--bg-raised);border-radius:8px;border:1px solid var(--border-subtle)">
+                <input type="checkbox" id="ns-sp-ext-pain" style="width:15px;height:15px;accent-color:var(--rose)"/>
+                <span style="font-size:12px;font-weight:500">Extension — Pain</span>
+              </label>
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px;background:var(--bg-raised);border-radius:8px;border:1px solid var(--border-subtle)">
+                <input type="checkbox" id="ns-sp-lfl-pain" style="width:15px;height:15px;accent-color:var(--rose)"/>
+                <span style="font-size:12px;font-weight:500">Lat Flex L — Pain</span>
+              </label>
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px;background:var(--bg-raised);border-radius:8px;border:1px solid var(--border-subtle)">
+                <input type="checkbox" id="ns-sp-lfr-pain" style="width:15px;height:15px;accent-color:var(--rose)"/>
+                <span style="font-size:12px;font-weight:500">Lat Flex R — Pain</span>
+              </label>
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px;background:var(--bg-raised);border-radius:8px;border:1px solid var(--border-subtle)">
+                <input type="checkbox" id="ns-sp-rotl-pain" style="width:15px;height:15px;accent-color:var(--rose)"/>
+                <span style="font-size:12px;font-weight:500">Rotation L — Pain</span>
+              </label>
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px;background:var(--bg-raised);border-radius:8px;border:1px solid var(--border-subtle)">
+                <input type="checkbox" id="ns-sp-rotr-pain" style="width:15px;height:15px;accent-color:var(--rose)"/>
+                <span style="font-size:12px;font-weight:500">Rotation R — Pain</span>
+              </label>
             </div>
-            <div class="input-row">
-              <div class="form-group"><label class="form-label">Lat Flex L</label><input id="ns-sp-lfl" class="form-input" placeholder="P / NP"/></div>
-              <div class="form-group"><label class="form-label">Lat Flex R</label><input id="ns-sp-lfr" class="form-input" placeholder="P / NP"/></div>
-            </div>
-            <div class="input-row">
-              <div class="form-group"><label class="form-label">Rotation L</label><input id="ns-sp-rotl" class="form-input" placeholder="P / NP"/></div>
-              <div class="form-group"><label class="form-label">Rotation R</label><input id="ns-sp-rotr" class="form-input" placeholder="P / NP"/></div>
+            <div class="form-group" style="margin-top:12px">
+              <label class="form-label">Additional Spine Notes</label>
+              <input id="ns-sp-notes" class="form-input" placeholder="e.g. Flat L4-5 segment, R lateral shift on flexion"/>
             </div>
           </div>
+
+          <!-- SHOULDER -->
           <div class="card">
-            <div class="assess-section-head">💪 Shoulder</div>
-            <div class="input-row">
-              <div class="form-group"><label class="form-label">Flex L</label><input id="ns-sh-flex-l" class="form-input"/></div>
-              <div class="form-group"><label class="form-label">Flex R</label><input id="ns-sh-flex-r" class="form-input"/></div>
-            </div>
-            <div class="input-row">
-              <div class="form-group"><label class="form-label">Ext L</label><input id="ns-sh-ext-l" class="form-input"/></div>
-              <div class="form-group"><label class="form-label">Ext R</label><input id="ns-sh-ext-r" class="form-input"/></div>
-            </div>
-            <div class="input-row">
-              <div class="form-group"><label class="form-label">IR L</label><input id="ns-sh-ir-l" class="form-input"/></div>
-              <div class="form-group"><label class="form-label">IR R</label><input id="ns-sh-ir-r" class="form-input"/></div>
-            </div>
-            <div class="input-row">
-              <div class="form-group"><label class="form-label">ER L</label><input id="ns-sh-er-l" class="form-input"/></div>
-              <div class="form-group"><label class="form-label">ER R</label><input id="ns-sh-er-r" class="form-input"/></div>
+            <div class="assess-section-head">💪 Shoulder (degrees)</div>
+            <div style="display:grid;grid-template-columns:auto 1fr 1fr;gap:8px;align-items:end;margin-bottom:4px">
+              <div></div>
+              <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-tertiary)">Left</div>
+              <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-tertiary)">Right</div>
+              <div style="font-size:11px;color:var(--text-secondary)">Flex</div>
+              <input id="ns-sh-flex-l" type="number" class="form-input" placeholder="160–180°"/>
+              <input id="ns-sh-flex-r" type="number" class="form-input" placeholder="160–180°"/>
+              <div style="font-size:11px;color:var(--text-secondary)">Ext</div>
+              <input id="ns-sh-ext-l" type="number" class="form-input" placeholder="50–60°"/>
+              <input id="ns-sh-ext-r" type="number" class="form-input" placeholder="50–60°"/>
+              <div style="font-size:11px;color:var(--text-secondary)">IR</div>
+              <input id="ns-sh-ir-l" type="number" class="form-input" placeholder="70–90°"/>
+              <input id="ns-sh-ir-r" type="number" class="form-input" placeholder="70–90°"/>
+              <div style="font-size:11px;color:var(--text-secondary)">ER</div>
+              <input id="ns-sh-er-l" type="number" class="form-input" placeholder="80–100°"/>
+              <input id="ns-sh-er-r" type="number" class="form-input" placeholder="80–100°"/>
             </div>
           </div>
+
+          <!-- LOAD TOLERANCE (full width, structured) -->
           <div class="card" style="grid-column:span 2">
-            <div class="assess-section-head">⚖️ Load Tolerance Tests</div>
-            <textarea id="ns-load" class="form-input" style="min-height:80px"
-              placeholder="e.g. SL squat: R Trendelenburg at 60° / SL RDL: R lateral trunk shift / OH squat: bilateral heel rise, forward lean..."></textarea>
+            <div class="assess-section-head">⚖️ Load Tolerance Tests — 0=Pain · 1=Severe comp · 2=Mild comp · 3=Clean</div>
+            <div style="display:grid;grid-template-columns:2fr 1fr 1fr 2fr;gap:10px;align-items:end;margin-bottom:8px">
+              <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-tertiary)">Test</div>
+              <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-tertiary)">Left (0–3)</div>
+              <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-tertiary)">Right (0–3)</div>
+              <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-tertiary)">Notes</div>
+
+              <div style="font-size:12px;font-weight:600;color:var(--text-secondary);padding:8px 0">SL Squat</div>
+              <select id="ns-sl-squat-l" class="form-input">
+                <option value="">—</option>
+                <option value="3">3 — Clean</option>
+                <option value="2">2 — Mild</option>
+                <option value="1">1 — Severe</option>
+                <option value="0">0 — Pain</option>
+              </select>
+              <select id="ns-sl-squat-r" class="form-input">
+                <option value="">—</option>
+                <option value="3">3 — Clean</option>
+                <option value="2">2 — Mild</option>
+                <option value="1">1 — Severe</option>
+                <option value="0">0 — Pain</option>
+              </select>
+              <input id="ns-sl-squat-notes" class="form-input" placeholder="e.g. R Trendelenburg, knee valgus"/>
+
+              <div style="font-size:12px;font-weight:600;color:var(--text-secondary);padding:8px 0">SL RDL</div>
+              <select id="ns-sl-rdl-l" class="form-input">
+                <option value="">—</option>
+                <option value="3">3 — Clean</option>
+                <option value="2">2 — Mild</option>
+                <option value="1">1 — Severe</option>
+                <option value="0">0 — Pain</option>
+              </select>
+              <select id="ns-sl-rdl-r" class="form-input">
+                <option value="">—</option>
+                <option value="3">3 — Clean</option>
+                <option value="2">2 — Mild</option>
+                <option value="1">1 — Severe</option>
+                <option value="0">0 — Pain</option>
+              </select>
+              <input id="ns-sl-rdl-notes" class="form-input" placeholder="e.g. R lateral trunk shift"/>
+
+              <div style="font-size:12px;font-weight:600;color:var(--text-secondary);padding:8px 0">OH Squat</div>
+              <select id="ns-oh-squat" class="form-input">
+                <option value="">—</option>
+                <option value="3">3 — Clean</option>
+                <option value="2">2 — Mild</option>
+                <option value="1">1 — Severe</option>
+                <option value="0">0 — Pain</option>
+              </select>
+              <div></div>
+              <input id="ns-oh-squat-notes" class="form-input" placeholder="e.g. bilateral heel rise, forward lean"/>
+            </div>
           </div>
-        </div>
+
+          <!-- NEUROLOGY (full width) -->
+          <div class="card" style="grid-column:span 2">
+            <div class="assess-section-head">🧬 Neurology / Balance</div>
+            <div style="display:grid;grid-template-columns:2fr 1fr 1fr 2fr;gap:10px;align-items:end;margin-bottom:8px">
+              <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-tertiary)">Test</div>
+              <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-tertiary)">Left</div>
+              <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-tertiary)">Right</div>
+              <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-tertiary)">Norm</div>
+
+              <div style="font-size:12px;font-weight:600;color:var(--text-secondary);padding:8px 0">SL Balance — Eyes Open (s)</div>
+              <input id="ns-bal-eo-l" type="number" class="form-input" placeholder="e.g. 22"/>
+              <input id="ns-bal-eo-r" type="number" class="form-input" placeholder="e.g. 30"/>
+              <div style="font-size:11px;color:var(--text-tertiary)">≥ 30 seconds</div>
+
+              <div style="font-size:12px;font-weight:600;color:var(--text-secondary);padding:8px 0">SL Balance — Eyes Closed (s)</div>
+              <input id="ns-bal-ec-l" type="number" class="form-input" placeholder="e.g. 6"/>
+              <input id="ns-bal-ec-r" type="number" class="form-input" placeholder="e.g. 10"/>
+              <div style="font-size:11px;color:var(--text-tertiary)">≥ 10 seconds</div>
+
+              <div style="font-size:12px;font-weight:600;color:var(--text-secondary);padding:8px 0">SL Reach Forward (% leg)</div>
+              <input id="ns-reach-l" type="number" class="form-input" placeholder="e.g. 65"/>
+              <input id="ns-reach-r" type="number" class="form-input" placeholder="e.g. 72"/>
+              <div style="font-size:11px;color:var(--text-tertiary)">≥ 70% leg length</div>
+            </div>
+          </div>
+
+          <!-- 3D BODY MAP TAB (lazy-loaded) -->
+          <div class="card" style="grid-column:span 2">
+            <div class="card-header">
+              <span class="card-title">3D Body Map</span>
+              <div style="display:flex;gap:8px;align-items:center">
+                <select id="bodymap-gender" class="form-input" style="width:auto;padding:6px 10px;font-size:12px" onchange="BodyMap3D.setGender(this.value,{})">
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                </select>
+                <button class="btn btn-ghost btn-sm" onclick="BodyMap3D.resetAll()">Reset</button>
+                <button class="btn btn-ghost btn-sm" id="gait-anim-btn" onclick="toggleGaitAnimation()">▶ Gait Anim</button>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 280px;gap:16px;align-items:start">
+              <!-- 3D Viewport -->
+              <div id="bodymap-container"
+                style="height:480px;border-radius:10px;overflow:hidden;background:var(--bg-raised);border:1px solid var(--border-subtle);position:relative;cursor:grab">
+                <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:var(--text-tertiary);font-size:13px;text-align:center;pointer-events:none" id="bodymap-init-msg">
+                  <div style="font-size:28px;margin-bottom:8px;opacity:0.3">◈</div>
+                  Loading 3D model…
+                </div>
+              </div>
+              <!-- Joint detail panel -->
+              <div>
+                <div class="form-group" style="margin-bottom:10px">
+                  <label class="form-label">Selected Joint</label>
+                  <div id="bodymap-joint-name" style="font-size:14px;font-weight:600;color:var(--lime);padding:8px 0">Click a joint</div>
+                </div>
+                <div id="bodymap-joint-controls" class="hidden">
+                  <div class="form-group">
+                    <label class="form-label">Pain Scale</label>
+                    <input type="range" id="joint-pain-slider" min="0" max="10" step="1" value="0"
+                      style="width:100%;accent-color:var(--lime)" oninput="onJointPainChange(this.value)"/>
+                    <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-tertiary);margin-top:4px">
+                      <span>0 Healthy</span><span id="joint-pain-val" style="color:var(--lime);font-weight:700">0</span><span>10 Critical</span>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Notes</label>
+                    <input id="joint-notes" class="form-input" placeholder="Describe findings…"/>
+                  </div>
+                  <button class="btn btn-primary w-full btn-sm" onclick="applyJointState()">Apply to Map</button>
+                </div>
+                <!-- Pain legend -->
+                <div style="margin-top:16px">
+                  <div class="form-label" style="margin-bottom:8px">Pain Scale Legend</div>
+                  <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+                    <div style="width:12px;height:12px;border-radius:50%;background:#4ADE80;flex-shrink:0"></div>
+                    <span style="font-size:11px;color:var(--text-secondary)">1–2 — Healthy</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+                    <div style="width:12px;height:12px;border-radius:50%;background:#FACC15;flex-shrink:0"></div>
+                    <span style="font-size:11px;color:var(--text-secondary)">3–4 — Mild</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+                    <div style="width:12px;height:12px;border-radius:50%;background:#FB923C;flex-shrink:0"></div>
+                    <span style="font-size:11px;color:var(--text-secondary)">5–6 — Moderate</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+                    <div style="width:12px;height:12px;border-radius:50%;background:#EF4444;flex-shrink:0"></div>
+                    <span style="font-size:11px;color:var(--text-secondary)">7–8 — Severe</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+                    <div style="width:12px;height:12px;border-radius:50%;background:#7F1D1D;flex-shrink:0"></div>
+                    <span style="font-size:11px;color:var(--text-secondary)">9–10 — Critical</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /assess-grid -->
+
         <div style="display:flex;justify-content:space-between;margin-top:var(--sp-4)">
           <button class="btn btn-ghost" onclick="UI.goTab('session-tabs','tab-subjective')">← Back</button>
-          <button class="btn btn-primary" onclick="UI.goTab('session-tabs','tab-generate')">Next: Generate →</button>
+          <button class="btn btn-primary" onclick="UI.goTab('session-tabs','tab-generate');initBodyMap()">Next: Generate →</button>
         </div>
       </div>
 
-      <!-- TAB 4 -->
+      <!-- TAB 4 — GENERATE ══════════════════════════════════════ -->
       <div class="tab-panel" id="tab-generate">
+
+        <!-- Output settings -->
         <div class="card" style="margin-bottom:var(--sp-4)">
           <div class="card-header"><span class="card-title">Output Settings</span></div>
           <div class="form-group">
@@ -376,16 +671,38 @@
             <select id="ns-save-client" class="form-input">
               <option value="">— Don't save to a profile —</option>
             </select>
-            <div class="form-hint">Saving links this session to the client's history in Supabase.</div>
+            <div class="form-hint">Links this session to the client's history in Supabase. Saves scores, gait analysis, and program.</div>
           </div>
         </div>
-        <div style="text-align:center;margin-bottom:var(--sp-5)">
-          <button class="btn btn-primary btn-xl" id="generate-btn" onclick="Dashboard.generateProgram()">⚡ Generate Program</button>
+
+        <!-- Generate button -->
+        <div style="text-align:center;margin-bottom:var(--sp-6)">
+          <button class="btn btn-primary btn-xl" id="generate-btn" onclick="Dashboard.generateProgram()">
+            ⚡ Generate Program
+          </button>
+          <div style="font-size:12px;color:var(--text-tertiary);margin-top:8px">
+            Runs local scoring engines first, then AI narrative
+          </div>
         </div>
+
+        <!-- ── SCORE PANEL (rendered by ScoringEngine.renderScores) -->
+        <div id="score-panel" class="card hidden" style="margin-bottom:var(--sp-4)"></div>
+
+        <!-- ── GAIT PANEL (rendered by GaitEngine.renderGaitAnalysis) -->
+        <div id="gait-panel" class="card hidden" style="margin-bottom:var(--sp-4)"></div>
+
+        <!-- ── STRUCTURED PROGRAM (rendered by ProgramGenerator.renderProgram) -->
+        <!-- id="program-panel" is the canonical target used by programGenerator.js -->
+        <div id="program-panel" class="card hidden" style="margin-bottom:var(--sp-4)"></div>
+
+        <!-- ── DAILY ROUTINE (rendered by ProgramGenerator.renderDailyRoutine) -->
+        <div id="daily-routine-panel" class="card hidden" style="margin-bottom:var(--sp-4)"></div>
+
+        <!-- ── AI NARRATIVE OUTPUT (Claude) -->
         <div id="output-panel" class="hidden">
           <div class="card" style="margin-bottom:var(--sp-4)">
             <div class="card-header">
-              <span class="card-title">Generated Program</span>
+              <span class="card-title">AI Clinical Narrative</span>
               <div style="display:flex;gap:var(--sp-2)">
                 <button class="btn btn-ghost btn-sm" onclick="Dashboard.previewWeb()">🌐 Web Preview</button>
                 <button class="btn btn-ghost btn-sm" onclick="Dashboard.previewWeb()">🖨 Print / PDF</button>
@@ -479,22 +796,14 @@
           <p class="page-subtitle">Build your coaching catalog</p>
         </div>
         <div class="page-actions">
-          <button class="btn btn-primary" onclick="Dashboard.openModal('modal-add-exercise')">+ Add Exercise</button>
+          <button class="btn btn-ghost btn-sm" onclick="ExerciseUI.openPlaylistModal?.()">+ Playlist</button>
+          <button class="btn btn-primary" onclick="ExerciseUI.openAddModal?.()">+ Add Exercise</button>
         </div>
       </div>
-      <div class="coming-soon-banner">
-        <span class="coming-soon-icon">▶</span>
-        <div class="coming-soon-title">YouTube Integration Coming Soon</div>
-        <p style="font-size:13px;color:var(--text-tertiary);max-width:400px;margin:0 auto">Connect your YouTube channel playlists. Phase 1/2/3 exercises will auto-populate from matching playlists.</p>
-      </div>
-      <div class="card">
-        <div class="card-header"><span class="card-title">Exercise Catalog</span></div>
-        <div id="exercise-list">
-          <div class="empty-state">
-            <span class="empty-icon">▶</span>
-            <div class="empty-title">No exercises yet</div>
-            <p class="empty-desc">Add exercises to build your coaching library.</p>
-          </div>
+      <div id="exercise-list">
+        <div class="empty-state">
+          <span class="empty-icon">▶</span>
+          <div class="empty-title">Loading exercise library…</div>
         </div>
       </div>
     </div>
@@ -562,7 +871,73 @@
       </div>
     </div>
 
+    <!-- ── COMMUNITY ── -->
+    <div class="section" id="section-community">
+      <!-- Populated by CommunityUI.initCommunitySection() when shown -->
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1 class="page-title">Comm<span class="accent">unity</span></h1>
+          <p class="page-subtitle">Messages · Referrals · Case Sharing · Feed</p>
+        </div>
+      </div>
+      <div class="tab-row" id="community-tabs">
+        <button class="tab-btn active" data-tab="comm-messaging">Messages</button>
+        <button class="tab-btn" data-tab="comm-referrals">Referrals</button>
+        <button class="tab-btn" data-tab="comm-case-shares">Case Studies</button>
+        <button class="tab-btn" data-tab="comm-client-feed">Client Feed</button>
+        <button class="tab-btn" data-tab="comm-support-groups">Support Groups</button>
+        <button class="tab-btn" data-tab="comm-privacy">Privacy</button>
+      </div>
+      <div id="comm-messaging" class="tab-panel active"></div>
+      <div id="comm-referrals" class="tab-panel"></div>
+      <div id="comm-case-shares" class="tab-panel"></div>
+      <div id="comm-client-feed" class="tab-panel"></div>
+      <div id="comm-support-groups" class="tab-panel"></div>
+      <div id="comm-privacy" class="tab-panel"></div>
+    </div>
+
+    <!-- ── PROGRESS CHARTS ── -->
+    <div class="section" id="section-progress">
+      <!-- Populated by Charts.renderClientProgressPage(clientId) -->
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1 class="page-title">Progress <span class="accent">Charts</span></h1>
+          <p class="page-subtitle">Select a client to view their progress</p>
+        </div>
+        <div class="page-actions">
+          <select id="progress-client-select" class="form-input" style="width:auto;min-width:200px"
+            onchange="Charts.renderClientProgressPage(this.value)">
+            <option value="">— Select Client —</option>
+          </select>
+        </div>
+      </div>
+      <div id="progress-charts-root">
+        <div class="empty-state">
+          <span class="empty-icon">◎</span>
+          <div class="empty-title">Select a client above</div>
+          <p class="empty-desc">Progress charts and PDF export will appear here.</p>
+        </div>
+      </div>
+    </div>
+
   </main>
+
+  <!-- Mobile bottom nav -->
+  <nav class="mobile-bottom-nav" id="mobile-bottom-nav">
+    <button class="mob-nav-btn active" id="mobnav-dashboard" onclick="Dashboard.showSection('dashboard');_setMobNav('dashboard')">
+      <span>⬡</span><span>Home</span>
+    </button>
+    <button class="mob-nav-btn" id="mobnav-session" onclick="Dashboard.showSection('new-session');_setMobNav('session')">
+      <span>✦</span><span>Session</span>
+    </button>
+    <button class="mob-nav-btn" id="mobnav-community" onclick="Dashboard.showSection('community');_setMobNav('community')">
+      <span>◈</span><span>Community</span>
+    </button>
+    <button class="mob-nav-btn" id="mobnav-programs" onclick="Dashboard.showSection('programs');_setMobNav('programs')">
+      <span>◌</span><span>Programs</span>
+    </button>
+  </nav>
+
 </div>
 
 <!-- ═══════════════════════ MODALS ═══════════════════════ -->
@@ -757,16 +1132,160 @@
   </div>
 </div>
 
-<!-- ═══════════════════════ SCRIPTS ═══════════════════════ -->
+<!-- ═══════════════════════ 3D BODY MAP WIRING ═══════════════════════ -->
+<script>
+// ── Body map state ────────────────────────────────────────────
+let _bodyMapInitDone  = false;
+let _selectedJointKey = null;
+let _gaitPlaying      = false;
+let _lastGait         = null;
+
+// Initialise Three.js only when user reaches the objective tab
+function initBodyMap() {
+  if (_bodyMapInitDone) return;
+  _bodyMapInitDone = true;
+
+  const ok = BodyMap3D.init('bodymap-container', {
+    // modelUrl: '/models/body.glb',  // ← add your GLB path here when ready
+    onJointClick: onBodyMapJointClick,
+  });
+
+  const msg = document.getElementById('bodymap-init-msg');
+  if (msg) msg.remove();
+
+  if (!ok) {
+    console.log('WebGL not available — 2D fallback shown');
+  }
+}
+
+// Called when a joint is clicked in the 3D view
+function onBodyMapJointClick(jointKey, state) {
+  _selectedJointKey = jointKey;
+
+  const nameEl     = document.getElementById('bodymap-joint-name');
+  const controlsEl = document.getElementById('bodymap-joint-controls');
+  const slider     = document.getElementById('joint-pain-slider');
+  const valEl      = document.getElementById('joint-pain-val');
+
+  if (nameEl)     nameEl.textContent = jointKey.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  if (controlsEl) controlsEl.classList.remove('hidden');
+  if (slider)     slider.value = state.painScale || 0;
+  if (valEl)      valEl.textContent = state.painScale || 0;
+}
+
+// Slider input → live preview on model
+function onJointPainChange(val) {
+  document.getElementById('joint-pain-val').textContent = val;
+  if (_selectedJointKey) BodyMap3D.setJoint(_selectedJointKey, parseInt(val));
+}
+
+// Apply button → persist joint state
+function applyJointState() {
+  if (!_selectedJointKey) return;
+  const pain  = parseInt(document.getElementById('joint-pain-slider').value) || 0;
+  const notes = document.getElementById('joint-notes')?.value || '';
+  BodyMap3D.setJoint(_selectedJointKey, pain, { notes });
+  Dashboard.toast(`${_selectedJointKey.replace(/_/g,' ')} updated → Pain ${pain}/10`, 'success');
+}
+
+// Gait animation toggle
+function toggleGaitAnimation() {
+  const btn = document.getElementById('gait-anim-btn');
+  if (_gaitPlaying) {
+    BodyMap3D.stopGaitAnimation();
+    _gaitPlaying = false;
+    if (btn) btn.textContent = '▶ Gait Anim';
+  } else {
+    const deficiencies = _lastGait?.phase_deficiencies || {};
+    BodyMap3D.startGaitAnimation(deficiencies);
+    _gaitPlaying = true;
+    if (btn) btn.textContent = '⏹ Stop Anim';
+  }
+}
+
+// Auto-sync form fields → 3D map on any numeric input change
+// (fires after engine runs, called from dashboard.js)
+document.addEventListener('DOMContentLoaded', () => {
+  const syncIds = [
+    'ns-hip-ir-l','ns-hip-ir-r','ns-ankle-df-l','ns-ankle-df-r',
+    'ns-sh-ir-l','ns-sh-ir-r','ns-sl-squat-l','ns-sl-squat-r',
+  ];
+  syncIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('change', () => {
+      if (BodyMap3D.inited) {
+        const a = ScoringEngine.readForm();
+        BodyMap3D.updateFromAssessment(a);
+      }
+    });
+  });
+
+  // Spine pain checkboxes also sync
+  ['ns-sp-flex-pain','ns-sp-ext-pain','ns-sp-lfl-pain','ns-sp-lfr-pain',
+   'ns-sp-rotl-pain','ns-sp-rotr-pain'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('change', () => {
+      if (BodyMap3D.inited) {
+        const a = ScoringEngine.readForm();
+        BodyMap3D.updateFromAssessment(a);
+      }
+    });
+  });
+});
+
+// Store last gait result so animation button can reference it
+const _origGenerate = Dashboard.generateProgram?.bind(Dashboard);
+// Patch: after generation completes, store gait result
+// (done cleanly via dashboard.js — _lastGait set below in hook)
+window._setLastGait = (gait) => { _lastGait = gait; };
+
+// Mobile bottom nav active state
+function _setMobNav(key) {
+  document.querySelectorAll('.mob-nav-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('mobnav-' + key);
+  if (btn) btn.classList.add('active');
+}
+
+// Community badge refresh — called after login
+async function _refreshCommunityBadge() {
+  try {
+    const [msgs, refs] = await Promise.all([
+      typeof Community !== 'undefined' ? Community.getUnreadCount() : Promise.resolve(0),
+      typeof Community !== 'undefined' ? Community.getPendingReferralCount() : Promise.resolve(0),
+    ]);
+    const total = (msgs || 0) + (refs || 0);
+    const badge = document.getElementById('badge-community');
+    if (badge) {
+      badge.textContent = total;
+      badge.classList.toggle('hidden', total === 0);
+    }
+  } catch(e) { /* non-fatal */ }
+}
+</script>
+<!-- Three.js + addons (lazy — only used when 3D tab active) -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/loaders/DRACOLoader.js"></script>
+
 <script src="js/supabaseClient.js"></script>
 <script src="js/auth.js"></script>
-<script>
-  // Google Gemini API Key — Free tier for AI Program Generation
-  window.GROQ_API_KEY = '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';
-</script>
 <script src="js/dashboard.js"></script>
 <script src="js/clients.js"></script>
 <script src="js/subscriptions.js"></script>
+<script src="js/scoring.js"></script>
+<script src="js/gaitEngine.js"></script>
+<script src="js/programGenerator.js"></script>
+<script src="js/bodyMap3D.js"></script>
+<!-- Phase 3 modules -->
+<script src="js/community.js"></script>
+<script src="js/communityUI.js"></script>
+<script src="js/exerciseLibrary.js"></script>
+<script src="js/exerciseUI.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/progressReport.js"></script>
 <script>
 // ── UI controller (login + boot) ──────────────────────────────
 const UI = {
@@ -832,6 +1351,11 @@ const UI = {
     document.getElementById('screen-app').style.display = 'block';
     Dashboard.initShell();
     Dashboard.showSection('dashboard');
+    // Phase 3: refresh badges + populate progress client select
+    setTimeout(() => {
+      _refreshCommunityBadge();
+      Dashboard.populateProgressClientSelect?.();
+    }, 800);
   },
 
   _showLogin() {
@@ -847,7 +1371,6 @@ const UI = {
 
   _hideLoading() {
     const ol = document.getElementById('loading-overlay');
-    if (!ol) return;
     ol.style.transition = 'opacity 0.4s';
     ol.style.opacity = '0';
     setTimeout(() => ol.remove(), 440);
@@ -858,7 +1381,21 @@ const UI = {
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.tab-row').forEach(row => {
     row.querySelectorAll('.tab-btn').forEach(btn => {
-      btn.addEventListener('click', () => UI.goTab(row.id, btn.dataset.tab));
+      btn.addEventListener('click', () => {
+        UI.goTab(row.id, btn.dataset.tab);
+        // Community sub-tabs: lazy-render the selected panel
+        if (row.id === 'community-tabs' && typeof CommunityUI !== 'undefined') {
+          const tabFnMap = {
+            'comm-messaging':      () => CommunityUI.renderMessaging?.(),
+            'comm-referrals':      () => CommunityUI.renderReferrals?.(),
+            'comm-case-shares':    () => CommunityUI.renderCaseShares?.(),
+            'comm-client-feed':    () => CommunityUI.renderClientFeed?.(),
+            'comm-support-groups': () => CommunityUI.renderSupportGroups?.(),
+            'comm-privacy':        () => CommunityUI.renderPrivacySettings?.(),
+          };
+          tabFnMap[btn.dataset.tab]?.();
+        }
+      });
     });
   });
   document.querySelectorAll('.modal-overlay').forEach(ov => {
@@ -872,31 +1409,18 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
+// ── Auth state listener ───────────────────────────────────────
+Auth.listen(event => {
+  if (event === 'PASSWORD_RECOVERY') Dashboard.openModal('modal-change-password');
+  if (event === 'SIGNED_OUT') UI._showLogin();
+});
+
 // ── BOOT ─────────────────────────────────────────────────────
-let _bootDone = false;
-function _finishBoot(profile) {
-  if (_bootDone) return;
-  _bootDone = true;
+(async () => {
+  const profile = await Auth.init();
   UI._hideLoading();
   if (profile) UI._showApp();
   else document.getElementById('screen-login').classList.remove('hidden');
-}
-
-// Hard fallback: show login after 3s no matter what
-setTimeout(() => _finishBoot(null), 3000);
-
-(async () => {
-  try {
-    const profile = await Auth.init();
-    _finishBoot(profile);
-  } catch(e) {
-    console.error('Boot error:', e);
-    _finishBoot(null);
-  }
-  Auth.listen(event => {
-    if (event === 'PASSWORD_RECOVERY') Dashboard.openModal('modal-change-password');
-    if (event === 'SIGNED_OUT') UI._showLogin();
-  });
 })();
 </script>
 </body>
