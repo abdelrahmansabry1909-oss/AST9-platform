@@ -83,21 +83,6 @@ const Auth = (() => {
     }
   }
 
-    await loadProfile(data.user);
-
-    // Block expired clients
-    if (_profile.role === 'client') {
-      const ok = await checkSubscription(data.user.id);
-      if (!ok) {
-        await sb.auth.signOut();
-        _user = null; _profile = null;
-        throw new Error('Your subscription has expired. Please contact your coach to renew access.');
-      }
-    }
-
-    return _profile;
-  }
-
   // ── Logout ───────────────────────────────────────────────────
   async function logout() {
     await sb.auth.signOut({ scope: 'local' });
