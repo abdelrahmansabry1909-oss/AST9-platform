@@ -1,0 +1,49 @@
+/* ═════════════════════════════════════════════════════════════
+   HOLOGRAPHIC INFO BOX (Body Map 3D)
+════════════════════════════════════════════════════════════ */
+
+@keyframes holoFadeIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes holoGlow {
+  0%, 100% { box-shadow: 0 0 20px rgba(255,45,149,0.3), 0 0 40px rgba(0,212,255,0.15); }
+  50%      { box-shadow: 0 0 30px rgba(255,45,149,0.5), 0 0 60px rgba(0,212,255,0.25); }
+}
+
+@keyframes holoScanLine {
+  0%   { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
+
+.holo-info-box {
+  animation: holoFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  position: absolute;
+  overflow: hidden;
+}
+.holo-info-box::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,212,255,0.03) 2px,
+    rgba(0,212,255,0.03) 4px
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+.holo-info-box::after {
+  content: '';
+  position: absolute; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(0,255,204,0.6), transparent);
+  animation: holoScanLine 3s linear infinite;
+  z-index: 2;
+  pointer-events: none;
+}
+
+#joint-hover-preview {
+  animation: holoFadeIn 0.2s ease-out;
+}

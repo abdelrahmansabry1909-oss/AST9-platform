@@ -1,24 +1,34 @@
 // ═══════════════════════════════════════════════════════════════
 //  js/bodyMap3D.js
 //  Interactive 3D Body Map — Three.js + Fallback Canvas
-//  Bidirectional sync with assessment form.
+//  Holographic Sci-Fi Interface with Smart Joint Info Boxes
 //  Lazy-initialised: only runs when #bodymap-container is visible.
 // ═══════════════════════════════════════════════════════════════
 
 const BodyMap3D = (() => {
 
+  // ── HOLOGRAPHIC COLORS (Neon Blue + Magenta) ──────────────
+  const NEON_BLUE     = 0x00d4ff;
+  const NEON_MAGENTA  = 0xff2d95;
+  const NEON_CYAN     = 0x00ffcc;
+  const NEON_PINK     = 0xff00ff;
+  const HOLO_BLUE     = '#00d4ff';
+  const HOLO_MAGENTA  = '#ff2d95';
+  const HOLO_CYAN     = '#00ffcc';
+  const HOLO_PINK     = '#ff00ff';
+
   // ── PAIN COLOUR SCALE (1–10, clinically defined) ──────────
   const PAIN_COLORS = {
-    0:  '#3df5c1',   // teal  — healthy / unassessed
-    1:  '#4ade80',   // green
+    0:  HOLO_BLUE,     // healthy / unassessed — neon blue
+    1:  '#4ade80',     // green
     2:  '#86efac',
-    3:  '#facc15',   // yellow — mild
+    3:  '#facc15',     // yellow — mild
     4:  '#fde047',
-    5:  '#fb923c',   // orange — moderate
+    5:  '#fb923c',     // orange — moderate
     6:  '#f97316',
-    7:  '#ef4444',   // red — severe
+    7:  '#ef4444',     // red — severe
     8:  '#dc2626',
-    9:  '#7f1d1d',   // dark red — critical
+    9:  '#7f1d1d',     // dark red — critical
     10: '#3f0d0d',
   };
 
@@ -26,24 +36,24 @@ const BodyMap3D = (() => {
   // Maps each 3D joint key to the assessment form inputs it should
   // populate / read from when clicked.
   const JOINT_FIELDS = {
-    left_hip:        { lr: 'L', keys: ['ns-hip-ir-l','ns-hip-er-l','ns-hip-flex-l','ns-hip-ext-l'], label: 'Left Hip',         norm: 'hip_ir', normVal: 35 },
-    right_hip:       { lr: 'R', keys: ['ns-hip-ir-r','ns-hip-er-r','ns-hip-flex-r','ns-hip-ext-r'], label: 'Right Hip',        norm: 'hip_ir', normVal: 35 },
-    left_knee:       { lr: 'L', keys: [],                                                            label: 'Left Knee',        norm: null,      normVal: null },
-    right_knee:      { lr: 'R', keys: [],                                                            label: 'Right Knee',       norm: null,      normVal: null },
-    left_ankle:      { lr: 'L', keys: ['ns-ankle-df-l'],                                            label: 'Left Ankle',       norm: 'ankle_df',normVal: 10 },
-    right_ankle:     { lr: 'R', keys: ['ns-ankle-df-r'],                                            label: 'Right Ankle',      norm: 'ankle_df',normVal: 10 },
-    left_shoulder:   { lr: 'L', keys: ['ns-sh-flex-l','ns-sh-ir-l','ns-sh-er-l'],                  label: 'Left Shoulder',    norm: 'shoulder_ir', normVal: 70 },
-    right_shoulder:  { lr: 'R', keys: ['ns-sh-flex-r','ns-sh-ir-r','ns-sh-er-r'],                  label: 'Right Shoulder',   norm: 'shoulder_ir', normVal: 70 },
-    lumbar_spine:    { lr: null,keys: ['ns-sp-flex','ns-sp-ext'],                                   label: 'Lumbar Spine',     norm: null,      normVal: null },
-    thoracic_spine:  { lr: null,keys: ['ns-sp-rotl','ns-sp-rotr'],                                 label: 'Thoracic Spine',   norm: null,      normVal: null },
-    left_foot:       { lr: 'L', keys: [],                                                            label: 'Left Foot',        norm: null,      normVal: null },
-    right_foot:      { lr: 'R', keys: [],                                                            label: 'Right Foot',       norm: null,      normVal: null },
+    left_hip:        { lr: 'L', keys: ['ns-hip-ir-l','ns-hip-er-l','ns-hip-flex-l','ns-hip-ext-l'], label: 'Left Hip',         norm: 'hip_ir', normVal: 35, questions: ['Pain level (0-10)?', 'Flexion range?', 'IR range?', 'ER range?'] },
+    right_hip:       { lr: 'R', keys: ['ns-hip-ir-r','ns-hip-er-r','ns-hip-flex-r','ns-hip-ext-r'], label: 'Right Hip',        norm: 'hip_ir', normVal: 35, questions: ['Pain level (0-10)?', 'Flexion range?', 'IR range?', 'ER range?'] },
+    left_knee:       { lr: 'L', keys: [],                                                            label: 'Left Knee',        norm: null,      normVal: null, questions: ['Pain during flexion?', 'Swelling present?', 'Stability issues?'] },
+    right_knee:      { lr: 'R', keys: [],                                                            label: 'Right Knee',       norm: null,      normVal: null, questions: ['Pain during flexion?', 'Swelling present?', 'Stability issues?'] },
+    left_ankle:      { lr: 'L', keys: ['ns-ankle-df-l'],                                            label: 'Left Ankle',       norm: 'ankle_df',normVal: 10, questions: ['Dorsiflexion (cm)?', 'Pain on movement?', 'Previous sprain?'] },
+    right_ankle:     { lr: 'R', keys: ['ns-ankle-df-r'],                                            label: 'Right Ankle',      norm: 'ankle_df',normVal: 10, questions: ['Dorsiflexion (cm)?', 'Pain on movement?', 'Previous sprain?'] },
+    left_shoulder:   { lr: 'L', keys: ['ns-sh-flex-l','ns-sh-ir-l','ns-sh-er-l'],                  label: 'Left Shoulder',    norm: 'shoulder_ir', normVal: 70, questions: ['Flexion range?', 'Pain level?', 'Previous dislocation?'] },
+    right_shoulder:  { lr: 'R', keys: ['ns-sh-flex-r','ns-sh-ir-r','ns-sh-er-r'],                  label: 'Right Shoulder',   norm: 'shoulder_ir', normVal: 70, questions: ['Flexion range?', 'Pain level?', 'Previous dislocation?'] },
+    lumbar_spine:    { lr: null,keys: ['ns-sp-flex','ns-sp-ext'],                                   label: 'Lumbar Spine',     norm: null,      normVal: null, questions: ['Pain during flexion?', 'Numbness/tingling?', 'Range limitation?'] },
+    thoracic_spine:  { lr: null,keys: ['ns-sp-rotl','ns-sp-rotr'],                                 label: 'Thoracic Spine',   norm: null,      normVal: null, questions: ['Rotation pain?', 'Stiffness level?', 'Previous injury?'] },
+    left_foot:       { lr: 'L', keys: [],                                                            label: 'Left Foot',        norm: null,      normVal: null, questions: ['Arch type?', 'Pain location?', 'Gait issues?'] },
+    right_foot:      { lr: 'R', keys: [],                                                            label: 'Right Foot',       norm: null,      normVal: null, questions: ['Arch type?', 'Pain location?', 'Gait issues?'] },
   };
 
   // ── STATE ─────────────────────────────────────────────────
   let scene, camera, renderer, controls, raycaster, mouse;
   let jointMeshes  = {};   // jointKey → THREE.Mesh
-  let jointStates  = {};   // jointKey → { pain_scale, label }
+  let jointStates  = {};   // jointKey → { pain_scale, label, clientData }
   let onClickCb    = null;
   let container    = null;
   let animId       = null;
@@ -51,6 +61,10 @@ const BodyMap3D = (() => {
   let gaitAnimId   = null;
   let gaitPhaseIdx = 0;
   let _inited      = false;
+  let particleSys  = [];   // holographic particles
+  let glowEffects  = {};   // joint glow meshes
+  let currentClient = null; // tracks if client exists (for info box mode)
+  let infoBoxVisible = false;
 
   const GAIT_SEQ = ['loading_response','mid_stance','terminal_stance',
                     'pre_swing','initial_swing','mid_swing','terminal_swing'];
@@ -77,13 +91,13 @@ const BodyMap3D = (() => {
     if (options.modelUrl) _loadGLTF(options.modelUrl);
   }
 
-  // ── THREE.JS INIT ─────────────────────────────────────────
+  // ── THREE.JS INIT (Holographic Sci-Fi) ──────────────────
   function _initThree() {
     const w = container.clientWidth  || 400;
     const h = container.clientHeight || 520;
 
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0b0d12);
+    scene.background = new THREE.Color(0x050510); // Deep dark blue-black
 
     camera = new THREE.PerspectiveCamera(42, w / h, 0.01, 100);
     camera.position.set(0, 1.1, 3.2);
@@ -96,21 +110,26 @@ const BodyMap3D = (() => {
     container.innerHTML = '';
     container.appendChild(renderer.domElement);
 
-    // Lighting
-    const ambient = new THREE.AmbientLight(0xffffff, 0.5);
+    // Holographic Lighting
+    const ambient = new THREE.AmbientLight(0x0a0a2a, 0.4);
     scene.add(ambient);
 
-    const key = new THREE.DirectionalLight(0xffffff, 0.8);
+    // Neon blue key light
+    const key = new THREE.DirectionalLight(NEON_BLUE, 0.6);
     key.position.set(3, 6, 4);
-    key.castShadow = true;
     scene.add(key);
 
-    const rim = new THREE.DirectionalLight(0x3df5c1, 0.25);
+    // Magenta rim light
+    const rim = new THREE.DirectionalLight(NEON_MAGENTA, 0.4);
     rim.position.set(-4, 3, -3);
     scene.add(rim);
 
-    const fill = new THREE.HemisphereLight(0x222840, 0x080b12, 0.6);
+    // Cyan fill light
+    const fill = new THREE.HemisphereLight(0x0a2a3a, 0x050510, 0.5);
     scene.add(fill);
+
+    // Add subtle fog for depth
+    scene.fog = new THREE.FogExp2(0x050510, 0.08);
 
     // Controls
     const _OrbitCtrl = THREE.OrbitControls || window.OrbitControls;
@@ -130,74 +149,143 @@ const BodyMap3D = (() => {
     renderer.domElement.addEventListener('mousemove', _onHover);
     window.addEventListener('resize', _onResize);
 
+    // Create background bokeh particles
+    _createBokehParticles();
+
     _animate();
   }
 
-  // ── FALLBACK BODY (pure Three.js geometry — no external file) ──
+  // ── FALLBACK BODY (Holographic Neon Style) ────────────────
   function _buildFallbackBody() {
-    const baseMat = () => new THREE.MeshLambertMaterial({
-      color: 0x1e2535, transparent: true, opacity: 0.88
+    // Holographic material factory
+    const holoMat = (color, emissiveIntensity = 0.3) => new THREE.MeshPhongMaterial({
+      color: color,
+      emissive: color,
+      emissiveIntensity: emissiveIntensity,
+      transparent: true,
+      opacity: 0.85,
+      wireframe: false,
     });
 
     const bodyParts = {
-      head:           { geo: new THREE.SphereGeometry(0.11, 20, 20),           pos: [0,    1.82, 0] },
-      neck:           { geo: new THREE.CylinderGeometry(0.04,0.05,0.1,12),     pos: [0,    1.67, 0] },
-      torso_upper:    { geo: new THREE.CylinderGeometry(0.16,0.14,0.28,16),    pos: [0,    1.44, 0] },
-      torso_lower:    { geo: new THREE.CylinderGeometry(0.13,0.10,0.2,16),     pos: [0,    1.14, 0] },
-      pelvis:         { geo: new THREE.SphereGeometry(0.11, 14, 14),           pos: [0,    0.98, 0] },
+      head:           { geo: new THREE.SphereGeometry(0.11, 20, 20),           pos: [0,    1.82, 0],  color: NEON_BLUE },
+      neck:           { geo: new THREE.CylinderGeometry(0.04,0.05,0.1,12),     pos: [0,    1.67, 0],  color: NEON_BLUE },
+      torso_upper:    { geo: new THREE.CylinderGeometry(0.16,0.14,0.28,16),    pos: [0,    1.44, 0],  color: NEON_BLUE },
+      torso_lower:    { geo: new THREE.CylinderGeometry(0.13,0.10,0.2,16),     pos: [0,    1.14, 0],  color: NEON_BLUE },
+      pelvis:         { geo: new THREE.SphereGeometry(0.11, 14, 14),           pos: [0,    0.98, 0],  color: NEON_BLUE },
 
       // Left arm chain
-      left_shoulder:  { geo: new THREE.SphereGeometry(0.06,14,14),             pos: [-0.22,1.55, 0] },
-      left_upper_arm: { geo: new THREE.CylinderGeometry(0.04,0.035,0.24,10),   pos: [-0.27,1.32, 0] },
-      left_elbow:     { geo: new THREE.SphereGeometry(0.038,10,10),            pos: [-0.28,1.19, 0] },
-      left_forearm:   { geo: new THREE.CylinderGeometry(0.033,0.028,0.20,10),  pos: [-0.29,1.03, 0] },
+      left_shoulder:  { geo: new THREE.SphereGeometry(0.06,14,14),             pos: [-0.22,1.55, 0],  color: NEON_MAGENTA, isJoint: true },
+      left_upper_arm: { geo: new THREE.CylinderGeometry(0.04,0.035,0.24,10),   pos: [-0.27,1.32, 0],  color: NEON_BLUE },
+      left_elbow:     { geo: new THREE.SphereGeometry(0.038,10,10),            pos: [-0.28,1.19, 0],  color: NEON_MAGENTA, isJoint: true },
+      left_forearm:   { geo: new THREE.CylinderGeometry(0.033,0.028,0.20,10),  pos: [-0.29,1.03, 0],  color: NEON_BLUE },
 
       // Right arm chain
-      right_shoulder: { geo: new THREE.SphereGeometry(0.06,14,14),             pos: [0.22, 1.55, 0] },
-      right_upper_arm:{ geo: new THREE.CylinderGeometry(0.04,0.035,0.24,10),   pos: [0.27, 1.32, 0] },
-      right_elbow:    { geo: new THREE.SphereGeometry(0.038,10,10),            pos: [0.28, 1.19, 0] },
-      right_forearm:  { geo: new THREE.CylinderGeometry(0.033,0.028,0.20,10),  pos: [0.29, 1.03, 0] },
+      right_shoulder: { geo: new THREE.SphereGeometry(0.06,14,14),             pos: [0.22, 1.55, 0],  color: NEON_MAGENTA, isJoint: true },
+      right_upper_arm:{ geo: new THREE.CylinderGeometry(0.04,0.035,0.24,10),   pos: [0.27, 1.32, 0],  color: NEON_BLUE },
+      right_elbow:    { geo: new THREE.SphereGeometry(0.038,10,10),            pos: [0.28, 1.19, 0],  color: NEON_MAGENTA, isJoint: true },
+      right_forearm:  { geo: new THREE.CylinderGeometry(0.033,0.028,0.20,10),  pos: [0.29, 1.03, 0],  color: NEON_BLUE },
 
       // Left leg chain
-      left_hip:       { geo: new THREE.SphereGeometry(0.07,14,14),             pos: [-0.13,0.92, 0] },
-      left_thigh:     { geo: new THREE.CylinderGeometry(0.055,0.048,0.34,12),  pos: [-0.13,0.70, 0] },
-      left_knee:      { geo: new THREE.SphereGeometry(0.05,14,14),             pos: [-0.13,0.50, 0] },
-      left_shin:      { geo: new THREE.CylinderGeometry(0.038,0.030,0.3,12),   pos: [-0.13,0.30, 0] },
-      left_ankle:     { geo: new THREE.SphereGeometry(0.04,12,12),             pos: [-0.13,0.10, 0] },
-      left_foot:      { geo: new THREE.BoxGeometry(0.07,0.04,0.14),            pos: [-0.13,0.02, 0.04] },
+      left_hip:       { geo: new THREE.SphereGeometry(0.07,14,14),             pos: [-0.13,0.92, 0],  color: NEON_MAGENTA, isJoint: true },
+      left_thigh:     { geo: new THREE.CylinderGeometry(0.055,0.048,0.34,12),  pos: [-0.13,0.70, 0],  color: NEON_BLUE },
+      left_knee:      { geo: new THREE.SphereGeometry(0.05,14,14),             pos: [-0.13,0.50, 0],  color: NEON_MAGENTA, isJoint: true },
+      left_shin:      { geo: new THREE.CylinderGeometry(0.038,0.030,0.3,12),   pos: [-0.13,0.30, 0],  color: NEON_BLUE },
+      left_ankle:     { geo: new THREE.SphereGeometry(0.04,12,12),             pos: [-0.13,0.10, 0],  color: NEON_MAGENTA, isJoint: true },
+      left_foot:      { geo: new THREE.BoxGeometry(0.07,0.04,0.14),            pos: [-0.13,0.02, 0.04], color: NEON_CYAN },
 
       // Right leg chain
-      right_hip:      { geo: new THREE.SphereGeometry(0.07,14,14),             pos: [0.13, 0.92, 0] },
-      right_thigh:    { geo: new THREE.CylinderGeometry(0.055,0.048,0.34,12),  pos: [0.13, 0.70, 0] },
-      right_knee:     { geo: new THREE.SphereGeometry(0.05,14,14),             pos: [0.13, 0.50, 0] },
-      right_shin:     { geo: new THREE.CylinderGeometry(0.038,0.030,0.3,12),   pos: [0.13, 0.30, 0] },
-      right_ankle:    { geo: new THREE.SphereGeometry(0.04,12,12),             pos: [0.13, 0.10, 0] },
-      right_foot:     { geo: new THREE.BoxGeometry(0.07,0.04,0.14),            pos: [0.13, 0.02, 0.04] },
+      right_hip:      { geo: new THREE.SphereGeometry(0.07,14,14),             pos: [0.13, 0.92, 0],  color: NEON_MAGENTA, isJoint: true },
+      right_thigh:    { geo: new THREE.CylinderGeometry(0.055,0.048,0.34,12),  pos: [0.13, 0.70, 0],  color: NEON_BLUE },
+      right_knee:     { geo: new THREE.SphereGeometry(0.05,14,14),             pos: [0.13, 0.50, 0],  color: NEON_MAGENTA, isJoint: true },
+      right_shin:     { geo: new THREE.CylinderGeometry(0.038,0.030,0.3,12),   pos: [0.13, 0.30, 0],  color: NEON_BLUE },
+      right_ankle:    { geo: new THREE.SphereGeometry(0.04,12,12),             pos: [0.13, 0.10, 0],  color: NEON_MAGENTA, isJoint: true },
+      right_foot:     { geo: new THREE.BoxGeometry(0.07,0.04,0.14),            pos: [0.13, 0.02, 0.04], color: NEON_CYAN },
 
       // Spine
-      lumbar_spine:   { geo: new THREE.BoxGeometry(0.07,0.12,0.06),            pos: [0,    1.08, -0.02] },
-      thoracic_spine: { geo: new THREE.BoxGeometry(0.07,0.18,0.06),            pos: [0,    1.35, -0.02] },
+      lumbar_spine:   { geo: new THREE.BoxGeometry(0.07,0.12,0.06),            pos: [0,    1.08, -0.02], color: NEON_CYAN, isJoint: true },
+      thoracic_spine: { geo: new THREE.BoxGeometry(0.07,0.18,0.06),            pos: [0,    1.35, -0.02], color: NEON_CYAN, isJoint: true },
     };
 
-    Object.entries(bodyParts).forEach(([key, { geo, pos }]) => {
-      const mat  = baseMat();
+    Object.entries(bodyParts).forEach(([key, { geo, pos, color, isJoint }]) => {
+      const mat  = holoMat(color, isJoint ? 0.6 : 0.3);
       const mesh = new THREE.Mesh(geo, mat);
       mesh.position.set(...pos);
       mesh.castShadow    = true;
       mesh.receiveShadow = true;
       mesh.userData.jointKey  = key;
-      mesh.userData.baseColor = 0x1e2535;
+      mesh.userData.baseColor = color;
+      mesh.userData.isJoint   = isJoint || false;
       scene.add(mesh);
 
       if (JOINT_FIELDS[key]) {
         jointMeshes[key] = mesh;
-        jointStates[key] = { pain_scale: 0, label: JOINT_FIELDS[key].label };
+        jointStates[key] = { pain_scale: 0, label: JOINT_FIELDS[key].label, clientData: null };
+        // Add glow effect to joints
+        if (isJoint) _addJointGlow(mesh, color);
       }
     });
 
-    // Grid floor
-    const grid = new THREE.GridHelper(4, 20, 0x1a2030, 0x1a2030);
+    // Holographic grid floor
+    const grid = new THREE.GridHelper(4, 30, NEON_BLUE, NEON_BLUE);
+    grid.material.opacity = 0.15;
+    grid.material.transparent = true;
     scene.add(grid);
+  }
+
+  // ── CREATE BOKEH PARTICLES (Background) ──────────────────
+  function _createBokehParticles() {
+    const particleCount = 120;
+    const geometry = new THREE.BufferGeometry();
+    const positions = new Float32Array(particleCount * 3);
+    const colors    = new Float32Array(particleCount * 3);
+    const sizes     = new Float32Array(particleCount);
+
+    for (let i = 0; i < particleCount; i++) {
+      positions[i * 3]     = (Math.random() - 0.5) * 8;
+      positions[i * 3 + 1] = (Math.random() - 0.5) * 8;
+      positions[i * 3 + 2] = (Math.random() - 0.5) * 8;
+
+      // Random neon colors
+      const c = [NEON_BLUE, NEON_MAGENTA, NEON_CYAN, 0x00ffaa][Math.floor(Math.random() * 4)];
+      const color = new THREE.Color(c);
+      colors[i * 3]     = color.r;
+      colors[i * 3 + 1] = color.g;
+      colors[i * 3 + 2] = color.b;
+
+      sizes[i] = Math.random() * 0.08 + 0.02;
+    }
+
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+
+    const material = new THREE.PointsMaterial({
+      size: 0.06,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.5,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+
+    const particles = new THREE.Points(geometry, material);
+    scene.add(particles);
+    particleSys.push(particles);
+  }
+
+  // ── ADD JOINT GLOW EFFECT ──────────────────────────────────
+  function _addJointGlow(mesh, color) {
+    const glowGeo = new THREE.SphereGeometry(mesh.geometry.parameters.radius * 2.5 || 0.15, 16, 16);
+    const glowMat = new THREE.MeshBasicMaterial({
+      color: color,
+      transparent: true,
+      opacity: 0.12,
+      side: THREE.BackSide,
+    });
+    const glowMesh = new THREE.Mesh(glowGeo, glowMat);
+    mesh.add(glowMesh);
+    glowEffects[mesh.userData.jointKey] = glowMesh;
   }
 
   // ── OPTIONAL GLB LOADER ───────────────────────────────────
@@ -221,6 +309,17 @@ const BodyMap3D = (() => {
           if (!child.isMesh) return;
           child.castShadow = child.receiveShadow = true;
 
+          // Apply holographic material
+          if (child.material) {
+            child.material = new THREE.MeshPhongMaterial({
+              color: NEON_BLUE,
+              emissive: NEON_BLUE,
+              emissiveIntensity: 0.3,
+              transparent: true,
+              opacity: 0.85,
+            });
+          }
+
           Object.keys(JOINT_FIELDS).forEach(jk => {
             const aliases = [
               jk, jk.replace('_', '.'), jk.replace('left_','L_'), jk.replace('right_','R_'),
@@ -229,6 +328,8 @@ const BodyMap3D = (() => {
             if (aliases.some(a => child.name.toLowerCase().includes(a.toLowerCase()))) {
               jointMeshes[jk] = child;
               child.userData.jointKey = jk;
+              child.userData.isJoint = true;
+              _addJointGlow(child, NEON_MAGENTA);
             }
           });
         });
@@ -318,16 +419,16 @@ const BodyMap3D = (() => {
     _setMouse(e);
     raycaster.setFromCamera(mouse, camera);
     const hits = raycaster.intersectObjects(scene.children, true);
-    if (!hits.length) return;
+    if (!hits.length) { _hideInfoBox(); return; }
     const obj = hits[0].object;
     const jk  = obj.userData?.jointKey;
-    if (!jk || !JOINT_FIELDS[jk]) return;
+    if (!jk || !JOINT_FIELDS[jk]) { _hideInfoBox(); return; }
 
     const state = jointStates[jk] || { pain_scale: 0 };
     if (onClickCb) {
       onClickCb(jk, JOINT_FIELDS[jk], state);
     } else {
-      _openJointModal(jk, JOINT_FIELDS[jk], state);
+      _showInfoBox(jk, JOINT_FIELDS[jk], state, obj);
     }
   }
 
@@ -336,21 +437,29 @@ const BodyMap3D = (() => {
     raycaster.setFromCamera(mouse, camera);
     const hits = raycaster.intersectObjects(scene.children, true);
 
+    // Reset previous hovered mesh
     if (hoveredMesh) {
       const jk = hoveredMesh.userData.jointKey;
       const ps = jointStates[jk]?.pain_scale || 0;
       if (hoveredMesh.material) {
-        hoveredMesh.material.emissiveIntensity = ps > 6 ? 0.35 : ps > 3 ? 0.15 : 0.0;
+        hoveredMesh.material.emissiveIntensity = ps > 6 ? 0.35 : ps > 3 ? 0.15 : jk && JOINT_FIELDS[jk] ? 0.6 : 0.0;
       }
-      hoveredMesh = null;
     }
 
     if (hits.length && hits[0].object.userData.jointKey) {
-      hoveredMesh = hits[0].object;
-      if (hoveredMesh.material) hoveredMesh.material.emissiveIntensity = 0.6;
-      renderer.domElement.style.cursor = 'pointer';
+      const obj = hits[0].object;
+      hoveredMesh = obj;
+      const jk = obj.userData.jointKey;
+      if (jk && JOINT_FIELDS[jk]) {
+        if (obj.material) obj.material.emissiveIntensity = 0.9;
+        renderer.domElement.style.cursor = 'pointer';
+        // Show quick preview tooltip
+        _showHoverPreview(jk, JOINT_FIELDS[jk], jointStates[jk]);
+      }
     } else {
+      hoveredMesh = null;
       renderer.domElement.style.cursor = 'grab';
+      _hideHoverPreview();
     }
   }
 
@@ -358,6 +467,138 @@ const BodyMap3D = (() => {
     const r = renderer.domElement.getBoundingClientRect();
     mouse.x =  ((e.clientX - r.left) / r.width)  * 2 - 1;
     mouse.y = -((e.clientY - r.top)  / r.height) * 2 + 1;
+  }
+
+  // ── HOLOGRAPHIC INFO BOX SYSTEM ─────────────────────────
+  function _showInfoBox(jk, fieldMeta, state, mesh) {
+    _hideInfoBox(); // Remove existing
+
+    const isNewClient = !state.clientData || state.clientData.isNew;
+    const box = document.createElement('div');
+    box.id = 'joint-info-box';
+    box.className = 'holo-info-box';
+
+    // Position near the 3D joint
+    const pos = mesh.getWorldPosition(new THREE.Vector3());
+    const projected = pos.clone().project(camera);
+    const x = (projected.x * 0.5 + 0.5) * container.clientWidth;
+    const y = (-projected.y * 0.5 + 0.5) * container.clientHeight;
+
+    box.style.cssText = `
+      position:absolute; left:${Math.min(x + 20, container.clientWidth - 320)}px; top:${Math.max(y - 50, 10)}px;
+      z-index:999; width:300px; background:rgba(5,5,16,0.92); border:1px solid ${HOLO_MAGENTA}; border-radius:12px;
+      padding:16px; box-shadow:0 0 30px rgba(255,45,149,0.3), 0 0 60px rgba(0,212,255,0.15);
+      animation: holoFadeIn 0.3s cubic-bezier(0.16,1,0.3,1); backdrop-filter:blur(10px);
+      font-family: var(--font-body, sans-serif); color: var(--text-primary, #f0f2f7);
+    `;
+
+    // Header with joint name and close button
+    const header = document.createElement('div');
+    header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid rgba(255,45,149,0.3)';
+    header.innerHTML = `
+      <div style="font-family:var(--font-display, sans-serif);font-size:14px;font-weight:700;color:${HOLO_MAGENTA}">
+        ${fieldMeta.label}
+        <span style="font-size:10px;color:${HOLO_CYAN};margin-left:6px">${fieldMeta.lr || ''}</span>
+      </div>
+      <button onclick="document.getElementById('joint-info-box')?.remove()" style="background:none;border:none;color:${HOLO_CYAN};font-size:16px;cursor:pointer;padding:0 4px">✕</button>
+    `;
+    box.appendChild(header);
+
+    if (isNewClient) {
+      // New client → show assessment questions
+      const questions = fieldMeta.questions || ['Assess pain level?', 'Note range of motion?'];
+      const qList = document.createElement('div');
+      qList.style.cssText = 'display:flex;flex-direction:column;gap:8px;margin-bottom:12px';
+      questions.forEach((q, i) => {
+        const qItem = document.createElement('div');
+        qItem.style.cssText = 'padding:8px 10px;background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);border-radius:8px;font-size:12px;cursor:pointer;transition:all 0.2s';
+        qItem.innerHTML = `<span style="color:${HOLO_CYAN};margin-right:6px">Q${i+1}:</span>${q}`;
+        qItem.onmouseenter = () => { qItem.style.background = 'rgba(0,212,255,0.15)'; qItem.style.borderColor = HOLO_CYAN; };
+        qItem.onmouseleave = () => { qItem.style.background = 'rgba(0,212,255,0.08)'; qItem.style.borderColor = 'rgba(0,212,255,0.2)'; };
+        qList.appendChild(qItem);
+      });
+      box.appendChild(qList);
+
+      // Quick pain scale input for new clients
+      const painSection = document.createElement('div');
+      painSection.style.cssText = 'margin-top:8px';
+      painSection.innerHTML = `
+        <div style="font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:${HOLO_CYAN};margin-bottom:6px">Pain Scale (0-10)</div>
+        <input type="range" min="0" max="10" value="0" style="width:100%;accent-color:${HOLO_MAGENTA}" oninput="
+          this.nextElementSibling.textContent=this.value;
+          if(window.BodyMap3D) BodyMap3D.setJoint('${jk}', parseInt(this.value));
+        "/>
+        <div style="text-align:center;color:${HOLO_MAGENTA};font-weight:700;font-size:14px;margin-top:4px">0</div>
+      `;
+      box.appendChild(painSection);
+    } else {
+      // Existing client → show assessment data
+      const data = state.clientData;
+      const dataList = document.createElement('div');
+      dataList.style.cssText = 'display:flex;flex-direction:column;gap:8px;margin-bottom:12px';
+
+      // Show ROM data if available
+      if (data.rom) {
+        Object.entries(data.rom).forEach(([movement, value]) => {
+          const item = document.createElement('div');
+          item.style.cssText = 'padding:8px 10px;background:rgba(0,255,204,0.08);border:1px solid rgba(0,255,204,0.2);border-radius:8px;font-size:12px';
+          const norm = fieldMeta.normVal || '–';
+          item.innerHTML = `<span style="color:${HOLO_CYAN}">${movement}:</span> <strong style="color:${HOLO_BLUE}">${value}°</strong> <span style="color:var(--text-tertiary)">/ ${norm}° norm</span>`;
+          dataList.appendChild(item);
+        });
+      }
+
+      // Show pain level
+      const painItem = document.createElement('div');
+      painItem.style.cssText = 'padding:8px 10px;background:rgba(255,45,149,0.08);border:1px solid rgba(255,45,149,0.2);border-radius:8px;font-size:12px';
+      painItem.innerHTML = `<span style="color:${HOLO_MAGENTA}">Pain Level:</span> <strong style="color:${HOLO_MAGENTA}">${state.pain_scale}/10</strong>`;
+      dataList.appendChild(painItem);
+
+      box.appendChild(dataList);
+    }
+
+    // Apply button
+    const applyBtn = document.createElement('button');
+    applyBtn.className = 'btn btn-primary btn-sm w-full';
+    applyBtn.style.marginTop = '12px';
+    applyBtn.textContent = isNewClient ? 'Save Assessment' : 'Update Data';
+    applyBtn.onclick = () => {
+      _hideInfoBox();
+      if (onClickCb) onClickCb(jk, fieldMeta, state);
+    };
+    box.appendChild(applyBtn);
+
+    container.style.position = 'relative';
+    container.appendChild(box);
+    infoBoxVisible = true;
+  }
+
+  function _hideInfoBox() {
+    document.getElementById('joint-info-box')?.remove();
+    infoBoxVisible = false;
+  }
+
+  function _showHoverPreview(jk, fieldMeta, state) {
+    _hideHoverPreview();
+    if (infoBoxVisible) return; // Don't show preview if info box is open
+
+    const preview = document.createElement('div');
+    preview.id = 'joint-hover-preview';
+    preview.style.cssText = `
+      position:absolute; left:50%; top:10px; transform:translateX(-50%);
+      background:rgba(5,5,16,0.9); border:1px solid ${HOLO_BLUE}; border-radius:8px;
+      padding:8px 14px; z-index:998; font-size:11px; color:${HOLO_CYAN};
+      pointer-events:none; white-space:nowrap;
+      box-shadow:0 0 20px rgba(0,212,255,0.2);
+      animation: holoFadeIn 0.2s ease-out;
+    `;
+    const painColor = PAIN_COLORS[state?.pain_scale || 0] || HOLO_BLUE;
+    preview.innerHTML = `<strong style="color:${HOLO_MAGENTA}">${fieldMeta.label}</strong> — Pain: <span style="color:${painColor};font-weight:700">${state?.pain_scale || 0}/10</span>`;
+    container.appendChild(preview);
+  }
+
+  function _hideHoverPreview() {
+    document.getElementById('joint-hover-preview')?.remove();
   }
 
   // ── BUILT-IN JOINT CLICK MODAL (no external dependency) ──
@@ -561,3 +802,23 @@ const BodyMap3D = (() => {
 })();
 
 window.BodyMap3D = BodyMap3D;
+
+  // Holographic API extensions
+    setClientData(jointKey, data) {
+      if (jointStates[jointKey]) {
+        jointStates[jointKey].clientData = data;
+      }
+    },
+    setClientForAll(clientData) {
+      currentClient = clientData;
+      Object.keys(jointStates).forEach(k => {
+        jointStates[k].clientData = clientData;
+      });
+    },
+    clearClientData() {
+      currentClient = null;
+      Object.keys(jointStates).forEach(k => {
+        jointStates[k].clientData = null;
+      });
+    },
+    hideInfoBox: _hideInfoBox,
