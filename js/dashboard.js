@@ -274,6 +274,12 @@ Keep output clean, structured, and clinically precise.`;
       ProgramGenerator.renderProgram(program);
       ProgramGenerator.renderDailyRoutine(program);
 
+      // ── STEP 2b: Enrich exercises with library data (async) ──
+      ProgramGenerator.enrichWithLibrary(program).then(() => {
+        ProgramGenerator.renderProgram(program);
+        ProgramGenerator.renderDailyRoutine(program);
+      }).catch(() => {});
+
       // ── STEP 3: Update 3D body map if initialised ─────────────
       if (window.BodyMap3D?.inited) {
         BodyMap3D.updateFromAssessment(assessment);
