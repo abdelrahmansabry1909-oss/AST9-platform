@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <meta name="description" content="AST9 — Elite Movement & Rehabilitation Coaching Platform"/>
 <title>AST9 — Elite Coaching Platform</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <link rel="stylesheet" href="css/styles.css"/>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>"/>
 </head>
@@ -1417,10 +1417,16 @@ Auth.listen(event => {
 
 // ── BOOT ─────────────────────────────────────────────────────
 (async () => {
-  const profile = await Auth.init();
-  UI._hideLoading();
-  if (profile) UI._showApp();
-  else document.getElementById('screen-login').classList.remove('hidden');
+  try {
+    const profile = await Auth.init();
+    UI._hideLoading();
+    if (profile) UI._showApp();
+    else document.getElementById('screen-login').classList.remove('hidden');
+  } catch(e) {
+    console.error('AST9 boot error:', e);
+    UI._hideLoading();
+    document.getElementById('screen-login').classList.remove('hidden');
+  }
 })();
 </script>
 </body>
