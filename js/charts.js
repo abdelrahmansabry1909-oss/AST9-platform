@@ -316,19 +316,17 @@ const Charts = (() => {
   // ═══════════════════════════════════════════════════════════
 
   async function renderClientProgressPage(clientId) {
-    const el = document.getElementById('section-progress');
-    if (!el) return;
+    if (!clientId) return;
 
-    el.innerHTML = `
-      <div class="page-header">
-        <div class="page-header-left">
-          <h1 class="page-title">Progress <span class="accent">Charts</span></h1>
-          <p class="page-subtitle" id="progress-client-name">Loading…</p>
-        </div>
-        <div class="page-actions">
-          <button class="btn btn-ghost" onclick="ProgressReport.generatePDF('${clientId}')">🖨 Export PDF</button>
-        </div>
-      </div>
+    // Render into #progress-charts-root to preserve the client selector dropdown
+    const root = document.getElementById('progress-charts-root');
+    if (!root) return;
+
+    // Update subtitle and export button without replacing the whole section
+    const subtitle = document.querySelector('#section-progress .page-subtitle');
+    const actions  = document.querySelector('#section-progress .page-actions');
+
+    root.innerHTML = `
       <div class="grid-2" style="gap:var(--sp-5);margin-bottom:var(--sp-5)">
         <div class="card">
           <div class="card-header"><span class="card-title">Score History</span></div>
@@ -344,11 +342,23 @@ const Charts = (() => {
         <div class="chart-container" style="height:220px"><canvas id="chart-gait-timeline"></canvas></div>
       </div>`;
 
-    // Resolve client name
+    // Resolve client name and update subtitle
     if (Auth.isAdminOrCoach()) {
       const { data: profile } = await sb.from('profiles').select('full_name,email').eq('id', clientId).single();
-      const nameEl = document.getElementById('progress-client-name');
-      if (nameEl && profile) nameEl.textContent = profile.full_name || profile.email;
+      if (subtitle && profile) subtitle.textContent = profile.full_name || profile.email;
+    }
+
+    // Inject/update the Export PDF button
+    if (actions) {
+      const sel = actions.querySelector('select');
+      let exportBtn = actions.querySelector('.btn-export-pdf');
+      if (!exportBtn) {
+        exportBtn = document.createElement('button');
+        exportBtn.className = 'btn btn-ghost btn-export-pdf';
+        actions.insertBefore(exportBtn, sel);
+      }
+      exportBtn.textContent = '🖨 Export PDF';
+      exportBtn.onclick = () => ProgressReport.generatePDF(clientId);
     }
 
     // Render all charts
