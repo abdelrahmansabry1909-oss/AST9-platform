@@ -661,7 +661,7 @@
 
         <div style="display:flex;justify-content:space-between;margin-top:var(--sp-4)">
           <button class="btn btn-ghost" onclick="UI.goTab('session-tabs','tab-subjective')">← Back</button>
-          <button class="btn btn-primary" onclick="UI.goTab('session-tabs','tab-generate');initBodyMap()">Next: Generate →</button>
+          <button class="btn btn-primary" onclick="UI.goTab('session-tabs','tab-generate')">Next: Generate →</button>
         </div>
       </div>
 
@@ -1168,24 +1168,47 @@ function onBodyMapJointClick(jointKey, state) {
   if (valEl)      valEl.textContent = state.painScale || 0;
 }
 
-// Slider input → live preview on model
+// Slider input → live preview on model (dashboard version)
 function onJointPainChange(val) {
-  document.getElementById('joint-pain-val').textContent = val;
+  const valEl = document.getElementById('joint-pain-val-dashboard') || document.getElementById('joint-pain-val');
+  if (valEl) valEl.textContent = val;
   if (_selectedJointKey) BodyMap3D.setJoint(_selectedJointKey, parseInt(val));
 }
 
-// Apply button → persist joint state
+// Apply button → persist joint state (dashboard version)
 function applyJointState() {
   if (!_selectedJointKey) return;
-  const pain  = parseInt(document.getElementById('joint-pain-slider').value) || 0;
-  const notes = document.getElementById('joint-notes')?.value || '';
+  const pain = parseInt(document.getElementById('joint-pain-slider-dashboard')?.value ||
+                     document.getElementById('joint-pain-slider')?.value) || 0;
+  const notes = (document.getElementById('joint-notes-dashboard') ||
+                   document.getElementById('joint-notes'))?.value || '';
   BodyMap3D.setJoint(_selectedJointKey, pain, { notes });
   Dashboard.toast(`${_selectedJointKey.replace(/_/g,' ')} updated → Pain ${pain}/10`, 'success');
 }
 
-// Gait animation toggle
+// Called when a joint is clicked in the 3D view (dashboard version)
+function onBodyMapJointClick(jointKey, fieldMeta, state) {
+  _selectedJointKey = jointKey;
+
+  const nameEl     = document.getElementById('bodymap-joint-name-dashboard') ||
+                     document.getElementById('bodymap-joint-name');
+  const controlsEl = document.getElementById('bodymap-joint-controls-dashboard') ||
+                     document.getElementById('bodymap-joint-controls');
+  const slider     = document.getElementById('joint-pain-slider-dashboard') ||
+                     document.getElementById('joint-pain-slider');
+  const valEl      = document.getElementById('joint-pain-val-dashboard') ||
+                     document.getElementById('joint-pain-val');
+
+  if (nameEl)     nameEl.textContent = jointKey.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  if (controlsEl) controlsEl.classList.remove('hidden');
+  if (slider)     slider.value = (state.pain_scale || state.painScale || 0);
+  if (valEl)      valEl.textContent = (state.pain_scale || state.painScale || 0);
+}
+
+// Gait animation toggle (dashboard version)
 function toggleGaitAnimation() {
-  const btn = document.getElementById('gait-anim-btn');
+  const btn = document.getElementById('gait-anim-btn-dashboard') ||
+                document.getElementById('gait-anim-btn');
   if (_gaitPlaying) {
     BodyMap3D.stopGaitAnimation();
     _gaitPlaying = false;
