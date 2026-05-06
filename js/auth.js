@@ -108,7 +108,7 @@ const Auth = (() => {
 
   // ── Init: check existing session ────────────────────────────
   async function init() {
-    const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('Session check timed out')), 10000));
+    const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('Session check timed out')), 60000));
     try {
       const { data: { session } } = await Promise.race([sb.auth.getSession(), timeout]);
       if (session?.user) {
