@@ -57,12 +57,31 @@ const Auth = (() => {
 
   // ── Login ────────────────────────────────────────────────────
   async function login(email, password) {
-    const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('Login timed out. Please check your connection and try again.')), 15000));
-    const { data, error } = await Promise.race([
-      sb.auth.signInWithPassword({ email, password }),
-      timeout
-    ]);
-    if (error) throw new Error(error.message);
+    const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('Login timed out. Supabase server may be paused or unreachable. Please try again in a moment.')), 20000));
+    try {
+      const { data, error } = await Promise.race([
+        sb.auth.signInWithPassword({ email, password }),
+        timeout
+      ]);
+      if (error) throw new Error(error.message);
+      await loadProfile(data.user);
+      // Block expired clients
+      if (_profile.role === 'client') {
+        const ok = await checkSubscription(data.user.id);
+        if (!ok) {
+          await sb.auth.signOut();
+          _user = null; _profile = null;
+          throw new Error('Your subscription has expired. Please contact your coach to renew access.');
+        }
+      }
+      return _profile;
+    } catch(e) {
+      if (e.message.includes('timed out')) {
+        throw new Error('Unable to connect to authentication server. The server may be waking up from pause - please wait a moment and try again.');
+      }
+      throw e;
+    }
+  }
 
     await loadProfile(data.user);
 
