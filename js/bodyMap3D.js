@@ -797,13 +797,7 @@ const BodyMap3D = (() => {
     getSnapshot,
     PAIN_COLORS, JOINT_FIELDS,
     _svgJointClick,  // exposed for SVG onclick
-  };
-
-})();
-
-window.BodyMap3D = BodyMap3D;
-
-  // Holographic API extensions
+    // Holographic API extensions
     setClientData(jointKey, data) {
       if (jointStates[jointKey]) {
         jointStates[jointKey].clientData = data;
@@ -822,3 +816,8 @@ window.BodyMap3D = BodyMap3D;
       });
     },
     hideInfoBox: _hideInfoBox,
+  };
+
+})();
+
+window.BodyMap3D = BodyMap3D;

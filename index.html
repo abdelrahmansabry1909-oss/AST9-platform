@@ -184,6 +184,79 @@
           <div class="stat-sub">within 7 days</div>
         </div>
       </div>
+
+      <!-- 3D Body Map Card for Dashboard -->
+      <div class="card" style="margin-bottom:var(--sp-5)">
+        <div class="card-header">
+          <span class="card-title">3D Body Map</span>
+          <div style="display:flex;gap:8px;align-items:center">
+            <select id="bodymap-gender-dashboard" class="form-input" style="width:auto;padding:6px 10px;font-size:12px" onchange="BodyMap3D.setGender(this.value,{})">
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+            </select>
+            <button class="btn btn-ghost btn-sm" onclick="BodyMap3D.resetAll()">Reset</button>
+            <button class="btn btn-ghost btn-sm" id="gait-anim-btn-dashboard" onclick="toggleGaitAnimation()">▶ Gait Anim</button>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 280px;gap:16px;align-items:start">
+          <!-- 3D Viewport -->
+          <div id="bodymap-dashboard-container"
+            style="height:480px;border-radius:10px;overflow:hidden;background:var(--bg-raised);border:1px solid var(--border-subtle);position:relative;cursor:grab"
+            onclick="if(!this.dataset.init){BodyMap3D.init('bodymap-dashboard-container',{onJointClick:onBodyMapJointClick});this.dataset.init=true}">
+            <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:var(--text-tertiary);font-size:13px;text-align:center;pointer-events:none">
+              <div style="font-size:28px;margin-bottom:8px;opacity:0.3">◈</div>
+              Click to load 3D model…
+            </div>
+          </div>
+          <!-- Joint detail panel -->
+          <div>
+            <div class="form-group" style="margin-bottom:10px">
+              <label class="form-label">Selected Joint</label>
+              <div id="bodymap-joint-name-dashboard" style="font-size:14px;font-weight:600;color:var(--lime);padding:8px 0">Click a joint</div>
+            </div>
+            <div id="bodymap-joint-controls-dashboard" class="hidden">
+              <div class="form-group">
+                <label class="form-label">Pain Scale</label>
+                <input type="range" id="joint-pain-slider-dashboard" min="0" max="10" step="1" value="0"
+                  style="width:100%;accent-color:var(--lime)" oninput="onJointPainChange(this.value)"/>
+                <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-tertiary);margin-top:4px">
+                  <span>0 Healthy</span><span id="joint-pain-val-dashboard" style="color:var(--lime);font-weight:700">0</span><span>10 Critical</span>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Notes</label>
+                <input id="joint-notes-dashboard" class="form-input" placeholder="Describe findings…"/>
+              </div>
+              <button class="btn btn-primary w-full btn-sm" onclick="applyJointState()">Apply to Map</button>
+            </div>
+            <!-- Pain legend -->
+            <div style="margin-top:16px">
+              <div class="form-label" style="margin-bottom:8px">Pain Scale Legend</div>
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+                <div style="width:12px;height:12px;border-radius:50%;background:#4ADE80;flex-shrink:0"></div>
+                <span style="font-size:11px;color:var(--text-secondary)">1–2 — Healthy</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+                <div style="width:12px;height:12px;border-radius:50%;background:#FACC15;flex-shrink:0"></div>
+                <span style="font-size:11px;color:var(--text-secondary)">3–4 — Mild</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+                <div style="width:12px;height:12px;border-radius:50%;background:#FB923C;flex-shrink:0"></div>
+                <span style="font-size:11px;color:var(--text-secondary)">5–6 — Moderate</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+                <div style="width:12px;height:12px;border-radius:50%;background:#EF4444;flex-shrink:0"></div>
+                <span style="font-size:11px;color:var(--text-secondary)">7–8 — Severe</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+                <div style="width:12px;height:12px;border-radius:50%;background:#7F1D1D;flex-shrink:0"></div>
+                <span style="font-size:11px;color:var(--text-secondary)">9–10 — Critical</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="grid-2" style="gap:var(--sp-5)">
         <div class="card card-accent-lime">
           <div class="card-header">
@@ -582,76 +655,7 @@
             </div>
           </div>
 
-          <!-- 3D BODY MAP TAB (lazy-loaded) -->
-          <div class="card" style="grid-column:span 2">
-            <div class="card-header">
-              <span class="card-title">3D Body Map</span>
-              <div style="display:flex;gap:8px;align-items:center">
-                <select id="bodymap-gender" class="form-input" style="width:auto;padding:6px 10px;font-size:12px" onchange="BodyMap3D.setGender(this.value,{})">
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
-                </select>
-                <button class="btn btn-ghost btn-sm" onclick="BodyMap3D.resetAll()">Reset</button>
-                <button class="btn btn-ghost btn-sm" id="gait-anim-btn" onclick="toggleGaitAnimation()">▶ Gait Anim</button>
-              </div>
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 280px;gap:16px;align-items:start">
-              <!-- 3D Viewport -->
-              <div id="bodymap-container"
-                style="height:480px;border-radius:10px;overflow:hidden;background:var(--bg-raised);border:1px solid var(--border-subtle);position:relative;cursor:grab">
-                <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:var(--text-tertiary);font-size:13px;text-align:center;pointer-events:none" id="bodymap-init-msg">
-                  <div style="font-size:28px;margin-bottom:8px;opacity:0.3">◈</div>
-                  Loading 3D model…
-                </div>
-              </div>
-              <!-- Joint detail panel -->
-              <div>
-                <div class="form-group" style="margin-bottom:10px">
-                  <label class="form-label">Selected Joint</label>
-                  <div id="bodymap-joint-name" style="font-size:14px;font-weight:600;color:var(--lime);padding:8px 0">Click a joint</div>
-                </div>
-                <div id="bodymap-joint-controls" class="hidden">
-                  <div class="form-group">
-                    <label class="form-label">Pain Scale</label>
-                    <input type="range" id="joint-pain-slider" min="0" max="10" step="1" value="0"
-                      style="width:100%;accent-color:var(--lime)" oninput="onJointPainChange(this.value)"/>
-                    <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-tertiary);margin-top:4px">
-                      <span>0 Healthy</span><span id="joint-pain-val" style="color:var(--lime);font-weight:700">0</span><span>10 Critical</span>
-                    </div>
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">Notes</label>
-                    <input id="joint-notes" class="form-input" placeholder="Describe findings…"/>
-                  </div>
-                  <button class="btn btn-primary w-full btn-sm" onclick="applyJointState()">Apply to Map</button>
-                </div>
-                <!-- Pain legend -->
-                <div style="margin-top:16px">
-                  <div class="form-label" style="margin-bottom:8px">Pain Scale Legend</div>
-                  <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
-                    <div style="width:12px;height:12px;border-radius:50%;background:#4ADE80;flex-shrink:0"></div>
-                    <span style="font-size:11px;color:var(--text-secondary)">1–2 — Healthy</span>
-                  </div>
-                  <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
-                    <div style="width:12px;height:12px;border-radius:50%;background:#FACC15;flex-shrink:0"></div>
-                    <span style="font-size:11px;color:var(--text-secondary)">3–4 — Mild</span>
-                  </div>
-                  <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
-                    <div style="width:12px;height:12px;border-radius:50%;background:#FB923C;flex-shrink:0"></div>
-                    <span style="font-size:11px;color:var(--text-secondary)">5–6 — Moderate</span>
-                  </div>
-                  <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
-                    <div style="width:12px;height:12px;border-radius:50%;background:#EF4444;flex-shrink:0"></div>
-                    <span style="font-size:11px;color:var(--text-secondary)">7–8 — Severe</span>
-                  </div>
-                  <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
-                    <div style="width:12px;height:12px;border-radius:50%;background:#7F1D1D;flex-shrink:0"></div>
-                    <span style="font-size:11px;color:var(--text-secondary)">9–10 — Critical</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+
 
         </div><!-- /assess-grid -->
 
@@ -1145,18 +1149,8 @@ let _lastGait         = null;
 function initBodyMap() {
   if (_bodyMapInitDone) return;
   _bodyMapInitDone = true;
-
-  const ok = BodyMap3D.init('bodymap-container', {
-    // modelUrl: '/models/body.glb',  // ← add your GLB path here when ready
-    onJointClick: onBodyMapJointClick,
-  });
-
-  const msg = document.getElementById('bodymap-init-msg');
-  if (msg) msg.remove();
-
-  if (!ok) {
-    console.log('WebGL not available — 2D fallback shown');
-  }
+  // Body map is now on Dashboard and auto-inits on click
+  console.log('Body map moved to Dashboard (auto-init on click)');
 }
 
 // Called when a joint is clicked in the 3D view
