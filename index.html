@@ -1418,8 +1418,9 @@ Auth.listen(event => {
 
 // ── BOOT ─────────────────────────────────────────────────────
 (async () => {
+  const _bootTimeout = new Promise(r => setTimeout(() => r(null), 5000));
   try {
-    const profile = await Auth.init();
+    const profile = await Promise.race([Auth.init(), _bootTimeout]);
     UI._hideLoading();
     if (profile) UI._showApp();
     else document.getElementById('screen-login').classList.remove('hidden');
