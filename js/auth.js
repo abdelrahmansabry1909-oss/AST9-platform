@@ -77,7 +77,7 @@ const Auth = (() => {
 
   // ── Logout ───────────────────────────────────────────────────
   async function logout() {
-    await sb.auth.signOut();
+    await sb.auth.signOut({ scope: 'local' });
     _user = null;
     _profile = null;
   }
