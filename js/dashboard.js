@@ -9,10 +9,13 @@ const Dashboard = (() => {
 
   // ── Local session storage ────────────────────────────────────
   const SESSIONS_KEY = 'ast9_sessions_v2';
-  let _sessions = JSON.parse(localStorage.getItem(SESSIONS_KEY) || '[]');
+  let _sessions = (() => {
+    try { return JSON.parse(localStorage.getItem(SESSIONS_KEY) || '[]'); }
+    catch { return []; }
+  })();
 
   function saveSessions() {
-    localStorage.setItem(SESSIONS_KEY, JSON.stringify(_sessions));
+    try { localStorage.setItem(SESSIONS_KEY, JSON.stringify(_sessions)); } catch { /* storage blocked */ }
   }
 
   // ═══════════════════════════════════════════════════════════
