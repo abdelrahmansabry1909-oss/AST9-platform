@@ -1,8 +1,8 @@
 // ═══════════════════════════════════════════════════════════════
 //  js/dashboard.js
-//  Phase 2 + Phase 3: app shell, navigation, stat cards,
-//  session generation (ScoringEngine → GaitEngine → ProgramGenerator
-//  → Claude API), community badges, sidebar toggle, progress section.
+//  Handles: app shell rendering, navigation, stat cards,
+//           recent sessions, program generation + output,
+//           toast, modal helpers, celebration overlay.
 // ═══════════════════════════════════════════════════════════════
 
 const Dashboard = (() => {
@@ -23,16 +23,19 @@ const Dashboard = (() => {
     const p = Auth.getProfile();
     const role = Auth.getRole();
 
+    // Wordmark
     document.getElementById('sb-avatar-char').textContent = (p?.full_name || p?.email || '?')[0].toUpperCase();
     document.getElementById('sb-user-name').textContent = p?.full_name || p?.email || '–';
     document.getElementById('sb-user-role').textContent = _roleLabel(role);
 
+    // Dashboard greeting
     const hour = new Date().getHours();
     const greet = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
     const firstName = (p?.full_name || '').split(' ')[0] || 'Coach';
     const greetEl = document.getElementById('dashboard-greeting');
     if (greetEl) greetEl.textContent = `${greet}, ${firstName} 👋`;
 
+    // Role-based nav visibility
     document.querySelectorAll('.role-coach-admin').forEach(el => {
       el.style.display = Auth.isAdminOrCoach() ? '' : 'none';
     });
@@ -40,6 +43,7 @@ const Dashboard = (() => {
       el.style.display = Auth.isAdmin() ? '' : 'none';
     });
 
+    // Admin email
     const adminEmailEl = document.getElementById('admin-email-display');
     if (adminEmailEl) adminEmailEl.textContent = p?.email || '–';
 
@@ -49,20 +53,6 @@ const Dashboard = (() => {
 
   function _roleLabel(role) {
     return { admin: '⬡ Admin', coach: '◉ Coach', client: '◌ Client' }[role] || role;
-  }
-
-  // ── Mobile sidebar toggle ────────────────────────────────────
-
-  function toggleSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('sidebar-overlay');
-    const open = sidebar?.classList.toggle('open');
-    overlay?.classList.toggle('visible', open);
-  }
-
-  function closeSidebar() {
-    document.getElementById('sidebar')?.classList.remove('open');
-    document.getElementById('sidebar-overlay')?.classList.remove('visible');
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -78,23 +68,19 @@ const Dashboard = (() => {
     if (section) section.classList.add('active');
     if (navItem)  navItem.classList.add('active');
 
-    // Close mobile sidebar on nav
-    closeSidebar();
-
+    // Lazy-load section data
     const loaders = {
       'clients':          () => Clients.loadAll(),
-      'subscriptions':    () => { Subscriptions.loadAll(); _populateClientSelects(); },
+      'subscriptions':    () => Subscriptions.loadAll(),
       'coaches':          () => Clients.loadCoaches(),
       'dashboard':        () => loadDashboardStats(),
       'programs':         () => renderProgramsList(),
-      'new-session':      () => _populateClientSelects(),
-      'exercise-library': () => typeof ExerciseUI !== 'undefined' && ExerciseUI.render(),
-      'community':        () => typeof CommunityUI !== 'undefined' && CommunityUI.initCommunitySection('comm-messaging'),
-      'progress':         () => _populateProgressClientSelect(),
+      'exercise-library': () => Clients.loadExercises?.(),
     };
     loaders[id]?.();
   }
 
+  // Tab switching (in-page tabs)
   function initTabs(containerSelector) {
     const rows = document.querySelectorAll(`${containerSelector} .tab-row`);
     rows.forEach(row => {
@@ -117,15 +103,20 @@ const Dashboard = (() => {
   // ═══════════════════════════════════════════════════════════
 
   async function loadDashboardStats() {
+    const role = Auth.getRole();
+
     if (Auth.isAdminOrCoach()) {
+      // Client count
       let q = sb.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'client');
       if (Auth.isCoach()) q = q.eq('assigned_coach', Auth.getUser()?.id);
       const { count: clientCount } = await q;
       _setStat('stat-clients', clientCount ?? 0);
 
+      // Active subscriptions
       const { data: subs } = await sb.from('subscriptions').select('*').eq('status', 'active');
       _setStat('stat-subs', subs?.length ?? 0);
 
+      // Expiring in 7 days
       const in7 = new Date(); in7.setDate(in7.getDate() + 7);
       const expiring = (subs || []).filter(s => {
         const end = new Date(s.end_date);
@@ -134,23 +125,33 @@ const Dashboard = (() => {
       _setStat('stat-expiring', expiring.length);
     }
 
+    // Sessions count (local)
     _setStat('stat-sessions', _sessions.length);
+
+    // Recent sessions
     _renderRecentSessions();
+
+    // Recent clients
     await _renderRecentClients();
   }
 
   function _setStat(id, val) {
     const el = document.getElementById(id);
-    if (el) { el.textContent = '0'; _animateNumber(el, parseInt(val) || 0); }
+    if (el) {
+      el.textContent = '0';
+      _animateNumber(el, parseInt(val) || 0);
+    }
   }
 
   function _animateNumber(el, target) {
+    const start = 0;
     const duration = 800;
     const startTime = performance.now();
     const update = (now) => {
-      const progress = Math.min((now - startTime) / duration, 1);
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
       const eased = 1 - Math.pow(1 - progress, 3);
-      el.textContent = Math.round(target * eased);
+      el.textContent = Math.round(start + (target - start) * eased);
       if (progress < 1) requestAnimationFrame(update);
     };
     requestAnimationFrame(update);
@@ -165,7 +166,7 @@ const Dashboard = (() => {
       return;
     }
     el.innerHTML = sessions.map(s => `
-      <div class="flex items-center gap-3" style="padding:11px 0;border-bottom:1px solid var(--border-subtle)">
+      <div class="flex items-center gap-3" style="padding:11px 0; border-bottom:1px solid var(--border-subtle)">
         <div class="avatar avatar-sm" style="background:conic-gradient(from 180deg,var(--teal),var(--amber))">${(s.name||'?')[0].toUpperCase()}</div>
         <div class="flex-1 truncate">
           <div style="font-size:13px;font-weight:600;color:var(--text-primary)">${s.name}</div>
@@ -200,7 +201,6 @@ const Dashboard = (() => {
 
   // ═══════════════════════════════════════════════════════════
   //  PROGRAM GENERATION
-  //  Flow: ScoringEngine → GaitEngine → ProgramGenerator → Claude
   // ═══════════════════════════════════════════════════════════
 
   function _gv(id) { const e = document.getElementById(id); return e ? e.value.trim() : ''; }
@@ -268,25 +268,21 @@ Keep output clean, structured, and clinically precise.`;
         phase: _gv('ns-phase'),
       });
 
-      // ── STEP 2: Render engine outputs into panels ─────────────
+      // ── STEP 2: Render engine outputs into score/gait panels ─
       ScoringEngine.renderScores(scores);
       GaitEngine.renderGaitAnalysis(gait);
       ProgramGenerator.renderProgram(program);
       ProgramGenerator.renderDailyRoutine(program);
 
-      // ── STEP 2b: Enrich exercises with library data (async) ──
-      ProgramGenerator.enrichWithLibrary(program).then(() => {
-        ProgramGenerator.renderProgram(program);
-        ProgramGenerator.renderDailyRoutine(program);
-      }).catch(() => {});
-
-      // ── STEP 3: Update 3D body map if initialised ─────────────
+      // ── STEP 3: Update 3D body map if initialised ────────────
       if (window.BodyMap3D?.inited) {
         BodyMap3D.updateFromAssessment(assessment);
-        if (gait.total_deficits > 0) BodyMap3D.startGaitAnimation(gait.phase_deficiencies);
+        if (gait.total_deficits > 0) {
+          BodyMap3D.startGaitAnimation(gait.phase_deficiencies);
+        }
       }
 
-      // ── STEP 4: AI narrative (Claude) ─────────────────────────
+      // ── STEP 4: AI narrative (Claude) ────────────────────────
       btn.innerHTML = '<span class="spinner"></span> Generating AI analysis...';
       let aiText = '';
       try {
@@ -303,6 +299,7 @@ Keep output clean, structured, and clinically precise.`;
         if (result.error) throw new Error(result.error.message);
         aiText = result.content?.map(i => i.text || '').join('\n') || '';
       } catch(aiErr) {
+        // AI narrative is a bonus — don't fail the whole flow
         console.warn('AI narrative skipped:', aiErr.message);
         aiText = `[AI narrative unavailable — check API key]\n\nScores: ROM ${scores.rom_score}% · Control ${scores.control_score}% · Force ${scores.force_score}% · Neurology ${scores.neurology_score}%\nComposite: ${scores.composite_score}% → ${scores.phase_recommendation}`;
       }
@@ -312,7 +309,7 @@ Keep output clean, structured, and clinically precise.`;
       if (outEl) outEl.textContent = aiText;
       if (panel) panel.classList.remove('hidden');
 
-      // ── STEP 5: Save locally ──────────────────────────────────
+      // ── STEP 5: Save locally ─────────────────────────────────
       const session = {
         name, phase: _gv('ns-phase'), goal: _gv('ns-goal'),
         output: aiText, scores, program, createdAt: new Date().toISOString(),
@@ -341,10 +338,12 @@ Keep output clean, structured, and clinically precise.`;
       const phase   = _gv('ns-phase');
       const goal    = _gv('ns-goal');
 
+      // Always write to legacy sessions (preserves existing dashboard stats)
       await sb.from('sessions').insert({
         client_id: clientId, coach_id: coachId, phase, goal, output: aiOutput,
       });
 
+      // Write structured assessment
       const { data: aRow } = await sb.from('assessments').insert({
         client_id: clientId, coach_id: coachId,
         session_date: new Date().toISOString().split('T')[0], goals: goal,
@@ -352,27 +351,28 @@ Keep output clean, structured, and clinically precise.`;
 
       if (!aRow) return;
 
+      // Objective assessment + computed scores
       const a = assessment;
       await sb.from('rehab_objective_assessments').insert({
-        assessment_id:         aRow.id,
-        toe_touch_score:       a.toe_touch_score,
-        ankle_df_left_cm:      a.ankle_df_l,  ankle_df_right_cm:     a.ankle_df_r,
-        ankle_pronation_left:  a.pronation_l, ankle_pronation_right:  a.pronation_r,
-        tibia_ir_left:         a.tib_ir_l,   tibia_ir_right:          a.tib_ir_r,
-        hip_ir_left:           a.hip_ir_l,   hip_ir_right:            a.hip_ir_r,
-        hip_er_left:           a.hip_er_l,   hip_er_right:            a.hip_er_r,
-        hip_flexion_left:      a.hip_flex_l, hip_flexion_right:        a.hip_flex_r,
-        hip_extension_left:    a.hip_ext_l,  hip_extension_right:      a.hip_ext_r,
-        hip_abduction_left:    a.hip_abd_l,  hip_abduction_right:      a.hip_abd_r,
-        shoulder_flexion_left: a.sh_flex_l,  shoulder_flexion_right:   a.sh_flex_r,
-        shoulder_ir_left:      a.sh_ir_l,   shoulder_ir_right:         a.sh_ir_r,
-        shoulder_er_left:      a.sh_er_l,   shoulder_er_right:         a.sh_er_r,
-        sl_squat_left_score:   a.sl_squat_l, sl_squat_right_score:    a.sl_squat_r,
-        sl_rdl_left_score:     a.sl_rdl_l,  sl_rdl_right_score:       a.sl_rdl_r,
-        oh_squat_score:        a.oh_squat,
-        sl_balance_eo_left:    a.bal_eo_l,  sl_balance_eo_right:      a.bal_eo_r,
-        sl_balance_ec_left:    a.bal_ec_l,  sl_balance_ec_right:      a.bal_ec_r,
-        sl_reach_left:         a.reach_l,   sl_reach_right:            a.reach_r,
+        assessment_id:        aRow.id,
+        toe_touch_score:      a.toe_touch_score,
+        ankle_df_left_cm:     a.ankle_df_l,  ankle_df_right_cm:    a.ankle_df_r,
+        ankle_pronation_left: a.pronation_l, ankle_pronation_right: a.pronation_r,
+        tibia_ir_left:        a.tib_ir_l,   tibia_ir_right:        a.tib_ir_r,
+        hip_ir_left:          a.hip_ir_l,   hip_ir_right:          a.hip_ir_r,
+        hip_er_left:          a.hip_er_l,   hip_er_right:          a.hip_er_r,
+        hip_flexion_left:     a.hip_flex_l, hip_flexion_right:     a.hip_flex_r,
+        hip_extension_left:   a.hip_ext_l,  hip_extension_right:   a.hip_ext_r,
+        hip_abduction_left:   a.hip_abd_l,  hip_abduction_right:   a.hip_abd_r,
+        shoulder_flexion_left: a.sh_flex_l, shoulder_flexion_right: a.sh_flex_r,
+        shoulder_ir_left:     a.sh_ir_l,   shoulder_ir_right:      a.sh_ir_r,
+        shoulder_er_left:     a.sh_er_l,   shoulder_er_right:      a.sh_er_r,
+        sl_squat_left_score:  a.sl_squat_l, sl_squat_right_score:  a.sl_squat_r,
+        sl_rdl_left_score:    a.sl_rdl_l,  sl_rdl_right_score:     a.sl_rdl_r,
+        oh_squat_score:       a.oh_squat,
+        sl_balance_eo_left:   a.bal_eo_l,  sl_balance_eo_right:    a.bal_eo_r,
+        sl_balance_ec_left:   a.bal_ec_l,  sl_balance_ec_right:    a.bal_ec_r,
+        sl_reach_left:        a.reach_l,   sl_reach_right:         a.reach_r,
         rom_score:        scores.rom_score,
         control_score:    scores.control_score,
         force_score:      scores.force_score,
@@ -385,24 +385,21 @@ Keep output clean, structured, and clinically precise.`;
         referral_required: scores.referral_required,
       });
 
+      // Gait assessment
       await sb.from('gait_assessments').insert({
-        client_id:           clientId,
-        assessment_id:       aRow.id,
-        phase_deficiencies:  gait.phase_deficiencies,
-        symmetry_index:      gait.symmetry_index,
+        client_id:          clientId,
+        assessment_id:      aRow.id,
+        phase_deficiencies: gait.phase_deficiencies,
+        symmetry_index:     gait.symmetry_index,
         worst_case_scenario: gait.worst_case_scenario,
         exercise_priorities: gait.exercise_priorities,
       });
 
+      // Body map state
       await sb.from('body_map_states').insert({
         client_id: clientId, assessment_id: aRow.id,
         joint_data: {}, animation_state: 'idle',
       });
-
-      // Phase 3: save progress snapshot for chart history
-      if (typeof Charts !== 'undefined') {
-        Charts.saveSnapshot(clientId, aRow.id, scores, phase);
-      }
 
     } catch(e) {
       console.warn('Supabase save (non-fatal):', e.message);
@@ -525,6 +522,7 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
       });
     });
 
+    // Coach dropdown for Add Client
     const { data: coaches } = await sb.from('profiles')
       .select('id, full_name, email').in('role',['coach','admin']);
     const coachSel = document.getElementById('ac-coach');
@@ -536,23 +534,6 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
         coachSel.appendChild(opt);
       });
     }
-  }
-
-  async function _populateProgressClientSelect() {
-    const sel = document.getElementById('progress-client-select');
-    if (!sel || !Auth.isAdminOrCoach()) return;
-    const { data } = await sb.from('profiles')
-      .select('id, full_name, email').eq('role','client').order('full_name');
-    if (!data) return;
-    const first = sel.options[0];
-    sel.innerHTML = '';
-    if (first) sel.appendChild(first);
-    data.forEach(c => {
-      const opt = document.createElement('option');
-      opt.value = c.id;
-      opt.textContent = c.full_name || c.email;
-      sel.appendChild(opt);
-    });
   }
 
   function fillClientFromSelect() {
@@ -584,6 +565,7 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
 
     if (error) { toast(error.message, 'error'); return; }
 
+    // Send celebration email
     try {
       const token = (await sb.auth.getSession()).data.session?.access_token;
       await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
@@ -705,8 +687,8 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
   // ═══════════════════════════════════════════════════════════
 
   async function submitChangePassword() {
-    const newPass = document.getElementById('cp-new')?.value;
-    const confirm = document.getElementById('cp-confirm')?.value;
+    const newPass  = document.getElementById('cp-new')?.value;
+    const confirm  = document.getElementById('cp-confirm')?.value;
     if (!newPass || newPass.length < 8) { toast('Password must be at least 8 characters', 'error'); return; }
     if (newPass !== confirm) { toast('Passwords do not match', 'error'); return; }
     try {
@@ -738,9 +720,6 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
     generateProgram, previewWeb, renderProgramsList,
     toggleProgram, rePreviewWeb,
     fillClientFromSelect,
-    refreshClientSelects: _populateClientSelects,
-    populateProgressClientSelect: _populateProgressClientSelect,
-    toggleSidebar, closeSidebar,
     submitPhaseUpgrade, showCelebration, closeCelebration,
     openModal, closeModal, calcSubEndDate,
     submitChangePassword,
@@ -750,4 +729,5 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
 })();
 
 window.Dashboard = Dashboard;
+// Shortcut for HTML onclick
 window.toast = Dashboard.toast;

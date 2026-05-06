@@ -419,7 +419,6 @@ const ProgramGenerator = (() => {
         <div>
           <div style="font-size:13px;font-weight:600;color:var(--text-primary)">${ex.name}</div>
           ${ex.notes ? `<div style="font-size:11px;color:var(--text-tertiary);margin-top:2px;line-height:1.4">${ex.notes}</div>` : ''}
-          ${ex.video_url ? `<a href="${ex.video_url}" target="_blank" rel="noopener" style="font-size:11px;color:var(--lime);text-decoration:none;display:inline-flex;align-items:center;gap:3px;margin-top:3px">▶ Watch</a>` : ''}
         </div>
         <div style="text-align:center;min-width:40px">
           <div style="font-size:10px;color:var(--text-tertiary);margin-bottom:2px">Sets</div>
@@ -520,31 +519,7 @@ const ProgramGenerator = (() => {
     panel.classList.remove('hidden');
   }
 
-  // ── LIBRARY ENRICHMENT ───────────────────────────────────
-  // After generate(), optionally call this to add video_url and
-  // thumbnail_url from the Exercise Library to each exercise.
-  // Non-blocking — call after renderProgram() for a seamless update.
-  async function enrichWithLibrary(program) {
-    if (typeof ExerciseLibrary === 'undefined') return program;
-
-    const sections = ['warmup', 'main', 'cooldown', 'homework'];
-    const allExercises = sections.flatMap(k => program[k] || []);
-
-    await Promise.all(allExercises.map(async (ex) => {
-      try {
-        const found = await ExerciseLibrary.lookup(ex.name);
-        if (found) {
-          if (found.video_url)     ex.video_url     = found.video_url;
-          if (found.thumbnail_url) ex.thumbnail_url = found.thumbnail_url;
-          if (found.cues && !ex.notes) ex.notes = found.cues;
-        }
-      } catch(e) { /* non-fatal — library may be empty */ }
-    }));
-
-    return program;
-  }
-
-  return { generate, renderProgram, renderDailyRoutine, enrichWithLibrary, RULES, PHASE_DEFAULTS };
+  return { generate, renderProgram, renderDailyRoutine, RULES, PHASE_DEFAULTS };
 
 })();
 
