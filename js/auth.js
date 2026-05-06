@@ -57,7 +57,11 @@ const Auth = (() => {
 
   // ── Login ────────────────────────────────────────────────────
   async function login(email, password) {
-    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('Login timed out. Please check your connection and try again.')), 15000));
+    const { data, error } = await Promise.race([
+      sb.auth.signInWithPassword({ email, password }),
+      timeout
+    ]);
     if (error) throw new Error(error.message);
 
     await loadProfile(data.user);
@@ -100,21 +104,27 @@ const Auth = (() => {
 
   // ── Init: check existing session ────────────────────────────
   async function init() {
-    const { data: { session } } = await sb.auth.getSession();
-    if (session?.user) {
-      await loadProfile(session.user);
-      // Recheck subscription on page reload for clients
-      if (_profile.role === 'client') {
-        const ok = await checkSubscription(session.user.id);
-        if (!ok) {
-          await sb.auth.signOut();
-          _user = null; _profile = null;
-          return null;
+    const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('Session check timed out')), 10000));
+    try {
+      const { data: { session } } = await Promise.race([sb.auth.getSession(), timeout]);
+      if (session?.user) {
+        await loadProfile(session.user);
+        // Recheck subscription on page reload for clients
+        if (_profile.role === 'client') {
+          const ok = await checkSubscription(session.user.id);
+          if (!ok) {
+            await sb.auth.signOut();
+            _user = null; _profile = null;
+            return null;
+          }
         }
+        return _profile;
       }
-      return _profile;
+      return null;
+    } catch(e) {
+      console.error('Auth init error:', e.message);
+      return null;
     }
-    return null;
   }
 
   // ── Listen for auth state changes ────────────────────────────
