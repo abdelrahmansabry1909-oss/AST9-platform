@@ -343,3 +343,172 @@ INSERT INTO privacy_settings (user_id)
 SELECT id FROM auth.users
 WHERE id NOT IN (SELECT user_id FROM privacy_settings)
 ON CONFLICT DO NOTHING;
+
+-- ═══════════════════════════════════════════════════════════════
+-- NEUCORE — 3D Body Assessment & Gait Phase Tables
+-- Run after the Phase 3 tables above. Column names match
+-- exactly what dashboard.js _saveToSupabase() inserts.
+-- ═══════════════════════════════════════════════════════════════
+
+-- 3D body map state per assessment
+CREATE TABLE IF NOT EXISTS body_map_states (
+  id               uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  client_id        uuid REFERENCES profiles(id) ON DELETE CASCADE,
+  assessment_id    uuid REFERENCES assessments(id) ON DELETE SET NULL,
+  joint_data       jsonb  DEFAULT '{}',
+  animation_state  text   DEFAULT 'idle',
+  created_at       timestamptz DEFAULT now(),
+  updated_at       timestamptz DEFAULT now()
+);
+CREATE UNIQUE INDEX IF NOT EXISTS body_map_states_assessment_uidx
+  ON body_map_states(assessment_id) WHERE assessment_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS body_map_states_client_idx ON body_map_states(client_id);
+
+-- Gait phase analysis results
+CREATE TABLE IF NOT EXISTS gait_assessments (
+  id                  uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  client_id           uuid REFERENCES profiles(id) ON DELETE CASCADE,
+  assessment_id       uuid REFERENCES assessments(id) ON DELETE SET NULL,
+  phase_deficiencies  jsonb  DEFAULT '{}',
+  symmetry_index      int    DEFAULT 100,
+  worst_case_scenario text,
+  exercise_priorities jsonb  DEFAULT '[]',
+  chain_reactions     jsonb  DEFAULT '[]',
+  created_at          timestamptz DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS gait_assessments_client_idx     ON gait_assessments(client_id);
+CREATE INDEX IF NOT EXISTS gait_assessments_assessment_idx ON gait_assessments(assessment_id);
+
+-- Objective rehab assessment — all columns match dashboard.js insert
+CREATE TABLE IF NOT EXISTS rehab_objective_assessments (
+  id                     uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  assessment_id          uuid REFERENCES assessments(id) ON DELETE CASCADE,
+  coach_id               uuid REFERENCES auth.users(id),
+  client_id              uuid REFERENCES profiles(id),
+  session_date           date DEFAULT CURRENT_DATE,
+
+  toe_touch_score        int,
+  ankle_df_left_cm       numeric(5,1),  ankle_df_right_cm      numeric(5,1),
+  ankle_pronation_left   text,          ankle_pronation_right  text,
+  ankle_supination_left  text,          ankle_supination_right text,
+
+  tibia_ir_left          int,           tibia_ir_right         int,
+
+  hip_ir_left            int,           hip_ir_right           int,
+  hip_er_left            int,           hip_er_right           int,
+  hip_flexion_left       int,           hip_flexion_right      int,
+  hip_extension_left     int,           hip_extension_right    int,
+  hip_abduction_left     int,           hip_abduction_right    int,
+
+  spine_flexion_pain     boolean DEFAULT false,
+  spine_extension_pain   boolean DEFAULT false,
+  spine_lat_flex_l_pain  boolean DEFAULT false,
+  spine_lat_flex_r_pain  boolean DEFAULT false,
+  spine_rot_l_pain       boolean DEFAULT false,
+  spine_rot_r_pain       boolean DEFAULT false,
+
+  shoulder_flexion_left    int,           shoulder_flexion_right   int,
+  shoulder_extension_left  int,           shoulder_extension_right int,
+  shoulder_ir_left         int,           shoulder_ir_right        int,
+  shoulder_er_left         int,           shoulder_er_right        int,
+
+  sl_squat_left_score    int CHECK (sl_squat_left_score  BETWEEN 0 AND 3),
+  sl_squat_right_score   int CHECK (sl_squat_right_score BETWEEN 0 AND 3),
+  sl_rdl_left_score      int CHECK (sl_rdl_left_score    BETWEEN 0 AND 3),
+  sl_rdl_right_score     int CHECK (sl_rdl_right_score   BETWEEN 0 AND 3),
+  oh_squat_score         int CHECK (oh_squat_score       BETWEEN 0 AND 3),
+
+  sl_balance_eo_left     int,           sl_balance_eo_right    int,
+  sl_balance_ec_left     int,           sl_balance_ec_right    int,
+  sl_reach_left          int,           sl_reach_right         int,
+
+  rom_score              numeric(5,1),  control_score          numeric(5,1),
+  force_score            numeric(5,1),  neurology_score        numeric(5,1),
+  composite_score        numeric(5,1),
+  phase_recommendation   text,
+  referral_required      boolean DEFAULT false,
+  pain_flags             text[]  DEFAULT '{}',
+  asymmetry_flags        text[]  DEFAULT '{}',
+  gait_flags             text[]  DEFAULT '{}',
+
+  created_at             timestamptz DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS roa_assessment_idx ON rehab_objective_assessments(assessment_id);
+CREATE INDEX IF NOT EXISTS roa_client_idx     ON rehab_objective_assessments(client_id);
+
+-- Generated programs
+CREATE TABLE IF NOT EXISTS programs (
+  id             uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  client_id      uuid REFERENCES profiles(id) ON DELETE CASCADE,
+  coach_id       uuid REFERENCES auth.users(id),
+  assessment_id  uuid REFERENCES assessments(id) ON DELETE SET NULL,
+  phase          text,
+  structure      jsonb  DEFAULT '{}',
+  daily_routine  jsonb  DEFAULT '{}',
+  rules_applied  text[] DEFAULT '{}',
+  artifact_html  text,
+  created_at     timestamptz DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS programs_client_idx ON programs(client_id);
+CREATE INDEX IF NOT EXISTS programs_coach_idx  ON programs(coach_id);
+
+-- ── RLS ──────────────────────────────────────────────────────
+ALTER TABLE body_map_states             ENABLE ROW LEVEL SECURITY;
+ALTER TABLE gait_assessments            ENABLE ROW LEVEL SECURITY;
+ALTER TABLE rehab_objective_assessments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE programs                    ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "bms_client_own"   ON body_map_states;
+DROP POLICY IF EXISTS "bms_coach_access" ON body_map_states;
+CREATE POLICY "bms_client_own" ON body_map_states
+  FOR ALL USING (client_id = auth.uid());
+CREATE POLICY "bms_coach_access" ON body_map_states
+  FOR ALL USING (
+    EXISTS (SELECT 1 FROM assessments a
+            WHERE a.id = assessment_id AND a.coach_id = auth.uid())
+  );
+
+DROP POLICY IF EXISTS "ga_client_own"   ON gait_assessments;
+DROP POLICY IF EXISTS "ga_coach_access" ON gait_assessments;
+CREATE POLICY "ga_client_own" ON gait_assessments
+  FOR ALL USING (client_id = auth.uid());
+CREATE POLICY "ga_coach_access" ON gait_assessments
+  FOR ALL USING (
+    EXISTS (SELECT 1 FROM assessments a
+            WHERE a.id = assessment_id AND a.coach_id = auth.uid())
+  );
+
+DROP POLICY IF EXISTS "roa_access" ON rehab_objective_assessments;
+CREATE POLICY "roa_access" ON rehab_objective_assessments
+  FOR ALL USING (
+    coach_id = auth.uid()
+    OR client_id = auth.uid()
+    OR EXISTS (SELECT 1 FROM assessments a
+               WHERE a.id = assessment_id
+                 AND (a.coach_id = auth.uid() OR a.client_id = auth.uid()))
+  );
+
+DROP POLICY IF EXISTS "programs_access" ON programs;
+CREATE POLICY "programs_access" ON programs
+  FOR ALL USING (coach_id = auth.uid() OR client_id = auth.uid());
+
+-- Auto-update body_map_states.updated_at
+CREATE OR REPLACE FUNCTION update_body_map_updated_at()
+RETURNS trigger AS $$
+BEGIN NEW.updated_at = now(); RETURN NEW; END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS bms_updated_at ON body_map_states;
+CREATE TRIGGER bms_updated_at
+  BEFORE UPDATE ON body_map_states
+  FOR EACH ROW EXECUTE FUNCTION update_body_map_updated_at();
+
+-- ═══════════════════════════════════════════════════════════════
+-- NEUCORE MASTER PROMPT — Step 2 additions
+-- ═══════════════════════════════════════════════════════════════
+
+-- Add muscle activation + simulation columns to gait_assessments
+ALTER TABLE gait_assessments
+  ADD COLUMN IF NOT EXISTS muscle_activation_data jsonb DEFAULT '{}',
+  ADD COLUMN IF NOT EXISTS client_kinematics       jsonb DEFAULT '{}',
+  ADD COLUMN IF NOT EXISTS simulation_deficits     jsonb DEFAULT '[]';
