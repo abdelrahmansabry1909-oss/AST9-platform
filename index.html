@@ -247,14 +247,32 @@
             <div style="background:rgba(5,13,26,0.85);border:0.5px solid rgba(0,212,255,0.12);
                        border-radius:10px;padding:14px">
               <div class="nc-label" style="margin-bottom:10px">Pain Scale</div>
-              ${[['#00FF88','0–2 — Healthy'],['#FACC15','3–4 — Mild'],
-                 ['#FF8800','5–6 — Moderate'],['#FF2D78','7–8 — Severe'],
-                 ['#8B0033','9–10 — Critical']].map(([c,l]) =>
-                `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-                   <div style="width:10px;height:10px;border-radius:50%;background:${c};
-                               flex-shrink:0;box-shadow:0 0 6px ${c}66"></div>
-                   <span style="font-size:11px;color:rgba(200,240,255,0.6)">${l}</span>
-                 </div>`).join('')}
+
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+                <div style="width:10px;height:10px;border-radius:50%;background:#00FF88;
+                            flex-shrink:0;box-shadow:0 0 6px rgba(0,255,136,0.4)"></div>
+                <span style="font-size:11px;color:rgba(200,240,255,0.6)">0–2 — Healthy</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+                <div style="width:10px;height:10px;border-radius:50%;background:#FACC15;
+                            flex-shrink:0;box-shadow:0 0 6px rgba(250,204,21,0.4)"></div>
+                <span style="font-size:11px;color:rgba(200,240,255,0.6)">3–4 — Mild</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+                <div style="width:10px;height:10px;border-radius:50%;background:#FF8800;
+                            flex-shrink:0;box-shadow:0 0 6px rgba(255,136,0,0.4)"></div>
+                <span style="font-size:11px;color:rgba(200,240,255,0.6)">5–6 — Moderate</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+                <div style="width:10px;height:10px;border-radius:50%;background:#FF2D78;
+                            flex-shrink:0;box-shadow:0 0 6px rgba(255,45,120,0.4)"></div>
+                <span style="font-size:11px;color:rgba(200,240,255,0.6)">7–8 — Severe</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+                <div style="width:10px;height:10px;border-radius:50%;background:#8B0033;
+                            flex-shrink:0;box-shadow:0 0 6px rgba(139,0,51,0.5)"></div>
+                <span style="font-size:11px;color:rgba(200,240,255,0.6)">9–10 — Critical</span>
+              </div>
             </div>
 
             <!-- Quick stats -->

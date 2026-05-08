@@ -235,11 +235,18 @@ function _wireJointInfoBar() {
       const v     = parseFloat(painSlider.value);
       const color = painToColor(v);
       mainSkeleton.setJointPain(mainCanvas._activeKey, v, color);
-      if (painValEl) painValEl.textContent = v;
+      _setPainDisplay(painValEl, v, color);
       if (!assessStore[mainCanvas._activeKey]) assessStore[mainCanvas._activeKey] = {};
       assessStore[mainCanvas._activeKey].pain_scale = v;
     });
   }
+}
+
+function _setPainDisplay(el, value, color) {
+  if (!el) return;
+  el.textContent = value;
+  el.style.color = color ?? '#00D4FF';
+  el.style.textShadow = color ? `0 0 8px ${color}88` : '';
 }
 
 function _updateInfoBar(jointKey) {
@@ -248,12 +255,16 @@ function _updateInfoBar(jointKey) {
   const painSlider = document.getElementById('joint-pain-slider-dashboard');
   const painValEl  = document.getElementById('joint-pain-val-dashboard');
 
-  if (nameEl) nameEl.textContent = JOINT_LABELS[jointKey] ?? jointKey;
+  if (nameEl) {
+    nameEl.textContent = JOINT_LABELS[jointKey] ?? jointKey;
+    nameEl.style.color = '#00D4FF';
+  }
   if (controlsEl) controlsEl.classList.remove('hidden');
 
   const existing = assessStore[jointKey]?.pain_scale ?? 0;
+  const color    = painToColor(existing);
   if (painSlider) painSlider.value = existing;
-  if (painValEl)  painValEl.textContent = existing;
+  _setPainDisplay(painValEl, existing, existing > 0 ? color : null);
 }
 
 function _clearInfoBar() {
