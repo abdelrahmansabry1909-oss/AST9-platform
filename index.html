@@ -48,8 +48,12 @@
         </div>
         <button id="login-btn" class="btn btn-primary w-full btn-xl" style="margin-top:4px" onclick="UI.handleLogin()">Sign In</button>
         <div style="text-align:center;margin-top:14px">
+          <span style="font-size:12px;color:var(--text-tertiary)">No account? </span>
+          <span style="font-size:12px;color:var(--lime);cursor:pointer;font-weight:600" onclick="UI.handleDemoLogin()">Continue as Demo →</span>
+        </div>
+        <div style="text-align:center;margin-top:8px">
           <span style="font-size:12px;color:var(--text-tertiary)">Forgot password? </span>
-          <span style="font-size:12px;color:var(--lime);cursor:pointer;font-weight:600" onclick="UI.switchLoginTab('reset')">Reset it →</span>
+          <span style="font-size:12px;color:var(--text-tertiary);cursor:pointer" onclick="UI.switchLoginTab('reset')">Reset it</span>
         </div>
       </div>
 
@@ -202,7 +206,7 @@
           <!-- 3D Viewport -->
           <div id="bodymap-dashboard-container"
             style="height:480px;border-radius:10px;overflow:hidden;background:var(--bg-raised);border:1px solid var(--border-subtle);position:relative;cursor:grab"
-            onclick="if(!this.dataset.init){BodyMap3D.init('bodymap-dashboard-container',{onJointClick:onBodyMapJointClick});this.dataset.init=true}">
+            onclick="if(!this.dataset.init){BodyMap3D.init('bodymap-dashboard-container',{onJointClick:onBodyMapJointClick});this.dataset.init=true;window.FXLayer?.init('bodymap-dashboard-container',16)}">
             <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:var(--text-tertiary);font-size:13px;text-align:center;pointer-events:none">
               <div style="font-size:28px;margin-bottom:8px;opacity:0.3">◈</div>
               Click to load 3D model…
@@ -389,6 +393,7 @@
       <div class="tab-panel" id="tab-objective">
         <!-- ══ OBJECTIVE ASSESSMENT GRID ══════════════════════════ -->
         <!-- All IDs match exactly what ScoringEngine.readForm() reads -->
+        <div class="neucore-assess-layout">
         <div class="assess-grid">
 
           <!-- TOE TOUCH & FOOT/ANKLE -->
@@ -659,6 +664,17 @@
 
         </div><!-- /assess-grid -->
 
+        <!-- NeuCore 3D skeleton sidebar — updates in real-time as form is filled -->
+        <div>
+          <div style="font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;
+                     color:rgba(0,212,255,0.4);margin-bottom:8px;padding-left:2px">
+            Live Body Map
+          </div>
+          <div id="neucore-body-canvas"></div>
+        </div>
+
+        </div><!-- /neucore-assess-layout -->
+
         <div style="display:flex;justify-content:space-between;margin-top:var(--sp-4)">
           <button class="btn btn-ghost" onclick="UI.goTab('session-tabs','tab-subjective')">← Back</button>
           <button class="btn btn-primary" onclick="UI.goTab('session-tabs','tab-generate')">Next: Generate →</button>
@@ -667,6 +683,9 @@
 
       <!-- TAB 4 — GENERATE ══════════════════════════════════════ -->
       <div class="tab-panel" id="tab-generate">
+
+        <!-- ── STATUS PANEL (rendered by StatusPanel via neucore.js) -->
+        <div id="status-panel" class="hidden" style="margin-bottom:var(--sp-4)"></div>
 
         <!-- Output settings -->
         <div class="card" style="margin-bottom:var(--sp-4)">
@@ -692,6 +711,12 @@
 
         <!-- ── SCORE PANEL (rendered by ScoringEngine.renderScores) -->
         <div id="score-panel" class="card hidden" style="margin-bottom:var(--sp-4)"></div>
+
+        <!-- ── NEUCORE GAIT ANALYSIS PAGE (ES module, rendered by GaitAnalysisPage) -->
+        <div id="neucore-gait-container" class="hidden" style="margin-bottom:var(--sp-4)"></div>
+
+        <!-- ── GAIT PHASE STRIP (rendered by GaitPhaseStrip via neucore.js) -->
+        <div id="gait-phase-strip" class="hidden" style="margin-bottom:var(--sp-4)"></div>
 
         <!-- ── GAIT PANEL (rendered by GaitEngine.renderGaitAnalysis) -->
         <div id="gait-panel" class="card hidden" style="margin-bottom:var(--sp-4)"></div>
@@ -741,6 +766,7 @@
           <p class="page-subtitle">Manage client accounts and phases</p>
         </div>
         <div class="page-actions">
+          <button class="btn btn-ghost btn-sm" onclick="Dashboard.openModal('modal-coach-matcher')">Find Best Coach</button>
           <button class="btn btn-primary" onclick="Dashboard.openModal('modal-add-client')">+ Add Client</button>
         </div>
       </div>
@@ -1123,6 +1149,30 @@
   </div>
 </div>
 
+<!-- Coach Matcher -->
+<div class="modal-overlay hidden" id="modal-coach-matcher">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header"><h3>Find Best Coach</h3><button class="btn-icon" onclick="Dashboard.closeModal('modal-coach-matcher')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Client</label>
+        <select id="cm-client" class="form-input" onchange="Dashboard.fillCoachMatch()">
+          <option value="">— Select Client —</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Goal / Focus Area</label>
+        <input id="cm-goal" class="form-input" placeholder="e.g. Reduce lower back pain, improve mobility"/>
+      </div>
+      <div id="cm-results" style="margin-top:12px"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="Dashboard.closeModal('modal-coach-matcher')">Close</button>
+      <button class="btn btn-primary" id="cm-match-btn" onclick="Dashboard.runCoachMatch()">Match Coaches</button>
+    </div>
+  </div>
+</div>
+
 <!-- ═══════════════════════ CELEBRATION ═══════════════════════ -->
 <div id="celebration-overlay" class="hidden">
   <canvas id="confetti-canvas" style="position:absolute;inset:0;pointer-events:none;width:100%;height:100%"></canvas>
@@ -1289,8 +1339,9 @@ async function _refreshCommunityBadge() {
 <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/loaders/GLTFLoader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/loaders/DRACOLoader.js"></script>
 
-<script src="js/supabaseClient.js?v=20260506b"></script>
-<script src="js/auth.js?v=20260506b"></script>
+<script src="js/supabaseClient.js?v=20260506c"></script>
+<script src="js/auth.js?v=20260506c"></script>
+<script src="js/supabase/bodyMapState.js"></script>
 <script src="js/dashboard.js"></script>
 <script src="js/clients.js"></script>
 <script src="js/subscriptions.js"></script>
@@ -1305,6 +1356,8 @@ async function _refreshCommunityBadge() {
 <script src="js/exerciseUI.js"></script>
 <script src="js/charts.js"></script>
 <script src="js/progressReport.js"></script>
+<script src="js/neucore.js"></script>
+<script type="module" src="/src/main.js"></script>
 <script>
 // ── UI controller (login + boot) ──────────────────────────────
 const UI = {
@@ -1335,6 +1388,11 @@ const UI = {
       UI._loginErr(e.message);
       btn.innerHTML = 'Sign In'; btn.disabled = false;
     }
+  },
+
+  handleDemoLogin() {
+    Auth.loginAsGuest();
+    UI._showApp();
   },
 
   async handlePasswordReset() {
@@ -1429,23 +1487,31 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ── Auth state listener ───────────────────────────────────────
-Auth.listen(event => {
-  if (event === 'PASSWORD_RECOVERY') Dashboard.openModal('modal-change-password');
-  if (event === 'SIGNED_OUT') UI._showLogin();
-});
+if (typeof Auth !== 'undefined') {
+  Auth.listen(event => {
+    if (event === 'PASSWORD_RECOVERY') Dashboard.openModal('modal-change-password');
+    if (event === 'SIGNED_OUT') UI._showLogin();
+  });
+}
 
 // ── BOOT ─────────────────────────────────────────────────────
 (async () => {
-  const _bootTimeout = new Promise(r => setTimeout(() => r(null), 5000));
+  const _bootTimeout = new Promise(r => setTimeout(() => r(null), 4000));
   try {
-    const profile = await Promise.race([Auth.init(), _bootTimeout]);
-    UI._hideLoading();
-    if (profile) UI._showApp();
-    else document.getElementById('screen-login').classList.remove('hidden');
+    const profile = typeof Auth !== 'undefined'
+      ? await Promise.race([Auth.init(), _bootTimeout])
+      : null;
+    if (typeof UI !== 'undefined') UI._hideLoading();
+    if (profile && typeof UI !== 'undefined') UI._showApp();
+    else {
+      const loginEl = document.getElementById('screen-login');
+      if (loginEl) loginEl.classList.remove('hidden');
+    }
   } catch(e) {
     console.error('AST9 boot error:', e);
-    UI._hideLoading();
-    document.getElementById('screen-login').classList.remove('hidden');
+    if (typeof UI !== 'undefined') UI._hideLoading();
+    const loginEl = document.getElementById('screen-login');
+    if (loginEl) loginEl.classList.remove('hidden');
   }
 })();
 </script>

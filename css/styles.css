@@ -1512,3 +1512,155 @@ tbody td:first-child { color: var(--text-primary); font-weight: 500; }
   /* Hide the floating fixed hamburger since we have the topbar one */
   .main-content > .hamburger { display: none; }
 }
+
+/* ═══════════════════════════════════════════
+   NEUCORE — Holographic Design System
+   Source palette: reference skeleton image
+═══════════════════════════════════════════ */
+:root {
+  --nc-cyan:       #00D4FF;
+  --nc-magenta:    #FF2D78;
+  --nc-teal:       #00FFF0;
+  --nc-navy:       #050D1A;
+  --nc-glass:      rgba(5,13,26,0.88);
+  --nc-glass-lt:   rgba(10,22,40,0.75);
+  --nc-border:     rgba(0,212,255,0.22);
+  --nc-border-hot: rgba(255,45,120,0.45);
+  --nc-text:       rgba(200,240,255,0.95);
+  --nc-text-dim:   rgba(0,212,255,0.55);
+  --nc-text-muted: rgba(0,212,255,0.30);
+}
+
+/* Pop panel */
+.pop-panel {
+  background: var(--nc-glass);
+  border: 0.5px solid var(--nc-border);
+  border-radius: 10px;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 0 22px rgba(0,212,255,0.07),
+              0 0 1px rgba(0,212,255,0.28) inset;
+  color: var(--nc-text);
+  font-family: var(--font-sans, system-ui);
+}
+.pop-panel.pain-severe { border-color: var(--nc-border-hot); }
+
+/* Pain slider */
+.pain-slider {
+  -webkit-appearance: none; appearance: none;
+  width: 100%; height: 4px; border-radius: 99px; outline: none;
+  background: linear-gradient(to right,
+    #00FF88 0%, #FFDD00 40%, #FF6600 60%, #FF2D78 80%, #8B0033 100%);
+}
+.pain-slider::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 18px; height: 18px;
+  border-radius: 50%; background: #fff;
+  border: 2px solid var(--nc-cyan); cursor: pointer;
+  box-shadow: 0 0 8px rgba(0,212,255,0.6);
+}
+
+/* Location pills */
+.nc-pill {
+  font-size: 11px; padding: 3px 9px; border-radius: 99px; cursor: pointer;
+  border: 0.5px solid rgba(0,212,255,0.28); background: transparent;
+  color: rgba(0,212,255,0.55); transition: all .12s ease;
+}
+.nc-pill.active, .nc-pill:hover {
+  background: rgba(0,212,255,0.1);
+  border-color: rgba(0,212,255,0.55); color: var(--nc-cyan);
+}
+
+/* Toolbar buttons */
+.nc-toolbar-btn {
+  font-size: 12px; padding: 6px 14px; border-radius: 8px; cursor: pointer;
+  border: 0.5px solid rgba(0,212,255,0.28);
+  background: rgba(5,13,26,0.85); color: rgba(0,212,255,0.8);
+  backdrop-filter: blur(8px); transition: all .12s ease;
+}
+.nc-toolbar-btn:hover {
+  background: rgba(0,212,255,0.1); border-color: rgba(0,212,255,0.55);
+  box-shadow: 0 0 10px rgba(0,212,255,0.15);
+}
+.nc-toolbar-btn--danger { border-color: rgba(255,45,120,0.32); color: rgba(255,45,120,0.8); }
+.nc-toolbar-btn--danger:hover {
+  background: rgba(255,45,120,0.08); border-color: rgba(255,45,120,0.6); }
+
+/* Labels */
+.nc-label {
+  font-size: 10px; font-weight: 500; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--nc-text-muted);
+}
+.nc-divider { border: none; border-top: 0.5px solid rgba(0,212,255,0.1); margin: 10px 0; }
+
+/* ROM gauge */
+.rom-gauge__bar {
+  flex: 1; height: 5px; background: rgba(0,212,255,0.1);
+  border-radius: 99px; overflow: hidden;
+}
+.rom-gauge__fill {
+  height: 100%; border-radius: 99px;
+  background: linear-gradient(to right, var(--nc-teal), var(--nc-cyan));
+  transition: width .45s cubic-bezier(.34,1.56,.64,1);
+}
+
+/* Activation chart area */
+.activation-chart-wrap canvas {
+  border-radius: 6px;
+}
+
+/* Gait page grid */
+.gait-page {
+  color: var(--nc-text);
+  font-family: var(--font-sans, system-ui);
+}
+
+/* Worst case panel */
+#worst-case-panel {
+  animation: slideUp .25s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+/* Sparkline */
+.sparkline-svg { display: block; }
+
+/* NeuCore body canvas sidebar */
+.neucore-assess-layout {
+  display: grid;
+  grid-template-columns: 1fr 260px;
+  gap: 16px;
+  align-items: start;
+}
+.neucore-assess-layout .assess-grid {
+  grid-column: 1;
+}
+#neucore-body-canvas {
+  position: sticky;
+  top: 16px;
+  height: 480px;
+  background: rgba(5,13,26,0.85);
+  border: 0.5px solid rgba(0,212,255,0.18);
+  border-radius: 12px;
+  overflow: hidden;
+}
+#neucore-gait-container {
+  background: rgba(5,13,26,0.92);
+  border: 0.5px solid rgba(0,212,255,0.18);
+  border-radius: 12px;
+  overflow: hidden;
+  min-height: 600px;
+}
+
+/* Print / export */
+@media print {
+  .nc-toolbar-btn { display: none; }
+  #neucore-container { height: 400px; }
+  .gait-page { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 900px) {
+  .neucore-assess-layout { grid-template-columns: 1fr; }
+  #neucore-body-canvas { display: none; }
+}
