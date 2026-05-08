@@ -7,12 +7,14 @@
 //
 // Bottom: Worst-case scenario panel (hold button to reveal)
 
+import * as THREE from 'three';
 import { GaitEngine }                 from './GaitEngine.js';
 import { GaitPhaseStrip }             from './GaitPhaseStrip.js';
 import { MovementSimulator }          from '../simulation/MovementSimulator.js';
 import { ActivationChart }            from '../simulation/ActivationChart.js';
 import { computeClientActivation }    from '../simulation/MuscleActivationDB.js';
 import { evaluateGaitRules }          from './GaitRules.js';
+import { PhaseAnalysisOverlay, findWorstPhase } from './PhaseAnalysisOverlay.js';
 import { SkeletonBuilder }            from '../skeleton/SkeletonBuilder.js';
 import { BodyCanvas }                 from '../core/BodyCanvas.js';
 import { FXLayer }                    from '../core/FXLayer.js';
@@ -53,12 +55,18 @@ export class GaitAnalysisPage {
               </div>
             </div>
             <div style="display:flex;gap:8px">
-              <button id="btn-sim-start"   class="nc-toolbar-btn">▶ Start Simulation</button>
+              <button id="btn-sim-start"   class="nc-toolbar-btn">▶ Start</button>
               <button id="btn-sim-stop"    class="nc-toolbar-btn" style="display:none">■ Stop</button>
+              <button id="btn-analyze"     class="nc-toolbar-btn" style="border-color:rgba(250,204,21,0.5);color:#FACC15">
+                ⚡ Analyze Worst Phase
+              </button>
+              <button id="btn-resume"      class="nc-toolbar-btn" style="display:none;border-color:rgba(0,255,144,0.5);color:#00FF90">
+                ▶ Resume Walk
+              </button>
               <button id="btn-worst-case"  class="nc-toolbar-btn nc-toolbar-btn--danger">
                 Hold: Worst Case
               </button>
-              <button id="btn-export-report" class="nc-toolbar-btn">↓ Export Report</button>
+              <button id="btn-export-report" class="nc-toolbar-btn">↓ Export</button>
             </div>
           </div>
         </div>
@@ -152,6 +160,10 @@ export class GaitAnalysisPage {
     this.simulator._assessment = this.assessment;
     this.gaitEngine = new GaitEngine(this.bodyCanvas);
     this.gaitEngine.loadAssessment(this.assessment);
+
+    const simWrap = this.container.querySelector('#sim-canvas-wrap');
+    this.phaseOverlay = new PhaseAnalysisOverlay(simWrap, this.skeleton, this.bodyCanvas);
+    this._analysisMode = false;
   }
 
   _initChart() {
@@ -268,22 +280,35 @@ export class GaitAnalysisPage {
   _bindControls() {
     const startBtn  = this.container.querySelector('#btn-sim-start');
     const stopBtn   = this.container.querySelector('#btn-sim-stop');
+    const analyzeBtn= this.container.querySelector('#btn-analyze');
+    const resumeBtn = this.container.querySelector('#btn-resume');
     const worstBtn  = this.container.querySelector('#btn-worst-case');
     const wcPanel   = this.container.querySelector('#worst-case-panel');
     const exportBtn = this.container.querySelector('#btn-export-report');
 
     startBtn.addEventListener('click', () => {
+      if (this._analysisMode) this._exitAnalysis();
       this.simulator.start(1.0);
       this.gaitEngine.start(1.0);
-      startBtn.style.display = 'none';
-      stopBtn.style.display  = '';
+      startBtn.style.display  = 'none';
+      stopBtn.style.display   = '';
+      analyzeBtn.style.display = '';
+      resumeBtn.style.display = 'none';
     });
 
     stopBtn.addEventListener('click', () => {
       this.simulator.stop();
       this.gaitEngine.stop();
-      startBtn.style.display = '';
-      stopBtn.style.display  = 'none';
+      startBtn.style.display  = '';
+      stopBtn.style.display   = 'none';
+    });
+
+    analyzeBtn.addEventListener('click', () => {
+      this._enterAnalysis();
+    });
+
+    resumeBtn.addEventListener('click', () => {
+      this._exitAnalysis();
     });
 
     // Hold 400ms for worst case
@@ -312,17 +337,56 @@ export class GaitAnalysisPage {
       }
     });
 
-    exportBtn.addEventListener('click', () => {
-      window.print();
-    });
+    exportBtn.addEventListener('click', () => { window.print(); });
 
-    // Sync activation chart to phase changes
     bus.on('gait:phaseChange', ({ phase }) => {
-      this.activationChart.updatePhase(phase);
+      if (!this._analysisMode) this.activationChart.updatePhase(phase);
     });
   }
 
+  _enterAnalysis() {
+    this._analysisMode = true;
+    const worstPhase   = findWorstPhase(this.deficits);
+
+    // Freeze the simulator at the worst phase pose
+    this.simulator.jumpToPhase(worstPhase);
+    this.gaitEngine.stop();
+
+    // Update chart to show the worst phase data
+    this.activationChart.updatePhase(worstPhase);
+    this.phaseStrip.setPhase(worstPhase);
+
+    // Show overlay cards
+    this.phaseOverlay.show(worstPhase, this.deficits, this.activation);
+
+    // Swap toolbar buttons
+    const analyzeBtn = this.container.querySelector('#btn-analyze');
+    const resumeBtn  = this.container.querySelector('#btn-resume');
+    if (analyzeBtn) analyzeBtn.style.display = 'none';
+    if (resumeBtn)  resumeBtn.style.display  = '';
+  }
+
+  _exitAnalysis() {
+    this._analysisMode = false;
+    this.phaseOverlay.hide();
+    this.simulator.unfreeze();
+
+    const analyzeBtn = this.container.querySelector('#btn-analyze');
+    const resumeBtn  = this.container.querySelector('#btn-resume');
+    if (analyzeBtn) analyzeBtn.style.display = '';
+    if (resumeBtn)  resumeBtn.style.display  = 'none';
+
+    // Restore camera
+    this.bodyCanvas.animateCameraTo(
+      new THREE.Vector3(0, 0.85, 0),
+      new THREE.Vector3(0, 0.9, 3.2),
+      800,
+    );
+  }
+
   destroy() {
+    this._analysisMode = false;
+    this.phaseOverlay?.hide();
     this.simulator?.stop();
     this.gaitEngine?.stop();
     this.activationChart?.destroy();

@@ -34,6 +34,8 @@ export class MovementSimulator {
     this._lastPhaseIdx = -1;
     this._walkX    = -WALK_RANGE;
     this._rigged   = false;
+    this._frozen   = false;
+    this._effectiveElapsed = 0;
 
     this._clientKinematics = this._computeClientKinematics();
   }
@@ -45,17 +47,39 @@ export class MovementSimulator {
       this._rigged = true;
     }
     this.isPlaying = true;
+    this._frozen   = false;
     this._speed    = speed;
+    this._effectiveElapsed = 0;
     this._clock.start();
     this._animate();
   }
 
   stop() {
     this.isPlaying = false;
+    this._frozen   = false;
     this._resetPose();
   }
 
   setSpeed(speed) { this._speed = speed; }
+
+  freeze() { this._frozen = true; }
+
+  unfreeze() { this._frozen = false; }
+
+  jumpToPhase(phaseName) {
+    const phaseIdx = GAIT_PHASES.indexOf(phaseName);
+    if (phaseIdx < 0) return;
+    this._effectiveElapsed = (phaseIdx / 7 + 0.035) * CYCLE_DUR;
+    this._phase = (this._effectiveElapsed % CYCLE_DUR) / CYCLE_DUR;
+    this._frozen = true;
+    if (!this.isPlaying) {
+      if (!this._rigged) { this._setupLegRigs(); this._rigged = true; }
+      this.isPlaying = true;
+      this._clock.start();
+      this._animate();
+    }
+    this._applyKinematics(this._phase, this._effectiveElapsed);
+  }
 
   // ── Deficit-modified kinematics ───────────────────────────────
   _computeClientKinematics() {
@@ -203,11 +227,16 @@ export class MovementSimulator {
   _animate() {
     if (!this.isPlaying) return;
 
-    const elapsed = this._clock.getElapsedTime() * this._speed;
-    this._phase   = (elapsed % CYCLE_DUR) / CYCLE_DUR;   // 0–1 per cycle
+    // Always drain getDelta() so it never accumulates during freeze
+    const dt = this._clock.getDelta() * this._speed;
+    if (!this._frozen) {
+      this._effectiveElapsed += dt;
+      this._phase = (this._effectiveElapsed % CYCLE_DUR) / CYCLE_DUR;
+    }
+    const elapsed = this._effectiveElapsed;
 
     this._applyKinematics(this._phase, elapsed);
-    this._applyRootMotion(this._phase, elapsed);
+    if (!this._frozen) this._applyRootMotion(this._phase, elapsed);
 
     // Only emit phase-change event when the phase INDEX actually changes
     const phaseIdx = Math.min(Math.floor(this._phase * 7), 6);

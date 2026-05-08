@@ -148,6 +148,22 @@ export class BodyCanvas {
     bus.emit('joint:select', { jointKey: key, worldPos });
   }
 
+  animateCameraTo(targetVec, camPosVec, duration = 1200) {
+    const from       = this.camera.position.clone();
+    const fromTarget = this.controls.target.clone();
+    const ease       = t => t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
+    const t0         = performance.now();
+    const tick = (now) => {
+      const raw = Math.min((now - t0) / duration, 1);
+      const t   = ease(raw);
+      this.camera.position.lerpVectors(from, camPosVec, t);
+      this.controls.target.lerpVectors(fromTarget, targetVec, t);
+      this.controls.update();
+      if (raw < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }
+
   _zoomToJoint(worldPos) {
     const target = worldPos.clone();
     const camTo  = target.clone().add(new THREE.Vector3(0.3, 0.2, 0.8));

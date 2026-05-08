@@ -199,6 +199,17 @@ export class FXLayer {
     }
   }
 
+  removeParticles(jointKey) {
+    const ps = this._particles.get(jointKey);
+    if (!ps) return;
+    this._particles.delete(jointKey);
+    this._tweenOpacity(ps.material, ps.material.opacity, 0, 200, () => {
+      this.scene.remove(ps);
+      ps.geometry.dispose();
+      ps.material.dispose();
+    });
+  }
+
   _bindEvents() {
     bus.on('joint:hover', ({ jointKey }) => {
       const pos = this.skeleton?.getJointWorldPos(jointKey);
@@ -208,7 +219,10 @@ export class FXLayer {
         this.burstParticles(jointKey);
       }
     });
-    bus.on('joint:hoverout', ({ jointKey }) => this.removeRomArc(jointKey));
+    bus.on('joint:hoverout', ({ jointKey }) => {
+      this.removeRomArc(jointKey);
+      this.removeParticles(jointKey);
+    });
   }
 
   _tweenOpacity(mat, from, to, dur, cb) {
