@@ -189,73 +189,80 @@
         </div>
       </div>
 
-      <!-- 3D Body Map Card for Dashboard -->
-      <div class="card" style="margin-bottom:var(--sp-5)">
-        <div class="card-header">
-          <span class="card-title">3D Body Map</span>
+      <!-- 3D Body Map Card for Dashboard — NeuCore holographic skeleton -->
+      <div class="card" style="margin-bottom:var(--sp-5);background:rgba(5,13,26,0.92);
+           border:0.5px solid rgba(0,212,255,0.18)">
+        <div class="card-header" style="border-bottom:0.5px solid rgba(0,212,255,0.1)">
+          <span class="card-title" style="color:rgba(200,240,255,0.9)">
+            ◈ NeuCore Body Map
+          </span>
           <div style="display:flex;gap:8px;align-items:center">
-            <select id="bodymap-gender-dashboard" class="form-input" style="width:auto;padding:6px 10px;font-size:12px" onchange="BodyMap3D.setGender(this.value,{})">
-              <option value="male">Male</option>
-              <option value="female">Female</option>
-            </select>
-            <button class="btn btn-ghost btn-sm" onclick="BodyMap3D.resetAll()">Reset</button>
-            <button class="btn btn-ghost btn-sm" id="gait-anim-btn-dashboard" onclick="toggleGaitAnimation()">▶ Gait Anim</button>
+            <button class="nc-toolbar-btn" id="nc-reset-btn"
+                    onclick="window._ncReset && window._ncReset()">↺ Reset</button>
+            <button class="nc-toolbar-btn" id="gait-anim-btn-dashboard"
+                    onclick="window._ncToggleGait && window._ncToggleGait(this)">▶ Simulate</button>
           </div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 280px;gap:16px;align-items:start">
-          <!-- 3D Viewport -->
+          <!-- 3D Viewport — NeuCore holographic skeleton (auto-init via src/main.js) -->
           <div id="bodymap-dashboard-container"
-            style="height:480px;border-radius:10px;overflow:hidden;background:var(--bg-raised);border:1px solid var(--border-subtle);position:relative;cursor:grab"
-            onclick="if(!this.dataset.init){BodyMap3D.init('bodymap-dashboard-container',{onJointClick:onBodyMapJointClick});this.dataset.init=true;window.FXLayer?.init('bodymap-dashboard-container',16)}">
-            <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:var(--text-tertiary);font-size:13px;text-align:center;pointer-events:none">
-              <div style="font-size:28px;margin-bottom:8px;opacity:0.3">◈</div>
-              Click to load 3D model…
-            </div>
+            style="height:520px;border-radius:10px;overflow:hidden;background:#050D1A;border:0.5px solid rgba(0,212,255,0.18);position:relative;">
           </div>
-          <!-- Joint detail panel -->
-          <div>
-            <div class="form-group" style="margin-bottom:10px">
-              <label class="form-label">Selected Joint</label>
-              <div id="bodymap-joint-name-dashboard" style="font-size:14px;font-weight:600;color:var(--lime);padding:8px 0">Click a joint</div>
+          <!-- Joint detail panel — NeuCore style -->
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <!-- Joint name + status -->
+            <div style="background:rgba(5,13,26,0.85);border:0.5px solid rgba(0,212,255,0.18);
+                       border-radius:10px;padding:14px">
+              <div class="nc-label" style="margin-bottom:6px">Selected Joint</div>
+              <div id="bodymap-joint-name-dashboard"
+                   style="font-size:16px;font-weight:500;color:rgba(200,240,255,0.95);padding:4px 0">
+                ← Click a joint
+              </div>
             </div>
-            <div id="bodymap-joint-controls-dashboard" class="hidden">
-              <div class="form-group">
-                <label class="form-label">Pain Scale</label>
-                <input type="range" id="joint-pain-slider-dashboard" min="0" max="10" step="1" value="0"
-                  style="width:100%;accent-color:var(--lime)" oninput="onJointPainChange(this.value)"/>
-                <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-tertiary);margin-top:4px">
-                  <span>0 Healthy</span><span id="joint-pain-val-dashboard" style="color:var(--lime);font-weight:700">0</span><span>10 Critical</span>
-                </div>
+
+            <!-- Pain + notes controls -->
+            <div id="bodymap-joint-controls-dashboard" class="hidden"
+                 style="background:rgba(5,13,26,0.85);border:0.5px solid rgba(0,212,255,0.18);
+                        border-radius:10px;padding:14px">
+              <div class="nc-label" style="margin-bottom:8px">
+                Pain Scale — <span id="joint-pain-val-dashboard"
+                  style="color:#00D4FF;font-weight:600">0</span>/10
               </div>
-              <div class="form-group">
-                <label class="form-label">Notes</label>
-                <input id="joint-notes-dashboard" class="form-input" placeholder="Describe findings…"/>
+              <input type="range" class="pain-slider" id="joint-pain-slider-dashboard"
+                     min="0" max="10" step="0.5" value="0" style="width:100%;margin-bottom:10px"/>
+              <div style="display:flex;justify-content:space-between;font-size:10px;
+                         color:rgba(0,212,255,0.4);margin-bottom:12px">
+                <span>Healthy</span><span>Critical</span>
               </div>
-              <button class="btn btn-primary w-full btn-sm" onclick="applyJointState()">Apply to Map</button>
+              <div style="margin-bottom:10px">
+                <div class="nc-label" style="margin-bottom:6px">Notes</div>
+                <input id="joint-notes-dashboard" class="form-input"
+                       placeholder="Describe findings…"
+                       style="font-size:12px;background:rgba(0,212,255,0.05);
+                              border-color:rgba(0,212,255,0.2);color:rgba(200,240,255,0.85)"/>
+              </div>
             </div>
-            <!-- Pain legend -->
-            <div style="margin-top:16px">
-              <div class="form-label" style="margin-bottom:8px">Pain Scale Legend</div>
-              <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
-                <div style="width:12px;height:12px;border-radius:50%;background:#4ADE80;flex-shrink:0"></div>
-                <span style="font-size:11px;color:var(--text-secondary)">1–2 — Healthy</span>
-              </div>
-              <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
-                <div style="width:12px;height:12px;border-radius:50%;background:#FACC15;flex-shrink:0"></div>
-                <span style="font-size:11px;color:var(--text-secondary)">3–4 — Mild</span>
-              </div>
-              <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
-                <div style="width:12px;height:12px;border-radius:50%;background:#FB923C;flex-shrink:0"></div>
-                <span style="font-size:11px;color:var(--text-secondary)">5–6 — Moderate</span>
-              </div>
-              <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
-                <div style="width:12px;height:12px;border-radius:50%;background:#EF4444;flex-shrink:0"></div>
-                <span style="font-size:11px;color:var(--text-secondary)">7–8 — Severe</span>
-              </div>
-              <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
-                <div style="width:12px;height:12px;border-radius:50%;background:#7F1D1D;flex-shrink:0"></div>
-                <span style="font-size:11px;color:var(--text-secondary)">9–10 — Critical</span>
-              </div>
+
+            <!-- Pain scale legend -->
+            <div style="background:rgba(5,13,26,0.85);border:0.5px solid rgba(0,212,255,0.12);
+                       border-radius:10px;padding:14px">
+              <div class="nc-label" style="margin-bottom:10px">Pain Scale</div>
+              ${[['#00FF88','0–2 — Healthy'],['#FACC15','3–4 — Mild'],
+                 ['#FF8800','5–6 — Moderate'],['#FF2D78','7–8 — Severe'],
+                 ['#8B0033','9–10 — Critical']].map(([c,l]) =>
+                `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+                   <div style="width:10px;height:10px;border-radius:50%;background:${c};
+                               flex-shrink:0;box-shadow:0 0 6px ${c}66"></div>
+                   <span style="font-size:11px;color:rgba(200,240,255,0.6)">${l}</span>
+                 </div>`).join('')}
+            </div>
+
+            <!-- Quick stats -->
+            <div id="bodymap-joint-stats" style="
+              background:rgba(5,13,26,0.85);border:0.5px solid rgba(0,212,255,0.12);
+              border-radius:10px;padding:14px;display:none">
+              <div class="nc-label" style="margin-bottom:8px">Joint Health</div>
+              <div id="bodymap-joint-stats-content"></div>
             </div>
           </div>
         </div>
@@ -1333,11 +1340,10 @@ async function _refreshCommunityBadge() {
   } catch(e) { /* non-fatal */ }
 }
 </script>
-<!-- Three.js + addons (lazy — only used when 3D tab active) -->
-<script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/controls/OrbitControls.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/loaders/GLTFLoader.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/loaders/DRACOLoader.js"></script>
+<!-- Three.js addons for legacy bodyMap3D — THREE global is provided by src/main.js (npm) -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/controls/OrbitControls.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/loaders/GLTFLoader.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/loaders/DRACOLoader.js" defer></script>
 
 <script src="js/supabaseClient.js?v=20260506c"></script>
 <script src="js/auth.js?v=20260506c"></script>
