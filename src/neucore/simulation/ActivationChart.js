@@ -81,7 +81,7 @@ export class ActivationChart {
       },
       options: {
         responsive: true,
-        animation:  { duration: 300, easing: 'easeOutCubic' },
+        animation:  { duration: 800, easing: 'easeInOutCubic' },
         plugins: {
           legend: { display: false },
           tooltip: {
@@ -116,7 +116,7 @@ export class ActivationChart {
 
     this.chart.data.datasets[0].data = CHART_MUSCLES.map(m => this.activation[m.key]?.[phaseName]?.normative ?? 0);
     this.chart.data.datasets[1].data = CHART_MUSCLES.map(m => this.activation[m.key]?.[phaseName]?.actual   ?? 0);
-    this.chart.update('active');
+    this.chart.update();
 
     this._phaseEl.textContent = phaseName.replace(/_/g,' ').toUpperCase();
     this._updateDeficitNotes(phaseName);
