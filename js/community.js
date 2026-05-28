@@ -220,24 +220,61 @@ const Community = (() => {
   //  CASE SHARES
   // ═══════════════════════════════════════════════════════════
 
+  // Case Study Board feed. RLS returns: every APPROVED case + the caller's
+  // own submissions (any status) + everything for admins.
   async function loadCaseShares(filters = {}) {
     let q = sb
       .from('case_shares')
       .select('*, coach:profiles!case_shares_coach_id_fkey(id,full_name,email)')
       .order('created_at', { ascending: false });
 
-    if (filters.tag) q = q.contains('tags', [filters.tag]);
-    if (filters.limit) q = q.limit(filters.limit);
+    if (filters.status) q = q.eq('status', filters.status);
+    if (filters.tag)    q = q.contains('tags', [filters.tag]);
+    if (filters.limit)  q = q.limit(filters.limit);
 
     const { data, error } = await q;
     if (error) { console.warn('loadCaseShares:', error.message); return []; }
     return data || [];
   }
 
+  // Approved cases only — powers the sidebar "Case Studies" carousel.
+  async function loadApprovedCaseShares(limit = 20) {
+    const { data, error } = await sb
+      .from('case_shares')
+      .select('*, coach:profiles!case_shares_coach_id_fkey(id,full_name,email)')
+      .eq('status', 'approved')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+    if (error) { console.warn('loadApprovedCaseShares:', error.message); return []; }
+    return data || [];
+  }
+
+  // Pending submissions awaiting an admin decision (admin-only via RLS).
+  async function loadPendingCaseShares() {
+    const { data, error } = await sb
+      .from('case_shares')
+      .select('*, coach:profiles!case_shares_coach_id_fkey(id,full_name,email)')
+      .eq('status', 'pending')
+      .order('created_at', { ascending: true });
+    if (error) { console.warn('loadPendingCaseShares:', error.message); return []; }
+    return data || [];
+  }
+
+  async function getPendingCaseShareCount() {
+    const { count, error } = await sb
+      .from('case_shares')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'pending');
+    if (error) { console.warn('getPendingCaseShareCount:', error.message); return 0; }
+    return count || 0;
+  }
+
   async function createCaseShare(title, description, anonymizedData, tags) {
     const uid = Auth.getUser()?.id;
     if (!uid || !title?.trim()) throw new Error('Title required');
 
+    // status defaults to 'pending' in the DB — the row is invisible on the
+    // board (to others) and in the carousel until an admin approves it.
     const { data, error } = await sb.from('case_shares').insert({
       coach_id:        uid,
       title:           title.trim(),
@@ -246,6 +283,24 @@ const Community = (() => {
       tags:            Array.isArray(tags) ? tags : [],
     }).select().single();
 
+    if (error) throw new Error(error.message);
+    return data;
+  }
+
+  // Admin decision: approve or reject a submitted case study.
+  async function reviewCaseShare(id, status, note) {
+    if (!['approved','rejected'].includes(status)) throw new Error('Invalid status');
+    const uid = Auth.getUser()?.id;
+    const { data, error } = await sb.from('case_shares')
+      .update({
+        status,
+        reviewed_by: uid || null,
+        reviewed_at: new Date().toISOString(),
+        review_note: note?.trim() || null,
+      })
+      .eq('id', id)
+      .select()
+      .single();
     if (error) throw new Error(error.message);
     return data;
   }
@@ -435,7 +490,8 @@ const Community = (() => {
     // Referrals
     loadReferrals, sendReferral, respondReferral, getPendingReferralCount,
     // Case shares
-    loadCaseShares, createCaseShare, deleteCaseShare,
+    loadCaseShares, loadApprovedCaseShares, loadPendingCaseShares,
+    getPendingCaseShareCount, createCaseShare, reviewCaseShare, deleteCaseShare,
     // Client posts
     loadClientPosts, createPost, deletePost,
     loadComments, addComment,

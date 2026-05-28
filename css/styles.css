@@ -1287,6 +1287,17 @@ tbody td:first-child { color: var(--text-primary); font-weight: 500; }
   color: var(--text-tertiary);
 }
 
+/* ── Case study approvals (admin — sidebar Approvals section) ──── */
+.case-approval-list { display: flex; flex-direction: column; gap: var(--sp-3); margin-top: var(--sp-3); }
+.case-approval-card {
+  display: flex; gap: var(--sp-4); align-items: flex-start;
+  justify-content: space-between; flex-wrap: wrap;
+  background: var(--bg-surface); border: 1px solid var(--border-subtle);
+  border-radius: var(--r-md); padding: var(--sp-4);
+}
+.case-approval-body { flex: 1 1 320px; min-width: 0; }
+.case-approval-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
 /* ── Client posts feed ──────────────────────────────────────── */
 .post-card {
   background: var(--bg-surface); border: 1px solid var(--border-subtle);
@@ -2301,6 +2312,16 @@ tbody td:first-child { color: var(--text-primary); font-weight: 500; }
 @media (min-width: 1024px) { .nc-case-card { width: 360px; height: 500px; } }
 
 .nc-case-card:hover { transform: translateY(-6px); }
+
+/* Data-driven card — admin-approved community case study (no photo,
+   uses a deterministic gradient set inline by platformExtras.js). */
+.nc-case-card--data { background-size: cover; background-position: center; }
+.nc-case-card--data::before {
+  content: ''; position: absolute; inset: 0; z-index: 1;
+  background:
+    radial-gradient(120% 80% at 80% 0%, rgba(103,232,249,0.16), transparent 60%);
+  pointer-events: none;
+}
 
 .nc-case-card img {
   position: absolute;

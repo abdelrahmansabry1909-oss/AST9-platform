@@ -124,16 +124,32 @@ export class GLBSkeleton {
   }
 
   // Async — resolves with `this` once the model is loaded & wired.
+  // Transient network failures are retried (the GLB is 3.3 MB; a dropped
+  // connection on a cold load otherwise becomes a permanent failure).
   build() {
+    return this._loadWithRetry(2);
+  }
+
+  _loadWithRetry(retriesLeft) {
     return new Promise((resolve, reject) => {
       new GLTFLoader().load(
         MODEL_URL,
         (gltf) => {
+          // A parse/wiring failure is deterministic — do NOT retry it.
           try { this._onLoaded(gltf); resolve(this); }
           catch (e) { reject(e); }
         },
         undefined,
-        (err) => reject(err),
+        (err) => {
+          if (retriesLeft > 0) {
+            console.warn(`[NeuCore] skeleton fetch failed — retrying (${retriesLeft} left)`, err);
+            setTimeout(() => {
+              this._loadWithRetry(retriesLeft - 1).then(resolve, reject);
+            }, 600);
+          } else {
+            reject(err);
+          }
+        },
       );
     });
   }

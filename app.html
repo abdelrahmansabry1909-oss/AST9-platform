@@ -1388,6 +1388,9 @@
           <p class="page-subtitle">Clients submit when they think they've passed a phase tripwire. You decide: approve · modify · reject.</p>
         </div>
       </div>
+      <!-- Admin-only — case studies submitted by coaches in Community,
+           awaiting an accept/reject decision. Hidden for non-admins. -->
+      <div id="case-approvals-root"></div>
       <div id="rpm-approvals-root">
         <div class="nc-app-empty">
           <span class="nc-app-empty-icon">⌛</span>
@@ -1814,11 +1817,15 @@ async function _refreshCommunityBadge() {
 }
 
 // Phase 4 — Approvals badge refresh (coach/admin only)
+// Counts RPM phase submissions + (admins only) pending case studies.
 async function _refreshApprovalsBadge() {
   try {
     if (typeof Auth === 'undefined' || !Auth.isAdminOrCoach()) return;
-    if (typeof RPMApproval === 'undefined') return;
-    const n = await RPMApproval.pendingCount();
+    let n = 0;
+    if (typeof RPMApproval !== 'undefined') n += (await RPMApproval.pendingCount()) || 0;
+    if (Auth.isAdmin() && typeof Community !== 'undefined') {
+      n += (await Community.getPendingCaseShareCount()) || 0;
+    }
     const badge = document.getElementById('badge-rpm-approvals');
     if (badge) {
       badge.textContent = n;
@@ -1826,6 +1833,7 @@ async function _refreshApprovalsBadge() {
     }
   } catch(e) { /* non-fatal */ }
 }
+window._refreshApprovalsBadge = _refreshApprovalsBadge;
 // Poll every 60s while the tab is open
 setInterval(() => { if (!document.hidden) _refreshApprovalsBadge(); }, 60_000);
 </script>

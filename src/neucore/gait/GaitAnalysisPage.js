@@ -141,14 +141,22 @@ export class GaitAnalysisPage {
   }
 
   async _initSimulation() {
-    const wrap      = this.container.querySelector('#sim-canvas-wrap');
+    const wrap = this.container.querySelector('#sim-canvas-wrap');
+    if (!wrap || this._disposed) return;
+
+    // Clean slate — also covers the Retry path, which re-enters this method.
+    try { this.bodyCanvas?.destroy?.(); } catch {}
+    try { this.skeleton?.destroy?.(); } catch {}
+    this._simReady = false;
+    wrap.innerHTML = '';
+
     this.bodyCanvas = new BodyCanvas(wrap);
     this._analysisMode = false;
 
     const loader = document.createElement('div');
     loader.style.cssText = `position:absolute;inset:0;display:flex;align-items:center;
-      justify-content:center;color:#67E8F9;font-size:11px;letter-spacing:.16em;
-      text-transform:uppercase;z-index:30;pointer-events:none;`;
+      justify-content:center;flex-direction:column;gap:12px;color:#67E8F9;font-size:11px;
+      letter-spacing:.16em;text-transform:uppercase;z-index:30;text-align:center;padding:20px;`;
     loader.textContent = 'Loading anatomy…';
     wrap.appendChild(loader);
 
@@ -158,7 +166,19 @@ export class GaitAnalysisPage {
       await this.skeleton.build();
     } catch (err) {
       console.error('[NeuCore] gait skeleton load failed:', err);
-      loader.textContent = '3D anatomy failed to load';
+      // A newer build (or destroy) superseded this one — stay silent.
+      if (this._disposed || myBuild !== this._buildToken) return;
+      const reason = (err && err.message ? String(err.message) : 'The 3D model could not be retrieved.').slice(0, 140);
+      loader.innerHTML = `
+        <div style="color:#FF6B6B;font-size:12px;letter-spacing:.04em;text-transform:none">
+          3D anatomy failed to load
+        </div>
+        <div style="color:rgba(255,150,150,0.6);font-size:10px;letter-spacing:.03em;
+                    text-transform:none;max-width:280px;line-height:1.5">${reason}</div>
+        <button id="gait-skel-retry" class="nc-toolbar-btn"
+          style="cursor:pointer;text-transform:none;letter-spacing:.02em">↻ Retry</button>`;
+      loader.querySelector('#gait-skel-retry')
+        ?.addEventListener('click', () => { this._initSimulation(); });
       return;
     }
     // If destroy() ran (or a newer build started) while we were awaiting the

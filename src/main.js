@@ -17,6 +17,13 @@ import { painToColor }      from './neucore/core/MaterialFactory.js';
 // Expose THREE globally so legacy IIFE scripts share one instance
 window.THREE = THREE;
 
+// Cache fetched assets (notably the 3.3 MB skeleton GLB). The dashboard
+// skeleton loads it once on boot; with the cache on, the Generate-page gait
+// simulation reuses that already-downloaded model instead of re-fetching it.
+// A re-fetch over a flaky connection is what surfaces as the gait page's
+// "3D anatomy failed to load" error.
+THREE.Cache.enabled = true;
+
 // ── State ────────────────────────────────────────────────────────
 let mainCanvas    = null;
 let mainSkeleton  = null;

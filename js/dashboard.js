@@ -94,8 +94,11 @@ const Dashboard = (() => {
       // ── Phase 3 — Reactive Graph ───────────────────────────
       // graph builder now lives as the tab-graph panel inside New Session
       'my-graph':         () => (typeof RPMGraphViewer  !== 'undefined' && RPMGraphViewer.init?.()),
-      // ── Phase 4 — Approval queue ───────────────────────────
-      'rpm-approvals':    () => (typeof RPMApproval     !== 'undefined' && RPMApproval.init?.()),
+      // ── Phase 4 — Approval queue (RPM phases + case-study moderation) ──
+      'rpm-approvals':    () => {
+                            if (typeof RPMApproval !== 'undefined') RPMApproval.init?.();
+                            if (typeof CommunityUI !== 'undefined') CommunityUI.renderCaseApprovals?.();
+                          },
       // ── Daily Routine — role-aware (client tracker / coach dashboard) ──
       'daily-routine':    () => _mountDailyRoutineSection(),
       // ── My Program — client's read-only published training program ──
