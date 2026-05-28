@@ -73,7 +73,12 @@ const Dashboard = (() => {
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
 
-    const section = document.getElementById('section-' + id);
+    // Role-aware Home: the same #nav-dashboard activates the new client
+    // dashboard for role=client, the existing coach dashboard for the rest.
+    const isClient    = (typeof Auth !== 'undefined' && Auth.getRole?.() === 'client');
+    const sectionId   = (id === 'dashboard' && isClient) ? 'client-dashboard' : id;
+
+    const section = document.getElementById('section-' + sectionId);
     const navItem = document.getElementById('nav-' + id);
     if (section) section.classList.add('active');
     if (navItem)  navItem.classList.add('active');
@@ -83,7 +88,16 @@ const Dashboard = (() => {
       'clients':          () => Clients.loadAll(),
       'subscriptions':    () => Subscriptions.loadAll(),
       'coaches':          () => Clients.loadCoaches(),
-      'dashboard':        () => loadDashboardStats(),
+      'dashboard':        () => {
+                            // Clients land on the new Client Dashboard;
+                            // coaches/admins keep the existing stats page.
+                            if (isClient && typeof ClientDashboard !== 'undefined') {
+                              ClientDashboard.render?.();
+                            } else {
+                              loadDashboardStats();
+                            }
+                          },
+      'nutrition-plan':   () => { /* Phase A stub — static HTML only */ },
       'programs':         () => renderProgramsList(),
       'exercise-library': () => Clients.loadExercises?.(),
       // ── NeuCore Intelligence (Task 5 + Phase B) ───────────

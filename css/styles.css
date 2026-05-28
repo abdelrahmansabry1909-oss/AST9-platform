@@ -1287,6 +1287,94 @@ tbody td:first-child { color: var(--text-primary); font-weight: 500; }
   color: var(--text-tertiary);
 }
 
+/* ──────────────────────────────────────────────────────────────
+   CLIENT DASHBOARD (#section-client-dashboard) — Phase A scaffold
+   Blueprint: D:/ASThub/client experience/
+              Clinical_Recovery_Dashboard_Blueprint.png
+   ────────────────────────────────────────────────────────────── */
+.cd-header { margin-bottom: var(--sp-5); }
+.cd-eyebrow {
+  font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+  color: rgba(0,212,255,0.55); margin-bottom: 6px;
+}
+.cd-title    { font-size: 28px; font-weight: 500; color: var(--text-primary); line-height: 1.15; margin: 0 0 6px; }
+.cd-subtitle { font-size: 13px; color: var(--text-secondary); margin: 0; }
+
+/* Hero — Point A / Point B 3D Load Visualizer */
+.cd-hero          { padding: var(--sp-5); margin-bottom: var(--sp-5); }
+.cd-hero-top      { display: flex; justify-content: space-between; align-items: flex-end; gap: var(--sp-4); flex-wrap: wrap; margin-bottom: var(--sp-4); }
+.cd-hero-title    { font-size: 20px; font-weight: 500; color: rgba(200,240,255,0.95); margin-top: 4px; }
+.cd-toggle        { display: inline-flex; gap: 6px; background: rgba(5,13,26,0.5); border: 1px solid rgba(0,212,255,0.15); border-radius: 999px; padding: 4px; }
+.cd-toggle-btn    {
+  background: transparent; border: 0; padding: 8px 16px; border-radius: 999px;
+  font-size: 12px; font-weight: 500; color: rgba(200,240,255,0.6);
+  cursor: pointer; transition: background 0.2s, color 0.2s;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.cd-toggle-btn:hover:not([disabled]) { color: rgba(200,240,255,0.95); }
+.cd-toggle-btn.active { background: rgba(0,212,255,0.15); color: var(--nc-cyan); }
+.cd-toggle-btn[disabled] { cursor: not-allowed; opacity: 0.6; }
+.cd-toggle-sub    { font-size: 10px; opacity: 0.65; }
+
+.cd-hero-canvas   {
+  position: relative; min-height: 420px; border-radius: 12px;
+  background: rgba(5,13,26,0.6); border: 1px solid rgba(0,212,255,0.12);
+  overflow: hidden;
+}
+.cd-load-overlays {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px; margin-top: var(--sp-4);
+}
+.cd-load-card     {
+  background: rgba(5,13,26,0.7); border: 1px solid rgba(0,212,255,0.15);
+  border-radius: 10px; padding: 12px 14px;
+}
+.cd-load-region   { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: rgba(0,212,255,0.6); margin-bottom: 6px; }
+.cd-load-numbers  { display: flex; gap: 8px; align-items: baseline; font-weight: 500; }
+.cd-load-current  { font-size: 20px; color: #FF6B6B; }
+.cd-load-arrow    { color: rgba(0,212,255,0.4); font-size: 14px; }
+.cd-load-target   { font-size: 20px; color: #3DF5C1; }
+.cd-load-delta    { font-size: 11px; color: rgba(0,212,255,0.55); margin-top: 4px; }
+
+/* Three metric panels (Phase C will fill with Chart.js) */
+.cd-metrics-grid  {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--sp-4); margin-bottom: var(--sp-5);
+}
+.cd-metric              { padding: var(--sp-4); display: flex; flex-direction: column; gap: var(--sp-3); min-height: 220px; }
+.cd-metric-sub          { font-size: 12px; color: var(--text-tertiary); margin-top: -4px; }
+.cd-metric-chart        { flex: 1; min-height: 140px; position: relative; }
+.cd-metric--danger      { border-color: rgba(255,45,120,0.25); }
+.cd-metric--danger .card-title { color: #FF2D78; }
+
+/* Secondary grid — Assessment Report + Peer Success Gallery */
+.cd-secondary-grid {
+  display: grid; grid-template-columns: 1.4fr 1fr; gap: var(--sp-4);
+}
+@media (max-width: 900px) {
+  .cd-secondary-grid    { grid-template-columns: 1fr; }
+  .cd-hero-canvas       { min-height: 320px; }
+}
+.cd-assessment          { padding: var(--sp-4); }
+.cd-assessment-body     { display: flex; flex-direction: column; gap: var(--sp-3); margin-top: var(--sp-2); }
+.cd-assessment-row      { display: grid; grid-template-columns: 140px 1fr; gap: var(--sp-3); align-items: baseline; }
+.cd-assessment-label    { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: rgba(0,212,255,0.55); }
+.cd-assessment-value    { font-size: 13px; color: var(--text-primary); line-height: 1.5; }
+.cd-assessment-notes    { color: var(--text-secondary); font-style: italic; }
+.cd-peer                { padding: var(--sp-4); }
+.cd-peer-body           { min-height: 140px; }
+
+/* Shared placeholder for Phase B / C content */
+.cd-placeholder         {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 8px; text-align: center; padding: 24px; pointer-events: none;
+}
+.cd-placeholder--small  { position: static; padding: 16px 0; }
+.cd-placeholder-icon    { font-size: 28px; color: rgba(0,212,255,0.45); }
+.cd-placeholder-title   { font-size: 14px; font-weight: 500; color: rgba(200,240,255,0.85); }
+.cd-placeholder-sub     { font-size: 11px; color: rgba(0,212,255,0.5); max-width: 320px; line-height: 1.5; }
+
 /* ── Case study approvals (admin — sidebar Approvals section) ──── */
 .case-approval-list { display: flex; flex-direction: column; gap: var(--sp-3); margin-top: var(--sp-3); }
 .case-approval-card {
