@@ -13,6 +13,8 @@ import { GaitAnalysisPage } from './neucore/gait/GaitAnalysisPage.js';
 import { bus }              from './neucore/core/JointBus.js';
 import { JOINT_LABELS }     from './neucore/core/JointRegistry.js';
 import { painToColor }      from './neucore/core/MaterialFactory.js';
+import { LoadVisualizer }   from './neucore/client/LoadVisualizer.js';
+import { deriveLoadProfile } from './neucore/client/loadMetrics.js';
 
 // Expose THREE globally so legacy IIFE scripts share one instance
 window.THREE = THREE;
@@ -23,6 +25,11 @@ window.THREE = THREE;
 // A re-fetch over a flaky connection is what surfaces as the gait page's
 // "3D anatomy failed to load" error.
 THREE.Cache.enabled = true;
+
+// ADR-002 bridge — expose the Client Dashboard's NeuCore deps to the
+// legacy IIFE layer (js/clientDashboard.js consumes these via window).
+window.LoadVisualizer    = LoadVisualizer;
+window.deriveLoadProfile = deriveLoadProfile;
 
 // ── State ────────────────────────────────────────────────────────
 let mainCanvas    = null;
