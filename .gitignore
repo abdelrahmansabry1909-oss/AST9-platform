@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+
+# Vite build output
+dist/
+
+# Local environment + secrets
+.env
+.env.local
+.env.*.local
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.swp
+.vscode/
+.idea/
+
+# Tooling sandboxes
+.claude/
+
+# Transient artifacts produced by Claude Code sessions
+.session-backup-do-not-commit/
+.pr-body.md
