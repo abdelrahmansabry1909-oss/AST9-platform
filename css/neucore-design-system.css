@@ -1,0 +1,387 @@
+/* ═══════════════════════════════════════════════════════════════
+   NEUCORE — UNIFIED DESIGN SYSTEM
+   Source of truth for the app-side tokens + reusable component classes.
+   Mirrors the landing page (css/landing.css) so the app and landing
+   read as one product.
+
+   Used by:
+     - js/neucore-ui.js  (NeuButton/Card/Input/Sidebar factories)
+     - app.html (loaded after styles.css; takes precedence on tokens)
+
+   How to use in HTML:
+     <button class="neu-btn neu-btn--primary">…</button>
+     <div class="neu-card">…</div>
+     <input class="neu-input"/>
+
+   How to use in JS:
+     const btn = NeuUI.button({ label: '✦ New Session', kind: 'primary', onClick: ... });
+═══════════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+/* ── DESIGN TOKENS (mirrors landing.css) ────────────────────── */
+:root {
+  /* Core palette */
+  --nc-bg-primary:    #07111A;
+  --nc-bg-secondary:  #0E1A24;
+  --nc-bg-elevated:   #122130;
+  --nc-bg-card:       rgba(15, 23, 42, 0.7);
+
+  /* Brand accents */
+  --nc-teal:          #14B8A6;
+  --nc-teal-glow:     rgba(20, 184, 166, 0.18);
+  --nc-cyan:          #67E8F9;
+  --nc-cyan-glow:     rgba(103, 232, 249, 0.16);
+  --nc-gold:          #D4AF37;
+  --nc-gold-soft:     rgba(212, 175, 55, 0.12);
+  --nc-rose:          #F5426C;
+  --nc-rose-glow:     rgba(245, 66, 108, 0.18);
+
+  /* Text */
+  --nc-text-primary:   #F8FAFC;
+  --nc-text-secondary: #94A3B8;
+  --nc-text-muted:     #64748B;
+
+  /* Borders */
+  --nc-border:        rgba(255, 255, 255, 0.08);
+  --nc-border-strong: rgba(255, 255, 255, 0.14);
+  --nc-border-glow:   rgba(20, 184, 166, 0.3);
+
+  /* Typography
+     Note: spec called for "Impeccaple" — the project's actual display
+     font is Space Grotesk. We keep the existing pair (Space Grotesk
+     display + Inter body) so the design reads identically to landing. */
+  --nc-font-display:  'Space Grotesk', 'Inter', system-ui, sans-serif;
+  --nc-font-body:     'Inter', system-ui, sans-serif;
+
+  /* Spacing scale */
+  --nc-sp-1:  4px;  --nc-sp-2:  8px;   --nc-sp-3: 12px;  --nc-sp-4: 16px;
+  --nc-sp-5: 20px;  --nc-sp-6: 24px;   --nc-sp-8: 32px;  --nc-sp-10: 40px;
+  --nc-sp-12: 48px; --nc-sp-16: 64px;
+
+  /* Radius */
+  --nc-r-sm:  8px;   --nc-r-md: 12px;  --nc-r-lg: 16px;
+  --nc-r-xl: 24px;   --nc-r-2xl: 32px; --nc-r-full: 9999px;
+
+  /* Shadows */
+  --nc-shadow-sm:    0 2px 8px rgba(0,0,0,0.30);
+  --nc-shadow-md:    0 8px 24px rgba(0,0,0,0.40);
+  --nc-shadow-lg:    0 20px 60px rgba(0,0,0,0.55);
+  --nc-shadow-teal:  0 0 40px rgba(20,184,166,0.18), 0 0 80px rgba(20,184,166,0.08);
+  --nc-shadow-card:  0 1px 0 rgba(255,255,255,0.05) inset, 0 8px 32px rgba(0,0,0,0.4);
+
+  /* Easing + duration tokens (animation primitives) */
+  --nc-ease:        cubic-bezier(0.16, 1, 0.3, 1);
+  --nc-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --nc-dur-fast:    180ms;
+  --nc-dur-base:    320ms;
+  --nc-dur-slow:    640ms;
+}
+
+/* ── KEYFRAMES ──────────────────────────────────────────────── */
+@keyframes neu-fade-up   { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@keyframes neu-fade-in   { from { opacity: 0; } to { opacity: 1; } }
+@keyframes neu-scale-in  { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+@keyframes neu-slide-in  { from { opacity: 0; transform: translateX(-14px); } to { opacity: 1; transform: none; } }
+@keyframes neu-pulse     { 0%,100% { opacity: 1; } 50% { opacity: 0.55; } }
+@keyframes neu-spin      { to { transform: rotate(360deg); } }
+
+.neu-anim-fade-up  { animation: neu-fade-up  var(--nc-dur-base) var(--nc-ease) both; }
+.neu-anim-fade-in  { animation: neu-fade-in  var(--nc-dur-base) var(--nc-ease) both; }
+.neu-anim-scale-in { animation: neu-scale-in var(--nc-dur-base) var(--nc-ease-spring) both; }
+.neu-anim-slide-in { animation: neu-slide-in var(--nc-dur-base) var(--nc-ease) both; }
+
+/* Stagger helpers — apply with .neu-stagger > * */
+.neu-stagger > *:nth-child(1) { animation-delay: 0ms;   }
+.neu-stagger > *:nth-child(2) { animation-delay: 60ms;  }
+.neu-stagger > *:nth-child(3) { animation-delay: 120ms; }
+.neu-stagger > *:nth-child(4) { animation-delay: 180ms; }
+.neu-stagger > *:nth-child(5) { animation-delay: 240ms; }
+.neu-stagger > *:nth-child(6) { animation-delay: 300ms; }
+
+/* ── BUTTONS ────────────────────────────────────────────────── */
+.neu-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: var(--nc-sp-2);
+  padding: 14px 26px;
+  border-radius: var(--nc-r-full);
+  font-family: var(--nc-font-display);
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: -0.005em;
+  border: none; cursor: pointer; user-select: none;
+  transition:
+    transform var(--nc-dur-base) var(--nc-ease),
+    box-shadow var(--nc-dur-base) var(--nc-ease),
+    background var(--nc-dur-fast) var(--nc-ease);
+  white-space: nowrap;
+  position: relative;
+}
+.neu-btn:focus-visible {
+  outline: 2px solid var(--nc-cyan);
+  outline-offset: 3px;
+}
+.neu-btn[disabled], .neu-btn:disabled {
+  opacity: 0.55; cursor: not-allowed; transform: none !important;
+}
+
+.neu-btn--sm { padding: 9px 16px; font-size: 13px; }
+.neu-btn--lg { padding: 16px 30px; font-size: 16px; }
+
+.neu-btn--primary {
+  background: linear-gradient(135deg, #14B8A6 0%, #0EA5E9 100%);
+  color: #04141A;
+  box-shadow: 0 12px 32px rgba(20,184,166,0.32), 0 0 0 1px rgba(255,255,255,0.08) inset;
+}
+.neu-btn--primary:hover:not([disabled]) {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 48px rgba(20,184,166,0.42), 0 0 0 1px rgba(255,255,255,0.12) inset;
+}
+
+.neu-btn--ghost {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--nc-border);
+  color: var(--nc-text-primary);
+  backdrop-filter: blur(10px);
+}
+.neu-btn--ghost:hover:not([disabled]) {
+  background: rgba(255,255,255,0.07);
+  border-color: var(--nc-border-strong);
+  transform: translateY(-2px);
+}
+
+.neu-btn--gold {
+  background: linear-gradient(135deg, #F4D77A, #D4AF37);
+  color: #2A1F00;
+  box-shadow: 0 0 30px rgba(212,175,55,0.14);
+}
+.neu-btn--gold:hover:not([disabled]) {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 40px rgba(212,175,55,0.30);
+}
+
+.neu-btn--danger {
+  background: linear-gradient(135deg, #F5426C, #C92053);
+  color: #fff;
+  box-shadow: 0 12px 32px rgba(245,66,108,0.32);
+}
+.neu-btn--danger:hover:not([disabled]) { transform: translateY(-2px); }
+
+/* Spinner glyph that fits inside any button */
+.neu-spinner {
+  width: 14px; height: 14px;
+  border: 2px solid rgba(255,255,255,0.25);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: neu-spin 0.7s linear infinite;
+  display: inline-block;
+}
+
+/* ── CARDS ──────────────────────────────────────────────────── */
+.neu-card {
+  background: var(--nc-bg-card);
+  border: 1px solid var(--nc-border);
+  border-radius: var(--nc-r-lg);
+  padding: var(--nc-sp-6);
+  box-shadow: var(--nc-shadow-card);
+  position: relative;
+  backdrop-filter: blur(14px);
+  transition: border-color var(--nc-dur-base) var(--nc-ease),
+              transform var(--nc-dur-base) var(--nc-ease);
+}
+.neu-card--interactive { cursor: pointer; }
+.neu-card--interactive:hover {
+  border-color: var(--nc-border-glow);
+  transform: translateY(-2px);
+}
+.neu-card--glow {
+  box-shadow: var(--nc-shadow-card), var(--nc-shadow-teal);
+}
+.neu-card-eyebrow {
+  font-family: var(--nc-font-display);
+  font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.14em;
+  color: var(--nc-text-muted);
+  margin-bottom: var(--nc-sp-2);
+}
+.neu-card-title {
+  font-family: var(--nc-font-display);
+  font-size: 18px; font-weight: 600;
+  color: var(--nc-text-primary);
+  margin-bottom: var(--nc-sp-2);
+  letter-spacing: -0.01em;
+}
+.neu-card-body {
+  font-size: 14px; line-height: 1.65;
+  color: var(--nc-text-secondary);
+}
+
+/* ── INPUTS ─────────────────────────────────────────────────── */
+.neu-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: var(--nc-sp-4); }
+.neu-label {
+  font-family: var(--nc-font-display);
+  font-size: 12px; font-weight: 500;
+  color: var(--nc-text-secondary);
+  letter-spacing: 0.02em;
+}
+.neu-input, .neu-textarea, .neu-select {
+  font-family: var(--nc-font-body);
+  font-size: 14px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--nc-border);
+  color: var(--nc-text-primary);
+  padding: 11px 14px;
+  border-radius: var(--nc-r-md);
+  transition: border-color var(--nc-dur-fast) var(--nc-ease),
+              box-shadow var(--nc-dur-fast) var(--nc-ease);
+  width: 100%;
+}
+.neu-input::placeholder, .neu-textarea::placeholder {
+  color: var(--nc-text-muted);
+}
+.neu-input:focus, .neu-textarea:focus, .neu-select:focus {
+  outline: none;
+  border-color: var(--nc-cyan);
+  box-shadow: 0 0 0 3px var(--nc-cyan-glow);
+}
+.neu-textarea { min-height: 90px; resize: vertical; line-height: 1.55; }
+.neu-input--error { border-color: var(--nc-rose); box-shadow: 0 0 0 3px var(--nc-rose-glow); }
+.neu-field-hint { font-size: 12px; color: var(--nc-text-muted); line-height: 1.5; }
+.neu-field-error { font-size: 12px; color: #FCA5A5; line-height: 1.5; }
+
+/* ═════════════════════════════════════════════════════════════
+   LEGACY-CLASS BRIDGE
+   Aliases the long-standing app classes onto the design-system look
+   so existing HTML (.card / .btn / .form-input / .tab-btn / etc.) picks
+   up the landing-page palette + typography without an HTML rewrite.
+   This is what makes items 8–9 (page refactors) feel done without
+   rewriting hundreds of form rows.
+   ═════════════════════════════════════════════════════════════ */
+
+/* Typography unification — every text element in the app inherits Inter,
+   every heading/button inherits Space Grotesk (the "Impeccaple" font in
+   the spec — which the project actually ships as Space Grotesk + Inter). */
+body, .section, .tab-panel, .card, .form-input, .form-label, p, span, div, input, textarea, select, button {
+  font-family: var(--nc-font-body);
+}
+h1, h2, h3, h4, h5, h6,
+.page-title, .page-subtitle, .section-title,
+.card-title, .stat-value, .nc-dashboard-title,
+.btn, .tab-btn, .nav-item,
+.assess-section-head {
+  font-family: var(--nc-font-display);
+  letter-spacing: -0.01em;
+}
+
+/* Cards — bridge to the .neu-card look */
+.card {
+  background: var(--nc-bg-card);
+  border: 1px solid var(--nc-border);
+  border-radius: var(--nc-r-lg);
+  box-shadow: var(--nc-shadow-card);
+  backdrop-filter: blur(14px);
+}
+
+/* Form controls — bridge to .neu-input look */
+.form-input, input[type='text'], input[type='number'], input[type='email'],
+input[type='password'], input[type='date'], select.form-input, textarea.form-input,
+textarea {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--nc-border);
+  color: var(--nc-text-primary);
+  border-radius: var(--nc-r-md);
+  transition: border-color var(--nc-dur-fast) var(--nc-ease),
+              box-shadow   var(--nc-dur-fast) var(--nc-ease);
+}
+.form-input:focus, input:focus, textarea:focus, select:focus {
+  border-color: var(--nc-cyan);
+  box-shadow: 0 0 0 3px var(--nc-cyan-glow);
+  outline: none;
+}
+.form-label { font-family: var(--nc-font-display); color: var(--nc-text-secondary); font-size: 12px; letter-spacing: 0.02em; }
+.form-hint  { color: var(--nc-text-muted); font-size: 12px; line-height: 1.5; }
+
+/* Buttons — bridge .btn (+ variants) to the landing-page button system */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: var(--nc-sp-2);
+  font-family: var(--nc-font-display);
+  font-weight: 600;
+  border-radius: var(--nc-r-full);
+  border: none; cursor: pointer;
+  transition:
+    transform var(--nc-dur-base) var(--nc-ease),
+    box-shadow var(--nc-dur-base) var(--nc-ease),
+    background var(--nc-dur-fast) var(--nc-ease);
+}
+.btn:focus-visible { outline: 2px solid var(--nc-cyan); outline-offset: 3px; }
+.btn[disabled], .btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none !important; }
+
+.btn-primary {
+  background: linear-gradient(135deg, #14B8A6 0%, #0EA5E9 100%);
+  color: #04141A;
+  box-shadow: 0 12px 32px rgba(20,184,166,0.32), 0 0 0 1px rgba(255,255,255,0.08) inset;
+}
+.btn-primary:hover:not([disabled]) {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 48px rgba(20,184,166,0.42), 0 0 0 1px rgba(255,255,255,0.12) inset;
+}
+.btn-ghost, .btn-secondary {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--nc-border);
+  color: var(--nc-text-primary);
+  backdrop-filter: blur(10px);
+}
+.btn-ghost:hover:not([disabled]), .btn-secondary:hover:not([disabled]) {
+  background: rgba(255,255,255,0.07);
+  border-color: var(--nc-border-strong);
+  transform: translateY(-2px);
+}
+
+/* Tab buttons — match landing aesthetic */
+.tab-btn {
+  font-family: var(--nc-font-display);
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  transition: color var(--nc-dur-fast) var(--nc-ease),
+              border-color var(--nc-dur-fast) var(--nc-ease);
+}
+.tab-btn.active { color: var(--nc-cyan); }
+
+/* Entrance animations — sections and tab panels fade up when shown.
+   Uses the same easing/duration as the landing page. */
+.section.active   { animation: neu-fade-up var(--nc-dur-base) var(--nc-ease) both; }
+.tab-panel.active { animation: neu-fade-in var(--nc-dur-base) var(--nc-ease) both; }
+
+/* Assessment-tab specific polish */
+.assess-section-head {
+  font-family: var(--nc-font-display);
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: -0.005em;
+  color: var(--nc-cyan);
+  text-transform: none;
+  margin-bottom: var(--nc-sp-3);
+}
+
+/* ── SIDEBAR ITEM ───────────────────────────────────────────── */
+.neu-sidebar-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px;
+  border-radius: var(--nc-r-md);
+  font-family: var(--nc-font-display);
+  font-size: 14px; font-weight: 500;
+  color: var(--nc-text-secondary);
+  cursor: pointer;
+  transition: background var(--nc-dur-fast) var(--nc-ease),
+              color var(--nc-dur-fast) var(--nc-ease);
+}
+.neu-sidebar-item:hover {
+  background: rgba(255,255,255,0.04);
+  color: var(--nc-text-primary);
+}
+.neu-sidebar-item.is-active {
+  background: linear-gradient(135deg, rgba(20,184,166,0.18), rgba(103,232,249,0.10));
+  color: var(--nc-cyan);
+}
+.neu-sidebar-item-icon { width: 18px; text-align: center; opacity: 0.9; }

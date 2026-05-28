@@ -57,12 +57,31 @@ const Auth = (() => {
 
   // ── Login ────────────────────────────────────────────────────
   async function login(email, password) {
-    const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('Login timed out. Supabase server may be paused or unreachable. Please try again in a moment.')), 20000));
+    // A paused/cold Supabase project can take 30–90s to wake on the first
+    // request, so we allow 75s here (was 20s — too short, it fired before
+    // the server finished waking). One automatic retry covers the case
+    // where the first call only triggered the wake and then errored.
+    const attempt = () => {
+      const timeout = new Promise((_, reject) => setTimeout(
+        () => reject(new Error('Login timed out. Supabase server may be paused or unreachable. Please try again in a moment.')),
+        75000));
+      return Promise.race([ sb.auth.signInWithPassword({ email, password }), timeout ]);
+    };
     try {
-      const { data, error } = await Promise.race([
-        sb.auth.signInWithPassword({ email, password }),
-        timeout
-      ]);
+      let result;
+      try {
+        result = await attempt();
+        if (result.error && /fetch|network|timed out/i.test(result.error.message || '')) throw result.error;
+      } catch (firstErr) {
+        // First call may have just woken the project — wait briefly and retry once.
+        if (/timed out|fetch|network|Failed to fetch/i.test(firstErr.message || '')) {
+          await new Promise((r) => setTimeout(r, 3000));
+          result = await attempt();
+        } else {
+          throw firstErr;
+        }
+      }
+      const { data, error } = result;
       if (error) throw new Error(error.message);
       await loadProfile(data.user);
       // Block expired clients

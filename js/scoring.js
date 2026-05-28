@@ -24,6 +24,13 @@ const ScoringEngine = (() => {
     sl_balance_eo:      { min: 30 },   // seconds
     sl_balance_ec:      { min: 10 },
     sl_reach:           { min: 70 },   // % leg length
+
+    // ── NeuCore additions (Task 8) ─────────────────────────
+    elbow_flex:         { min: 145 },  // degrees
+    elbow_ext:          { min: 0   },
+    wrist_flex:         { min: 80  },
+    wrist_ext:          { min: 70  },
+    cerv_rotation:      { min: 70  },  // degrees
   };
 
   // Asymmetry penalty thresholds (degrees / cm)
@@ -116,6 +123,23 @@ const ScoringEngine = (() => {
       bal_ec_r:  gi('ns-bal-ec-r'),
       reach_l:   gi('ns-reach-l'),
       reach_r:   gi('ns-reach-r'),
+
+      // ── NeuCore additions (Task 8) ─────────────────────────
+      elbow_flex_l:  gi('ns-elbow-flex-l'),
+      elbow_flex_r:  gi('ns-elbow-flex-r'),
+      elbow_ext_l:   gi('ns-elbow-ext-l'),
+      elbow_ext_r:   gi('ns-elbow-ext-r'),
+      wrist_flex_l:  gi('ns-wrist-flex-l'),
+      wrist_flex_r:  gi('ns-wrist-flex-r'),
+      wrist_ext_l:   gi('ns-wrist-ext-l'),
+      wrist_ext_r:   gi('ns-wrist-ext-r'),
+      cerv_flex:     g('ns-cerv-flex'),
+      cerv_ext:      g('ns-cerv-ext'),
+      cerv_rot_l:    gi('ns-cerv-rot-l'),
+      cerv_rot_r:    gi('ns-cerv-rot-r'),
+      lumb_flex:     g('ns-lumb-flex'),
+      lumb_ext:      g('ns-lumb-ext'),
+      si_pain:       g('ns-si-pain'),
     };
   }
 

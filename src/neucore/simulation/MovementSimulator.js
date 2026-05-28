@@ -1,35 +1,116 @@
 // src/neucore/simulation/MovementSimulator.js
+// Gait simulation driven directly on the real GLB skeleton's bone tree.
+//
+// The anatomical skeleton (GLBSkeleton) is itself an FK hierarchy:
+//   hip → femur → tibula → talus → foot,  and  ... → humerus
+// and every bone's local origin sits at its proximal joint. So a gait pose is
+// just a set of relative rotations layered on top of each bone's bind pose.
+//
+//  - Per-bone FK: hip / knee / ankle / shoulder rotations through the cycle
+//  - Root translates left-to-right like a real walk
+//  - Vertical bounce + trunk lean + pelvic sway
+//  - Slow clinical gait cycle (2.0 s per full cycle)
+
 import * as THREE from 'three';
 import { bus } from '../core/JointBus.js';
 import { GAIT_PHASES } from './MuscleActivationDB.js';
 
+const D = Math.PI / 180;   // degrees → radians
+const CYCLE_DUR  = 2.0;    // seconds per full gait cycle
+const WALK_RANGE = 0.85;   // ±X meters the skeleton travels (kept in-frame)
+const WALK_SPEED = WALK_RANGE * 2 / (CYCLE_DUR * 5); // crosses the range in ~5 cycles
+
+// Rotation-sign map — flexion axes on the GLB bone tree (limbs run down −Y).
+const SIGN = {
+  hipFlex: -1,   // femur  about local X — +deg flexion swings the thigh forward
+  hipAbd:   1,   // femur  about local Z
+  knee:     1,   // tibula about local X — +deg knee flexion folds the shank back
+  ankle:   -1,   // talus  about local X — +deg dorsiflexion lifts the toes
+  arm:     -1,   // humerus about local X — counter-swing
+  trunk:    1,   // ripcage about local X — +deg forward lean
+};
+
+// Normative kinematics (degrees) — Neumann Ch.15
 const NORMATIVE_KINEMATICS = {
-  hip_flexion:  { loading_response:25,mid_stance:5,terminal_stance:-10,pre_swing:-5,initial_swing:15,mid_swing:25,terminal_swing:20 },
-  hip_abduction:{ loading_response:-5,mid_stance:3,terminal_stance:2,pre_swing:-2,initial_swing:0,mid_swing:0,terminal_swing:0 },
-  knee_flexion: { loading_response:20,mid_stance:5,terminal_stance:0,pre_swing:35,initial_swing:60,mid_swing:65,terminal_swing:30 },
-  ankle_df:     { loading_response:-5,mid_stance:5,terminal_stance:15,pre_swing:-10,initial_swing:5,mid_swing:5,terminal_swing:5 },
-  trunk_lean:   { loading_response:5,mid_stance:3,terminal_stance:2,pre_swing:4,initial_swing:5,mid_swing:3,terminal_swing:4 },
+  hip_flexion:  { loading_response:25, mid_stance:5,  terminal_stance:-10, pre_swing:-5,  initial_swing:15,  mid_swing:25,  terminal_swing:20  },
+  hip_abduction:{ loading_response:-5, mid_stance:3,  terminal_stance:2,   pre_swing:-2,  initial_swing:0,   mid_swing:0,   terminal_swing:0   },
+  knee_flexion: { loading_response:20, mid_stance:5,  terminal_stance:0,   pre_swing:35,  initial_swing:60,  mid_swing:65,  terminal_swing:30  },
+  ankle_df:     { loading_response:-5, mid_stance:5,  terminal_stance:15,  pre_swing:-10, initial_swing:5,   mid_swing:5,   terminal_swing:5   },
+  trunk_lean:   { loading_response:5,  mid_stance:3,  terminal_stance:2,   pre_swing:4,   initial_swing:5,   mid_swing:3,   terminal_swing:4   },
 };
 
 export class MovementSimulator {
-  constructor(skeletonBuilder, deficits) {
-    this.skeleton  = skeletonBuilder;
+  constructor(skeleton, deficits) {
+    this.skeleton  = skeleton;
     this.deficits  = deficits ?? [];
     this.isPlaying = false;
     this._clock    = new THREE.Clock();
     this._phase    = 0;
     this._speed    = 1.0;
+    this._lastPhaseIdx = -1;
+    this._rigged   = false;
+    this._frozen   = false;
+    this._effectiveElapsed = 0;
+
+    // Scratch quaternions/axes reused every frame.
+    this._qx = new THREE.Quaternion();
+    this._qz = new THREE.Quaternion();
+    this._xAxis = new THREE.Vector3(1, 0, 0);
+    this._zAxis = new THREE.Vector3(0, 0, 1);
+
     this._clientKinematics = this._computeClientKinematics();
   }
 
+  // ── Public API ───────────────────────────────────────────────
+  start(speed = 1.0) {
+    if (!this._rigged) { this._setupRig(); this._rigged = true; }
+    this.isPlaying = true;
+    this._frozen   = false;
+    this._speed    = speed;
+    this._effectiveElapsed = 0;
+    if (this.skeleton) this.skeleton._idleFloat = false;
+    this._clock.start();
+    this._animate();
+  }
+
+  stop() {
+    this.isPlaying = false;
+    this._frozen   = false;
+    this._resetPose();
+    if (this.skeleton) this.skeleton._idleFloat = true;
+  }
+
+  setSpeed(speed) { this._speed = speed; }
+
+  freeze() { this._frozen = true; }
+
+  unfreeze() { this._frozen = false; }
+
+  jumpToPhase(phaseName) {
+    const phaseIdx = GAIT_PHASES.indexOf(phaseName);
+    if (phaseIdx < 0) return;
+    this._effectiveElapsed = (phaseIdx / 7 + 0.035) * CYCLE_DUR;
+    this._phase = (this._effectiveElapsed % CYCLE_DUR) / CYCLE_DUR;
+    this._frozen = true;
+    if (!this.isPlaying) {
+      if (!this._rigged) { this._setupRig(); this._rigged = true; }
+      if (this.skeleton) this.skeleton._idleFloat = false;
+      this.isPlaying = true;
+      this._clock.start();
+      this._animate();
+    }
+    this._applyKinematics(this._phase);
+  }
+
+  // ── Deficit-modified kinematics ───────────────────────────────
   _computeClientKinematics() {
     const k = JSON.parse(JSON.stringify(NORMATIVE_KINEMATICS));
 
     this.deficits.forEach(deficit => {
       switch (deficit.id) {
         case 'limited_df': {
-          const dfScale = Math.min((parseFloat(deficit.assessment?.ankle_dorsiflexion_left_cm) || 8) / 10, 1);
-          Object.keys(k.ankle_df).forEach(p => { if (k.ankle_df[p] > 0) k.ankle_df[p] *= dfScale; });
+          const scale = Math.min((parseFloat(deficit.assessment?.ankle_dorsiflexion_left_cm) || 8) / 10, 1);
+          Object.keys(k.ankle_df).forEach(p => { if (k.ankle_df[p] > 0) k.ankle_df[p] *= scale; });
           k.knee_flexion.mid_stance = Math.max(-5, k.knee_flexion.mid_stance - 8);
           k.trunk_lean.loading_response += 4;
           k.trunk_lean.mid_stance += 5;
@@ -44,13 +125,13 @@ export class MovementSimulator {
           k.hip_abduction.mid_stance -= 2;
           break;
         case 'limited_hip_extension': {
-          const extScale = (parseFloat(deficit.assessment?.hip_extension_left) || 8) / 10;
-          k.hip_flexion.terminal_stance = Math.max(-5, k.hip_flexion.terminal_stance * extScale);
+          const scale = (parseFloat(deficit.assessment?.hip_extension_left) || 8) / 10;
+          k.hip_flexion.terminal_stance = Math.max(-5, k.hip_flexion.terminal_stance * scale);
           k.trunk_lean.terminal_stance += 5;
           break;
         }
         case 'trendelenburg':
-          k.trunk_lean.mid_stance += 8;
+          k.trunk_lean.mid_stance    += 8;
           k.trunk_lean.terminal_stance += 6;
           k.hip_abduction.mid_stance -= 5;
           break;
@@ -58,7 +139,7 @@ export class MovementSimulator {
           Object.keys(k.trunk_lean).forEach(p => { k.trunk_lean[p] += 6; });
           break;
         case 'poor_balance_eo':
-          k.hip_abduction.mid_stance += 4;
+          k.hip_abduction.mid_stance       += 4;
           k.hip_abduction.loading_response += 3;
           break;
       }
@@ -67,41 +148,83 @@ export class MovementSimulator {
     return k;
   }
 
-  start(speed = 1.0) {
-    this.isPlaying = true;
-    this._speed    = speed;
-    this._clock.start();
-    this._animate();
+  // ── Capture bind pose of the gait bones ──────────────────────
+  _setupRig() {
+    this._bones = (this.skeleton.getGaitBones && this.skeleton.getGaitBones()) || null;
+    if (!this._bones) return;
+    const remember = (b) => { if (b) b.userData._bindQuat = b.quaternion.clone(); };
+    const { pelvis, trunk, L, R } = this._bones;
+    remember(pelvis); remember(trunk);
+    [L, R].forEach(side => { if (side) Object.values(side).forEach(remember); });
   }
 
-  stop() {
-    this.isPlaying = false;
-    this._resetPose();
+  // Apply a flexion (local X) + optional abduction (local Z) on top of a
+  // bone's bind orientation.
+  _flex(bone, ax, az) {
+    if (!bone || !bone.userData._bindQuat) return;
+    this._qx.setFromAxisAngle(this._xAxis, ax);
+    bone.quaternion.copy(bone.userData._bindQuat).multiply(this._qx);
+    if (az) {
+      this._qz.setFromAxisAngle(this._zAxis, az);
+      bone.quaternion.multiply(this._qz);
+    }
   }
 
-  setSpeed(speed) { this._speed = speed; }
-
+  // ── Animation loop ────────────────────────────────────────────
   _animate() {
     if (!this.isPlaying) return;
-    const t = this._clock.getElapsedTime() * this._speed;
-    this._phase = (t % 1.1) / 1.1;
+
+    const dt = this._clock.getDelta() * this._speed;
+    if (!this._frozen) {
+      this._effectiveElapsed += dt;
+      this._phase = (this._effectiveElapsed % CYCLE_DUR) / CYCLE_DUR;
+    }
+    const elapsed = this._effectiveElapsed;
+
     this._applyKinematics(this._phase);
+    if (!this._frozen) this._applyRootMotion(this._phase, elapsed);
 
     const phaseIdx = Math.min(Math.floor(this._phase * 7), 6);
+    if (phaseIdx !== this._lastPhaseIdx) {
+      this._lastPhaseIdx = phaseIdx;
+      bus.emit('gait:phaseChange', { phase: GAIT_PHASES[phaseIdx] });
+    }
     bus.emit('sim:phaseUpdate', { phase: this._phase, phaseName: GAIT_PHASES[phaseIdx] });
-    bus.emit('gait:phaseChange', { phase: GAIT_PHASES[phaseIdx] });
 
     requestAnimationFrame(() => this._animate());
   }
 
+  // ── Root motion: translation + bounce + sway ─────────────────
+  _applyRootMotion(phase, elapsed) {
+    const root = this.skeleton._root;
+    if (!root) return;
+
+    const totalDist = WALK_RANGE * 2;
+    const walkProgress = (elapsed * WALK_SPEED) % (totalDist * 2);
+    const rootX = walkProgress < totalDist
+      ? -WALK_RANGE + walkProgress
+      :  WALK_RANGE - (walkProgress - totalDist);
+    root.position.x = rootX;
+    root.position.y = Math.sin(phase * Math.PI * 4) * 0.018;
+    root.rotation.y = walkProgress < totalDist ? -0.08 : 0.08;
+  }
+
+  // ── FK kinematics ─────────────────────────────────────────────
   _applyKinematics(phase) {
-    const sk = this.skeleton;
-    const k  = this._clientKinematics;
-    const phaseIdx  = Math.floor(phase * 7);
+    if (!this._bones) return;
+    const k = this._clientKinematics;
+
+    const phaseIdx  = Math.min(Math.floor(phase * 7), 6);
     const phaseFrac = (phase * 7) - phaseIdx;
-    const cur  = GAIT_PHASES[Math.min(phaseIdx, 6)];
-    const next = GAIT_PHASES[Math.min(phaseIdx + 1, 6)];
-    const D = Math.PI / 180;
+    const cur       = GAIT_PHASES[phaseIdx];
+    const next      = GAIT_PHASES[Math.min(phaseIdx + 1, 6)];
+
+    // Contralateral phase (right leg 50% offset)
+    const rPhase    = (phase + 0.5) % 1.0;
+    const rIdx      = Math.min(Math.floor(rPhase * 7), 6);
+    const rFrac     = (rPhase * 7) - rIdx;
+    const rCur      = GAIT_PHASES[rIdx];
+    const rNext     = GAIT_PHASES[Math.min(rIdx + 1, 6)];
 
     const lerp = (key, c, n, t) => {
       const a = (k[key]?.[c] ?? 0) * D;
@@ -109,50 +232,49 @@ export class MovementSimulator {
       return a + (b - a) * t;
     };
 
-    const lHip = sk.boneMeshes.get('LeftFemur');
-    if (lHip) {
-      lHip.rotation.x = lerp('hip_flexion', cur, next, phaseFrac);
-      lHip.rotation.z = lerp('hip_abduction', cur, next, phaseFrac);
+    const { pelvis, trunk, L, R } = this._bones;
+
+    // ── Left leg ──────────────────────────────────────────────
+    this._flex(L.thigh,
+      SIGN.hipFlex * lerp('hip_flexion',   cur, next, phaseFrac),
+      SIGN.hipAbd  * lerp('hip_abduction', cur, next, phaseFrac));
+    this._flex(L.shank, SIGN.knee  * lerp('knee_flexion', cur, next, phaseFrac));
+    this._flex(L.foot,  SIGN.ankle * lerp('ankle_df',     cur, next, phaseFrac));
+
+    // ── Right leg (contralateral) ─────────────────────────────
+    this._flex(R.thigh,
+      SIGN.hipFlex * lerp('hip_flexion',   rCur, rNext, rFrac),
+      -SIGN.hipAbd * lerp('hip_abduction', rCur, rNext, rFrac));
+    this._flex(R.shank, SIGN.knee  * lerp('knee_flexion', rCur, rNext, rFrac));
+    this._flex(R.foot,  SIGN.ankle * lerp('ankle_df',     rCur, rNext, rFrac));
+
+    // ── Arms: counter-swing to contralateral leg ──────────────
+    this._flex(L.arm, SIGN.arm * lerp('hip_flexion', rCur, rNext, rFrac) * 0.32);
+    this._flex(R.arm, SIGN.arm * lerp('hip_flexion', cur,  next,  phaseFrac) * 0.32);
+
+    // ── Trunk lean + pelvic sway ──────────────────────────────
+    if (trunk && trunk.userData._bindQuat) {
+      this._flex(trunk, SIGN.trunk * lerp('trunk_lean', cur, next, phaseFrac) * 0.5);
     }
-
-    const rHip = sk.boneMeshes.get('RightFemur');
-    if (rHip) {
-      const rph = (phase + 0.5) % 1.0;
-      const ri  = Math.floor(rph * 7), rf = (rph * 7) - ri;
-      const rc  = GAIT_PHASES[Math.min(ri, 6)], rn = GAIT_PHASES[Math.min(ri + 1, 6)];
-      rHip.rotation.x = lerp('hip_flexion', rc, rn, rf);
-    }
-
-    const lKnee = sk.boneMeshes.get('LeftTibia');
-    if (lKnee) lKnee.rotation.x = lerp('knee_flexion', cur, next, phaseFrac);
-
-    const rKnee = sk.boneMeshes.get('RightTibia');
-    if (rKnee) {
-      const rph = (phase + 0.5) % 1.0;
-      const ri  = Math.floor(rph * 7), rf = (rph * 7) - ri;
-      const rc  = GAIT_PHASES[Math.min(ri, 6)], rn = GAIT_PHASES[Math.min(ri + 1, 6)];
-      rKnee.rotation.x = lerp('knee_flexion', rc, rn, rf);
-    }
-
-    const pelvis = sk.boneMeshes.get('Pelvis');
-    if (pelvis) {
-      pelvis.rotation.x = lerp('trunk_lean', cur, next, phaseFrac) * 0.5;
+    if (pelvis && pelvis.userData._bindQuat) {
+      let swayZ = Math.sin(phase * Math.PI * 2) * 0.05;
       const hasTrend = this.deficits.some(d => d.id === 'trendelenburg');
       if (hasTrend && (cur === 'mid_stance' || cur === 'terminal_stance')) {
-        pelvis.rotation.z = Math.sin(phase * Math.PI * 2) * 0.08;
+        swayZ += Math.sin(phase * Math.PI * 2) * 0.07;
       }
+      this._qz.setFromAxisAngle(this._zAxis, swayZ);
+      pelvis.quaternion.copy(pelvis.userData._bindQuat).multiply(this._qz);
     }
-
-    const lArm = sk.boneMeshes.get('LeftHumerus');
-    const rArm = sk.boneMeshes.get('RightHumerus');
-    if (lArm) lArm.rotation.x =  Math.sin(phase * Math.PI * 2) * 0.25;
-    if (rArm) rArm.rotation.x = -Math.sin(phase * Math.PI * 2) * 0.25;
   }
 
+  // ── Reset to bind pose ────────────────────────────────────────
   _resetPose() {
-    ['LeftFemur','RightFemur','LeftTibia','RightTibia','Pelvis','LeftHumerus','RightHumerus'].forEach(id => {
-      const mesh = this.skeleton.boneMeshes.get(id);
-      if (mesh) mesh.rotation.set(0, 0, 0);
-    });
+    const root = this.skeleton._root;
+    if (root) { root.position.set(0, 0, 0); root.rotation.set(0, 0, 0); }
+    if (!this._bones) return;
+    const restore = (b) => { if (b && b.userData._bindQuat) b.quaternion.copy(b.userData._bindQuat); };
+    const { pelvis, trunk, L, R } = this._bones;
+    restore(pelvis); restore(trunk);
+    [L, R].forEach(side => { if (side) Object.values(side).forEach(restore); });
   }
 }

@@ -18,6 +18,9 @@ const Dashboard = (() => {
     try { localStorage.setItem(SESSIONS_KEY, JSON.stringify(_sessions)); } catch { /* storage blocked */ }
   }
 
+  // Last generated program bundle — consumed by exportProfessionalPDF().
+  let _lastBundle = null;
+
   // ═══════════════════════════════════════════════════════════
   //  SHELL / SIDEBAR
   // ═══════════════════════════════════════════════════════════
@@ -44,6 +47,10 @@ const Dashboard = (() => {
     });
     document.querySelectorAll('.role-admin-only').forEach(el => {
       el.style.display = Auth.isAdmin() ? '' : 'none';
+    });
+    // Phase 3 — clients only see "My Graph"; coaches/admins use the Graph Builder
+    document.querySelectorAll('.role-client-only').forEach(el => {
+      el.style.display = (Auth.getRole() === 'client') ? '' : 'none';
     });
 
     // Admin email
@@ -79,8 +86,43 @@ const Dashboard = (() => {
       'dashboard':        () => loadDashboardStats(),
       'programs':         () => renderProgramsList(),
       'exercise-library': () => Clients.loadExercises?.(),
+      // ── NeuCore Intelligence (Task 5 + Phase B) ───────────
+      'services':         () => { /* static content */ },
+      'gait':             () => { /* placeholder — wired in future phase */ },
+      'case-studies':     () => (typeof PlatformExtras !== 'undefined' && PlatformExtras.initCaseStudiesCarousel?.()),
+      'analytics':        () => (typeof Charts !== 'undefined' && Charts.renderDashboardAnalytics?.()),
+      // ── Phase 3 — Reactive Graph ───────────────────────────
+      // graph builder now lives as the tab-graph panel inside New Session
+      'my-graph':         () => (typeof RPMGraphViewer  !== 'undefined' && RPMGraphViewer.init?.()),
+      // ── Phase 4 — Approval queue (RPM phases + case-study moderation) ──
+      'rpm-approvals':    () => {
+                            if (typeof RPMApproval !== 'undefined') RPMApproval.init?.();
+                            if (typeof CommunityUI !== 'undefined') CommunityUI.renderCaseApprovals?.();
+                          },
+      // ── Daily Routine — role-aware (client tracker / coach dashboard) ──
+      'daily-routine':    () => _mountDailyRoutineSection(),
+      // ── My Program — client's read-only published training program ──
+      'my-program':       () => (typeof ProgramPublish !== 'undefined'
+                                 && ProgramPublish.renderClientProgram('#my-program-host')),
     };
     loaders[id]?.();
+  }
+
+  // Daily Routine section — clients get the check-off tracker, coaches/admins
+  // get the adherence dashboard.
+  function _mountDailyRoutineSection() {
+    const host = document.getElementById('daily-routine-host');
+    const sub  = document.getElementById('daily-routine-sub');
+    if (!host || typeof DailyRoutine === 'undefined') return;
+    let isCoach = false;
+    try { isCoach = Auth.isAdminOrCoach && Auth.isAdminOrCoach(); } catch {}
+    if (isCoach) {
+      if (sub) sub.textContent = 'Track how consistently your clients complete their daily routine.';
+      DailyRoutine.mountCoachView(host);
+    } else {
+      if (sub) sub.textContent = 'Move. Breathe. Reset. — your check-ins are shared with your coach.';
+      DailyRoutine.mountTracker(host);
+    }
   }
 
   // Tab switching (in-page tabs)
@@ -96,9 +138,59 @@ const Dashboard = (() => {
           panels.forEach(p => p.classList.remove('active'));
           const targetPanel = document.getElementById(target);
           if (targetPanel) targetPanel.classList.add('active');
+          // Refresh Generate-tab's active-session chip whenever it opens.
+          if (target === 'tab-generate') _refreshActiveSessionChip();
         });
       });
     });
+  }
+
+  // ───────────────────────────────────────────────────────────
+  // Active-session chip on the Generate tab — shows the client
+  // currently selected in Client Info. Replaces the legacy
+  // ns-save-client dropdown so Generate has no client picker of its own.
+  // ───────────────────────────────────────────────────────────
+  function _activeSessionClient() {
+    const sel  = document.getElementById('ns-client-select');
+    const id   = sel?.value || null;
+    const name = (sel && sel.selectedIndex > 0) ? sel.options[sel.selectedIndex].textContent.trim() : '';
+    return { id, name };
+  }
+
+  function _refreshActiveSessionChip() {
+    const host = document.getElementById('gen-active-session');
+    if (!host) return;
+    const { id, name } = _activeSessionClient();
+    if (!id) {
+      host.innerHTML = `
+        <div style="color:#FCA5A5;font-weight:500;margin-bottom:6px">⚠ No active client session.</div>
+        <div style="color:var(--text-secondary);font-size:12px;margin-bottom:10px">
+          Please start a client session first.
+        </div>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="Dashboard.openClientInfoTab()">
+          → Go to Client Info
+        </button>`;
+      return;
+    }
+    const initials = (name || '?').split(/\s+/).map(w => w[0]).join('').slice(0,2).toUpperCase();
+    host.innerHTML = `
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="
+          display:inline-flex;align-items:center;justify-content:center;
+          width:34px;height:34px;border-radius:50%;
+          background:linear-gradient(135deg,#14B8A6,#67E8F9);color:#07111A;
+          font-weight:600;font-size:13px;">${initials}</span>
+        <div>
+          <div style="font-size:14px;font-weight:500;color:var(--text-primary)">${name || 'Selected client'}</div>
+          <div style="font-size:11px;color:var(--text-tertiary);font-family:ui-monospace,monospace">${id.slice(0, 8)}…</div>
+        </div>
+      </div>`;
+  }
+
+  function openClientInfoTab() {
+    // Switch the in-page tabs back to Client Info
+    const btn = document.querySelector('[data-tab="tab-info"]');
+    btn?.click();
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -251,8 +343,43 @@ Daily: 1. 2. 3.
 Keep output clean, structured, and clinically precise.`;
   }
 
+  // Read the Program Setup card — coach's chosen program shape.
+  function _readProgramConfig() {
+    const num = (id, def, min, max) => {
+      const v = parseInt(document.getElementById(id)?.value, 10);
+      if (!Number.isFinite(v)) return def;
+      return Math.max(min, Math.min(max, v));
+    };
+    const days  = num('cfg-days', 3, 1, 7);
+    const split = document.getElementById('cfg-split')?.value || 'same';
+    // Translate the split choice into a number of distinct workouts.
+    const distinct = split === 'ab' ? 2
+      : split === 'abc' ? 3
+      : split === 'unique' ? days
+      : 1;
+    return {
+      days,
+      split,
+      distinctWorkouts: Math.max(1, Math.min(days, distinct)),
+      warmup:   num('cfg-warmup', 3, 1, 10),
+      main:     num('cfg-main', 5, 1, 14),
+      cooldown: num('cfg-cooldown', 2, 1, 8),
+      daily:    num('cfg-daily', 6, 2, 12),
+    };
+  }
+
   async function generateProgram() {
-    const name = _gv('ns-name');
+    // Read client from the active session (Client Info tab) — Generate no
+    // longer has its own client picker.
+    const { id: activeClientId, name: activeClientName } = _activeSessionClient();
+    const typedName = _gv('ns-name');
+    const name = activeClientName || typedName;
+
+    if (!activeClientId) {
+      toast('Please start a client session first.', 'error');
+      _refreshActiveSessionChip();
+      return;
+    }
     if (!name) { toast('Please enter client name first', 'error'); return; }
 
     const btn = document.getElementById('generate-btn');
@@ -267,15 +394,24 @@ Keep output clean, structured, and clinically precise.`;
       const scores     = ScoringEngine.calculate(assessment);
       const gait       = GaitEngine.analyze(assessment);
       if (window._setLastGait) window._setLastGait(gait);
+      const cfg        = _readProgramConfig();
       const program    = ProgramGenerator.generate(assessment, scores, gait, {
-        phase: _gv('ns-phase'),
+        phase:            _gv('ns-phase'),
+        daysPerWeek:      cfg.days,
+        distinctWorkouts: cfg.distinctWorkouts,
+        counts:           { warmup: cfg.warmup, main: cfg.main, cooldown: cfg.cooldown, daily: cfg.daily },
       });
 
       // ── STEP 2: Render engine outputs into score/gait panels ─
       ScoringEngine.renderScores(scores);
       GaitEngine.renderGaitAnalysis(gait);
-      ProgramGenerator.renderProgram(program);
-      ProgramGenerator.renderDailyRoutine(program);
+      // The editable Review & Publish panel supersedes the old read-only
+      // program/daily-routine panels (it shows every workout in the split).
+      document.getElementById('program-panel')?.classList.add('hidden');
+      document.getElementById('daily-routine-panel')?.classList.add('hidden');
+      if (typeof ProgramPublish !== 'undefined') {
+        ProgramPublish.render({ program, clientId: activeClientId, clientName: activeClientName });
+      }
 
       // ── STEP 3: Update 3D body map if initialised ────────────
       if (window.BodyMap3D?.inited) {
@@ -320,9 +456,12 @@ Keep output clean, structured, and clinically precise.`;
       _sessions.unshift(session);
       saveSessions();
 
+      // Keep the full bundle so "Export Professional PDF" can build the report.
+      _lastBundle = { name, assessment, scores, gait, program, aiText, clientId: activeClientId };
+
       // ── STEP 6: Persist to Supabase (non-blocking) ───────────
-      const clientId = _gv('ns-save-client');
-      if (clientId) _saveToSupabase(clientId, scores, program, aiText, gait, assessment);
+      // Client is the one selected in the active session (Client Info tab).
+      _saveToSupabase(activeClientId, scores, program, aiText, gait, assessment);
 
       toast('Program generated!', 'success');
 
@@ -332,6 +471,148 @@ Keep output clean, structured, and clinically precise.`;
     } finally {
       btn.innerHTML = origHTML;
       btn.disabled = false;
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  //  PROFESSIONAL PDF EXPORT
+  // ═══════════════════════════════════════════════════════════
+
+  // Format a left/right pair as "L 32 / R 38" (skips missing sides).
+  function _pair(l, r, unit) {
+    const u = unit || '';
+    const bits = [];
+    if (l != null && l !== '') bits.push(`L ${l}${u}`);
+    if (r != null && r !== '') bits.push(`R ${r}${u}`);
+    return bits.join('  /  ');
+  }
+
+  // Curated ROM rows from the objective assessment form.
+  function _objectiveRomRows(a) {
+    a = a || {};
+    return [
+      { label: 'Hip Internal Rotation',  value: _pair(a.hip_ir_l,  a.hip_ir_r,  '°') },
+      { label: 'Hip External Rotation',  value: _pair(a.hip_er_l,  a.hip_er_r,  '°') },
+      { label: 'Hip Extension',          value: _pair(a.hip_ext_l, a.hip_ext_r, '°') },
+      { label: 'Hip Abduction',          value: _pair(a.hip_abd_l, a.hip_abd_r, '°') },
+      { label: 'Shoulder Internal Rot.', value: _pair(a.sh_ir_l,   a.sh_ir_r,   '°') },
+      { label: 'Shoulder External Rot.', value: _pair(a.sh_er_l,   a.sh_er_r,   '°') },
+      { label: 'Ankle Dorsiflexion',     value: _pair(a.ankle_df_l, a.ankle_df_r, ' cm') },
+      { label: 'Balance — Eyes Open',    value: _pair(a.bal_eo_l,  a.bal_eo_r,  ' s') },
+      { label: 'Balance — Eyes Closed',  value: _pair(a.bal_ec_l,  a.bal_ec_r,  ' s') },
+    ].filter(r => r.value);
+  }
+
+  // Clinical findings (posture / movement screens / compensations).
+  function _objectiveFindingRows(a, gait) {
+    a = a || {};
+    const rows = [
+      { label: 'Foot Pronation',          value: _pair(a.pronation_l,  a.pronation_r) },
+      { label: 'Foot Supination',         value: _pair(a.supination_l, a.supination_r) },
+      { label: 'Toe Touch Score',         value: a.toetouch_score },
+      { label: 'Single-Leg Squat',        value: _pair(a.sl_squat_l,   a.sl_squat_r) },
+      { label: 'Single-Leg RDL',          value: _pair(a.sl_rdl_l,     a.sl_rdl_r) },
+      { label: 'Overhead Squat',          value: a.oh_squat },
+      { label: 'Spine Flexion Pain',      value: a.sp_flex_pain ? 'Present' : '' },
+      { label: 'Thoracic Rotation Pain',  value: (a.sp_rotl_pain || a.sp_rotr_pain) ? 'Present' : '' },
+      { label: 'Movement / Load Notes',   value: a.load_text },
+    ];
+    if (gait) {
+      if (gait.total_deficits != null) rows.push({ label: 'Gait Deficits Detected', value: String(gait.total_deficits) });
+      if (Array.isArray(gait.exercise_priorities) && gait.exercise_priorities.length) {
+        rows.push({ label: 'Gait Priorities', value: gait.exercise_priorities.slice(0, 4).join(', ') });
+      }
+    }
+    return rows.filter(r => r.value != null && r.value !== '');
+  }
+
+  // Assemble the full report data object for NeuPDF.
+  async function _buildPdfData() {
+    const b = _lastBundle || {};
+    let coachName = '';
+    try {
+      const u = Auth.getUser();
+      coachName = Auth.getProfile()?.full_name || u?.user_metadata?.full_name || u?.email || '';
+    } catch {}
+
+    const client = {
+      name:          _gv('ns-name') || b.name || '',
+      age:           _gv('ns-age'),
+      gender:        '',
+      height:        '',
+      weight:        '',
+      goal:          _gv('ns-goal'),
+      caseType:      _gv('ns-phase') ? (_gv('ns-phase') + ' rehabilitation') : '',
+      experience:    '',
+      painAreas:     (b.scores && Array.isArray(b.scores.pain_flags)) ? b.scores.pain_flags.join(', ') : '',
+      injuryHistory: _gv('ns-injury'),
+      phase:         (b.program && b.program.phase) || _gv('ns-phase'),
+      date:          new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }),
+      coach:         coachName,
+    };
+
+    // Subjective — pull the latest record from Supabase when a client is linked.
+    let subjective = [];
+    if (b.clientId && typeof RPMGraph !== 'undefined' && RPMGraph.pullSubjectiveSummary) {
+      try {
+        const s = await RPMGraph.pullSubjectiveSummary(b.clientId);
+        if (s) {
+          const arr = (v) => Array.isArray(v) ? v.join(', ') : v;
+          subjective = [
+            { label: 'Dream Outcome',         value: s.dream_outcome },
+            { label: 'Life Impact',           value: s.life_impact },
+            { label: 'Chief Complaint / Pain', value: s.external_pain },
+            { label: 'Mechanism of Injury',   value: s.mechanism_of_injury },
+            { label: 'Aggravating Factors',   value: arr(s.aggravating_factors) },
+            { label: 'Relieving Factors',     value: arr(s.easing_factors) },
+            { label: 'Confidence Score',      value: s.confidence_score != null ? s.confidence_score + ' / 10' : '' },
+            { label: 'Importance Score',      value: s.importance_score != null ? s.importance_score + ' / 10' : '' },
+            { label: 'Fast-Start Opportunity', value: s.fast_start_opportunity },
+            { label: 'Yellow Flags',          value: arr(s.yellow_flags) },
+            { label: 'Recap Notes',           value: s.recap_notes },
+            { label: 'Additional Notes',      value: s.free_form_notes },
+          ].filter(r => r.value != null && r.value !== '');
+        }
+      } catch (e) { console.warn('[pdf] subjective pull failed:', e); }
+    }
+
+    return {
+      client,
+      subjective,
+      objective: {
+        scores:   b.scores || {},
+        rom:      _objectiveRomRows(b.assessment),
+        findings: _objectiveFindingRows(b.assessment, b.gait),
+      },
+      program: b.program,
+      gait:    b.gait,
+    };
+  }
+
+  async function exportProfessionalPDF() {
+    const btn = document.getElementById('btn-export-pdf');
+    if (!_lastBundle || !_lastBundle.program) {
+      toast('Generate a program first, then export.', 'error');
+      return;
+    }
+    if (typeof NeuPDF === 'undefined' || !NeuPDF.isReady()) {
+      toast('PDF engine is still loading — please try again in a moment.', 'error');
+      return;
+    }
+    const origHTML = btn ? btn.innerHTML : null;
+    if (btn) {
+      btn.disabled  = true;
+      btn.innerHTML = '<span class="spinner"></span> Building PDF…';
+    }
+    try {
+      const data = await _buildPdfData();
+      NeuPDF.exportReport(data);
+      toast('Professional PDF exported ✓', 'success');
+    } catch (e) {
+      console.error('[pdf] export failed:', e);
+      toast('PDF export failed: ' + (e.message || 'unknown error'), 'error');
+    } finally {
+      if (btn) { btn.disabled = false; btn.innerHTML = origHTML; }
     }
   }
 
@@ -510,7 +791,8 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
       .eq('role','client').order('full_name');
     if (!data) return;
 
-    ['ns-client-select','ns-save-client','sub-client','pu-client'].forEach(id => {
+    // ns-save-client was removed — Generate now reads from ns-client-select.
+    ['ns-client-select','sub-client','pu-client'].forEach(id => {
       const el = document.getElementById(id);
       if (!el) return;
       const placeholder = el.options[0];
@@ -549,6 +831,13 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
       if (nameEl) nameEl.value = opt.textContent;
       if (phaseEl) phaseEl.value = opt.dataset.phase;
     }
+    // Phase 2 — boot the dual-mode subjective wizard for this client
+    const clientId = sel.value || null;
+    if (clientId && typeof RPMSubjective !== 'undefined') {
+      RPMSubjective.init(clientId);
+    }
+    // Keep the Generate tab's active-session chip in sync.
+    _refreshActiveSessionChip();
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -722,7 +1011,9 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
     loadDashboardStats,
     generateProgram, previewWeb, renderProgramsList,
     toggleProgram, rePreviewWeb,
+    exportProfessionalPDF,
     fillClientFromSelect,
+    openClientInfoTab,
     submitPhaseUpgrade, showCelebration, closeCelebration,
     openModal, closeModal, calcSubEndDate,
     submitChangePassword,

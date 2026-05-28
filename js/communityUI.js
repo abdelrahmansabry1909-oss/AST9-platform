@@ -401,6 +401,10 @@ const CommunityUI = (() => {
         <div class="modal">
           <div class="modal-header"><h3>Share Case Study</h3><button class="btn-icon" onclick="CommunityUI.closeCaseShareModal()">✕</button></div>
           <div class="modal-body">
+            <div class="form-hint" style="margin-bottom:12px">
+              Submitted cases go to an admin for review. Once approved they appear
+              on the Case Study board and in the Case Studies showcase.
+            </div>
             <div class="form-group"><label class="form-label">Title</label><input id="cs-title" class="form-input" placeholder="e.g. Chronic hip IR restriction — Phase 1 protocol"/></div>
             <div class="form-group"><label class="form-label">Description (anonymized)</label><textarea id="cs-desc" class="form-input" style="min-height:120px" placeholder="Client presentation, assessment findings, program applied, outcome..."></textarea></div>
             <div class="form-group"><label class="form-label">Tags (comma-separated)</label><input id="cs-tags" class="form-input" placeholder="e.g. hip, Phase 1, PRI, gait"/></div>
@@ -413,10 +417,24 @@ const CommunityUI = (() => {
       </div>`;
   }
 
+  function _caseStatusBadge(status) {
+    const map = {
+      pending:  { cls: 'badge-pending', label: '⌛ Pending admin review' },
+      approved: { cls: 'badge-active',  label: '✓ Approved' },
+      rejected: { cls: 'badge-expired', label: '✕ Not approved' },
+    };
+    const t = map[status];
+    return t ? `<span class="badge ${t.cls}">${t.label}</span>` : '';
+  }
+
   function _caseShareCard(s) {
     const uid = Auth.getUser()?.id;
     const isOwner = s.coach_id === uid;
     const tags = Array.isArray(s.tags) ? s.tags : [];
+    const status = s.status || 'approved';
+    // The board shows every approved case to everyone; an author additionally
+    // sees their own pending/rejected submissions — flagged with a badge.
+    const showBadge = status !== 'approved';
     return `
       <div class="case-share-card">
         <div class="case-share-card-header">
@@ -426,7 +444,10 @@ const CommunityUI = (() => {
           </div>
           ${isOwner ? `<button class="btn-icon" style="font-size:11px;opacity:0.5" onclick="CommunityUI.deleteCase('${s.id}')">✕</button>` : ''}
         </div>
+        ${showBadge ? `<div style="margin-bottom:8px">${_caseStatusBadge(status)}</div>` : ''}
         ${s.description ? `<p class="case-share-desc">${_esc(s.description)}</p>` : ''}
+        ${status === 'rejected' && s.review_note
+          ? `<p class="case-share-desc" style="color:#FCA5A5;font-size:12px"><b>Admin note:</b> ${_esc(s.review_note)}</p>` : ''}
         ${tags.length ? `<div class="case-share-tags">${tags.map(t => `<span class="case-tag">${_esc(t)}</span>`).join('')}</div>` : ''}
       </div>`;
   }
@@ -448,7 +469,7 @@ const CommunityUI = (() => {
 
     try {
       await Community.createCaseShare(title, desc, {}, tags);
-      Dashboard.toast('Case study shared!', 'success');
+      Dashboard.toast('Case study submitted — an admin will review it before it goes live.', 'success');
       closeCaseShareModal();
       renderCaseShares();
     } catch(e) {
@@ -462,6 +483,86 @@ const CommunityUI = (() => {
       await Community.deleteCaseShare(id);
       Dashboard.toast('Deleted', 'info');
       renderCaseShares();
+    } catch(e) {
+      Dashboard.toast(e.message, 'error');
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  //  CASE STUDY APPROVALS  (admin-only — rendered into the
+  //  sidebar "Approvals" section alongside RPM phase approvals)
+  // ═══════════════════════════════════════════════════════════
+
+  async function renderCaseApprovals() {
+    const el = document.getElementById('case-approvals-root');
+    if (!el) return;
+
+    // Moderation is admin-only; hide the block entirely for coaches.
+    if (!Auth.isAdmin()) { el.innerHTML = ''; el.style.display = 'none'; return; }
+    el.style.display = '';
+    el.innerHTML = `<div class="comm-loading"><span class="spinner"></span></div>`;
+
+    let pending = [];
+    try {
+      pending = await Community.loadPendingCaseShares();
+    } catch(e) {
+      el.innerHTML = `<div class="card"><p style="color:#FCA5A5;padding:12px">Could not load case-study submissions.</p></div>`;
+      return;
+    }
+
+    el.innerHTML = `
+      <div class="card" style="margin-bottom:var(--sp-5)">
+        <div class="card-header">
+          <span class="card-title">Case Study Submissions</span>
+          <span class="badge ${pending.length ? 'badge-pending' : 'badge-active'}">${pending.length} pending</span>
+        </div>
+        ${pending.length ? `
+          <div class="case-approval-list">${pending.map(_caseApprovalCard).join('')}</div>
+        ` : `
+          <div class="empty-state" style="padding:32px">
+            <span class="empty-icon">✓</span>
+            <div class="empty-title">No case studies waiting</div>
+            <p class="empty-desc">When a coach submits a case study in Community, it appears here for your review.</p>
+          </div>`}
+      </div>`;
+  }
+
+  function _caseApprovalCard(s) {
+    const tags = Array.isArray(s.tags) ? s.tags : [];
+    return `
+      <div class="case-approval-card" id="case-appr-${s.id}">
+        <div class="case-approval-body">
+          <div class="case-share-title">${_esc(s.title)}</div>
+          <div class="case-share-meta">${_esc(s.coach?.full_name || s.coach?.email || 'Unknown coach')} · ${_timeAgo(s.created_at)}</div>
+          ${s.description ? `<p class="case-share-desc">${_esc(s.description)}</p>` : ''}
+          ${tags.length ? `<div class="case-share-tags">${tags.map(t => `<span class="case-tag">${_esc(t)}</span>`).join('')}</div>` : ''}
+        </div>
+        <div class="case-approval-actions">
+          <button class="btn btn-teal btn-sm" onclick="CommunityUI.approveCase('${s.id}')">✓ Accept</button>
+          <button class="btn btn-ghost btn-sm" onclick="CommunityUI.rejectCase('${s.id}')">✕ Reject</button>
+        </div>
+      </div>`;
+  }
+
+  async function approveCase(id) {
+    try {
+      await Community.reviewCaseShare(id, 'approved');
+      Dashboard.toast('Case study approved — it is now live on the board and showcase.', 'success');
+      renderCaseApprovals();
+      window._refreshApprovalsBadge?.();
+    } catch(e) {
+      Dashboard.toast(e.message, 'error');
+    }
+  }
+
+  async function rejectCase(id) {
+    const note = prompt('Reason for rejecting this case study (the coach will see this):');
+    if (note === null) return;   // cancelled
+    try {
+      await Community.reviewCaseShare(id, 'rejected', note);
+      Dashboard.toast('Case study rejected.', 'info');
+      renderCaseApprovals();
+      window._refreshApprovalsBadge?.();
     } catch(e) {
       Dashboard.toast(e.message, 'error');
     }
@@ -799,6 +900,8 @@ const CommunityUI = (() => {
     renderReferrals, openReferralModal, closeReferralModal, submitReferral, respondRef,
     // Case shares
     renderCaseShares, openCaseShareModal, closeCaseShareModal, submitCaseShare, deleteCase,
+    // Case study approvals (admin)
+    renderCaseApprovals, approveCase, rejectCase,
     // Client feed
     renderClientFeed, setPostType, submitPost, deletePost, toggleComments, submitComment,
     // Support groups

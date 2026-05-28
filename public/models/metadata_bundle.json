@@ -1,0 +1,120 @@
+{
+  "db_version": "1.0.0",
+  "entities": {
+    "ANAT_ACTION_SHOULDER_ABDUCTION_L": {
+      "display_name": "Shoulder Abduction (Left)",
+      "in_scene": false,
+      "kind": "action",
+      "side": "left"
+    },
+    "ANAT_ACTION_SHOULDER_FLEXION_L": {
+      "display_name": "Shoulder Flexion (Left)",
+      "in_scene": false,
+      "kind": "action",
+      "side": "left"
+    },
+    "ANAT_BONE_HUMERUS_L": {
+      "display_name": "Left Humerus",
+      "in_scene": true,
+      "kind": "bone",
+      "side": "left"
+    },
+    "ANAT_BONE_SCAPULA_L": {
+      "display_name": "Left Scapula",
+      "in_scene": true,
+      "kind": "bone",
+      "side": "left"
+    },
+    "ANAT_FASCIA_DELTOID_L": {
+      "display_name": "Deltoid Fascia (Left)",
+      "in_scene": false,
+      "kind": "fascia",
+      "side": "left"
+    },
+    "ANAT_JOINT_GLENOHUMERAL_L": {
+      "display_name": "Glenohumeral Joint (Left)",
+      "in_scene": false,
+      "kind": "joint",
+      "side": "left"
+    },
+    "ANAT_LM_ACROMION_TIP_L": {
+      "display_name": "Acromion Tip (Left)",
+      "in_scene": false,
+      "kind": "landmark",
+      "side": "left"
+    },
+    "ANAT_LM_DELTOID_TUBEROSITY_L": {
+      "display_name": "Deltoid Tuberosity (Left Humerus)",
+      "in_scene": false,
+      "kind": "landmark",
+      "side": "left"
+    },
+    "ANAT_MUSCLE_DELTOID_ANTERIOR_L": {
+      "display_name": "Deltoid (Anterior Head, Left)",
+      "in_scene": false,
+      "kind": "muscle",
+      "side": "left"
+    },
+    "ANAT_MUSCLE_DELTOID_LATERAL_L": {
+      "display_name": "Deltoid (Lateral Head, Left)",
+      "in_scene": false,
+      "kind": "muscle",
+      "side": "left"
+    },
+    "ANAT_MUSCLE_DELTOID_POSTERIOR_L": {
+      "display_name": "Deltoid (Posterior Head, Left)",
+      "in_scene": false,
+      "kind": "muscle",
+      "side": "left"
+    },
+    "ANAT_MUSCLE_SUPRASPINATUS_L": {
+      "display_name": "Supraspinatus (Left)",
+      "in_scene": false,
+      "kind": "muscle",
+      "side": "left"
+    },
+    "ANAT_NERVE_AXILLARY_L": {
+      "display_name": "Axillary Nerve (Left)",
+      "in_scene": false,
+      "kind": "nerve",
+      "side": "left"
+    },
+    "ANAT_REGION_HUMERUS_DELTOID_TUBEROSITY_L": {
+      "display_name": "Deltoid Tuberosity (Left Humerus)",
+      "in_scene": false,
+      "kind": "attachment_region",
+      "side": "left"
+    },
+    "ANAT_REGION_HUMERUS_GREATER_TUBERCLE_L": {
+      "display_name": "Greater Tubercle (Left Humerus)",
+      "in_scene": false,
+      "kind": "attachment_region",
+      "side": "left"
+    },
+    "ANAT_REGION_SCAPULA_ACROMION_L": {
+      "display_name": "Acromion (Left Scapula)",
+      "in_scene": false,
+      "kind": "attachment_region",
+      "side": "left"
+    },
+    "ANAT_REGION_SCAPULA_CORACOID_L": {
+      "display_name": "Coracoid Process (Left Scapula)",
+      "in_scene": false,
+      "kind": "attachment_region",
+      "side": "left"
+    },
+    "ANAT_TENDON_SUPRASPINATUS_L": {
+      "display_name": "Supraspinatus Tendon (Left)",
+      "in_scene": false,
+      "kind": "tendon",
+      "side": "left"
+    }
+  },
+  "entity_count": 18,
+  "scene_anat_ids": [
+    "ANAT_BONE_HUMERUS_L",
+    "ANAT_BONE_SCAPULA_L",
+    "MESHGRP_SKIN_BODY"
+  ],
+  "schema": 1
+}
