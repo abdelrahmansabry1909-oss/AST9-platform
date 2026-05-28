@@ -15,6 +15,7 @@ import { JOINT_LABELS }     from './neucore/core/JointRegistry.js';
 import { painToColor }      from './neucore/core/MaterialFactory.js';
 import { LoadVisualizer }   from './neucore/client/LoadVisualizer.js';
 import { deriveLoadProfile } from './neucore/client/loadMetrics.js';
+import * as ClientCharts    from './neucore/client/clientCharts.js';
 
 // Expose THREE globally so legacy IIFE scripts share one instance
 window.THREE = THREE;
@@ -30,6 +31,7 @@ THREE.Cache.enabled = true;
 // legacy IIFE layer (js/clientDashboard.js consumes these via window).
 window.LoadVisualizer    = LoadVisualizer;
 window.deriveLoadProfile = deriveLoadProfile;
+window.ClientCharts      = ClientCharts;
 
 // ── State ────────────────────────────────────────────────────────
 let mainCanvas    = null;
