@@ -22,6 +22,7 @@ const ClientDashboard = (() => {
   let _profile   = null;            // { currentA, targetB, hasRealData }
   let _state     = 'A';             // current toggle state
   let _renderedFor = null;          // client_id we last rendered for
+  let _charts    = { force: null, cog: null, risk: null };  // Chart.js instances
 
   function _esc(s) {
     return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;')
@@ -158,8 +159,14 @@ const ClientDashboard = (() => {
     _viz = null;
     _renderedFor = clientId;
 
-    const assessment = await _loadLatestAssessment(clientId);
+    const [assessment, gait] = await Promise.all([
+      _loadLatestAssessment(clientId),
+      _loadLatestGait(clientId),
+    ]);
     _profile = _deriveProfile(assessment);
+
+    // Phase C — render the three metric charts in parallel to the 3D mount.
+    _renderMetricCharts(assessment, gait, _profile);
 
     // Refresh overlay numbers with derived data.
     const wrap = document.getElementById('cd-load-overlays');
@@ -202,6 +209,53 @@ const ClientDashboard = (() => {
     } catch (e) {
       console.warn('[client-dashboard] assessment load threw:', e.message);
       return null;
+    }
+  }
+
+  async function _loadLatestGait(clientId) {
+    if (!clientId || typeof sb === 'undefined') return null;
+    try {
+      const { data, error } = await sb
+        .from('gait_assessments')
+        .select('*')
+        .eq('client_id', clientId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) { console.warn('[client-dashboard] gait load:', error.message); return null; }
+      return data || null;
+    } catch (e) {
+      console.warn('[client-dashboard] gait load threw:', e.message);
+      return null;
+    }
+  }
+
+  // ── Phase C — Chart.js panels ────────────────────────────────────
+  function _renderMetricCharts(assessment, gait, profile) {
+    const CC = window.ClientCharts;
+    if (!CC) return;            // ES module bundle not ready
+
+    // Dispose any prior chart instances (re-render path).
+    CC.destroyChart(_charts.force); CC.destroyChart(_charts.cog); CC.destroyChart(_charts.risk);
+    _charts = { force: null, cog: null, risk: null };
+
+    const forceHost = document.getElementById('cd-metric-force');
+    const cogHost   = document.getElementById('cd-metric-cog');
+    const riskHost  = document.getElementById('cd-metric-risk');
+
+    if (forceHost) {
+      const data = CC.deriveForceSteadiness(gait);
+      _charts.force = CC.renderForceSteadiness(forceHost, data);
+    }
+    if (cogHost) {
+      const data = CC.deriveCenterOfGravity(assessment, gait);
+      _charts.cog = CC.renderCenterOfGravity(cogHost, data);
+    }
+    if (riskHost) {
+      const compositeScore = typeof assessment?.composite_score === 'number'
+        ? assessment.composite_score : null;
+      const data = CC.deriveRiskTimeline(profile, compositeScore);
+      _charts.risk = CC.renderRiskTimeline(riskHost, data);
     }
   }
 
