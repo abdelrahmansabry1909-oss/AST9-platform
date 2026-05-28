@@ -119,6 +119,9 @@
       <div class="nav-item" id="nav-daily-routine" onclick="Dashboard.showSection('daily-routine')" title="Daily Routine">
         <span class="nav-item-icon">𓆸</span><span class="nav-label">Daily Routine</span>
       </div>
+      <div class="nav-item role-client-only" id="nav-nutrition-plan" onclick="Dashboard.showSection('nutrition-plan')" title="Nutrition Plan">
+        <span class="nav-item-icon">◴</span><span class="nav-label">Nutrition Plan</span>
+      </div>
 
       <div class="nav-section role-coach-admin">Manage</div>
       <div class="nav-item role-coach-admin" id="nav-clients" onclick="Dashboard.showSection('clients')" title="Clients">
@@ -196,6 +199,28 @@
       </button>
       <div class="mobile-logo" style="font-family:'Space Grotesk','Inter',sans-serif;letter-spacing:-0.02em">NEU<span style="color:#14B8A6">CORE</span></div>
       <div style="width:40px"></div>
+    </div>
+
+    <!-- ── CLIENT DASHBOARD (role-aware Home for clients; coach/admin
+         continue to land on #section-dashboard below) ── -->
+    <div class="section" id="section-client-dashboard">
+      <div id="client-dashboard-root"></div>
+    </div>
+
+    <!-- ── NUTRITION PLAN (Phase A stub — full implementation TBD) ── -->
+    <div class="section" id="section-nutrition-plan">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="nc-dashboard-eyebrow">Client Experience</div>
+          <h1 class="page-title">Nutrition <span class="accent" style="color:var(--nc-teal)">Plan</span></h1>
+          <p class="page-subtitle">Your coach-curated nutrition guidance, designed around your phase.</p>
+        </div>
+      </div>
+      <div class="card glass-card" style="text-align:center;padding:48px">
+        <span class="empty-icon" style="font-size:36px">◴</span>
+        <div class="empty-title" style="margin-top:12px">Coming soon</div>
+        <p class="empty-desc">Your nutrition plan will appear here once your coach publishes it.</p>
+      </div>
     </div>
 
     <!-- ── DASHBOARD ── -->
@@ -1860,6 +1885,7 @@ setInterval(() => { if (!document.hidden) _refreshApprovalsBadge(); }, 60_000);
 <!-- Phase 3 modules -->
 <script src="js/community.js"></script>
 <script src="js/communityUI.js"></script>
+<script src="js/clientDashboard.js"></script>
 <script src="js/exerciseLibrary.js"></script>
 <script src="js/exerciseUI.js"></script>
 <script src="js/charts.js"></script>
