@@ -1304,6 +1304,7 @@ tbody td:first-child { color: var(--text-primary); font-weight: 500; }
 .cd-hero          { padding: var(--sp-5); margin-bottom: var(--sp-5); }
 .cd-hero-top      { display: flex; justify-content: space-between; align-items: flex-end; gap: var(--sp-4); flex-wrap: wrap; margin-bottom: var(--sp-4); }
 .cd-hero-title    { font-size: 20px; font-weight: 500; color: rgba(200,240,255,0.95); margin-top: 4px; }
+.cd-hero-meta     { font-size: 11px; color: rgba(0,212,255,0.55); margin-top: 6px; }
 .cd-toggle        { display: inline-flex; gap: 6px; background: rgba(5,13,26,0.5); border: 1px solid rgba(0,212,255,0.15); border-radius: 999px; padding: 4px; }
 .cd-toggle-btn    {
   background: transparent; border: 0; padding: 8px 16px; border-radius: 999px;
