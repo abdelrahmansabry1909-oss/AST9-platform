@@ -19,7 +19,9 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { createJointMaterial } from '../core/MaterialFactory.js';
 
-const MODEL_URL     = '/models/ecorche_humanoid.glb';
+// Use Vite's BASE_URL so the model resolves correctly both in dev
+// (served at /) and on GitHub Pages (served under /AST9_HUB/).
+const MODEL_URL     = `${import.meta.env.BASE_URL}models/ecorche_humanoid.glb`;
 const TARGET_HEIGHT = 1.62;   // world units — feet at y=0, ~matches old camera framing
 
 // ── Premium "polished bone" shader ──────────────────────────────────
