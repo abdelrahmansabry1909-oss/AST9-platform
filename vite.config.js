@@ -17,7 +17,8 @@
 // unaffected.
 
 import { defineConfig } from 'vite';
-import { resolve } from 'path';
+import { resolve }      from 'path';
+import { cpSync, existsSync } from 'node:fs';
 
 export default defineConfig(({ command }) => ({
   base: command === 'build' ? '/AST9_HUB/' : '/',
@@ -31,4 +32,20 @@ export default defineConfig(({ command }) => ({
       },
     },
   },
+  plugins: [
+    {
+      // Vite only bundles ES-module scripts (`<script type="module">`).
+      // The 28 classic `<script src="js/*.js">` tags in app.html — the
+      // legacy IIFE layer — are left untouched in the emitted HTML, so
+      // the entire `js/` directory must be present alongside `dist/app.html`
+      // for those tags to resolve. Copy it on every build.
+      name: 'copy-legacy-js',
+      apply: 'build',
+      closeBundle() {
+        const src = resolve(__dirname, 'js');
+        const dst = resolve(__dirname, 'dist', 'js');
+        if (existsSync(src)) cpSync(src, dst, { recursive: true });
+      },
+    },
+  ],
 }));
