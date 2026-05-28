@@ -71,9 +71,10 @@ export function createBoneMaterial() {
       time:             { value: 0 },
       baseColor:        { value: NEUCORE_PALETTE.boneBase.clone() },
       rimColor:         { value: NEUCORE_PALETTE.boneRim.clone() },
-      rimPower:         { value: 2.5 },
-      opacity:          { value: 0.50 },
-      emissiveStrength: { value: 0.25 },
+      // Cleaner look: more opaque bones (less haze), restrained emissive
+      rimPower:         { value: 2.8 },
+      opacity:          { value: 0.62 },
+      emissiveStrength: { value: 0.20 },
       emissiveColor:    { value: NEUCORE_PALETTE.boneBase.clone() },
     },
     vertexShader:   VERT,

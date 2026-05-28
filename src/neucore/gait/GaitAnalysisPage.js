@@ -15,12 +15,11 @@ import { ActivationChart }            from '../simulation/ActivationChart.js';
 import { computeClientActivation }    from '../simulation/MuscleActivationDB.js';
 import { evaluateGaitRules }          from './GaitRules.js';
 import { PhaseAnalysisOverlay, findWorstPhase } from './PhaseAnalysisOverlay.js';
-import { SkeletonBuilder }            from '../skeleton/SkeletonBuilder.js';
+import { GLBSkeleton }                from '../skeleton/GLBSkeleton.js';
 import { BodyCanvas }                 from '../core/BodyCanvas.js';
 import { FXLayer }                    from '../core/FXLayer.js';
 import { bus }                        from '../core/JointBus.js';
 import { ScoringEngine }              from '../scoring/ScoringEngine.js';
-import { painToColor }                from '../core/MaterialFactory.js';
 
 export class GaitAnalysisPage {
   constructor(containerEl, assessmentData) {
@@ -29,6 +28,8 @@ export class GaitAnalysisPage {
     this.deficits   = evaluateGaitRules(assessmentData);
     this.activation = computeClientActivation(this.deficits);
     this._worstCaseActive = false;
+    this._disposed   = false;
+    this._buildToken = 0;     // bumped on each rebuild; in-flight loads compare against it
     this._build();
   }
 
@@ -139,31 +140,52 @@ export class GaitAnalysisPage {
     this._bindControls();
   }
 
-  _initSimulation() {
-    const wrap       = this.container.querySelector('#sim-canvas-wrap');
-    this.bodyCanvas  = new BodyCanvas(wrap);
-    this.skeleton    = new SkeletonBuilder(this.bodyCanvas.scene);
-    this.skeleton.build();
+  async _initSimulation() {
+    const wrap      = this.container.querySelector('#sim-canvas-wrap');
+    this.bodyCanvas = new BodyCanvas(wrap);
+    this._analysisMode = false;
+
+    const loader = document.createElement('div');
+    loader.style.cssText = `position:absolute;inset:0;display:flex;align-items:center;
+      justify-content:center;color:#67E8F9;font-size:11px;letter-spacing:.16em;
+      text-transform:uppercase;z-index:30;pointer-events:none;`;
+    loader.textContent = 'Loading anatomy…';
+    wrap.appendChild(loader);
+
+    const myBuild = ++this._buildToken;     // guard against rebuilds racing this one
+    this.skeleton = new GLBSkeleton(this.bodyCanvas.scene);
+    try {
+      await this.skeleton.build();
+    } catch (err) {
+      console.error('[NeuCore] gait skeleton load failed:', err);
+      loader.textContent = '3D anatomy failed to load';
+      return;
+    }
+    // If destroy() ran (or a newer build started) while we were awaiting the
+    // GLB, throw away this stale skeleton instead of grafting it onto the live
+    // page. This is the actual fix for "double skeleton on rapid Generate clicks".
+    if (this._disposed || myBuild !== this._buildToken) {
+      try { this.skeleton.destroy?.(); } catch {}
+      this.skeleton = null;
+      return;
+    }
+    loader.remove();
+
+    // Gait view is skeletal — hide the body shell and assessment hotspots.
+    this.skeleton.setSkinVisible(false);
+    this.skeleton.setHotspotsVisible(false);
+
     this.fx = new FXLayer(this.bodyCanvas, this.skeleton);
     this.bodyCanvas._skeleton = this.skeleton;
     this.bodyCanvas._fxLayer  = this.fx;
-
-    // Apply pain data from assessment onto skeleton joints
-    Object.entries(this.assessment.joint_data || {}).forEach(([joint, data]) => {
-      if (data.pain_scale > 0) {
-        const color = painToColor(data.pain_scale);
-        this.skeleton.setJointPain(joint, data.pain_scale, color);
-      }
-    });
 
     this.simulator  = new MovementSimulator(this.skeleton, this.deficits);
     this.simulator._assessment = this.assessment;
     this.gaitEngine = new GaitEngine(this.bodyCanvas);
     this.gaitEngine.loadAssessment(this.assessment);
 
-    const simWrap = this.container.querySelector('#sim-canvas-wrap');
-    this.phaseOverlay = new PhaseAnalysisOverlay(simWrap, this.skeleton, this.bodyCanvas);
-    this._analysisMode = false;
+    this.phaseOverlay = new PhaseAnalysisOverlay(wrap, this.skeleton, this.bodyCanvas);
+    this._simReady = true;
   }
 
   _initChart() {
@@ -287,6 +309,7 @@ export class GaitAnalysisPage {
     const exportBtn = this.container.querySelector('#btn-export-report');
 
     startBtn.addEventListener('click', () => {
+      if (!this._simReady) return;
       if (this._analysisMode) this._exitAnalysis();
       this.simulator.start(1.0);
       this.gaitEngine.start(1.0);
@@ -304,6 +327,7 @@ export class GaitAnalysisPage {
     });
 
     analyzeBtn.addEventListener('click', () => {
+      if (!this._simReady) return;
       this._enterAnalysis();
     });
 
@@ -385,11 +409,21 @@ export class GaitAnalysisPage {
   }
 
   destroy() {
+    this._disposed     = true;
+    this._buildToken  += 1;   // invalidate any in-flight skeleton load
     this._analysisMode = false;
     this.phaseOverlay?.hide();
     this.simulator?.stop();
     this.gaitEngine?.stop();
     this.activationChart?.destroy();
-    this.bodyCanvas?.renderer?.dispose();
+    // Cascade: BodyCanvas.destroy stops its rAF, disposes the renderer, and
+    // cascades to FXLayer.destroy + GLBSkeleton.destroy. Without that cascade,
+    // rapid re-clicks on Generate were leaking entire scenes.
+    this.bodyCanvas?.destroy?.();
+    this.bodyCanvas = null;
+    this.skeleton   = null;
+    this.fx         = null;
+    this.simulator  = null;
+    this.gaitEngine = null;
   }
 }

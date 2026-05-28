@@ -52,7 +52,8 @@ export class FXLayer {
   }
 
   _animateBg() {
-    requestAnimationFrame(() => this._animateBg());
+    if (this._disposed) return;
+    this._bgRafId = requestAnimationFrame(() => this._animateBg());
     const ctx = this._bgCtx;
     const w   = this._bgCanvas.width, h = this._bgCanvas.height;
     const grad = ctx.createRadialGradient(w/2, h/2, 0, w/2, h/2, w/1.2);
@@ -233,5 +234,25 @@ export class FXLayer {
       if (t < 1) requestAnimationFrame(tick); else cb?.();
     };
     requestAnimationFrame(tick);
+  }
+
+  destroy() {
+    this._disposed = true;
+    if (this._bgRafId) cancelAnimationFrame(this._bgRafId);
+    if (this._bgCanvas && this._bgCanvas.parentNode) {
+      this._bgCanvas.parentNode.removeChild(this._bgCanvas);
+    }
+    if (this._spineGlow) {
+      try { this.scene.remove(this._spineGlow); this._spineGlow.geometry.dispose(); this._spineGlow.material.dispose(); } catch {}
+      this._spineGlow = null;
+    }
+    this._romArcs.forEach((arc) => {
+      try { this.scene.remove(arc); arc.geometry.dispose(); arc.material.dispose(); } catch {}
+    });
+    this._romArcs.clear();
+    this._particles.forEach((ps) => {
+      try { this.scene.remove(ps); ps.geometry.dispose(); ps.material.dispose(); } catch {}
+    });
+    this._particles.clear();
   }
 }

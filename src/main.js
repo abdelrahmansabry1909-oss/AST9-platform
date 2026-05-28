@@ -5,8 +5,8 @@
 
 import * as THREE from 'three';
 import { BodyCanvas }       from './neucore/core/BodyCanvas.js';
-import { SkeletonBuilder }  from './neucore/skeleton/SkeletonBuilder.js';
-import { AssessSync }       from './neucore/core/AssessSync.js';
+import { GLBSkeleton }      from './neucore/skeleton/GLBSkeleton.js';
+import { ObjectiveSync }    from './neucore/core/ObjectiveSync.js';
 import { FXLayer }          from './neucore/core/FXLayer.js';
 import { AssessmentPanel }  from './neucore/panels/AssessmentPanel.js';
 import { GaitAnalysisPage } from './neucore/gait/GaitAnalysisPage.js';
@@ -24,15 +24,38 @@ let mainFX        = null;
 let assessPanel   = null;
 let assessStore   = {};   // jointKey → { pain_scale, rom fields, location[] }
 let gaitPage      = null;
+let objectiveSync = null; // two-way bind: Objective form ↔ 3D body map
 
 // ── Boot ─────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+  objectiveSync = new ObjectiveSync(assessStore);
   _initMainSkeleton();
   _initObjectiveSidebar();
   _initGenerateButton();
-  _wireFormInputs();
   _wireJointInfoBar();
 });
+
+// ── Loading overlay for the async glTF skeleton ──────────────────
+function _skeletonLoader(text) {
+  const el = document.createElement('div');
+  el.className = 'nc-skeleton-loader';
+  el.style.cssText = `
+    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    flex-direction:column;gap:14px;z-index:40;pointer-events:none;
+    color:#67E8F9;font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+    font-family:'Space Grotesk',system-ui,sans-serif;`;
+  el.innerHTML = `
+    <div style="width:34px;height:34px;border:2px solid rgba(103,232,249,.18);
+      border-top-color:#67E8F9;border-radius:50%;animation:nc-spin 0.9s linear infinite;"></div>
+    <div>${text || 'Loading anatomy'}</div>`;
+  if (!document.getElementById('nc-spin-kf')) {
+    const kf = document.createElement('style');
+    kf.id = 'nc-spin-kf';
+    kf.textContent = '@keyframes nc-spin{to{transform:rotate(360deg)}}';
+    document.head.appendChild(kf);
+  }
+  return el;
+}
 
 // ── 1. Main 3D skeleton in the dashboard ─────────────────────────
 function _initMainSkeleton() {
@@ -45,22 +68,34 @@ function _initMainSkeleton() {
   wrap.removeAttribute('onclick');
   wrap.style.background = '#050D1A';
   wrap.style.cursor = 'default';
+  wrap.style.position = 'relative';
 
-  mainCanvas   = new BodyCanvas(wrap);
-  mainSkeleton = new SkeletonBuilder(mainCanvas.scene);
-  mainSkeleton.build();
-  mainFX = new FXLayer(mainCanvas, mainSkeleton);
-  mainCanvas._skeleton = mainSkeleton;
-  mainCanvas._fxLayer  = mainFX;
+  mainCanvas = new BodyCanvas(wrap);
 
-  // Assessment pop-out panels live inside the 3D container (position:absolute)
-  assessPanel = new AssessmentPanel(wrap, mainSkeleton, assessStore);
-
-  // Sync joint:select → update right-side info bar
+  // Sync joint:select → update right-side info bar (skeleton-independent)
   bus.on('joint:select', ({ jointKey }) => _updateInfoBar(jointKey));
   bus.on('joint:deselect', () => _clearInfoBar());
   bus.on('joint:hover',    ({ jointKey }) => _showHoverLabel(jointKey));
   bus.on('joint:hoverout', () => _clearHoverLabel());
+
+  // Load the real anatomical skeleton (glTF) asynchronously.
+  const loader = _skeletonLoader('Loading anatomy');
+  wrap.appendChild(loader);
+
+  mainSkeleton = new GLBSkeleton(mainCanvas.scene);
+  mainSkeleton.build()
+    .then(() => {
+      loader.remove();
+      mainFX = new FXLayer(mainCanvas, mainSkeleton);
+      mainCanvas._skeleton = mainSkeleton;
+      mainCanvas._fxLayer  = mainFX;
+      // Assessment pop-out panels live inside the 3D container
+      assessPanel = new AssessmentPanel(wrap, mainSkeleton, assessStore);
+    })
+    .catch((err) => {
+      console.error('[NeuCore] skeleton load failed:', err);
+      loader.innerHTML = '<div style="color:#FF6B6B;font-size:12px;">3D anatomy failed to load</div>';
+    });
 
   // Global hooks for toolbar buttons
   window._ncReset = () => {
@@ -98,15 +133,29 @@ function _initObjectiveSidebar() {
   const initSide = () => {
     const sideWrap = document.getElementById('neucore-body-canvas');
     if (!sideWrap || sideCanvas) return;
+    sideWrap.style.position = 'relative';
     sideCanvas = new BodyCanvas(sideWrap);
-    const sideSkel = new SkeletonBuilder(sideCanvas.scene);
-    sideSkel.build();
-    const sideFX = new FXLayer(sideCanvas, sideSkel);
-    sideCanvas._skeleton = sideSkel;
-    sideCanvas._fxLayer  = sideFX;
-    new AssessmentPanel(sideWrap, sideSkel, assessStore);
 
-    // Also keep main skeleton in sync
+    const loader = _skeletonLoader('Loading anatomy');
+    sideWrap.appendChild(loader);
+
+    const sideSkel = new GLBSkeleton(sideCanvas.scene);
+    sideSkel.build()
+      .then(() => {
+        loader.remove();
+        const sideFX = new FXLayer(sideCanvas, sideSkel);
+        sideCanvas._skeleton = sideSkel;
+        sideCanvas._fxLayer  = sideFX;
+        new AssessmentPanel(sideWrap, sideSkel, assessStore);
+        // Two-way bind the Objective form to this body map.
+        if (objectiveSync) objectiveSync.setSkeleton(sideSkel);
+      })
+      .catch((err) => {
+        console.error('[NeuCore] objective skeleton load failed:', err);
+        loader.innerHTML = '<div style="color:#FF6B6B;font-size:12px;">3D anatomy failed to load</div>';
+      });
+
+    // Keep the main dashboard skeleton in sync with assessment changes
     bus.on('assess:painChange', ({ jointKey, value, color }) => {
       mainSkeleton?.setJointPain(jointKey, value, color);
     });
@@ -135,94 +184,7 @@ function _initGenerateButton() {
   }, { capture: true });
 }
 
-// ── 4. Wire form ns-* inputs → main skeleton joint pain ──────────
-function _wireFormInputs() {
-  const FIELD_MAP = {
-    'ns-ankle-df-l': { joint: 'LeftAnkle',    norm: 10,  invert: true },
-    'ns-ankle-df-r': { joint: 'RightAnkle',   norm: 10,  invert: true },
-    'ns-hip-ir-l':   { joint: 'LeftHip',      norm: 35,  invert: true },
-    'ns-hip-ir-r':   { joint: 'RightHip',     norm: 35,  invert: true },
-    'ns-hip-er-l':   { joint: 'LeftHip',      norm: 45,  invert: true },
-    'ns-hip-er-r':   { joint: 'RightHip',     norm: 45,  invert: true },
-    'ns-hip-ext-l':  { joint: 'LeftHip',      norm: 10,  invert: true },
-    'ns-hip-ext-r':  { joint: 'RightHip',     norm: 10,  invert: true },
-    'ns-hip-flex-l': { joint: 'LeftHip',      norm: 120, invert: false },
-    'ns-hip-flex-r': { joint: 'RightHip',     norm: 120, invert: false },
-    'ns-sh-ir-l':    { joint: 'LeftShoulder', norm: 70,  invert: true },
-    'ns-sh-ir-r':    { joint: 'RightShoulder',norm: 70,  invert: true },
-    'ns-sh-er-l':    { joint: 'LeftShoulder', norm: 80,  invert: false },
-    'ns-sh-er-r':    { joint: 'RightShoulder',norm: 80,  invert: false },
-    'ns-sh-flex-l':  { joint: 'LeftShoulder', norm: 160, invert: false },
-    'ns-sh-flex-r':  { joint: 'RightShoulder',norm: 160, invert: false },
-    'ns-bal-eo-l':   { joint: 'LeftAnkle',    norm: 30,  invert: true },
-    'ns-bal-eo-r':   { joint: 'RightAnkle',   norm: 30,  invert: true },
-  };
-
-  const applyField = (fieldId, { joint, norm, invert }) => {
-    const el = document.getElementById(fieldId);
-    if (!el) return;
-    const handler = () => {
-      if (!mainSkeleton) return;
-      const v = parseFloat(el.value);
-      if (isNaN(v)) return;
-      const ratio  = invert ? Math.max(0, norm - v) / norm : Math.max(0, v / norm);
-      const pain   = Math.min(10, Math.round(ratio * 10));
-      const color  = painToColor(pain);
-      mainSkeleton.setJointPain(joint, pain, color);
-      if (!assessStore[joint]) assessStore[joint] = {};
-      assessStore[joint].pain_scale = pain;
-      bus.emit('assess:fieldChange', { fieldId, jointKey: joint, value: v });
-    };
-    el.addEventListener('input', handler);
-    el.addEventListener('change', handler);
-  };
-
-  Object.entries(FIELD_MAP).forEach(([id, cfg]) => applyField(id, cfg));
-
-  // Select-based tests: sl_squat, sl_rdl, oh_squat → knee/hip/lumbar
-  const SELECT_MAP = {
-    'ns-sl-squat-l': { joint: 'LeftKnee',     painMap: { 0:10, 1:7, 2:4, 3:1 } },
-    'ns-sl-squat-r': { joint: 'RightKnee',    painMap: { 0:10, 1:7, 2:4, 3:1 } },
-    'ns-sl-rdl-l':   { joint: 'LeftHip',      painMap: { 0:10, 1:7, 2:4, 3:1 } },
-    'ns-sl-rdl-r':   { joint: 'RightHip',     painMap: { 0:10, 1:7, 2:4, 3:1 } },
-    'ns-oh-squat':   { joint: 'LumbarSpine',  painMap: { 0:10, 1:7, 2:4, 3:1 } },
-  };
-
-  Object.entries(SELECT_MAP).forEach(([id, { joint, painMap }]) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.addEventListener('change', () => {
-      if (!mainSkeleton) return;
-      const v     = parseInt(el.value);
-      const pain  = painMap[v] ?? 0;
-      const color = painToColor(pain);
-      mainSkeleton.setJointPain(joint, pain, color);
-    });
-  });
-
-  // Checkbox spine pain flags
-  const CHECKBOX_MAP = {
-    'ns-sp-flex-pain':  'LumbarSpine',
-    'ns-sp-ext-pain':   'LumbarSpine',
-    'ns-sp-lfl-pain':   'LumbarSpine',
-    'ns-sp-lfr-pain':   'LumbarSpine',
-    'ns-sp-rotl-pain':  'ThoracicSpine',
-    'ns-sp-rotr-pain':  'ThoracicSpine',
-  };
-
-  Object.entries(CHECKBOX_MAP).forEach(([id, joint]) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.addEventListener('change', () => {
-      if (!mainSkeleton) return;
-      const pain  = el.checked ? 8 : 0;
-      const color = painToColor(pain);
-      mainSkeleton.setJointPain(joint, pain, color);
-    });
-  });
-}
-
-// ── 5. Right-side joint info bar in dashboard ─────────────────────
+// ── 4. Right-side joint info bar in dashboard ─────────────────────
 function _wireJointInfoBar() {
   // The existing #bodymap-joint-name-dashboard and controls still exist in HTML.
   // We update them from bus events so the right side stays useful.

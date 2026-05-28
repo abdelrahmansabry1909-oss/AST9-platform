@@ -146,9 +146,10 @@ export class PhaseAnalysisOverlay {
 
   hide() {
     this._active = false;
+    this._closeExpandedCard();
     this._overlayEl?.remove();
     this._overlayEl = null;
-    this.bodyCanvas.controls.enabled = true;
+    if (this.bodyCanvas?.controls) this.bodyCanvas.controls.enabled = true;
   }
 
   _build() {
@@ -208,15 +209,23 @@ export class PhaseAnalysisOverlay {
     const cw       = this.container.offsetWidth;
     const ch       = this.container.offsetHeight;
 
-    const CARD_W   = 218;
-    const CARD_H_APPROX = 190;
-    const spacing  = Math.min(CARD_H_APPROX + 8, (ch - 80) / Math.max(total, 1));
-    const cardY    = 64 + idx * spacing;
-    const onRight  = screen.x < cw * 0.55;
-    const cardX    = onRight ? cw - CARD_W - 12 : 12;
+    const CARD_W   = 230;
+    const CARD_H_APPROX = 196;
+    // Distribute cards across BOTH sides instead of cramming on the side the
+    // joint isn't on. Even indices → left, odd → right; per-side stack uses
+    // the joint's screen-Y when possible to keep connector lines short.
+    const onRight   = (idx % 2 === 1);
+    const perSide   = Math.ceil(total / 2);
+    const sideIdx   = Math.floor(idx / 2);
+    const spacing   = Math.min(CARD_H_APPROX + 12, (ch - 80) / Math.max(perSide, 1));
+    const cardY     = 64 + sideIdx * spacing;
+    const cardX     = onRight ? cw - CARD_W - 12 : 12;
 
-    // Card element
+    // Card element — now clickable: click toggles a focused/expanded state
+    // that raises the card above its siblings and reveals deeper detail.
     const card = document.createElement('div');
+    card.className = 'nc-phase-card';
+    card.dataset.jointKey = jInfo.key;
     card.style.cssText = `
       position:absolute;
       ${onRight ? `right:12px` : `left:12px`};
@@ -225,13 +234,16 @@ export class PhaseAnalysisOverlay {
       background:rgba(4,10,22,0.97);
       border:0.5px solid ${JOINT_COLORS[jInfo.key] ?? 'rgba(0,212,255,0.3)'}66;
       border-radius:10px;
-      padding:12px 14px;
+      padding:13px 15px;
       z-index:21;
       opacity:0;
+      pointer-events:auto;
+      cursor:pointer;
       transform:translateX(${onRight ? '18px' : '-18px'});
-      transition:opacity 380ms ease, transform 380ms ease;
+      transition:opacity 380ms ease, transform 380ms ease, box-shadow 280ms ease, border-color 280ms ease;
       backdrop-filter:blur(20px);
       box-shadow:0 4px 20px rgba(0,0,0,0.4),0 0 0 0.5px ${JOINT_COLORS[jInfo.key] ?? '#00D4FF'}22;
+      font-size:12px;
     `;
 
     card.innerHTML = this._buildCardHTML(jInfo);
@@ -240,6 +252,22 @@ export class PhaseAnalysisOverlay {
     requestAnimationFrame(() => {
       card.style.opacity = '1';
       card.style.transform = 'translateX(0)';
+    });
+
+    // Click → expand modal with the full card content + every muscle (not the
+    // top-3 subset). Click again on backdrop to close.
+    card.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this._openExpandedCard(jInfo);
+    });
+    // Hover lift for affordance
+    card.addEventListener('mouseenter', () => {
+      card.style.borderColor = JOINT_COLORS[jInfo.key] ?? '#00D4FF';
+      card.style.boxShadow = `0 8px 28px rgba(0,0,0,0.5), 0 0 0 1px ${JOINT_COLORS[jInfo.key] ?? '#00D4FF'}66, 0 0 22px ${JOINT_COLORS[jInfo.key] ?? '#00D4FF'}22`;
+    });
+    card.addEventListener('mouseleave', () => {
+      card.style.borderColor = `${JOINT_COLORS[jInfo.key] ?? 'rgba(0,212,255,0.3)'}66`;
+      card.style.boxShadow = `0 4px 20px rgba(0,0,0,0.4),0 0 0 0.5px ${JOINT_COLORS[jInfo.key] ?? '#00D4FF'}22`;
     });
 
     // SVG connector line: joint position → card left/right edge mid
@@ -294,16 +322,16 @@ export class PhaseAnalysisOverlay {
                    : isHigh ? `<span style="color:#FACC15;font-size:9px">↑OVER</span>` : '';
 
       return `
-        <div style="margin-bottom:7px">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
-            <span style="font-size:10px;color:rgba(200,240,255,0.75)">${label} ${tag}</span>
-            <span style="font-size:10px;font-weight:500;color:${barColor}">${actual}%</span>
+        <div style="margin-bottom:8px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <span style="font-size:11px;color:rgba(210,240,255,0.85)">${label} ${tag}</span>
+            <span style="font-size:11px;font-weight:600;color:${barColor}">${actual}%</span>
           </div>
-          <div style="position:relative;height:4px;background:rgba(0,212,255,0.08);border-radius:2px">
-            <div style="position:absolute;height:100%;width:${norm}%;max-width:100%;background:rgba(0,212,255,0.2);border-radius:2px"></div>
-            <div style="position:absolute;height:100%;width:${actual}%;max-width:100%;background:${barColor};border-radius:2px;opacity:0.85"></div>
+          <div style="position:relative;height:5px;background:rgba(0,212,255,0.08);border-radius:3px">
+            <div style="position:absolute;height:100%;width:${norm}%;max-width:100%;background:rgba(0,212,255,0.2);border-radius:3px"></div>
+            <div style="position:absolute;height:100%;width:${actual}%;max-width:100%;background:${barColor};border-radius:3px;opacity:0.9"></div>
           </div>
-          <div style="font-size:9px;color:rgba(0,212,255,0.3);margin-top:2px">norm ${norm}%</div>
+          <div style="font-size:10px;color:rgba(120,180,210,0.5);margin-top:2px">norm ${norm}%</div>
         </div>
       `;
     }).join('');
@@ -357,5 +385,113 @@ export class PhaseAnalysisOverlay {
       x: (v.x + 1) / 2 * canvas.offsetWidth,
       y: -(v.y - 1) / 2 * canvas.offsetHeight,
     };
+  }
+
+  // Click-to-expand modal: shows the full breakdown for the selected joint
+  // (all muscles, both compensations and risks unclipped). Backdrop closes it.
+  _openExpandedCard(jInfo) {
+    this._closeExpandedCard();
+    const phase  = this._phase;
+    const color  = JOINT_COLORS[jInfo.key] ?? '#00D4FF';
+    const allMuscles = jInfo.muscles;
+
+    const muscleRows = allMuscles.map(mKey => {
+      const label  = MUSCLE_LABELS[mKey] ?? mKey;
+      const norm   = this._activation[mKey]?.[phase]?.normative ?? 0;
+      const actual = this._activation[mKey]?.[phase]?.actual    ?? norm;
+      const delta  = actual - norm;
+      const isLow  = delta < -8;
+      const isHigh = delta > 10;
+      const barColor = isLow ? '#FF2D78' : isHigh ? '#FACC15' : '#00FFF0';
+      const tag    = isLow ? 'WEAK' : isHigh ? 'OVER' : 'OK';
+      return `
+        <div style="margin-bottom:14px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">
+            <span style="font-size:14px;color:rgba(220,240,255,0.95);font-weight:500">${label}</span>
+            <span style="font-size:12px;font-weight:600;color:${barColor};letter-spacing:.04em">${tag} · ${actual}%</span>
+          </div>
+          <div style="position:relative;height:8px;background:rgba(0,212,255,0.08);border-radius:4px">
+            <div style="position:absolute;height:100%;width:${norm}%;max-width:100%;background:rgba(0,212,255,0.22);border-radius:4px"></div>
+            <div style="position:absolute;height:100%;width:${actual}%;max-width:100%;background:${barColor};border-radius:4px;opacity:0.92"></div>
+          </div>
+          <div style="font-size:11px;color:rgba(120,180,210,0.6);margin-top:4px">normative ${norm}% · Δ ${delta > 0 ? '+' : ''}${delta}%</div>
+        </div>
+      `;
+    }).join('');
+
+    const comps = this._deficits.filter(d => d.phases?.includes(phase))
+      .flatMap(d => d.compensations ?? [])
+      .filter((v, i, a) => a.indexOf(v) === i);
+    const risks = this._deficits.filter(d => d.phases?.includes(phase))
+      .flatMap(d => d.future_risk ?? [])
+      .filter((v, i, a) => a.indexOf(v) === i);
+
+    const backdrop = document.createElement('div');
+    backdrop.id = 'nc-phase-card-modal';
+    backdrop.style.cssText = `
+      position:fixed; inset:0; z-index:9999;
+      background:rgba(3,7,14,0.78);
+      backdrop-filter:blur(6px);
+      display:flex; align-items:center; justify-content:center;
+      animation: neu-fade-in 220ms var(--nc-ease, ease) both;
+      pointer-events:auto;
+    `;
+    const panel = document.createElement('div');
+    panel.style.cssText = `
+      max-width:520px; width:92%;
+      max-height:85vh; overflow-y:auto;
+      background:rgba(4,10,22,0.98);
+      border:1px solid ${color}66;
+      border-radius:14px;
+      padding:24px 26px;
+      box-shadow:0 24px 80px rgba(0,0,0,0.6), 0 0 0 1px ${color}33, 0 0 60px ${color}22;
+      animation: neu-scale-in 280ms var(--nc-ease-spring, ease) both;
+      font-family:'Inter',system-ui,sans-serif;
+    `;
+    panel.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:12px;height:12px;border-radius:50%;background:${color};box-shadow:0 0 10px ${color}"></div>
+          <div>
+            <div style="font-family:'Space Grotesk','Inter',sans-serif;font-size:20px;font-weight:600;color:rgba(220,240,255,0.97);letter-spacing:-0.01em">${jInfo.title}</div>
+            <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:rgba(120,180,210,0.6);margin-top:2px">${phase.replace(/_/g,' ')}</div>
+          </div>
+        </div>
+        <button type="button" aria-label="Close" style="
+          width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,0.12);
+          background:rgba(255,255,255,0.04);color:rgba(220,240,255,0.7);font-size:18px;cursor:pointer;
+        ">✕</button>
+      </div>
+
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:rgba(120,180,210,0.55);margin-bottom:12px">
+        Muscle Activation — all measured fibres
+      </div>
+      ${muscleRows}
+
+      ${comps.length ? `
+        <div style="margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,140,0,0.18)">
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,140,0,0.65);margin-bottom:8px">⚡ Compensations</div>
+          ${comps.map(c => `<div style="font-size:13px;color:rgba(255,200,100,0.82);padding:3px 0;line-height:1.55">→ ${c}</div>`).join('')}
+        </div>` : ''}
+
+      ${risks.length ? `
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,45,120,0.18)">
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,45,120,0.65);margin-bottom:8px">💥 Future-risk pain pattern</div>
+          ${risks.map(r => `<div style="font-size:13px;color:rgba(255,110,110,0.82);padding:3px 0;line-height:1.55">→ ${r}</div>`).join('')}
+        </div>` : ''}
+    `;
+
+    backdrop.appendChild(panel);
+    document.body.appendChild(backdrop);
+    backdrop.addEventListener('click', (e) => { if (e.target === backdrop) this._closeExpandedCard(); });
+    panel.querySelector('button[aria-label="Close"]').addEventListener('click', () => this._closeExpandedCard());
+    this._escHandler = (e) => { if (e.key === 'Escape') this._closeExpandedCard(); };
+    document.addEventListener('keydown', this._escHandler);
+    this._modalEl = backdrop;
+  }
+
+  _closeExpandedCard() {
+    if (this._modalEl) { this._modalEl.remove(); this._modalEl = null; }
+    if (this._escHandler) { document.removeEventListener('keydown', this._escHandler); this._escHandler = null; }
   }
 }

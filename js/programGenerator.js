@@ -52,6 +52,121 @@ const ProgramGenerator = (() => {
     ],
   };
 
+  // ── PADDING POOLS ─────────────────────────────────────────
+  // Used to top a section up to a coach-requested exercise count when the
+  // rule-driven set is shorter than requested.
+  const POOL_WARMUP = [
+    { name: 'Thoracic Rotation CARs', sets: 2, reps: '6 each side', tempo: 'controlled', notes: 'Open the thoracic spine before loading.' },
+    { name: 'Ankle Circles + Calf Pulses', sets: 2, reps: '10 each', tempo: 'controlled', notes: 'Prime the ankle complex for ground contact.' },
+    { name: 'Glute Bridge Activation', sets: 2, reps: '12', tempo: '2-1-2', notes: 'Wake the posterior chain — squeeze at the top.' },
+    { name: 'Scapular Wall Slides', sets: 2, reps: '10', tempo: '3-1-3', notes: 'Ribs down, slide arms overhead without arching.' },
+    { name: 'World’s Greatest Stretch', sets: 1, reps: '5 each side', tempo: 'flow', notes: 'Full-body dynamic opener.' },
+    { name: 'Hip Airplane (supported)', sets: 2, reps: '6 each side', tempo: 'controlled', notes: 'Single-leg hip rotation control.' },
+    { name: '90/90 Hip Switches', sets: 2, reps: '8', tempo: 'controlled', notes: 'Internal/external hip rotation flow.' },
+    { name: 'Band Pull-Apart', sets: 2, reps: '15', tempo: '2-1-2', notes: 'Upper-back activation, ribs down.' },
+    { name: 'Dead Bug March', sets: 2, reps: '8 each side', tempo: '3-0-1', notes: 'Core pre-activation, lumbar flat.' },
+    { name: 'Walking Knee Hugs', sets: 1, reps: '8 each side', tempo: 'flow', notes: 'Dynamic posterior-chain opener.' },
+  ];
+  const POOL_MAIN = [
+    { name: 'Tempo Goblet Squat', sets: 3, reps: '8', tempo: '3-1-1', notes: 'Control the descent, brace through mid-foot.' },
+    { name: 'Half-Kneeling Cable Press', sets: 3, reps: '10 each', tempo: '2-1-2', notes: 'Anti-extension — ribs stacked over pelvis.' },
+    { name: 'Split-Stance RDL', sets: 3, reps: '8 each', tempo: '3-1-1', notes: 'Hinge through the hip, flat back throughout.' },
+    { name: 'Side Plank with Reach', sets: 3, reps: '8 each', tempo: '2-1-2', notes: 'Lateral chain — no hip sag.' },
+    { name: 'Step-Down Eccentric', sets: 3, reps: '10 each', tempo: '4-0-1', notes: 'Knee tracks over toes, control the lower.' },
+    { name: 'Bent-Over Row', sets: 3, reps: '10', tempo: '2-1-2', notes: 'Drive elbows back, squeeze the mid-back.' },
+    { name: 'Reverse Lunge', sets: 3, reps: '8 each', tempo: '2-1-2', notes: 'Vertical shin, control the step back.' },
+    { name: 'Single-Arm Carry', sets: 3, reps: '20m each', tempo: 'steady', notes: 'Anti-lateral-flexion — stay tall.' },
+    { name: 'Hip Thrust', sets: 3, reps: '10', tempo: '2-1-2', notes: 'Full hip extension, ribs down at top.' },
+    { name: 'Tall-Kneeling Pulldown', sets: 3, reps: '12', tempo: '2-1-2', notes: 'Lat drive without lumbar extension.' },
+    { name: 'Lateral Step-Down', sets: 3, reps: '10 each', tempo: '3-1-1', notes: 'Frontal-plane knee control.' },
+    { name: 'Push-Up (tempo)', sets: 3, reps: '8', tempo: '3-1-1', notes: 'Rigid plank line, full range.' },
+    { name: 'Suitcase Deadlift', sets: 3, reps: '8 each', tempo: '2-1-2', notes: 'Hinge under offset load, square hips.' },
+    { name: 'Bird-Dog Row', sets: 3, reps: '10 each', tempo: '2-1-2', notes: 'Anti-rotation while rowing.' },
+  ];
+  const POOL_COOLDOWN = [
+    { name: 'Child’s Pose Breathing', sets: 2, reps: '5 breaths', notes: 'Long exhale, let the back open.' },
+    { name: 'Supine Figure-4 Stretch', sets: 2, reps: '45s each', notes: 'Gentle glute/hip release.' },
+    { name: 'Standing Forward Fold', sets: 2, reps: '30s', notes: 'Soft knees, decompress the spine.' },
+    { name: 'Couch Stretch', sets: 2, reps: '45s each', notes: 'Hip-flexor lengthening, posterior pelvic tilt.' },
+    { name: 'Thread-the-Needle', sets: 2, reps: '6 each side', notes: 'Thoracic release, slow and controlled.' },
+    { name: 'Seated Box Breathing', sets: 3, reps: '5 breaths', notes: '4s in / 4s hold / 6s out — downregulate.' },
+    { name: 'Doorway Pec Stretch', sets: 2, reps: '40s each', notes: 'Open the chest, ribs down.' },
+    { name: 'Supine Twist', sets: 2, reps: '40s each', notes: 'Gentle lumbar/thoracic rotation release.' },
+  ];
+
+  // Daily-routine task pool — client-tracker shape (morning/evening).
+  const POOL_DAILY = [
+    { label: 'Zen Swing', section: 'morning', emoji: '🌀', meta: '⏱ 1–2 minutes',
+      details: ['Gentle rhythmic movement to loosen the body and reset the nervous system.'] },
+    { label: 'Spine Segmentation', section: 'morning', emoji: '🦴', meta: '🔁 5–8 reps',
+      details: ['Slowly roll down and up, moving one vertebra at a time.'] },
+    { label: 'Rib Cage Breathing', section: 'morning', emoji: '🫁', meta: '🌬 6–10 breaths',
+      details: ['Hands on ribs.', 'Inhale → expand sideways.', 'Exhale → ribs soften inward.'] },
+    { label: 'Pelvic Tilts', section: 'morning', emoji: '⚖️', meta: '🔁 8–12 reps',
+      details: ['Gentle forward/back tilt.', 'Move with control.'] },
+    { label: 'Hip CARs', section: 'morning', emoji: '🦵', meta: '🔁 5 each side',
+      details: ['Slow controlled hip rotations — full range, no compensation.'] },
+    { label: 'Belly Breathing', section: 'evening', emoji: '🌙', meta: '🌬 2–5 minutes',
+      details: ['Inhale → belly rises.', 'Exhale → belly falls.', 'Rhythm: 4s in / 6s out.'] },
+    { label: 'Spine Segmentation (slow)', section: 'evening', emoji: '🦴', meta: '🔁 5 slow reps',
+      details: ['Move slower than morning, focus on releasing tension.'] },
+    { label: 'Legs-Up-The-Wall', section: 'evening', emoji: '🧘', meta: '⏱ 3–5 minutes',
+      details: ['Lie with legs up a wall, breathe slowly — downregulate.'] },
+  ];
+
+  // Trim a list to `n`, or pad it from `pool` (no duplicate names) up to `n`.
+  // n <= 0 / non-finite → return the list unchanged.
+  function _fitCount(list, n, pool) {
+    if (!Number.isFinite(n) || n <= 0) return list.slice();
+    const out  = list.slice(0, n);
+    const used = new Set(out.map((e) => e.name || e.label));
+    let pi = 0, guard = 0;
+    while (out.length < n && pool && guard < pool.length * 4) {
+      const cand = pool[pi % pool.length]; pi++; guard++;
+      const key = cand.name || cand.label;
+      if (used.has(key)) continue;
+      used.add(key);
+      out.push({ ...cand });
+    }
+    while (out.length < n) {
+      out.push({ name: `Additional exercise ${out.length + 1}`, sets: '', reps: '', tempo: '', rest: '', notes: 'Coach to specify.' });
+    }
+    return out;
+  }
+
+  // Deal `k` exercises to workout #w of `n` distinct workouts from `pool`.
+  // Each workout gets a different slice (starting at w*k) so the workouts in
+  // a split are genuinely different. Pads with generics if the pool is short.
+  function _dealSlice(pool, w, n, k) {
+    const want = (Number.isFinite(k) && k > 0) ? k : Math.max(1, Math.floor(pool.length / Math.max(n, 1)));
+    const out = [], used = new Set();
+    let idx = w * want, guard = 0;
+    while (out.length < want && pool.length && guard < pool.length * 4) {
+      const cand = pool[((idx % pool.length) + pool.length) % pool.length];
+      idx++; guard++;
+      const key = cand.name || cand.label;
+      if (used.has(key)) continue;
+      used.add(key);
+      out.push({ ...cand });
+    }
+    while (out.length < want) {
+      out.push({ name: `Additional exercise ${out.length + 1}`, sets: '', reps: '', tempo: '', rest: '', notes: 'Coach to specify.' });
+    }
+    return out;
+  }
+
+  // Dedupe an exercise list by name, preserving order.
+  function _dedupeByName(list) {
+    const seen = new Set(), out = [];
+    list.forEach((e) => {
+      const k = e.name || e.label;
+      if (k && seen.has(k)) return;
+      if (k) seen.add(k);
+      out.push(e);
+    });
+    return out;
+  }
+
   // ── PROGRAM RULES (20 rules, priority ordered) ────────────
   const RULES = [
     // ── PRIORITY 1: Pain override ───────────────────────────
@@ -287,9 +402,15 @@ const ProgramGenerator = (() => {
   };
 
   // ── GENERATE ──────────────────────────────────────────────
+  // options:
+  //   phase        — requested phase string
+  //   daysPerWeek  — workout days/week (1–7)
+  //   counts       — { warmup, main, cooldown, daily } target exercise counts
   function generate(assessment, scores, gaitAnalysis, options = {}) {
     const a = assessment;
     const { phase: requestedPhase } = options;
+    const counts = options.counts || {};
+    const daysPerWeek = Number.isFinite(options.daysPerWeek) ? options.daysPerWeek : 3;
 
     // Determine effective phase
     const basePhase = requestedPhase?.includes('Phase 1') ? 'Phase 1'
@@ -364,9 +485,53 @@ const ProgramGenerator = (() => {
         rest:  ex.rest  || defaults.rest,
       }));
 
-    // Warm-up and cooldown for effective phase
-    const warmup   = WARMUPS[effectivePhase]   || WARMUPS['Phase 1'];
-    const cooldown = COOLDOWNS[effectivePhase] || COOLDOWNS['Phase 1'];
+    // ── Build the workout split ─────────────────────────────
+    // distinctWorkouts = how many *different* workouts rotate across the week
+    //   1            → same workout every day
+    //   2            → A / B alternating
+    //   3            → A / B / C rotation
+    //   = daysPerWeek → every day a different workout
+    const distinctWorkouts = Math.max(1, Math.min(daysPerWeek,
+      Number.isFinite(options.distinctWorkouts) ? options.distinctWorkouts : 1));
+
+    // Combined pools — rule-driven (most relevant to the client) first, then
+    // the generic pool. Each distinct workout is dealt a different slice.
+    const warmPool = _dedupeByName([ ...(WARMUPS[effectivePhase]   || WARMUPS['Phase 1']),   ...POOL_WARMUP ]);
+    const mainPool = _dedupeByName([ ...mainExercises,                                       ...POOL_MAIN ]);
+    const coolPool = _dedupeByName([ ...(COOLDOWNS[effectivePhase] || COOLDOWNS['Phase 1']), ...POOL_COOLDOWN ]);
+
+    const applyDef = (ex) => ({
+      ...ex,
+      sets:  ex.sets  || defaults.sets,
+      reps:  ex.reps  || defaults.reps,
+      tempo: ex.tempo || defaults.tempo,
+      rest:  ex.rest  || defaults.rest,
+    });
+
+    const workouts = [];
+    for (let w = 0; w < distinctWorkouts; w++) {
+      const id = String.fromCharCode(65 + w);   // 'A','B','C',…
+      workouts.push({
+        id,
+        label:    distinctWorkouts === 1 ? 'Daily Workout' : ('Workout ' + id),
+        warmup:   _dealSlice(warmPool, w, distinctWorkouts, counts.warmup).map(applyDef),
+        main:     _dealSlice(mainPool, w, distinctWorkouts, counts.main).map(applyDef),
+        cooldown: _dealSlice(coolPool, w, distinctWorkouts, counts.cooldown).map(applyDef),
+      });
+    }
+
+    // Weekly schedule — rotate the distinct workouts across the workout days.
+    const schedule = [];
+    for (let d = 0; d < daysPerWeek; d++) schedule.push(workouts[d % distinctWorkouts].id);
+
+    const splitLabel = distinctWorkouts === 1 ? 'Same workout repeated'
+      : distinctWorkouts === daysPerWeek ? 'Every day a different workout'
+      : `${distinctWorkouts}-workout rotation`;
+
+    // Backward-compat: `structure` mirrors the first workout (legacy readers).
+    const warmup   = workouts[0].warmup;
+    const main     = workouts[0].main;
+    const cooldown = workouts[0].cooldown;
 
     // Daily routine: top 2 mobility from gait priorities + breathing + activation
     const dailyMobility = (gaitAnalysis.exercise_priorities || []).slice(0, 2).map(ex => ({
@@ -379,6 +544,18 @@ const ProgramGenerator = (() => {
       activation: [DAILY_BASE.activation],
     };
 
+    // Client-facing daily routine in tracker shape (morning/evening tasks),
+    // fitted to the requested count. This is what gets published to the client.
+    const dailyTasks = _fitCount([], counts.daily || 6, POOL_DAILY)
+      .map((t, i) => ({
+        id:       i,
+        label:    t.label || t.name || `Task ${i + 1}`,
+        section:  t.section || (i % 2 === 0 ? 'morning' : 'evening'),
+        emoji:    t.emoji || '🌀',
+        meta:     t.meta || '',
+        details:  Array.isArray(t.details) ? t.details : (t.notes ? [t.notes] : []),
+      }));
+
     // Collect which rule IDs fired
     const rulesApplied = sortedRules
       .filter(r => {
@@ -388,20 +565,32 @@ const ProgramGenerator = (() => {
       .map(r => r.id);
 
     return {
-      phase:           effectivePhase,
-      requested_phase: requestedPhase || basePhase,
+      phase:             effectivePhase,
+      requested_phase:   requestedPhase || basePhase,
+      days_per_week:     daysPerWeek,
+      distinct_workouts: distinctWorkouts,
+      split_label:       splitLabel,
+      counts: {
+        warmup:   warmup.length,
+        main:     main.length,
+        cooldown: cooldown.length,
+        daily:    dailyTasks.length,
+      },
       defaults,
-      structure: {
+      workouts,                               // [{ id,label,warmup,main,cooldown }, …]
+      schedule,                               // ['A','B','A',…] length = days_per_week
+      structure: {                            // legacy compat — mirrors workout A
         warmup,
-        main:     mainExercises,
+        main,
         cooldown,
       },
-      daily_routine:     dailyRoutine,
-      rules_applied:     rulesApplied,
-      exclusions:        [...ctx.exclusionSet],
-      warnings:          ctx.warnings,
-      notes:             ctx.notes,
-      referral_required: scores.referral_required,
+      daily_routine:       dailyRoutine,      // legacy {breathing,mobility,activation} — PDF/DOM
+      daily_routine_tasks: dailyTasks,        // tracker-shape tasks — published to client
+      rules_applied:       rulesApplied,
+      exclusions:          [...ctx.exclusionSet],
+      warnings:            ctx.warnings,
+      notes:               ctx.notes,
+      referral_required:   scores.referral_required,
     };
   }
 

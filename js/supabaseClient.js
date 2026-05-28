@@ -22,9 +22,17 @@ const sb = createClient(SUPABASE_URL, SUPABASE_ANON, {
     persistSession: _storageWorks,
     autoRefreshToken: _storageWorks,
     detectSessionInUrl: true,
+    // supabase-js v2 acquires a browser-wide navigator Web Lock before every
+    // auth call. That lock can DEADLOCK — a crashed/extra tab, a privacy
+    // browser, or a prior hung operation leaves it held, and then every
+    // signInWithPassword() waits on it forever (surfacing as a login
+    // "timeout"). A pass-through lock runs the operation immediately; for a
+    // single-coach app the cross-tab serialisation it gave up is not needed.
+    lock: async (_name, _acquireTimeout, fn) => fn(),
   }
 });
 
 // Expose globally so all modules can import without bundler
 window.sb = sb;
-window.SUPABASE_URL = SUPABASE_URL;
+window.SUPABASE_URL  = SUPABASE_URL;
+window.SUPABASE_ANON = SUPABASE_ANON;   // needed by edge-function fetches that build their own apikey header

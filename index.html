@@ -1,1544 +1,808 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<meta name="description" content="AST9 — Elite Movement & Rehabilitation Coaching Platform"/>
-<title>AST9 — Elite Coaching Platform</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-  <link rel="stylesheet" href="css/styles.css"/>
-  <link rel="stylesheet" href="css/styles_holographic.css"/>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>"/>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="NeuCore — AI biomechanics, movement intelligence, and neuro-performance optimization built for the future of rehabilitation and elite health." />
+<meta name="theme-color" content="#07111A" />
+<title>NeuCore — Rebuild Human Performance.</title>
+<link rel="stylesheet" href="css/landing.css" />
+<link rel="stylesheet" href="css/styles.css" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%2314B8A6'/><rect x='30' y='30' width='40' height='40' rx='8' fill='%2307111A'/></svg>" />
 </head>
-<body>
+<body class="nc-body">
 
-<!-- LOADING -->
-<div id="loading-overlay">
-  <div class="loader-logo">AST9</div>
-  <div class="loader-bar"></div>
-</div>
+<!-- ═══════════════════════════════ NAV ═══════════════════════════════ -->
+<nav class="nc-nav" id="nc-nav">
+  <div class="nc-container nc-nav-inner">
+    <a href="#top" class="nc-logo">
+      <span class="nc-logo-mark" aria-hidden="true"></span>
+      <span>NEUCORE</span>
+    </a>
 
-<!-- TOASTS -->
-<div id="toast-container"></div>
-
-<!-- ═══════════════════════ LOGIN ═══════════════════════ -->
-<div id="screen-login" class="hidden">
-  <div class="login-card">
-    <div class="login-shimmer"></div>
-    <div class="login-body">
-      <div class="login-wordmark"><span class="word-ast">AST</span><span class="word-9">9</span></div>
-      <div class="login-tagline">Elite Movement & Rehab Platform</div>
-
-      <div class="login-tab-row">
-        <button class="login-tab-btn active" onclick="UI.switchLoginTab('signin')">Sign In</button>
-        <button class="login-tab-btn" onclick="UI.switchLoginTab('reset')">Reset Password</button>
-      </div>
-
-      <div id="login-error" class="login-error hidden"></div>
-
-      <!-- SIGN IN -->
-      <div id="login-form-signin">
-        <div class="form-group">
-          <label class="form-label">Email Address</label>
-          <input id="login-email" type="email" class="form-input" placeholder="your@email.com" autocomplete="email"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Password</label>
-          <input id="login-password" type="password" class="form-input" placeholder="••••••••" autocomplete="current-password"/>
-        </div>
-        <button id="login-btn" class="btn btn-primary w-full btn-xl" style="margin-top:4px" onclick="UI.handleLogin()">Sign In</button>
-        <div style="text-align:center;margin-top:14px">
-          <span style="font-size:12px;color:var(--text-tertiary)">No account? </span>
-          <span style="font-size:12px;color:var(--lime);cursor:pointer;font-weight:600" onclick="UI.handleDemoLogin()">Continue as Demo →</span>
-        </div>
-        <div style="text-align:center;margin-top:8px">
-          <span style="font-size:12px;color:var(--text-tertiary)">Forgot password? </span>
-          <span style="font-size:12px;color:var(--text-tertiary);cursor:pointer" onclick="UI.switchLoginTab('reset')">Reset it</span>
-        </div>
-      </div>
-
-      <!-- RESET -->
-      <div id="login-form-reset" class="hidden">
-        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:20px;line-height:1.6">Enter your email and we'll send a reset link to your inbox.</p>
-        <div class="form-group">
-          <label class="form-label">Email Address</label>
-          <input id="reset-email" type="email" class="form-input" placeholder="your@email.com"/>
-        </div>
-        <button id="reset-btn" class="btn btn-primary w-full" onclick="UI.handlePasswordReset()">Send Reset Link</button>
-        <div style="text-align:center;margin-top:14px">
-          <span style="font-size:12px;color:var(--lime);cursor:pointer;font-weight:600" onclick="UI.switchLoginTab('signin')">← Back to Sign In</span>
-        </div>
-      </div>
+    <div class="nc-nav-links">
+      <a href="#features" class="nc-nav-link">Platform</a>
+      <a href="#services" class="nc-nav-link">Services</a>
+      <a href="#biomechanics" class="nc-nav-link">Intelligence</a>
+      <a href="#cases" class="nc-nav-link">Case Studies</a>
+      <a href="#cta" class="nc-nav-link">Pricing</a>
     </div>
-  </div>
-</div>
 
-<!-- ═══════════════════════ APP ═══════════════════════ -->
-<div id="screen-app">
-
-  <!-- SIDEBAR OVERLAY (mobile) -->
-  <div class="sidebar-overlay" id="sidebar-overlay" onclick="Dashboard.closeSidebar()"></div>
-
-  <!-- SIDEBAR -->
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-      <div class="sidebar-wordmark"><span class="w-ast">AST</span><span class="w-9">9</span></div>
-      <div class="sidebar-sub">Elite Coaching Platform</div>
-    </div>
-    <nav class="sidebar-nav">
-      <div class="nav-section">Main</div>
-      <div class="nav-item active" id="nav-dashboard" onclick="Dashboard.showSection('dashboard')">
-        <span class="nav-item-icon">⬡</span> Dashboard
-      </div>
-      <div class="nav-item" id="nav-new-session" onclick="Dashboard.showSection('new-session')">
-        <span class="nav-item-icon">✦</span> New Session
-      </div>
-      <div class="nav-item" id="nav-programs" onclick="Dashboard.showSection('programs')">
-        <span class="nav-item-icon">◈</span> Programs
-      </div>
-
-      <div class="nav-section role-coach-admin">Manage</div>
-      <div class="nav-item role-coach-admin" id="nav-clients" onclick="Dashboard.showSection('clients')">
-        <span class="nav-item-icon">◉</span> Clients
-      </div>
-      <div class="nav-item role-coach-admin" id="nav-subscriptions" onclick="Dashboard.showSection('subscriptions')">
-        <span class="nav-item-icon">◌</span> Subscriptions
-      </div>
-      <div class="nav-item role-coach-admin" id="nav-exercise-library" onclick="Dashboard.showSection('exercise-library')">
-        <span class="nav-item-icon">▶</span> Exercise Library
-      </div>
-      <div class="nav-item role-coach-admin" id="nav-progress" onclick="Dashboard.showSection('progress')">
-        <span class="nav-item-icon">◎</span> Progress Charts
-      </div>
-
-      <div class="nav-section">Community</div>
-      <div class="nav-item" id="nav-community" onclick="Dashboard.showSection('community')">
-        <span class="nav-item-icon">◈</span> Community
-        <span id="badge-community" class="nav-badge hidden">0</span>
-      </div>
-
-      <div class="nav-section role-admin-only">Admin</div>
-      <div class="nav-item role-admin-only" id="nav-coaches" onclick="Dashboard.showSection('coaches')">
-        <span class="nav-item-icon">◈</span> Coaches
-      </div>
-      <div class="nav-item role-admin-only" id="nav-settings" onclick="Dashboard.showSection('settings')">
-        <span class="nav-item-icon">◎</span> Settings
-      </div>
-    </nav>
-    <div class="sidebar-footer">
-      <div class="user-card">
-        <div class="user-avatar-ring">
-          <div class="user-avatar" id="sb-avatar-char">?</div>
-        </div>
-        <div class="user-details">
-          <div class="user-name truncate" id="sb-user-name">–</div>
-          <div class="user-role-tag" id="sb-user-role">–</div>
-        </div>
-        <div class="logout-icon" title="Sign out" onclick="UI.handleLogout()">⏻</div>
-      </div>
-    </div>
-  </aside>
-
-  <!-- MAIN -->
-  <main class="main-content">
-
-    <!-- Mobile top bar -->
-    <div class="mobile-topbar">
-      <button class="hamburger" id="hamburger-btn" onclick="Dashboard.toggleSidebar()" aria-label="Menu">
-        <span></span><span></span><span></span>
+    <div class="nc-nav-cta">
+      <a href="app.html?login=1" class="nc-btn nc-btn--ghost">Sign In</a>
+      <a href="#" data-visitor-trigger class="nc-btn nc-btn--primary">Start Assessment</a>
+      <button class="nc-nav-toggle" aria-label="Open menu">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
       </button>
-      <div class="mobile-logo">AST<span style="color:var(--lime)">9</span></div>
-      <div style="width:40px"></div>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════ HERO ═══════════════════════════════ -->
+<header class="nc-hero" id="top">
+  <div class="nc-grid-overlay"></div>
+  <div class="nc-noise"></div>
+  <div class="nc-hero-glow nc-hero-glow--teal"></div>
+  <div class="nc-hero-glow nc-hero-glow--cyan"></div>
+
+  <div class="nc-container nc-hero-grid">
+    <div class="nc-hero-content">
+      <span class="nc-badge nc-badge--accent nc-reveal">
+        <span class="nc-badge-dot"></span>
+        Now in private beta · v3.0
+      </span>
+
+      <h1 class="nc-hero-headline nc-reveal delay-1">
+        <span class="nc-line">Rebuild</span>
+        <span class="nc-line nc-gradient-text">Human Performance.</span>
+      </h1>
+
+      <p class="nc-hero-sub nc-reveal delay-2">
+        AI-powered biomechanics, movement intelligence, and neuro-performance optimization
+        built for the future of rehabilitation and elite health.
+      </p>
+
+      <div class="nc-hero-cta nc-reveal delay-3">
+        <a href="#" data-visitor-trigger class="nc-btn nc-btn--primary nc-btn--lg">
+          Start Assessment
+          <svg class="nc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </a>
+        <a href="#features" class="nc-btn nc-btn--ghost nc-btn--lg">
+          Explore Platform
+        </a>
+      </div>
+
+      <div class="nc-hero-trust nc-reveal delay-4">
+        <div class="nc-trust-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg>
+          HIPAA-compliant
+        </div>
+        <div class="nc-trust-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg>
+          Clinically validated
+        </div>
+        <div class="nc-trust-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg>
+          Trusted by 200+ elite teams
+        </div>
+      </div>
     </div>
 
-    <!-- ── DASHBOARD ── -->
-    <div class="section active" id="section-dashboard">
-      <div class="page-header">
-        <div class="page-header-left">
-          <h1 class="page-title">Dash<span class="accent">board</span></h1>
-          <p class="page-subtitle" id="dashboard-greeting"></p>
-        </div>
-        <div class="page-actions">
-          <button class="btn btn-primary" onclick="Dashboard.showSection('new-session')">+ New Session</button>
-        </div>
-      </div>
-      <div class="grid-4 stagger" style="margin-bottom:var(--sp-5)">
-        <div class="stat-card" style="--stat-color:var(--lime);--stat-color-ghost:var(--lime-ghost);--stat-color-border:rgba(200,240,74,0.15)">
-          <div class="stat-card-bg"></div><div class="stat-icon">◉</div>
-          <div class="stat-label">Active Clients</div>
-          <div class="stat-value" id="stat-clients">–</div>
-          <div class="stat-sub">on platform</div>
-        </div>
-        <div class="stat-card" style="--stat-color:var(--teal);--stat-color-ghost:var(--teal-glow);--stat-color-border:rgba(61,245,193,0.15)">
-          <div class="stat-card-bg"></div><div class="stat-icon">◈</div>
-          <div class="stat-label">Sessions</div>
-          <div class="stat-value" id="stat-sessions">–</div>
-          <div class="stat-sub">generated</div>
-        </div>
-        <div class="stat-card" style="--stat-color:var(--amber);--stat-color-ghost:var(--amber-glow);--stat-color-border:rgba(245,200,66,0.15)">
-          <div class="stat-card-bg"></div><div class="stat-icon">◌</div>
-          <div class="stat-label">Subscriptions</div>
-          <div class="stat-value" id="stat-subs">–</div>
-          <div class="stat-sub">active plans</div>
-        </div>
-        <div class="stat-card" style="--stat-color:var(--rose);--stat-color-ghost:var(--rose-glow);--stat-color-border:rgba(245,66,108,0.15)">
-          <div class="stat-card-bg"></div><div class="stat-icon">⚠</div>
-          <div class="stat-label">Expiring Soon</div>
-          <div class="stat-value" id="stat-expiring">–</div>
-          <div class="stat-sub">within 7 days</div>
+    <!-- Hero Visual -->
+    <div class="nc-hero-visual nc-reveal delay-2">
+      <div class="nc-orb-rings"></div>
+      <div class="nc-orb"></div>
+
+      <!-- Floating data card 1 -->
+      <div class="nc-floating-card nc-floating-card-1">
+        <div class="nc-card-label">Gait Symmetry</div>
+        <div class="nc-card-value">94.2<span style="font-size:14px;color:var(--nc-text-secondary);">%</span></div>
+        <div class="nc-card-meta">▲ 3.1% week-over-week</div>
+        <div class="nc-card-bars">
+          <span style="height:40%"></span>
+          <span style="height:60%"></span>
+          <span style="height:48%"></span>
+          <span style="height:78%"></span>
+          <span style="height:65%"></span>
+          <span style="height:92%"></span>
+          <span style="height:88%"></span>
         </div>
       </div>
 
-      <!-- 3D Body Map Card for Dashboard — NeuCore holographic skeleton -->
-      <div class="card" style="margin-bottom:var(--sp-5);background:rgba(5,13,26,0.92);
-           border:0.5px solid rgba(0,212,255,0.18)">
-        <div class="card-header" style="border-bottom:0.5px solid rgba(0,212,255,0.1)">
-          <span class="card-title" style="color:rgba(200,240,255,0.9)">
-            ◈ NeuCore Body Map
+      <!-- Floating data card 2 -->
+      <div class="nc-floating-card nc-floating-card-2">
+        <div class="nc-card-label">Neural Recovery</div>
+        <div class="nc-card-value">8.7<span style="font-size:14px;color:var(--nc-text-secondary);"> / 10</span></div>
+        <div class="nc-card-meta">Optimal · Phase IV</div>
+        <div style="display:flex;gap:4px;margin-top:10px;">
+          <div style="flex:1;height:4px;background:var(--nc-teal);border-radius:2px;box-shadow:0 0 8px var(--nc-teal-glow);"></div>
+          <div style="flex:1;height:4px;background:var(--nc-teal);border-radius:2px;"></div>
+          <div style="flex:1;height:4px;background:var(--nc-teal);border-radius:2px;"></div>
+          <div style="flex:1;height:4px;background:rgba(255,255,255,0.1);border-radius:2px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════ TRUST STRIP ═══════════════════════════════ -->
+<section class="nc-trust-strip">
+  <div class="nc-container">
+    <div class="nc-trust-grid">
+      <div class="nc-reveal">
+        <span class="nc-stat-value nc-gradient-text">2.4M+</span>
+        <div class="nc-stat-label">Movement assessments</div>
+      </div>
+      <div class="nc-reveal delay-1">
+        <span class="nc-stat-value nc-gradient-text">98.3%</span>
+        <div class="nc-stat-label">Diagnostic accuracy</div>
+      </div>
+      <div class="nc-reveal delay-2">
+        <span class="nc-stat-value nc-gradient-text">200+</span>
+        <div class="nc-stat-label">Elite teams & clinics</div>
+      </div>
+      <div class="nc-reveal delay-3">
+        <span class="nc-stat-value nc-gradient-text">42</span>
+        <div class="nc-stat-label">Countries served</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════ FEATURE TABS ═══════════════════════════════ -->
+<section class="nc-section" id="features">
+  <div class="nc-container">
+    <div class="nc-section-head nc-reveal">
+      <span class="nc-eyebrow">The Platform</span>
+      <h2 class="nc-display nc-h2">A complete intelligence layer<br/>for human movement.</h2>
+      <p class="nc-lead">Three modules. One signal-rich engine. Built so clinicians, coaches, and elite athletes can act on what the body is actually doing — not what it looks like.</p>
+    </div>
+
+    <!-- Tabs trigger row -->
+    <div class="nc-tabs-list" role="tablist">
+      <button class="nc-tab-trigger active" data-tab="ai-gait" role="tab" aria-selected="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        AI Gait Analysis
+      </button>
+      <button class="nc-tab-trigger" data-tab="recovery" role="tab" aria-selected="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        Neural Recovery Tracking
+      </button>
+      <button class="nc-tab-trigger" data-tab="biomech" role="tab" aria-selected="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Biomechanics Intelligence
+      </button>
+    </div>
+
+    <!-- Tab panels -->
+    <div class="nc-tab-panel active" data-panel="ai-gait" role="tabpanel">
+      <div class="nc-tab-content">
+        <span class="nc-badge">Movement AI</span>
+        <h3 class="nc-h3">See every step. Score every phase.</h3>
+        <p>Computer-vision gait capture with phase-by-phase scoring across stance, swing, and double-support. NeuCore detects asymmetry deficits invisible to the human eye and pinpoints the exact joint and millisecond where movement breaks down.</p>
+        <a href="#cta" class="nc-btn nc-btn--primary" style="width:fit-content;margin-top:8px;">
+          Run a Sample Analysis
+          <svg class="nc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+      <div class="nc-tab-image">
+        <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=1200&auto=format&q=80" alt="Athlete in motion captured for gait analysis" loading="lazy"/>
+      </div>
+    </div>
+
+    <div class="nc-tab-panel" data-panel="recovery" role="tabpanel">
+      <div class="nc-tab-content">
+        <span class="nc-badge">Neural Telemetry</span>
+        <h3 class="nc-h3">Recovery is a signal — not a guess.</h3>
+        <p>Continuous tracking of nervous-system load, motor-control fidelity, and tissue-readiness across rehab phases. NeuCore tells coaches and clinicians the precise day a return-to-train decision is supported by the data — not by feel.</p>
+        <a href="#cta" class="nc-btn nc-btn--primary" style="width:fit-content;margin-top:8px;">
+          See Recovery Engine
+          <svg class="nc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+      <div class="nc-tab-image">
+        <img src="https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=1200&auto=format&q=80" alt="Recovery and rehabilitation monitoring" loading="lazy"/>
+      </div>
+    </div>
+
+    <div class="nc-tab-panel" data-panel="biomech" role="tabpanel">
+      <div class="nc-tab-content">
+        <span class="nc-badge">Holographic Twin</span>
+        <h3 class="nc-h3">A holographic twin of every body.</h3>
+        <p>206-bone digital skeleton with EMG-validated muscle activation, real-time pain mapping, and joint-level ROM telemetry. Build, test, and prescribe interventions on the twin before applying them to the body.</p>
+        <a href="#cta" class="nc-btn nc-btn--primary" style="width:fit-content;margin-top:8px;">
+          Open the 3D Engine
+          <svg class="nc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+      <div class="nc-tab-image">
+        <img src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=1200&auto=format&q=80" alt="Biomechanics intelligence interface" loading="lazy"/>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════ OUR SERVICES ═══════════════════════════════ -->
+<section class="nc-section" id="services" style="padding-top:0;">
+  <div class="nc-container">
+    <div class="nc-section-head nc-reveal">
+      <span class="nc-eyebrow">Our Services</span>
+      <h2 class="nc-display nc-h2">End-to-end performance,<br/>engineered.</h2>
+      <p class="nc-lead">From the first assessment to the final return-to-play decision — every layer is built on the same NeuCore intelligence stack.</p>
+    </div>
+
+    <div class="nc-services-grid">
+      <!-- Service 1 -->
+      <div class="nc-service-card nc-reveal">
+        <div class="nc-service-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/></svg>
+        </div>
+        <h3 class="nc-service-title">Movement Assessment</h3>
+        <p class="nc-service-desc">Multi-plane biomechanics capture across squat, hinge, gait, and sport-specific patterns. Outputs a 4-domain score in under 12 minutes.</p>
+        <a href="#cta" class="nc-service-link">
+          Learn more
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+
+      <!-- Service 2 -->
+      <div class="nc-service-card nc-reveal delay-1">
+        <div class="nc-service-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        </div>
+        <h3 class="nc-service-title">Neuro-Performance</h3>
+        <p class="nc-service-desc">CNS-load monitoring and motor-control diagnostics that turn nervous-system readiness into a measurable training input.</p>
+        <a href="#cta" class="nc-service-link">
+          Learn more
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+
+      <!-- Service 3 -->
+      <div class="nc-service-card nc-reveal delay-2">
+        <div class="nc-service-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </div>
+        <h3 class="nc-service-title">Rehabilitation Programs</h3>
+        <p class="nc-service-desc">Auto-generated, phase-gated rehab plans backed by 25+ deficit rules and EMG-validated muscle-activation data.</p>
+        <a href="#cta" class="nc-service-link">
+          Learn more
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+
+      <!-- Service 4 -->
+      <div class="nc-service-card nc-reveal">
+        <div class="nc-service-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg>
+        </div>
+        <h3 class="nc-service-title">Performance Analytics</h3>
+        <p class="nc-service-desc">Longitudinal dashboards across symmetry, ROM, force, and CNS load — purpose-built for elite-team performance directors.</p>
+        <a href="#cta" class="nc-service-link">
+          Learn more
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+
+      <!-- Service 5 -->
+      <div class="nc-service-card nc-reveal delay-1">
+        <div class="nc-service-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </div>
+        <h3 class="nc-service-title">Posture & Gait Optimization</h3>
+        <p class="nc-service-desc">Closed-loop posture correction and gait re-patterning using the NeuCore holographic twin and live deficit overlays.</p>
+        <a href="#cta" class="nc-service-link">
+          Learn more
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+
+      <!-- Service 6 -->
+      <div class="nc-service-card nc-reveal delay-2">
+        <div class="nc-service-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2z"/><path d="M12 6v6l4 2"/></svg>
+        </div>
+        <h3 class="nc-service-title">Longevity Coaching</h3>
+        <p class="nc-service-desc">Year-over-year human-optimization tracks designed for executives, founders, and athletes investing in span-of-life performance.</p>
+        <a href="#cta" class="nc-service-link">
+          Learn more
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════ BIOMECHANICS / AI ═══════════════════════════════ -->
+<section class="nc-section" id="biomechanics" style="padding-top:0;">
+  <div class="nc-container nc-bio-grid">
+    <div class="nc-bio-content nc-reveal">
+      <span class="nc-eyebrow">Biomechanical Intelligence</span>
+      <h2 class="nc-display nc-h2">An AI engine trained on<br/>the language of movement.</h2>
+      <p class="nc-lead">NeuCore fuses computer vision, EMG-validated motor models, and clinical-grade rules into a single decision engine. The output isn't another dashboard — it's a verdict you can act on.</p>
+
+      <div class="nc-bio-list">
+        <div class="nc-bio-item">
+          <div class="nc-bio-check">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+          </div>
+          <div>
+            <div class="nc-bio-item-title">Phase-gated decisioning</div>
+            <div class="nc-bio-item-desc">No phase advances until the underlying biomechanical criteria are objectively met.</div>
+          </div>
+        </div>
+        <div class="nc-bio-item">
+          <div class="nc-bio-check">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+          </div>
+          <div>
+            <div class="nc-bio-item-title">Asymmetry detection</div>
+            <div class="nc-bio-item-desc">Sub-degree, sub-millisecond left/right deficit spotting across the kinetic chain.</div>
+          </div>
+        </div>
+        <div class="nc-bio-item">
+          <div class="nc-bio-check">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+          </div>
+          <div>
+            <div class="nc-bio-item-title">25+ deficit rules</div>
+            <div class="nc-bio-item-desc">Codified clinical heuristics from sports medicine, physiotherapy, and motor-control literature.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="nc-bio-visual nc-reveal delay-2">
+      <img src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=1200&auto=format&q=80" alt="AI biomechanics in action" loading="lazy"/>
+      <div class="nc-bio-overlay-card">
+        <div class="nc-card-label">Live deficit map</div>
+        <div style="display:flex;align-items:end;justify-content:space-between;margin-top:8px;">
+          <div class="nc-card-value">L4–L5 · -8.2°</div>
+          <div style="padding:4px 10px;border-radius:999px;background:rgba(212,175,55,0.16);border:1px solid rgba(212,175,55,0.4);font-size:11px;color:#F4D77A;font-weight:600;">FLAGGED</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════ NEUCORE 3D VISUAL ═══════════════════════════════ -->
+<section class="nc-section nc-3d-section" id="visual" style="padding-top:0;">
+  <div class="nc-container">
+    <div class="nc-section-head nc-reveal">
+      <span class="nc-eyebrow">NeuCore Holographic Twin</span>
+      <h2 class="nc-display nc-h2 nc-gradient-text">Every body, rendered.</h2>
+      <p class="nc-lead">A 206-bone digital twin streamed live from your assessment. Joint-by-joint pain mapping, ROM telemetry, and EMG-validated muscle activation in one navigable canvas.</p>
+    </div>
+
+    <div class="nc-3d-stage nc-reveal">
+      <div class="nc-3d-canvas">
+        <!-- Stylized skeleton SVG (placeholder for the live three.js skeleton) -->
+        <svg class="nc-skeleton-svg" viewBox="0 0 200 400" fill="none" stroke="#67E8F9" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <!-- Head -->
+          <circle cx="100" cy="38" r="22" stroke="#14B8A6" stroke-width="1.8"/>
+          <!-- Spine -->
+          <path d="M100 60 L100 200" stroke-dasharray="0"/>
+          <!-- Clavicles / shoulders -->
+          <path d="M62 90 L100 78 L138 90"/>
+          <circle cx="62" cy="90" r="5" fill="#14B8A6" stroke="none"/>
+          <circle cx="138" cy="90" r="5" fill="#14B8A6" stroke="none"/>
+          <!-- Arms -->
+          <path d="M62 90 L48 150 L52 210"/>
+          <path d="M138 90 L152 150 L148 210"/>
+          <circle cx="48" cy="150" r="4" fill="#67E8F9" stroke="none"/>
+          <circle cx="152" cy="150" r="4" fill="#67E8F9" stroke="none"/>
+          <!-- Ribcage hint -->
+          <path d="M75 100 Q100 110 125 100" opacity="0.5"/>
+          <path d="M70 130 Q100 142 130 130" opacity="0.5"/>
+          <path d="M68 160 Q100 172 132 160" opacity="0.5"/>
+          <!-- Hips -->
+          <path d="M75 210 L100 200 L125 210" stroke="#14B8A6" stroke-width="1.8"/>
+          <circle cx="75" cy="210" r="5" fill="#D4AF37" stroke="none"/>
+          <circle cx="125" cy="210" r="5" fill="#D4AF37" stroke="none"/>
+          <!-- Legs -->
+          <path d="M75 210 L70 290 L72 360"/>
+          <path d="M125 210 L130 290 L128 360"/>
+          <circle cx="70" cy="290" r="5" fill="#67E8F9" stroke="none"/>
+          <circle cx="130" cy="290" r="5" fill="#67E8F9" stroke="none"/>
+          <!-- Feet -->
+          <path d="M72 360 L60 372"/>
+          <path d="M128 360 L140 372"/>
+        </svg>
+      </div>
+
+      <div class="nc-3d-tags">
+        <div class="nc-3d-tag nc-3d-tag-1">Cervical · normal</div>
+        <div class="nc-3d-tag nc-3d-tag-2">L-shoulder · -4.1°</div>
+        <div class="nc-3d-tag nc-3d-tag-3">L-hip · flagged</div>
+        <div class="nc-3d-tag nc-3d-tag-4">R-knee · stable</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════ CASE STUDIES ═══════════════════════════════ -->
+<section class="nc-section" id="cases" style="padding-top:0;">
+  <div class="nc-container">
+    <div class="nc-cases-head nc-reveal">
+      <div class="nc-cases-head-text">
+        <span class="nc-eyebrow">Case Studies</span>
+        <h2 class="nc-display nc-h2">Elite teams. Real outcomes.</h2>
+        <p class="nc-lead">From Olympic medalists to NBA training rooms — here's what NeuCore looks like when it ships into the field.</p>
+      </div>
+      <div class="nc-carousel-controls">
+        <button class="nc-carousel-btn" id="nc-carousel-prev" aria-label="Previous case study" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </button>
+        <button class="nc-carousel-btn" id="nc-carousel-next" aria-label="Next case study">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="nc-carousel-viewport" id="nc-carousel">
+    <div class="nc-carousel-track" id="nc-carousel-track">
+      <!-- 1 · Back pain -->
+      <a href="#" class="nc-case-card">
+        <img src="https://images.unsplash.com/photo-1626202373052-9cb5c1bf25cf?w=900&auto=format&q=80" alt="Chronic back pain rehab"/>
+        <div class="nc-case-content">
+          <span class="nc-case-tag cat-back">Back Pain</span>
+          <div class="nc-case-title">8 years of chronic back pain → gardening 2 hrs/day in 8 weeks</div>
+          <div class="nc-case-desc">A 75-year-old woman whose back pain was rooted in a 10-year-old ankle sprain. NeuCore's 80/20 framework targeted leg load tolerance instead of the symptom site.</div>
+          <div class="nc-case-readmore">
+            Read case study
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          </div>
+        </div>
+      </a>
+
+      <!-- 2 · Knee -->
+      <a href="#" class="nc-case-card">
+        <img src="https://images.unsplash.com/photo-1599058917212-d750089bc07e?w=900&auto=format&q=80" alt="ACL knee rehab"/>
+        <div class="nc-case-content">
+          <span class="nc-case-tag cat-knee">Knee</span>
+          <div class="nc-case-title">From ACL to first-eleven in 14 weeks — fully data-gated</div>
+          <div class="nc-case-desc">A premier-league rehab unit used NeuCore phase gates and ROM telemetry as the single source of truth for return-to-train decisions.</div>
+          <div class="nc-case-readmore">
+            Read case study
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          </div>
+        </div>
+      </a>
+
+      <!-- 3 · Shoulder -->
+      <a href="#" class="nc-case-card">
+        <img src="https://images.unsplash.com/photo-1583500178690-f7fd39e44a23?w=900&auto=format&q=80" alt="Shoulder rehab and overhead athletes"/>
+        <div class="nc-case-content">
+          <span class="nc-case-tag cat-shoulder">Shoulder</span>
+          <div class="nc-case-title">Overhead athletes: 31% gain in pain-free flexion in 9 sessions</div>
+          <div class="nc-case-desc">Volleyball blockers and pitchers regained full overhead range using bottom-up perturbation drills sequenced by NeuCore's bridging-the-gap protocol.</div>
+          <div class="nc-case-readmore">
+            Read case study
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          </div>
+        </div>
+      </a>
+
+      <!-- 4 · Hip -->
+      <a href="#" class="nc-case-card">
+        <img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=900&auto=format&q=80" alt="Hip-flexor sprint rehab"/>
+        <div class="nc-case-content">
+          <span class="nc-case-tag cat-hip">Hip</span>
+          <div class="nc-case-title">Olympic sprinters: 11.3% asymmetry reduction in 6 weeks</div>
+          <div class="nc-case-desc">National-team sprinters used NeuCore gait analysis to identify hip-flexor deficits invisible to traditional video review.</div>
+          <div class="nc-case-readmore">
+            Read case study
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          </div>
+        </div>
+      </a>
+
+      <!-- 5 · Ankle -->
+      <a href="#" class="nc-case-card">
+        <img src="https://images.unsplash.com/photo-1559757175-5700dde675bc?w=900&auto=format&q=80" alt="Ankle sprain return to sport"/>
+        <div class="nc-case-content">
+          <span class="nc-case-tag cat-ankle">Ankle</span>
+          <div class="nc-case-title">Recurrent ankle sprains: 0 re-injuries across 28-week season</div>
+          <div class="nc-case-desc">A college lacrosse program ran the midfoot-bridge tripwire and hopping graded-exposure protocols to rebuild ankle resilience after chronic instability.</div>
+          <div class="nc-case-readmore">
+            Read case study
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          </div>
+        </div>
+      </a>
+
+      <!-- 6 · Stroke recovery -->
+      <a href="#" class="nc-case-card">
+        <img src="https://images.unsplash.com/photo-1581595220892-b0739db3ba8c?w=900&auto=format&q=80" alt="Stroke neuro recovery"/>
+        <div class="nc-case-content">
+          <span class="nc-case-tag cat-stroke">Stroke Recovery</span>
+          <div class="nc-case-title">Post-stroke gait: 2.4× walking speed gain in 12 weeks</div>
+          <div class="nc-case-desc">Neurorehab clinic combined NeuCore's holographic skeleton + EMG telemetry with progressive loading to rewire motor patterns post-CVA.</div>
+          <div class="nc-case-readmore">
+            Read case study
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          </div>
+        </div>
+      </a>
+
+      <!-- 7 · Post-surgical -->
+      <a href="#" class="nc-case-card">
+        <img src="https://images.unsplash.com/photo-1551601651-2a8555f1a136?w=900&auto=format&q=80" alt="Post-surgical knee rehab"/>
+        <div class="nc-case-content">
+          <span class="nc-case-tag cat-postsurg">Post-Surgical</span>
+          <div class="nc-case-title">TKR cohort: 94% phase-gate adherence with NeuCore programs</div>
+          <div class="nc-case-desc">A total-knee-replacement program used NeuCore's auto-generated, phase-gated rehab plans to enforce milestone discipline across 60+ post-op patients.</div>
+          <div class="nc-case-readmore">
+            Read case study
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          </div>
+        </div>
+      </a>
+
+      <!-- 8 · Athletic / Performance -->
+      <a href="#" class="nc-case-card">
+        <img src="https://images.unsplash.com/photo-1546519638-68e109498ffc?w=900&auto=format&q=80" alt="Pro athlete return to play"/>
+        <div class="nc-case-content">
+          <span class="nc-case-tag cat-athletic">Athletic Performance</span>
+          <div class="nc-case-title">NBA training room cuts return-to-play time by 22%</div>
+          <div class="nc-case-desc">Phase-gated rehab decisions backed by NeuCore's neural-recovery scoring shortened soft-tissue rehab cycles materially.</div>
+          <div class="nc-case-readmore">
+            Read case study
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <div class="nc-carousel-dots" id="nc-carousel-dots"></div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ BUILT BY REHAB EXPERTS ═══════════════════════ -->
+<section class="nc-experts-band">
+  <div class="nc-container">
+    <div class="nc-experts-grid">
+      <div>
+        <div class="nc-eyebrow" style="margin-bottom:10px">Built by rehab experts</div>
+        <h2 class="nc-experts-headline">
+          Engineered with clinicians who have rehabbed Olympians,<br/>
+          <span class="nc-gold-text">premier-league athletes, and 75-year-olds with 8 years of back pain.</span>
+        </h2>
+      </div>
+      <div class="nc-experts-stats">
+        <div class="nc-experts-stat">
+          <span class="nc-experts-stat-value">15+ yrs</span>
+          <span class="nc-experts-stat-label">Combined sports-medicine clinical experience</span>
+        </div>
+        <div class="nc-experts-stat">
+          <span class="nc-experts-stat-value">8 pillars</span>
+          <span class="nc-experts-stat-label">NeuCore "Go-To Therapist" framework, end-to-end</span>
+        </div>
+        <div class="nc-experts-stat">
+          <span class="nc-experts-stat-value">25+ rules</span>
+          <span class="nc-experts-stat-label">Codified clinical heuristics in the engine</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ COMMUNITY PREVIEW ═══════════════════════ -->
+<section class="nc-section" id="community" style="padding-top:80px;">
+  <div class="nc-container">
+    <div class="nc-section-head nc-reveal">
+      <span class="nc-eyebrow">Voices from the platform</span>
+      <h2 class="nc-display nc-h2">Trusted by clinicians,<br/>loved by patients.</h2>
+      <p class="nc-lead">Real coaches. Real athletes. Real people whose movement got rebuilt — not just patched.</p>
+    </div>
+
+    <div class="nc-community-grid">
+      <!-- Testimonial 1 — clinician -->
+      <div class="nc-testimonial nc-reveal">
+        <div class="nc-testimonial-mark">"</div>
+        <p class="nc-testimonial-quote">NeuCore took my best clinical instincts and turned them into a system every coach in my clinic now follows. Patient drop-off at session 3 is basically gone.</p>
+        <div class="nc-testimonial-foot">
+          <div class="nc-testimonial-avatar">DK</div>
+          <div>
+            <div class="nc-testimonial-name">Dr Kara Lindholm</div>
+            <div class="nc-testimonial-role">Head physio · Apex Movement Clinic</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Testimonial 2 — athlete -->
+      <div class="nc-testimonial nc-reveal delay-1">
+        <div class="nc-testimonial-mark">"</div>
+        <p class="nc-testimonial-quote">For the first time in 6 years I trust my knee. The phase-gated plan stopped me doing what I "felt ready" for and made me earn each step. Back to competing.</p>
+        <div class="nc-testimonial-foot">
+          <div class="nc-testimonial-avatar">MR</div>
+          <div>
+            <div class="nc-testimonial-name">Marcus Rivera</div>
+            <div class="nc-testimonial-role">D-1 sprinter · Post-ACL return-to-play</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Testimonial 3 — life impact -->
+      <div class="nc-testimonial nc-reveal delay-2">
+        <div class="nc-testimonial-mark">"</div>
+        <p class="nc-testimonial-quote">I'm gardening for two hours a day again. Eight years of back pain, and the answer was in my ankle. NeuCore's coach explained it so I finally understood my own body.</p>
+        <div class="nc-testimonial-foot">
+          <div class="nc-testimonial-avatar">EH</div>
+          <div>
+            <div class="nc-testimonial-name">Eleanor H., 75</div>
+            <div class="nc-testimonial-role">Chronic back-pain patient</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════ CTA ═══════════════════════════════ -->
+<section class="nc-cta-section" id="cta">
+  <div class="nc-container">
+    <div class="nc-cta-card nc-reveal">
+      <div class="nc-cta-content">
+        <span class="nc-eyebrow">Get started</span>
+        <h2 class="nc-display nc-h2">The future of human performance.<br/><span class="nc-gradient-text">Run your first assessment today.</span></h2>
+        <p class="nc-lead">Join the elite teams, clinics, and longevity practices already running on NeuCore.</p>
+        <div class="nc-cta-buttons">
+          <a href="#" data-visitor-trigger class="nc-btn nc-btn--primary nc-btn--lg">
+            Start Assessment
+            <svg class="nc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          </a>
+          <a href="mailto:hello@neucore.io" class="nc-btn nc-btn--ghost nc-btn--lg">Talk to sales</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════ FOOTER ═══════════════════════════════ -->
+<footer class="nc-footer">
+  <div class="nc-container">
+    <div class="nc-footer-grid">
+      <div class="nc-footer-brand">
+        <div class="nc-logo">
+          <span class="nc-logo-mark"></span>
+          <span>NEUCORE</span>
+        </div>
+        <p>AI biomechanics, movement intelligence, and neuro-performance optimization built for the future of rehabilitation and elite health.</p>
+      </div>
+
+      <div class="nc-footer-col">
+        <h4>Platform</h4>
+        <ul>
+          <li><a href="#features">AI Gait Analysis</a></li>
+          <li><a href="#features">Neural Recovery</a></li>
+          <li><a href="#features">Biomechanics Engine</a></li>
+          <li><a href="#visual">Holographic Twin</a></li>
+        </ul>
+      </div>
+
+      <div class="nc-footer-col">
+        <h4>Company</h4>
+        <ul>
+          <li><a href="#">About</a></li>
+          <li><a href="#cases">Case Studies</a></li>
+          <li><a href="#">Research</a></li>
+          <li><a href="#">Careers</a></li>
+        </ul>
+      </div>
+
+      <div class="nc-footer-col">
+        <h4>Resources</h4>
+        <ul>
+          <li><a href="#">Documentation</a></li>
+          <li><a href="#">Clinician Hub</a></li>
+          <li><a href="#">Athlete Portal</a></li>
+          <li><a href="#">API Reference</a></li>
+        </ul>
+      </div>
+
+      <div class="nc-footer-col">
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="#">Privacy</a></li>
+          <li><a href="#">Terms</a></li>
+          <li><a href="#">HIPAA</a></li>
+          <li><a href="#">Security</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="nc-footer-bottom">
+      <p>© <span id="nc-year">2026</span> NeuCore Inc. — Engineered for human performance.</p>
+      <div class="nc-footer-social">
+        <a href="#" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg></a>
+        <a href="#" aria-label="X / Twitter"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+        <a href="#" aria-label="GitHub"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.111.82-.261.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg></a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- ═══════════════════════ VISITOR ENTRY MODAL (Phase 1 §1C) ═══════════════════════ -->
+<div class="nc-visitor-modal" id="visitor-modal" role="dialog" aria-modal="true" aria-labelledby="visitor-modal-title">
+  <div class="nc-visitor-card">
+    <button class="nc-visitor-close" aria-label="Close" data-visitor-close>×</button>
+
+    <!-- Step 1: Choice -->
+    <div id="visitor-step-choice">
+      <div class="nc-visitor-eyebrow">Get Started</div>
+      <h2 class="nc-visitor-title" id="visitor-modal-title">How would you like to begin?</h2>
+      <p class="nc-visitor-sub">Two ways in. Pick the one that fits how you want to start your NeuCore journey.</p>
+
+      <div class="nc-visitor-choices">
+        <a class="nc-visitor-choice" id="visitor-choice-call"
+           href="https://calendly.com/abdelrahman-sabry-1909/talk-with-an-expert"
+           target="_blank" rel="noopener noreferrer">
+          <span class="nc-visitor-choice-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
           </span>
-          <div style="display:flex;gap:8px;align-items:center">
-            <button class="nc-toolbar-btn" id="nc-reset-btn"
-                    onclick="window._ncReset && window._ncReset()">↺ Reset</button>
-            <button class="nc-toolbar-btn" id="gait-anim-btn-dashboard"
-                    onclick="window._ncToggleGait && window._ncToggleGait(this)">▶ Simulate</button>
-          </div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 280px;gap:16px;align-items:start">
-          <!-- 3D Viewport — NeuCore holographic skeleton (auto-init via src/main.js) -->
-          <div id="bodymap-dashboard-container"
-            style="height:520px;border-radius:10px;overflow:hidden;background:#050D1A;border:0.5px solid rgba(0,212,255,0.18);position:relative;">
-          </div>
-          <!-- Joint detail panel — NeuCore style -->
-          <div style="display:flex;flex-direction:column;gap:12px">
-            <!-- Joint name + status -->
-            <div style="background:rgba(5,13,26,0.85);border:0.5px solid rgba(0,212,255,0.18);
-                       border-radius:10px;padding:14px">
-              <div class="nc-label" style="margin-bottom:6px">Selected Joint</div>
-              <div id="bodymap-joint-name-dashboard"
-                   style="font-size:16px;font-weight:500;color:rgba(200,240,255,0.95);padding:4px 0">
-                ← Click a joint
-              </div>
-            </div>
+          <div class="nc-visitor-choice-title">Schedule a Call</div>
+          <div class="nc-visitor-choice-desc">15-min consult with a NeuCore clinician. Bring your questions, leave with a plan.</div>
+        </a>
 
-            <!-- Pain + notes controls -->
-            <div id="bodymap-joint-controls-dashboard" class="hidden"
-                 style="background:rgba(5,13,26,0.85);border:0.5px solid rgba(0,212,255,0.18);
-                        border-radius:10px;padding:14px">
-              <div class="nc-label" style="margin-bottom:8px">
-                Pain Scale — <span id="joint-pain-val-dashboard"
-                  style="color:#00D4FF;font-weight:600">0</span>/10
-              </div>
-              <input type="range" class="pain-slider" id="joint-pain-slider-dashboard"
-                     min="0" max="10" step="0.5" value="0" style="width:100%;margin-bottom:10px"/>
-              <div style="display:flex;justify-content:space-between;font-size:10px;
-                         color:rgba(0,212,255,0.4);margin-bottom:12px">
-                <span>Healthy</span><span>Critical</span>
-              </div>
-              <div style="margin-bottom:10px">
-                <div class="nc-label" style="margin-bottom:6px">Notes</div>
-                <input id="joint-notes-dashboard" class="form-input"
-                       placeholder="Describe findings…"
-                       style="font-size:12px;background:rgba(0,212,255,0.05);
-                              border-color:rgba(0,212,255,0.2);color:rgba(200,240,255,0.85)"/>
-              </div>
-            </div>
-
-            <!-- Pain scale legend -->
-            <div style="background:rgba(5,13,26,0.85);border:0.5px solid rgba(0,212,255,0.12);
-                       border-radius:10px;padding:14px">
-              <div class="nc-label" style="margin-bottom:10px">Pain Scale</div>
-
-              <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-                <div style="width:10px;height:10px;border-radius:50%;background:#00FF88;
-                            flex-shrink:0;box-shadow:0 0 6px rgba(0,255,136,0.4)"></div>
-                <span style="font-size:11px;color:rgba(200,240,255,0.6)">0–2 — Healthy</span>
-              </div>
-              <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-                <div style="width:10px;height:10px;border-radius:50%;background:#FACC15;
-                            flex-shrink:0;box-shadow:0 0 6px rgba(250,204,21,0.4)"></div>
-                <span style="font-size:11px;color:rgba(200,240,255,0.6)">3–4 — Mild</span>
-              </div>
-              <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-                <div style="width:10px;height:10px;border-radius:50%;background:#FF8800;
-                            flex-shrink:0;box-shadow:0 0 6px rgba(255,136,0,0.4)"></div>
-                <span style="font-size:11px;color:rgba(200,240,255,0.6)">5–6 — Moderate</span>
-              </div>
-              <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-                <div style="width:10px;height:10px;border-radius:50%;background:#FF2D78;
-                            flex-shrink:0;box-shadow:0 0 6px rgba(255,45,120,0.4)"></div>
-                <span style="font-size:11px;color:rgba(200,240,255,0.6)">7–8 — Severe</span>
-              </div>
-              <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-                <div style="width:10px;height:10px;border-radius:50%;background:#8B0033;
-                            flex-shrink:0;box-shadow:0 0 6px rgba(139,0,51,0.5)"></div>
-                <span style="font-size:11px;color:rgba(200,240,255,0.6)">9–10 — Critical</span>
-              </div>
-            </div>
-
-            <!-- Quick stats -->
-            <div id="bodymap-joint-stats" style="
-              background:rgba(5,13,26,0.85);border:0.5px solid rgba(0,212,255,0.12);
-              border-radius:10px;padding:14px;display:none">
-              <div class="nc-label" style="margin-bottom:8px">Joint Health</div>
-              <div id="bodymap-joint-stats-content"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="grid-2" style="gap:var(--sp-5)">
-        <div class="card card-accent-lime">
-          <div class="card-header">
-            <span class="card-title">Recent Sessions</span>
-            <button class="btn btn-ghost btn-xs" onclick="Dashboard.showSection('programs')">View all →</button>
-          </div>
-          <div id="recent-sessions-list"></div>
-        </div>
-        <div class="card card-accent-teal role-coach-admin">
-          <div class="card-header">
-            <span class="card-title">Client Overview</span>
-            <button class="btn btn-ghost btn-xs" onclick="Dashboard.showSection('clients')">View all →</button>
-          </div>
-          <div id="dashboard-clients-list"></div>
-        </div>
+        <button class="nc-visitor-choice" id="visitor-choice-survey" type="button">
+          <span class="nc-visitor-choice-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+          </span>
+          <div class="nc-visitor-choice-title">Take a Quick Survey</div>
+          <div class="nc-visitor-choice-desc">90 seconds. Tell us your symptoms — we'll match you to the right specialist.</div>
+        </button>
       </div>
     </div>
 
-    <!-- ── NEW SESSION ── -->
-    <div class="section" id="section-new-session">
-      <div class="page-header">
-        <div class="page-header-left">
-          <h1 class="page-title">New <span class="accent">Session</span></h1>
-          <p class="page-subtitle">Complete all tabs then generate the AI program</p>
+    <!-- Step 2: Survey form -->
+    <div class="nc-visitor-form" id="visitor-step-survey">
+      <div class="nc-visitor-eyebrow">Quick Survey</div>
+      <h2 class="nc-visitor-title">Tell us about you.</h2>
+      <p class="nc-visitor-sub">No account needed. We'll review and email you within one business day.</p>
+
+      <form id="visitor-survey-form" novalidate>
+        <div class="nc-visitor-field">
+          <label for="visitor-name">Full name *</label>
+          <input id="visitor-name" name="full_name" type="text" required minlength="2" maxlength="120" autocomplete="name" placeholder="Jane Doe"/>
         </div>
-      </div>
-      <div class="tab-row" id="session-tabs">
-        <button class="tab-btn active" data-tab="tab-info">① Client Info</button>
-        <button class="tab-btn" data-tab="tab-subjective">② Subjective</button>
-        <button class="tab-btn" data-tab="tab-objective">③ Objective</button>
-        <button class="tab-btn" data-tab="tab-generate">④ Generate</button>
-      </div>
-
-      <!-- TAB 1 -->
-      <div class="tab-panel active" id="tab-info">
-        <div class="grid-2" style="align-items:start">
-          <div class="card">
-            <div class="card-header"><span class="card-title">Client Information</span></div>
-            <div class="form-group">
-              <label class="form-label">Select Existing Client</label>
-              <select id="ns-client-select" class="form-input" onchange="Dashboard.fillClientFromSelect()">
-                <option value="">— Enter manually —</option>
-              </select>
-            </div>
-            <hr class="divider"/>
-            <div class="form-group">
-              <label class="form-label">Full Name</label>
-              <input id="ns-name" class="form-input" placeholder="e.g. Ahmed Hassan"/>
-            </div>
-            <div class="input-row">
-              <div class="form-group">
-                <label class="form-label">Age</label>
-                <input id="ns-age" type="number" class="form-input" placeholder="32"/>
-              </div>
-              <div class="form-group">
-                <label class="form-label">Phase</label>
-                <select id="ns-phase" class="form-input">
-                  <option value="Phase 1">Phase 1 — Mobility</option>
-                  <option value="Phase 2">Phase 2 — Control</option>
-                  <option value="Phase 3">Phase 3 — Load</option>
-                </select>
-              </div>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Goal</label>
-              <input id="ns-goal" class="form-input" placeholder="e.g. Reduce lower back pain, improve gait"/>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Injury History</label>
-              <textarea id="ns-injury" class="form-input" placeholder="Past injuries, surgeries, chronic conditions..."></textarea>
-            </div>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:var(--sp-4)">
-            <div class="card">
-              <div class="card-header"><span class="card-title">Phase Guide</span></div>
-              <div class="phase-guide-item">
-                <span class="badge badge-phase1" style="flex-shrink:0;margin-top:2px">P1</span>
-                <div>
-                  <div style="font-size:13px;font-weight:600;margin-bottom:3px">Mobility / Space Creation</div>
-                  <div style="font-size:12px;color:var(--text-tertiary);line-height:1.5">No heavy loading. PRI repositioning, FRC CARs, breathing reset, joint decompression.</div>
-                </div>
-              </div>
-              <div class="phase-guide-item">
-                <span class="badge badge-phase2" style="flex-shrink:0;margin-top:2px">P2</span>
-                <div>
-                  <div style="font-size:13px;font-weight:600;margin-bottom:3px">Neuromuscular Control</div>
-                  <div style="font-size:12px;color:var(--text-tertiary);line-height:1.5">PAILs/RAILs, bodyweight loading. Stability at end-range positions gained in Phase 1.</div>
-                </div>
-              </div>
-              <div class="phase-guide-item">
-                <span class="badge badge-phase3" style="flex-shrink:0;margin-top:2px">P3</span>
-                <div>
-                  <div style="font-size:13px;font-weight:600;margin-bottom:3px">Load Integration</div>
-                  <div style="font-size:12px;color:var(--text-tertiary);line-height:1.5">Progressive external load, compound movement, sport-specific patterns.</div>
-                </div>
-              </div>
-            </div>
-            <div class="card role-coach-admin">
-              <div class="card-header"><span class="card-title">⚡ Phase Upgrade</span></div>
-              <div class="phase-banner">
-                <div style="font-family:var(--font-display);font-size:15px;color:var(--lime);margin-bottom:6px">Client ready to advance?</div>
-                <p style="font-size:12px;color:var(--text-tertiary);line-height:1.5;margin-bottom:14px">Upgrade to next phase and send a celebration notification automatically.</p>
-                <button class="btn btn-teal btn-sm" onclick="Dashboard.openModal('modal-phase-upgrade')">🎉 Upgrade & Celebrate</button>
-              </div>
-            </div>
-          </div>
+        <div class="nc-visitor-field">
+          <label for="visitor-email">Email *</label>
+          <input id="visitor-email" name="email" type="email" required autocomplete="email" placeholder="you@email.com"/>
         </div>
-        <div style="display:flex;justify-content:flex-end;margin-top:var(--sp-4)">
-          <button class="btn btn-primary" onclick="UI.goTab('session-tabs','tab-subjective')">Next: Subjective →</button>
+        <div class="nc-visitor-field">
+          <label for="visitor-phone">Phone <span style="opacity:.5;font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></label>
+          <input id="visitor-phone" name="phone" type="tel" maxlength="40" autocomplete="tel" placeholder="+1 555 0100"/>
         </div>
-      </div>
-
-      <!-- TAB 2 -->
-      <div class="tab-panel" id="tab-subjective">
-        <div class="card">
-          <div class="card-header"><span class="card-title">Subjective Assessment</span></div>
-          <div class="form-group">
-            <label class="form-label">Client Reported Complaints & History</label>
-            <textarea id="ns-subjective" class="form-input" style="min-height:160px"
-              placeholder="Pain location, behaviour, onset, aggravating/easing factors, previous treatments, medications, sleep quality, stress levels, occupation demands..."></textarea>
-          </div>
-        </div>
-        <div style="display:flex;justify-content:space-between;margin-top:var(--sp-4)">
-          <button class="btn btn-ghost" onclick="UI.goTab('session-tabs','tab-info')">← Back</button>
-          <button class="btn btn-primary" onclick="UI.goTab('session-tabs','tab-objective')">Next: Objective →</button>
-        </div>
-      </div>
-
-      <!-- TAB 3 -->
-      <div class="tab-panel" id="tab-objective">
-        <!-- ══ OBJECTIVE ASSESSMENT GRID ══════════════════════════ -->
-        <!-- All IDs match exactly what ScoringEngine.readForm() reads -->
-        <div class="neucore-assess-layout">
-        <div class="assess-grid">
-
-          <!-- TOE TOUCH & FOOT/ANKLE -->
-          <div class="card">
-            <div class="assess-section-head">🦶 Toe Touch & Foot / Ankle</div>
-            <div class="form-group">
-              <label class="form-label">Toe Touch Score</label>
-              <select id="ns-toetouch-score" class="form-input">
-                <option value="">— Not assessed —</option>
-                <option value="3">3 — Clean (posterior shift + uniform flexion)</option>
-                <option value="2">2 — No posterior weight shift</option>
-                <option value="1">1 — Flat segment present</option>
-                <option value="0">0 — Both deficits</option>
-                <option value="-1">P — Pain during attempt</option>
-              </select>
-            </div>
-            <div class="input-row">
-              <div class="form-group">
-                <label class="form-label">Dorsiflexion L (cm)</label>
-                <input id="ns-ankle-df-l" type="number" step="0.5" class="form-input" placeholder="e.g. 8.5"/>
-                <div class="form-hint">Norm: 10–12 cm</div>
-              </div>
-              <div class="form-group">
-                <label class="form-label">Dorsiflexion R (cm)</label>
-                <input id="ns-ankle-df-r" type="number" step="0.5" class="form-input" placeholder="e.g. 10"/>
-              </div>
-            </div>
-            <div class="input-row">
-              <div class="form-group">
-                <label class="form-label">Pronation Left</label>
-                <select id="ns-pronation-l" class="form-input">
-                  <option value="">—</option>
-                  <option value="over">Over-pronation</option>
-                  <option value="normal">Normal</option>
-                  <option value="high">High arch</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label class="form-label">Pronation Right</label>
-                <select id="ns-pronation-r" class="form-input">
-                  <option value="">—</option>
-                  <option value="over">Over-pronation</option>
-                  <option value="normal">Normal</option>
-                  <option value="high">High arch</option>
-                </select>
-              </div>
-            </div>
-            <div class="input-row">
-              <div class="form-group">
-                <label class="form-label">Supination Left</label>
-                <select id="ns-supination-l" class="form-input">
-                  <option value="">—</option>
-                  <option value="stuck_supinated">Stuck supinated</option>
-                  <option value="normal">Normal</option>
-                  <option value="stuck_pronated">Stuck pronated</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label class="form-label">Supination Right</label>
-                <select id="ns-supination-r" class="form-input">
-                  <option value="">—</option>
-                  <option value="stuck_supinated">Stuck supinated</option>
-                  <option value="normal">Normal</option>
-                  <option value="stuck_pronated">Stuck pronated</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <!-- TIBIA -->
-          <div class="card">
-            <div class="assess-section-head">🦴 Tibia</div>
-            <div class="input-row">
-              <div class="form-group">
-                <label class="form-label">IR Left (°)</label>
-                <input id="ns-tib-ir-l" type="number" class="form-input" placeholder="e.g. 22"/>
-                <div class="form-hint">Norm: 20–30°</div>
-              </div>
-              <div class="form-group">
-                <label class="form-label">IR Right (°)</label>
-                <input id="ns-tib-ir-r" type="number" class="form-input" placeholder="e.g. 25"/>
-              </div>
-            </div>
-          </div>
-
-          <!-- HIP (full width) -->
-          <div class="card" style="grid-column:span 2">
-            <div class="assess-section-head">🏋️ Hip — Enter degrees. Type "P" or -1 for pain.</div>
-            <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;align-items:end">
-              <div></div>
-              <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-tertiary);padding-bottom:4px">Left (°)</div>
-              <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-tertiary);padding-bottom:4px">Right (°)</div>
-              <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-tertiary);padding-bottom:4px">Norm</div>
-              <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-tertiary);padding-bottom:4px">Note</div>
-
-              <div style="font-size:12px;font-weight:600;color:var(--text-secondary);padding:8px 0">IR</div>
-              <input id="ns-hip-ir-l" type="number" class="form-input" placeholder="e.g. 28"/>
-              <input id="ns-hip-ir-r" type="number" class="form-input" placeholder="e.g. 40"/>
-              <div style="font-size:11px;color:var(--text-tertiary)">35–45°</div>
-              <div style="font-size:10px;color:var(--text-tertiary)">Seated 90/90</div>
-
-              <div style="font-size:12px;font-weight:600;color:var(--text-secondary);padding:8px 0">ER</div>
-              <input id="ns-hip-er-l" type="number" class="form-input" placeholder="e.g. 42"/>
-              <input id="ns-hip-er-r" type="number" class="form-input" placeholder="e.g. 48"/>
-              <div style="font-size:11px;color:var(--text-tertiary)">45–60°</div>
-              <div style="font-size:10px;color:var(--text-tertiary)">Seated 90/90</div>
-
-              <div style="font-size:12px;font-weight:600;color:var(--text-secondary);padding:8px 0">Flexion</div>
-              <input id="ns-hip-flex-l" type="number" class="form-input" placeholder="e.g. 115"/>
-              <input id="ns-hip-flex-r" type="number" class="form-input" placeholder="e.g. 125"/>
-              <div style="font-size:11px;color:var(--text-tertiary)">120–135°</div>
-              <div style="font-size:10px;color:var(--text-tertiary)">Supine, knee-to-chest</div>
-
-              <div style="font-size:12px;font-weight:600;color:var(--text-secondary);padding:8px 0">Extension</div>
-              <input id="ns-hip-ext-l" type="number" class="form-input" placeholder="e.g. 8"/>
-              <input id="ns-hip-ext-r" type="number" class="form-input" placeholder="e.g. 12"/>
-              <div style="font-size:11px;color:var(--text-tertiary)">10–15°</div>
-              <div style="font-size:10px;color:var(--text-tertiary)">Prone, knee bent 90°</div>
-
-              <div style="font-size:12px;font-weight:600;color:var(--text-secondary);padding:8px 0">Abduction</div>
-              <input id="ns-hip-abd-l" type="number" class="form-input" placeholder="e.g. 38"/>
-              <input id="ns-hip-abd-r" type="number" class="form-input" placeholder="e.g. 45"/>
-              <div style="font-size:11px;color:var(--text-tertiary)">40–50°</div>
-              <div style="font-size:10px;color:var(--text-tertiary)">Sidelying, test leg up</div>
-            </div>
-          </div>
-
-          <!-- SPINE — pain checkboxes feed into scoring engine -->
-          <div class="card">
-            <div class="assess-section-head">🧠 Spine — Check box if movement is painful</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px;background:var(--bg-raised);border-radius:8px;border:1px solid var(--border-subtle)">
-                <input type="checkbox" id="ns-sp-flex-pain" style="width:15px;height:15px;accent-color:var(--rose)"/>
-                <span style="font-size:12px;font-weight:500">Flexion — Pain</span>
-              </label>
-              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px;background:var(--bg-raised);border-radius:8px;border:1px solid var(--border-subtle)">
-                <input type="checkbox" id="ns-sp-ext-pain" style="width:15px;height:15px;accent-color:var(--rose)"/>
-                <span style="font-size:12px;font-weight:500">Extension — Pain</span>
-              </label>
-              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px;background:var(--bg-raised);border-radius:8px;border:1px solid var(--border-subtle)">
-                <input type="checkbox" id="ns-sp-lfl-pain" style="width:15px;height:15px;accent-color:var(--rose)"/>
-                <span style="font-size:12px;font-weight:500">Lat Flex L — Pain</span>
-              </label>
-              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px;background:var(--bg-raised);border-radius:8px;border:1px solid var(--border-subtle)">
-                <input type="checkbox" id="ns-sp-lfr-pain" style="width:15px;height:15px;accent-color:var(--rose)"/>
-                <span style="font-size:12px;font-weight:500">Lat Flex R — Pain</span>
-              </label>
-              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px;background:var(--bg-raised);border-radius:8px;border:1px solid var(--border-subtle)">
-                <input type="checkbox" id="ns-sp-rotl-pain" style="width:15px;height:15px;accent-color:var(--rose)"/>
-                <span style="font-size:12px;font-weight:500">Rotation L — Pain</span>
-              </label>
-              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px;background:var(--bg-raised);border-radius:8px;border:1px solid var(--border-subtle)">
-                <input type="checkbox" id="ns-sp-rotr-pain" style="width:15px;height:15px;accent-color:var(--rose)"/>
-                <span style="font-size:12px;font-weight:500">Rotation R — Pain</span>
-              </label>
-            </div>
-            <div class="form-group" style="margin-top:12px">
-              <label class="form-label">Additional Spine Notes</label>
-              <input id="ns-sp-notes" class="form-input" placeholder="e.g. Flat L4-5 segment, R lateral shift on flexion"/>
-            </div>
-          </div>
-
-          <!-- SHOULDER -->
-          <div class="card">
-            <div class="assess-section-head">💪 Shoulder (degrees)</div>
-            <div style="display:grid;grid-template-columns:auto 1fr 1fr;gap:8px;align-items:end;margin-bottom:4px">
-              <div></div>
-              <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-tertiary)">Left</div>
-              <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-tertiary)">Right</div>
-              <div style="font-size:11px;color:var(--text-secondary)">Flex</div>
-              <input id="ns-sh-flex-l" type="number" class="form-input" placeholder="160–180°"/>
-              <input id="ns-sh-flex-r" type="number" class="form-input" placeholder="160–180°"/>
-              <div style="font-size:11px;color:var(--text-secondary)">Ext</div>
-              <input id="ns-sh-ext-l" type="number" class="form-input" placeholder="50–60°"/>
-              <input id="ns-sh-ext-r" type="number" class="form-input" placeholder="50–60°"/>
-              <div style="font-size:11px;color:var(--text-secondary)">IR</div>
-              <input id="ns-sh-ir-l" type="number" class="form-input" placeholder="70–90°"/>
-              <input id="ns-sh-ir-r" type="number" class="form-input" placeholder="70–90°"/>
-              <div style="font-size:11px;color:var(--text-secondary)">ER</div>
-              <input id="ns-sh-er-l" type="number" class="form-input" placeholder="80–100°"/>
-              <input id="ns-sh-er-r" type="number" class="form-input" placeholder="80–100°"/>
-            </div>
-          </div>
-
-          <!-- LOAD TOLERANCE (full width, structured) -->
-          <div class="card" style="grid-column:span 2">
-            <div class="assess-section-head">⚖️ Load Tolerance Tests — 0=Pain · 1=Severe comp · 2=Mild comp · 3=Clean</div>
-            <div style="display:grid;grid-template-columns:2fr 1fr 1fr 2fr;gap:10px;align-items:end;margin-bottom:8px">
-              <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-tertiary)">Test</div>
-              <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-tertiary)">Left (0–3)</div>
-              <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-tertiary)">Right (0–3)</div>
-              <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-tertiary)">Notes</div>
-
-              <div style="font-size:12px;font-weight:600;color:var(--text-secondary);padding:8px 0">SL Squat</div>
-              <select id="ns-sl-squat-l" class="form-input">
-                <option value="">—</option>
-                <option value="3">3 — Clean</option>
-                <option value="2">2 — Mild</option>
-                <option value="1">1 — Severe</option>
-                <option value="0">0 — Pain</option>
-              </select>
-              <select id="ns-sl-squat-r" class="form-input">
-                <option value="">—</option>
-                <option value="3">3 — Clean</option>
-                <option value="2">2 — Mild</option>
-                <option value="1">1 — Severe</option>
-                <option value="0">0 — Pain</option>
-              </select>
-              <input id="ns-sl-squat-notes" class="form-input" placeholder="e.g. R Trendelenburg, knee valgus"/>
-
-              <div style="font-size:12px;font-weight:600;color:var(--text-secondary);padding:8px 0">SL RDL</div>
-              <select id="ns-sl-rdl-l" class="form-input">
-                <option value="">—</option>
-                <option value="3">3 — Clean</option>
-                <option value="2">2 — Mild</option>
-                <option value="1">1 — Severe</option>
-                <option value="0">0 — Pain</option>
-              </select>
-              <select id="ns-sl-rdl-r" class="form-input">
-                <option value="">—</option>
-                <option value="3">3 — Clean</option>
-                <option value="2">2 — Mild</option>
-                <option value="1">1 — Severe</option>
-                <option value="0">0 — Pain</option>
-              </select>
-              <input id="ns-sl-rdl-notes" class="form-input" placeholder="e.g. R lateral trunk shift"/>
-
-              <div style="font-size:12px;font-weight:600;color:var(--text-secondary);padding:8px 0">OH Squat</div>
-              <select id="ns-oh-squat" class="form-input">
-                <option value="">—</option>
-                <option value="3">3 — Clean</option>
-                <option value="2">2 — Mild</option>
-                <option value="1">1 — Severe</option>
-                <option value="0">0 — Pain</option>
-              </select>
-              <div></div>
-              <input id="ns-oh-squat-notes" class="form-input" placeholder="e.g. bilateral heel rise, forward lean"/>
-            </div>
-          </div>
-
-          <!-- NEUROLOGY (full width) -->
-          <div class="card" style="grid-column:span 2">
-            <div class="assess-section-head">🧬 Neurology / Balance</div>
-            <div style="display:grid;grid-template-columns:2fr 1fr 1fr 2fr;gap:10px;align-items:end;margin-bottom:8px">
-              <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-tertiary)">Test</div>
-              <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-tertiary)">Left</div>
-              <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-tertiary)">Right</div>
-              <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-tertiary)">Norm</div>
-
-              <div style="font-size:12px;font-weight:600;color:var(--text-secondary);padding:8px 0">SL Balance — Eyes Open (s)</div>
-              <input id="ns-bal-eo-l" type="number" class="form-input" placeholder="e.g. 22"/>
-              <input id="ns-bal-eo-r" type="number" class="form-input" placeholder="e.g. 30"/>
-              <div style="font-size:11px;color:var(--text-tertiary)">≥ 30 seconds</div>
-
-              <div style="font-size:12px;font-weight:600;color:var(--text-secondary);padding:8px 0">SL Balance — Eyes Closed (s)</div>
-              <input id="ns-bal-ec-l" type="number" class="form-input" placeholder="e.g. 6"/>
-              <input id="ns-bal-ec-r" type="number" class="form-input" placeholder="e.g. 10"/>
-              <div style="font-size:11px;color:var(--text-tertiary)">≥ 10 seconds</div>
-
-              <div style="font-size:12px;font-weight:600;color:var(--text-secondary);padding:8px 0">SL Reach Forward (% leg)</div>
-              <input id="ns-reach-l" type="number" class="form-input" placeholder="e.g. 65"/>
-              <input id="ns-reach-r" type="number" class="form-input" placeholder="e.g. 72"/>
-              <div style="font-size:11px;color:var(--text-tertiary)">≥ 70% leg length</div>
-            </div>
-          </div>
-
-
-
-        </div><!-- /assess-grid -->
-
-        <!-- NeuCore 3D skeleton sidebar — updates in real-time as form is filled -->
-        <div>
-          <div style="font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;
-                     color:rgba(0,212,255,0.4);margin-bottom:8px;padding-left:2px">
-            Live Body Map
-          </div>
-          <div id="neucore-body-canvas"></div>
+        <div class="nc-visitor-field">
+          <label for="visitor-symptoms">What's going on? <span style="opacity:.5;font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></label>
+          <textarea id="visitor-symptoms" name="symptoms" rows="4" maxlength="4000" placeholder="Pain, injury history, what you'd like to be able to do again…"></textarea>
         </div>
 
-        </div><!-- /neucore-assess-layout -->
+        <div class="nc-visitor-error" id="visitor-error"></div>
 
-        <div style="display:flex;justify-content:space-between;margin-top:var(--sp-4)">
-          <button class="btn btn-ghost" onclick="UI.goTab('session-tabs','tab-subjective')">← Back</button>
-          <button class="btn btn-primary" onclick="UI.goTab('session-tabs','tab-generate')">Next: Generate →</button>
+        <div class="nc-visitor-actions">
+          <button type="button" class="nc-btn nc-btn--ghost" data-visitor-back>← Back</button>
+          <button type="submit" class="nc-btn nc-btn--primary" id="visitor-submit">Send →</button>
         </div>
-      </div>
-
-      <!-- TAB 4 — GENERATE ══════════════════════════════════════ -->
-      <div class="tab-panel" id="tab-generate">
-
-        <!-- ── STATUS PANEL (rendered by StatusPanel via neucore.js) -->
-        <div id="status-panel" class="hidden" style="margin-bottom:var(--sp-4)"></div>
-
-        <!-- Output settings -->
-        <div class="card" style="margin-bottom:var(--sp-4)">
-          <div class="card-header"><span class="card-title">Output Settings</span></div>
-          <div class="form-group">
-            <label class="form-label">Save to Client Profile</label>
-            <select id="ns-save-client" class="form-input">
-              <option value="">— Don't save to a profile —</option>
-            </select>
-            <div class="form-hint">Links this session to the client's history in Supabase. Saves scores, gait analysis, and program.</div>
-          </div>
-        </div>
-
-        <!-- Generate button -->
-        <div style="text-align:center;margin-bottom:var(--sp-6)">
-          <button class="btn btn-primary btn-xl" id="generate-btn" onclick="Dashboard.generateProgram()">
-            ⚡ Generate Program
-          </button>
-          <div style="font-size:12px;color:var(--text-tertiary);margin-top:8px">
-            Runs local scoring engines first, then AI narrative
-          </div>
-        </div>
-
-        <!-- ── SCORE PANEL (rendered by ScoringEngine.renderScores) -->
-        <div id="score-panel" class="card hidden" style="margin-bottom:var(--sp-4)"></div>
-
-        <!-- ── NEUCORE GAIT ANALYSIS PAGE (ES module, rendered by GaitAnalysisPage) -->
-        <div id="neucore-gait-container" class="hidden" style="margin-bottom:var(--sp-4)"></div>
-
-        <!-- ── GAIT PHASE STRIP (rendered by GaitPhaseStrip via neucore.js) -->
-        <div id="gait-phase-strip" class="hidden" style="margin-bottom:var(--sp-4)"></div>
-
-        <!-- ── GAIT PANEL (rendered by GaitEngine.renderGaitAnalysis) -->
-        <div id="gait-panel" class="card hidden" style="margin-bottom:var(--sp-4)"></div>
-
-        <!-- ── STRUCTURED PROGRAM (rendered by ProgramGenerator.renderProgram) -->
-        <!-- id="program-panel" is the canonical target used by programGenerator.js -->
-        <div id="program-panel" class="card hidden" style="margin-bottom:var(--sp-4)"></div>
-
-        <!-- ── DAILY ROUTINE (rendered by ProgramGenerator.renderDailyRoutine) -->
-        <div id="daily-routine-panel" class="card hidden" style="margin-bottom:var(--sp-4)"></div>
-
-        <!-- ── AI NARRATIVE OUTPUT (Claude) -->
-        <div id="output-panel" class="hidden">
-          <div class="card" style="margin-bottom:var(--sp-4)">
-            <div class="card-header">
-              <span class="card-title">AI Clinical Narrative</span>
-              <div style="display:flex;gap:var(--sp-2)">
-                <button class="btn btn-ghost btn-sm" onclick="Dashboard.previewWeb()">🌐 Web Preview</button>
-                <button class="btn btn-ghost btn-sm" onclick="Dashboard.previewWeb()">🖨 Print / PDF</button>
-              </div>
-            </div>
-            <div id="program-output-text" class="program-output"></div>
-          </div>
-        </div>
-      </div>
+      </form>
     </div>
 
-    <!-- ── PROGRAMS ── -->
-    <div class="section" id="section-programs">
-      <div class="page-header">
-        <div class="page-header-left">
-          <h1 class="page-title">My <span class="accent">Programs</span></h1>
-          <p class="page-subtitle">All generated sessions</p>
-        </div>
-        <div class="page-actions">
-          <button class="btn btn-primary" onclick="Dashboard.showSection('new-session')">+ New Session</button>
-        </div>
-      </div>
-      <div id="programs-list"></div>
-    </div>
-
-    <!-- ── CLIENTS ── -->
-    <div class="section" id="section-clients">
-      <div class="page-header">
-        <div class="page-header-left">
-          <h1 class="page-title">Cli<span class="accent">ents</span></h1>
-          <p class="page-subtitle">Manage client accounts and phases</p>
-        </div>
-        <div class="page-actions">
-          <button class="btn btn-ghost btn-sm" onclick="Dashboard.openModal('modal-coach-matcher')">Find Best Coach</button>
-          <button class="btn btn-primary" onclick="Dashboard.openModal('modal-add-client')">+ Add Client</button>
-        </div>
-      </div>
-      <div class="card">
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Client</th><th>Email</th><th>Phase</th><th>Subscription</th><th>Coach</th><th>Actions</th></tr></thead>
-            <tbody id="clients-tbody">
-              <tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-tertiary)">Loading clients...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── SUBSCRIPTIONS ── -->
-    <div class="section" id="section-subscriptions">
-      <div class="page-header">
-        <div class="page-header-left">
-          <h1 class="page-title">Subscri<span class="accent">ptions</span></h1>
-          <p class="page-subtitle">Manually manage all client plans</p>
-        </div>
-        <div class="page-actions">
-          <button class="btn btn-primary" onclick="Dashboard.openModal('modal-add-subscription')">+ New Subscription</button>
-        </div>
-      </div>
-      <div class="grid-3 stagger" style="margin-bottom:var(--sp-5)">
-        <div class="stat-card" style="--stat-color:var(--teal);--stat-color-ghost:var(--teal-glow);--stat-color-border:rgba(61,245,193,0.15)">
-          <div class="stat-card-bg"></div><div class="stat-label">Active</div>
-          <div class="stat-value" id="sub-stat-active">–</div>
-        </div>
-        <div class="stat-card" style="--stat-color:var(--amber);--stat-color-ghost:var(--amber-glow);--stat-color-border:rgba(245,200,66,0.15)">
-          <div class="stat-card-bg"></div><div class="stat-label">Expiring in 7 days</div>
-          <div class="stat-value" id="sub-stat-expiring">–</div>
-        </div>
-        <div class="stat-card" style="--stat-color:var(--rose);--stat-color-ghost:var(--rose-glow);--stat-color-border:rgba(245,66,108,0.15)">
-          <div class="stat-card-bg"></div><div class="stat-label">Expired</div>
-          <div class="stat-value" id="sub-stat-expired">–</div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Client</th><th>Plan</th><th>Start</th><th>End</th><th>Status</th><th>Progress</th><th>Actions</th></tr></thead>
-            <tbody id="subs-tbody">
-              <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-tertiary)">Loading...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── EXERCISE LIBRARY ── -->
-    <div class="section" id="section-exercise-library">
-      <div class="page-header">
-        <div class="page-header-left">
-          <h1 class="page-title">Exercise <span class="accent">Library</span></h1>
-          <p class="page-subtitle">Build your coaching catalog</p>
-        </div>
-        <div class="page-actions">
-          <button class="btn btn-ghost btn-sm" onclick="ExerciseUI.openPlaylistModal?.()">+ Playlist</button>
-          <button class="btn btn-primary" onclick="ExerciseUI.openAddModal?.()">+ Add Exercise</button>
-        </div>
-      </div>
-      <div id="exercise-list">
-        <div class="empty-state">
-          <span class="empty-icon">▶</span>
-          <div class="empty-title">Loading exercise library…</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── COACHES ── -->
-    <div class="section" id="section-coaches">
-      <div class="page-header">
-        <div class="page-header-left">
-          <h1 class="page-title">Coa<span class="accent">ches</span></h1>
-          <p class="page-subtitle">Manage all coach accounts</p>
-        </div>
-        <div class="page-actions">
-          <button class="btn btn-primary" onclick="Dashboard.openModal('modal-add-coach')">+ Add Coach</button>
-        </div>
-      </div>
-      <div class="card">
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Coach</th><th>Email</th><th>Clients</th><th>Added</th><th>Actions</th></tr></thead>
-            <tbody id="coaches-tbody">
-              <tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-tertiary)">Loading...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── SETTINGS ── -->
-    <div class="section" id="section-settings">
-      <div class="page-header">
-        <div class="page-header-left">
-          <h1 class="page-title">Set<span class="accent">tings</span></h1>
-          <p class="page-subtitle">Platform configuration and account management</p>
-        </div>
-      </div>
-      <div class="grid-2" style="align-items:start">
-        <div class="card">
-          <div class="card-header"><span class="card-title">Account</span></div>
-          <div class="setting-row">
-            <div class="setting-label">
-              <h4>Admin Email</h4>
-              <p id="admin-email-display" class="mono" style="font-size:12px">–</p>
-            </div>
-            <span class="badge badge-admin">Admin</span>
-          </div>
-          <div class="setting-row">
-            <div class="setting-label"><h4>Change Password</h4><p>Update your account password</p></div>
-            <button class="btn btn-ghost btn-sm" onclick="Dashboard.openModal('modal-change-password')">Change</button>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-header"><span class="card-title">Platform</span></div>
-          <div class="setting-row">
-            <div class="setting-label"><h4>Platform Name</h4><p>AST9 — Elite Movement & Rehab</p></div>
-          </div>
-          <div class="setting-row">
-            <div class="setting-label"><h4>Supabase Project</h4><p class="mono" style="font-size:12px">byquokhcbagofshsclfy</p></div>
-            <span class="badge badge-active badge-dot">Connected</span>
-          </div>
-          <div class="setting-row">
-            <div class="setting-label"><h4>Email Service</h4><p>Resend — Transactional Email</p></div>
-            <span class="badge badge-pending">Resend</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── COMMUNITY ── -->
-    <div class="section" id="section-community">
-      <!-- Populated by CommunityUI.initCommunitySection() when shown -->
-      <div class="page-header">
-        <div class="page-header-left">
-          <h1 class="page-title">Comm<span class="accent">unity</span></h1>
-          <p class="page-subtitle">Messages · Referrals · Case Sharing · Feed</p>
-        </div>
-      </div>
-      <div class="tab-row" id="community-tabs">
-        <button class="tab-btn active" data-tab="comm-messaging">Messages</button>
-        <button class="tab-btn" data-tab="comm-referrals">Referrals</button>
-        <button class="tab-btn" data-tab="comm-case-shares">Case Studies</button>
-        <button class="tab-btn" data-tab="comm-client-feed">Client Feed</button>
-        <button class="tab-btn" data-tab="comm-support-groups">Support Groups</button>
-        <button class="tab-btn" data-tab="comm-privacy">Privacy</button>
-      </div>
-      <div id="comm-messaging" class="tab-panel active"></div>
-      <div id="comm-referrals" class="tab-panel"></div>
-      <div id="comm-case-shares" class="tab-panel"></div>
-      <div id="comm-client-feed" class="tab-panel"></div>
-      <div id="comm-support-groups" class="tab-panel"></div>
-      <div id="comm-privacy" class="tab-panel"></div>
-    </div>
-
-    <!-- ── PROGRESS CHARTS ── -->
-    <div class="section" id="section-progress">
-      <!-- Populated by Charts.renderClientProgressPage(clientId) -->
-      <div class="page-header">
-        <div class="page-header-left">
-          <h1 class="page-title">Progress <span class="accent">Charts</span></h1>
-          <p class="page-subtitle">Select a client to view their progress</p>
-        </div>
-        <div class="page-actions">
-          <select id="progress-client-select" class="form-input" style="width:auto;min-width:200px"
-            onchange="Charts.renderClientProgressPage(this.value)">
-            <option value="">— Select Client —</option>
-          </select>
-        </div>
-      </div>
-      <div id="progress-charts-root">
-        <div class="empty-state">
-          <span class="empty-icon">◎</span>
-          <div class="empty-title">Select a client above</div>
-          <p class="empty-desc">Progress charts and PDF export will appear here.</p>
-        </div>
-      </div>
-    </div>
-
-  </main>
-
-  <!-- Mobile bottom nav -->
-  <nav class="mobile-bottom-nav" id="mobile-bottom-nav">
-    <button class="mob-nav-btn active" id="mobnav-dashboard" onclick="Dashboard.showSection('dashboard');_setMobNav('dashboard')">
-      <span>⬡</span><span>Home</span>
-    </button>
-    <button class="mob-nav-btn" id="mobnav-session" onclick="Dashboard.showSection('new-session');_setMobNav('session')">
-      <span>✦</span><span>Session</span>
-    </button>
-    <button class="mob-nav-btn" id="mobnav-community" onclick="Dashboard.showSection('community');_setMobNav('community')">
-      <span>◈</span><span>Community</span>
-    </button>
-    <button class="mob-nav-btn" id="mobnav-programs" onclick="Dashboard.showSection('programs');_setMobNav('programs')">
-      <span>◌</span><span>Programs</span>
-    </button>
-  </nav>
-
-</div>
-
-<!-- ═══════════════════════ MODALS ═══════════════════════ -->
-
-<!-- Add Client -->
-<div class="modal-overlay hidden" id="modal-add-client">
-  <div class="modal">
-    <div class="modal-header"><h3>Add New Client</h3><button class="btn-icon" onclick="Dashboard.closeModal('modal-add-client')">✕</button></div>
-    <div class="modal-body">
-      <div class="form-group"><label class="form-label">Full Name</label><input id="ac-name" class="form-input" placeholder="Ahmed Hassan"/></div>
-      <div class="form-group"><label class="form-label">Email Address</label><input id="ac-email" type="email" class="form-input" placeholder="client@email.com"/></div>
-      <div class="form-group">
-        <label class="form-label">Temporary Password</label>
-        <input id="ac-password" type="text" class="form-input" placeholder="Min 8 characters"/>
-        <div class="form-hint">Client can change this via password reset.</div>
-      </div>
-      <div class="input-row">
-        <div class="form-group"><label class="form-label">Age</label><input id="ac-age" type="number" class="form-input" placeholder="28"/></div>
-        <div class="form-group">
-          <label class="form-label">Starting Phase</label>
-          <select id="ac-phase" class="form-input">
-            <option value="Phase 1">Phase 1</option>
-            <option value="Phase 2">Phase 2</option>
-            <option value="Phase 3">Phase 3</option>
-          </select>
-        </div>
-      </div>
-      <div class="form-group"><label class="form-label">Phone (optional)</label><input id="ac-phone" class="form-input" placeholder="+20 100 000 0000"/></div>
-      <div class="form-group">
-        <label class="form-label">Assign to Coach</label>
-        <select id="ac-coach" class="form-input"><option value="">— Select Coach —</option></select>
-      </div>
-      <div class="form-group"><label class="form-label">Goal</label><input id="ac-goal" class="form-input" placeholder="e.g. Reduce back pain, improve mobility"/></div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="Dashboard.closeModal('modal-add-client')">Cancel</button>
-      <button class="btn btn-primary" id="ac-submit-btn" onclick="Clients.submitAddClient()">Create Account</button>
+    <!-- Step 3: Success -->
+    <div class="nc-visitor-success" id="visitor-step-success">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/>
+      </svg>
+      <h2 class="nc-visitor-title" style="margin-bottom:8px">You're in.</h2>
+      <p class="nc-visitor-sub" style="margin-bottom:14px">Thanks — we'll be in touch within one business day. In the meantime, explore the platform.</p>
+      <button type="button" class="nc-btn nc-btn--ghost" data-visitor-close>Close</button>
     </div>
   </div>
 </div>
 
-<!-- Add Coach -->
-<div class="modal-overlay hidden" id="modal-add-coach">
-  <div class="modal">
-    <div class="modal-header"><h3>Add New Coach</h3><button class="btn-icon" onclick="Dashboard.closeModal('modal-add-coach')">✕</button></div>
-    <div class="modal-body">
-      <div class="form-group"><label class="form-label">Full Name</label><input id="co-name" class="form-input" placeholder="Coach Name"/></div>
-      <div class="form-group"><label class="form-label">Email Address</label><input id="co-email" type="email" class="form-input" placeholder="coach@email.com"/></div>
-      <div class="form-group">
-        <label class="form-label">Temporary Password</label>
-        <input id="co-password" type="text" class="form-input" placeholder="Min 8 characters"/>
-        <div class="form-hint">Coach can reset this via email after first login.</div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="Dashboard.closeModal('modal-add-coach')">Cancel</button>
-      <button class="btn btn-primary" id="co-submit-btn" onclick="Clients.submitAddCoach()">Create Coach Account</button>
-    </div>
-  </div>
-</div>
-
-<!-- Add Subscription -->
-<div class="modal-overlay hidden" id="modal-add-subscription">
-  <div class="modal">
-    <div class="modal-header"><h3>New Subscription</h3><button class="btn-icon" onclick="Dashboard.closeModal('modal-add-subscription')">✕</button></div>
-    <div class="modal-body">
-      <div class="form-group">
-        <label class="form-label">Client</label>
-        <select id="sub-client" class="form-input"><option value="">— Select Client —</option></select>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Plan Duration</label>
-        <select id="sub-plan" class="form-input" onchange="Dashboard.calcSubEndDate()">
-          <option value="3">3 Months</option>
-          <option value="6">6 Months</option>
-          <option value="12">12 Months</option>
-        </select>
-      </div>
-      <div class="input-row">
-        <div class="form-group"><label class="form-label">Start Date</label><input id="sub-start" type="date" class="form-input" oninput="Dashboard.calcSubEndDate()"/></div>
-        <div class="form-group"><label class="form-label">End Date (auto)</label><input id="sub-end" type="date" class="form-input" readonly/></div>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Activation</label>
-        <select id="sub-activate" class="form-input">
-          <option value="immediate">✓ Send & Activate Immediately</option>
-          <option value="pending">⏸ Send Without Activation (pending)</option>
-        </select>
-      </div>
-      <div class="form-group"><label class="form-label">Notes (optional)</label><input id="sub-notes" class="form-input" placeholder="Payment method, amount, reference..."/></div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="Dashboard.closeModal('modal-add-subscription')">Cancel</button>
-      <button class="btn btn-primary" id="sub-submit-btn" onclick="Subscriptions.submit()">Create Subscription</button>
-    </div>
-  </div>
-</div>
-
-<!-- Change Password -->
-<div class="modal-overlay hidden" id="modal-change-password">
-  <div class="modal">
-    <div class="modal-header"><h3>Change Password</h3><button class="btn-icon" onclick="Dashboard.closeModal('modal-change-password')">✕</button></div>
-    <div class="modal-body">
-      <div class="form-group"><label class="form-label">New Password</label><input id="cp-new" type="password" class="form-input" placeholder="Min 8 characters"/></div>
-      <div class="form-group"><label class="form-label">Confirm New Password</label><input id="cp-confirm" type="password" class="form-input" placeholder="Repeat password"/></div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="Dashboard.closeModal('modal-change-password')">Cancel</button>
-      <button class="btn btn-primary" onclick="Dashboard.submitChangePassword()">Update Password</button>
-    </div>
-  </div>
-</div>
-
-<!-- Phase Upgrade -->
-<div class="modal-overlay hidden" id="modal-phase-upgrade">
-  <div class="modal">
-    <div class="modal-header"><h3>🎉 Phase Upgrade</h3><button class="btn-icon" onclick="Dashboard.closeModal('modal-phase-upgrade')">✕</button></div>
-    <div class="modal-body">
-      <div style="text-align:center;padding:16px 0 24px">
-        <span style="font-size:52px;display:block;margin-bottom:14px;animation:loader-pulse 2s ease-in-out infinite">🏆</span>
-        <div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--lime);margin-bottom:6px">Ready to advance!</div>
-        <p style="font-size:13px;color:var(--text-secondary)">Upgrade the client's phase and send a celebration message.</p>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Client</label>
-        <select id="pu-client" class="form-input"><option value="">— Select Client —</option></select>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Upgrade to Phase</label>
-        <select id="pu-phase" class="form-input">
-          <option value="Phase 2">Phase 2 — Control</option>
-          <option value="Phase 3">Phase 3 — Load Integration</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Celebration Message (sent to client)</label>
-        <textarea id="pu-message" class="form-input" style="min-height:100px">Congratulations! You've successfully completed your current phase and are ready to level up. Your hard work and dedication is paying off — keep pushing! 🏆</textarea>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="Dashboard.closeModal('modal-phase-upgrade')">Cancel</button>
-      <button class="btn btn-teal" onclick="Dashboard.submitPhaseUpgrade()">🎉 Upgrade & Notify</button>
-    </div>
-  </div>
-</div>
-
-<!-- Add Exercise -->
-<div class="modal-overlay hidden" id="modal-add-exercise">
-  <div class="modal">
-    <div class="modal-header"><h3>Add Exercise</h3><button class="btn-icon" onclick="Dashboard.closeModal('modal-add-exercise')">✕</button></div>
-    <div class="modal-body">
-      <div class="form-group"><label class="form-label">Exercise Name</label><input id="ex-name" class="form-input" placeholder="e.g. 90/90 Hip IR PAILs"/></div>
-      <div class="input-row">
-        <div class="form-group">
-          <label class="form-label">Category</label>
-          <select id="ex-category" class="form-input">
-            <option value="Rehab">Rehab</option>
-            <option value="Mobility">Mobility</option>
-            <option value="Strength">Strength</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Phase</label>
-          <select id="ex-phase" class="form-input">
-            <option value="Phase 1">Phase 1</option>
-            <option value="Phase 2">Phase 2</option>
-            <option value="Phase 3">Phase 3</option>
-          </select>
-        </div>
-      </div>
-      <div class="form-group"><label class="form-label">Video URL (YouTube)</label><input id="ex-video" class="form-input" placeholder="https://youtube.com/watch?v=..."/></div>
-      <div class="form-group"><label class="form-label">Description / Coaching Cues</label><textarea id="ex-desc" class="form-input" placeholder="Coaching cues, common errors, progressions, regressions..."></textarea></div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="Dashboard.closeModal('modal-add-exercise')">Cancel</button>
-      <button class="btn btn-primary" onclick="Clients.submitAddExercise()">Add Exercise</button>
-    </div>
-  </div>
-</div>
-
-<!-- Coach Matcher -->
-<div class="modal-overlay hidden" id="modal-coach-matcher">
-  <div class="modal" style="max-width:560px">
-    <div class="modal-header"><h3>Find Best Coach</h3><button class="btn-icon" onclick="Dashboard.closeModal('modal-coach-matcher')">✕</button></div>
-    <div class="modal-body">
-      <div class="form-group">
-        <label class="form-label">Client</label>
-        <select id="cm-client" class="form-input" onchange="Dashboard.fillCoachMatch()">
-          <option value="">— Select Client —</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Goal / Focus Area</label>
-        <input id="cm-goal" class="form-input" placeholder="e.g. Reduce lower back pain, improve mobility"/>
-      </div>
-      <div id="cm-results" style="margin-top:12px"></div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="Dashboard.closeModal('modal-coach-matcher')">Close</button>
-      <button class="btn btn-primary" id="cm-match-btn" onclick="Dashboard.runCoachMatch()">Match Coaches</button>
-    </div>
-  </div>
-</div>
-
-<!-- ═══════════════════════ CELEBRATION ═══════════════════════ -->
-<div id="celebration-overlay" class="hidden">
-  <canvas id="confetti-canvas" style="position:absolute;inset:0;pointer-events:none;width:100%;height:100%"></canvas>
-  <div class="celebration-card">
-    <span class="celebration-emoji">🏆</span>
-    <div class="celebration-title">PHASE COMPLETE!</div>
-    <div class="celebration-msg">
-      Client has been upgraded to <strong id="celebration-phase" style="color:var(--lime)">Phase 2</strong>.<br>
-      A celebration email has been sent. Keep pushing! 💪
-    </div>
-    <button class="btn btn-primary btn-lg" onclick="Dashboard.closeCelebration()">Continue →</button>
-  </div>
-</div>
-
-<!-- ═══════════════════════ 3D BODY MAP WIRING ═══════════════════════ -->
-<script>
-// ── Body map state ────────────────────────────────────────────
-let _bodyMapInitDone  = false;
-let _selectedJointKey = null;
-let _gaitPlaying      = false;
-let _lastGait         = null;
-
-// Initialise Three.js only when user reaches the objective tab
-function initBodyMap() {
-  if (_bodyMapInitDone) return;
-  _bodyMapInitDone = true;
-  // Body map is now on Dashboard and auto-inits on click
-  console.log('Body map moved to Dashboard (auto-init on click)');
-}
-
-// Called when a joint is clicked in the 3D view
-function onBodyMapJointClick(jointKey, state) {
-  _selectedJointKey = jointKey;
-
-  const nameEl     = document.getElementById('bodymap-joint-name');
-  const controlsEl = document.getElementById('bodymap-joint-controls');
-  const slider     = document.getElementById('joint-pain-slider');
-  const valEl      = document.getElementById('joint-pain-val');
-
-  if (nameEl)     nameEl.textContent = jointKey.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-  if (controlsEl) controlsEl.classList.remove('hidden');
-  if (slider)     slider.value = state.painScale || 0;
-  if (valEl)      valEl.textContent = state.painScale || 0;
-}
-
-// Slider input → live preview on model (dashboard version)
-function onJointPainChange(val) {
-  const valEl = document.getElementById('joint-pain-val-dashboard') || document.getElementById('joint-pain-val');
-  if (valEl) valEl.textContent = val;
-  if (_selectedJointKey) BodyMap3D.setJoint(_selectedJointKey, parseInt(val));
-}
-
-// Apply button → persist joint state (dashboard version)
-function applyJointState() {
-  if (!_selectedJointKey) return;
-  const pain = parseInt(document.getElementById('joint-pain-slider-dashboard')?.value ||
-                     document.getElementById('joint-pain-slider')?.value) || 0;
-  const notes = (document.getElementById('joint-notes-dashboard') ||
-                   document.getElementById('joint-notes'))?.value || '';
-  BodyMap3D.setJoint(_selectedJointKey, pain, { notes });
-  Dashboard.toast(`${_selectedJointKey.replace(/_/g,' ')} updated → Pain ${pain}/10`, 'success');
-}
-
-// Called when a joint is clicked in the 3D view (dashboard version)
-function onBodyMapJointClick(jointKey, fieldMeta, state) {
-  _selectedJointKey = jointKey;
-
-  const nameEl     = document.getElementById('bodymap-joint-name-dashboard') ||
-                     document.getElementById('bodymap-joint-name');
-  const controlsEl = document.getElementById('bodymap-joint-controls-dashboard') ||
-                     document.getElementById('bodymap-joint-controls');
-  const slider     = document.getElementById('joint-pain-slider-dashboard') ||
-                     document.getElementById('joint-pain-slider');
-  const valEl      = document.getElementById('joint-pain-val-dashboard') ||
-                     document.getElementById('joint-pain-val');
-
-  if (nameEl)     nameEl.textContent = jointKey.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-  if (controlsEl) controlsEl.classList.remove('hidden');
-  if (slider)     slider.value = (state.pain_scale || state.painScale || 0);
-  if (valEl)      valEl.textContent = (state.pain_scale || state.painScale || 0);
-}
-
-// Gait animation toggle (dashboard version)
-function toggleGaitAnimation() {
-  const btn = document.getElementById('gait-anim-btn-dashboard') ||
-                document.getElementById('gait-anim-btn');
-  if (_gaitPlaying) {
-    BodyMap3D.stopGaitAnimation();
-    _gaitPlaying = false;
-    if (btn) btn.textContent = '▶ Gait Anim';
-  } else {
-    const deficiencies = _lastGait?.phase_deficiencies || {};
-    BodyMap3D.startGaitAnimation(deficiencies);
-    _gaitPlaying = true;
-    if (btn) btn.textContent = '⏹ Stop Anim';
-  }
-}
-
-// Auto-sync form fields → 3D map on any numeric input change
-// (fires after engine runs, called from dashboard.js)
-document.addEventListener('DOMContentLoaded', () => {
-  const syncIds = [
-    'ns-hip-ir-l','ns-hip-ir-r','ns-ankle-df-l','ns-ankle-df-r',
-    'ns-sh-ir-l','ns-sh-ir-r','ns-sl-squat-l','ns-sl-squat-r',
-  ];
-  syncIds.forEach(id => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.addEventListener('change', () => {
-      if (BodyMap3D.inited) {
-        const a = ScoringEngine.readForm();
-        BodyMap3D.updateFromAssessment(a);
-      }
-    });
-  });
-
-  // Spine pain checkboxes also sync
-  ['ns-sp-flex-pain','ns-sp-ext-pain','ns-sp-lfl-pain','ns-sp-lfr-pain',
-   'ns-sp-rotl-pain','ns-sp-rotr-pain'].forEach(id => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.addEventListener('change', () => {
-      if (BodyMap3D.inited) {
-        const a = ScoringEngine.readForm();
-        BodyMap3D.updateFromAssessment(a);
-      }
-    });
-  });
-});
-
-// Store last gait result so animation button can reference it
-// (Dashboard may not be loaded yet — defer if needed)
-const _origGenerate = typeof Dashboard !== 'undefined' ? Dashboard.generateProgram?.bind(Dashboard) : null;
-// Patch: after generation completes, store gait result
-// (done cleanly via dashboard.js — _lastGait set below in hook)
-window._setLastGait = (gait) => { _lastGait = gait; };
-
-// Mobile bottom nav active state
-function _setMobNav(key) {
-  document.querySelectorAll('.mob-nav-btn').forEach(b => b.classList.remove('active'));
-  const btn = document.getElementById('mobnav-' + key);
-  if (btn) btn.classList.add('active');
-}
-
-// Community badge refresh — called after login
-async function _refreshCommunityBadge() {
-  try {
-    const [msgs, refs] = await Promise.all([
-      typeof Community !== 'undefined' ? Community.getUnreadCount() : Promise.resolve(0),
-      typeof Community !== 'undefined' ? Community.getPendingReferralCount() : Promise.resolve(0),
-    ]);
-    const total = (msgs || 0) + (refs || 0);
-    const badge = document.getElementById('badge-community');
-    if (badge) {
-      badge.textContent = total;
-      badge.classList.toggle('hidden', total === 0);
-    }
-  } catch(e) { /* non-fatal */ }
-}
-</script>
-<!-- Three.js addons for legacy bodyMap3D — THREE global is provided by src/main.js (npm) -->
-<script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/controls/OrbitControls.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/loaders/GLTFLoader.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/loaders/DRACOLoader.js" defer></script>
-
-<script src="js/supabaseClient.js?v=20260506c"></script>
-<script src="js/auth.js?v=20260506c"></script>
-<script src="js/supabase/bodyMapState.js"></script>
-<script src="js/dashboard.js"></script>
-<script src="js/clients.js"></script>
-<script src="js/subscriptions.js"></script>
-<script src="js/scoring.js"></script>
-<script src="js/gaitEngine.js"></script>
-<script src="js/programGenerator.js"></script>
-<script src="js/bodyMap3D.v2.js"></script>
-<!-- Phase 3 modules -->
-<script src="js/community.js"></script>
-<script src="js/communityUI.js"></script>
-<script src="js/exerciseLibrary.js"></script>
-<script src="js/exerciseUI.js"></script>
-<script src="js/charts.js"></script>
-<script src="js/progressReport.js"></script>
-<script src="js/neucore.js"></script>
-<script type="module" src="/src/main.js"></script>
-<script>
-// ── UI controller (login + boot) ──────────────────────────────
-const UI = {
-
-  switchLoginTab(tab) {
-    document.querySelectorAll('.login-tab-btn').forEach((b, i) => {
-      b.classList.toggle('active', (i === 0 && tab === 'signin') || (i === 1 && tab === 'reset'));
-    });
-    document.getElementById('login-form-signin').classList.toggle('hidden', tab !== 'signin');
-    document.getElementById('login-form-reset').classList.toggle('hidden', tab !== 'reset');
-    document.getElementById('login-error').classList.add('hidden');
-  },
-
-  async handleLogin() {
-    const email = document.getElementById('login-email').value.trim();
-    const pass  = document.getElementById('login-password').value;
-    const btn   = document.getElementById('login-btn');
-    const errEl = document.getElementById('login-error');
-    if (!email || !pass) { UI._loginErr('Please enter your email and password.'); return; }
-    btn.innerHTML = '<span class="spinner"></span> Signing in...';
-    btn.disabled  = true;
-    errEl.classList.add('hidden');
-    try {
-      await Auth.login(email, pass);
-      btn.innerHTML = 'Sign In'; btn.disabled = false;
-      UI._showApp();
-    } catch(e) {
-      UI._loginErr(e.message);
-      btn.innerHTML = 'Sign In'; btn.disabled = false;
-    }
-  },
-
-  handleDemoLogin() {
-    Auth.loginAsGuest();
-    UI._showApp();
-  },
-
-  async handlePasswordReset() {
-    const email = document.getElementById('reset-email').value.trim();
-    const btn   = document.getElementById('reset-btn');
-    if (!email) { UI._loginErr('Please enter your email.'); return; }
-    btn.innerHTML = '<span class="spinner"></span> Sending...';
-    btn.disabled  = true;
-    try {
-      await Auth.sendPasswordReset(email);
-      const el = document.getElementById('login-error');
-      el.style.cssText = 'background:rgba(61,245,193,0.08);border-color:rgba(61,245,193,0.25);color:var(--teal)';
-      el.textContent = '✓ Reset link sent — check your inbox.';
-      el.classList.remove('hidden');
-    } catch(e) { UI._loginErr(e.message); }
-    finally { btn.innerHTML = 'Send Reset Link'; btn.disabled = false; }
-  },
-
-  async handleLogout() {
-    await Auth.logout();
-    Dashboard.toast('Signed out successfully', 'info');
-    UI._showLogin();
-  },
-
-  goTab(tabRowId, panelId) {
-    const row = document.getElementById(tabRowId);
-    if (row) row.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === panelId));
-    document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === panelId));
-  },
-
-  _showApp() {
-    document.getElementById('screen-login').classList.add('hidden');
-    document.getElementById('screen-app').style.display = 'block';
-    Dashboard.initShell();
-    Dashboard.showSection('dashboard');
-    // Phase 3: refresh badges + populate progress client select
-    setTimeout(() => {
-      _refreshCommunityBadge();
-      Dashboard.populateProgressClientSelect?.();
-    }, 800);
-  },
-
-  _showLogin() {
-    document.getElementById('screen-login').classList.remove('hidden');
-    document.getElementById('screen-app').style.display = 'none';
-  },
-
-  _loginErr(msg) {
-    const el = document.getElementById('login-error');
-    el.textContent = msg; el.style.cssText = '';
-    el.classList.remove('hidden');
-  },
-
-  _hideLoading() {
-    const ol = document.getElementById('loading-overlay');
-    ol.style.transition = 'opacity 0.4s';
-    ol.style.opacity = '0';
-    setTimeout(() => ol.remove(), 440);
-  },
-};
-
-// ── Wire tab buttons ──────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('.tab-row').forEach(row => {
-    row.querySelectorAll('.tab-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        UI.goTab(row.id, btn.dataset.tab);
-        // Community sub-tabs: lazy-render the selected panel
-        if (row.id === 'community-tabs' && typeof CommunityUI !== 'undefined') {
-          const tabFnMap = {
-            'comm-messaging':      () => CommunityUI.renderMessaging?.(),
-            'comm-referrals':      () => CommunityUI.renderReferrals?.(),
-            'comm-case-shares':    () => CommunityUI.renderCaseShares?.(),
-            'comm-client-feed':    () => CommunityUI.renderClientFeed?.(),
-            'comm-support-groups': () => CommunityUI.renderSupportGroups?.(),
-            'comm-privacy':        () => CommunityUI.renderPrivacySettings?.(),
-          };
-          tabFnMap[btn.dataset.tab]?.();
-        }
-      });
-    });
-  });
-  document.querySelectorAll('.modal-overlay').forEach(ov => {
-    ov.addEventListener('click', e => { if (e.target === ov) ov.classList.add('hidden'); });
-  });
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') document.querySelectorAll('.modal-overlay:not(.hidden)').forEach(m => m.classList.add('hidden'));
-    if (e.key === 'Enter' && !document.getElementById('screen-login').classList.contains('hidden')) {
-      if (!document.getElementById('login-form-signin').classList.contains('hidden')) UI.handleLogin();
-    }
-  });
-});
-
-// ── Auth state listener ───────────────────────────────────────
-if (typeof Auth !== 'undefined') {
-  Auth.listen(event => {
-    if (event === 'PASSWORD_RECOVERY') Dashboard.openModal('modal-change-password');
-    if (event === 'SIGNED_OUT') UI._showLogin();
-  });
-}
-
-// ── BOOT ─────────────────────────────────────────────────────
-(async () => {
-  const _bootTimeout = new Promise(r => setTimeout(() => r(null), 4000));
-  try {
-    const profile = typeof Auth !== 'undefined'
-      ? await Promise.race([Auth.init(), _bootTimeout])
-      : null;
-    if (typeof UI !== 'undefined') UI._hideLoading();
-    if (profile && typeof UI !== 'undefined') UI._showApp();
-    else {
-      const loginEl = document.getElementById('screen-login');
-      if (loginEl) loginEl.classList.remove('hidden');
-    }
-  } catch(e) {
-    console.error('AST9 boot error:', e);
-    if (typeof UI !== 'undefined') UI._hideLoading();
-    const loginEl = document.getElementById('screen-login');
-    if (loginEl) loginEl.classList.remove('hidden');
-  }
-})();
-</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script type="module" src="js/landing.js"></script>
+<script src="js/visitor.js"></script>
 </body>
 </html>
-
