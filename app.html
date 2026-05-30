@@ -189,7 +189,7 @@
       <div class="nav-item role-coach-admin" id="nav-gait" onclick="Dashboard.showSection('gait')" title="Gait Analysis">
         <span class="nav-item-icon">⟳</span><span class="nav-label">Gait Analysis</span>
       </div>
-      <div class="nav-item role-coach-admin" id="nav-case-studies" onclick="Dashboard.showSection('case-studies')" title="Case Studies">
+      <div class="nav-item" id="nav-case-studies" onclick="Dashboard.showSection('case-studies')" title="Case Studies">
         <span class="nav-item-icon">◧</span><span class="nav-label">Case Studies</span>
       </div>
       <div class="nav-item role-coach-admin" id="nav-analytics" onclick="Dashboard.showSection('analytics')" title="Analytics">
@@ -217,6 +217,9 @@
         <span class="nav-item-icon">◈</span><span class="nav-label">Coaches</span>
       </div>
       <div class="nav-item role-admin-only" id="nav-settings" onclick="Dashboard.showSection('settings')" title="Settings">
+        <span class="nav-item-icon">◎</span><span class="nav-label">Settings</span>
+      </div>
+      <div class="nav-item role-client-only" id="nav-client-settings" onclick="Dashboard.showSection('client-settings')" title="Settings">
         <span class="nav-item-icon">◎</span><span class="nav-label">Settings</span>
       </div>
     </nav>
@@ -1198,6 +1201,50 @@
       <div id="progression-root"></div>
     </div>
 
+    <!-- ── CLIENT SETTINGS (client-only) — change password + view sub state ── -->
+    <div class="section" id="section-client-settings">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="nc-dashboard-eyebrow">Your Account</div>
+          <h1 class="page-title">Set<span class="accent" style="color:var(--nc-teal)">tings</span></h1>
+          <p class="page-subtitle">Account + subscription details. Contact your coach for billing changes.</p>
+        </div>
+      </div>
+      <div class="grid-2" style="align-items:start">
+        <div class="card glass-card">
+          <div class="card-header"><span class="card-title">Account</span></div>
+          <div class="setting-row">
+            <div class="setting-label">
+              <h4>Email</h4>
+              <p id="cs-email-display" class="mono" style="font-size:12px">–</p>
+            </div>
+          </div>
+          <div class="setting-row">
+            <div class="setting-label">
+              <h4>Full name</h4>
+              <p id="cs-name-display" style="font-size:12px">–</p>
+            </div>
+          </div>
+          <div class="setting-row">
+            <div class="setting-label">
+              <h4>Change Password</h4>
+              <p>Update your account password.</p>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="Dashboard.openModal('modal-change-password')">Change</button>
+          </div>
+        </div>
+        <div class="card glass-card">
+          <div class="card-header"><span class="card-title">Subscription</span></div>
+          <div id="cs-sub-state" style="padding:12px 0">
+            <div class="form-hint">Loading subscription state…</div>
+          </div>
+          <div class="form-hint" style="margin-top:8px">
+            Billing changes are handled by your coach. Reach out if you need to renew or upgrade.
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- ── NOTIFICATIONS (everyone) — generic inbox + coach alt-requests sub-card ── -->
     <div class="section" id="section-notifications">
       <div class="page-header">
@@ -1571,8 +1618,9 @@
       </div>
       <div class="form-group"><label class="form-label">Phone (optional)</label><input id="ac-phone" class="form-input" placeholder="+20 100 000 0000"/></div>
       <div class="form-group">
-        <label class="form-label">Assign to Coach</label>
-        <select id="ac-coach" class="form-input"><option value="">— Select Coach —</option></select>
+        <label class="form-label">Assign to Coach <span style="color:#f43f5e">*</span></label>
+        <select id="ac-coach" class="form-input" required><option value="">— Select Coach —</option></select>
+        <div class="form-hint">Required — drives the alt-exercise inbox, grace notifications, and workout attribution.</div>
       </div>
       <div class="form-group"><label class="form-label">Goal</label><input id="ac-goal" class="form-input" placeholder="e.g. Reduce back pain, improve mobility"/></div>
     </div>
@@ -2056,8 +2104,12 @@ const UI = {
   },
 
   handleDemoLogin() {
-    Auth.loginAsGuest();
-    UI._showApp();
+    try {
+      Auth.loginAsGuest();          // throws DEMO_UNAVAILABLE on this build
+      UI._showApp();
+    } catch (e) {
+      UI._loginErr(e.message || 'Demo unavailable.');
+    }
   },
 
   async handlePasswordReset() {

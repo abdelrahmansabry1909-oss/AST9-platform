@@ -83,6 +83,16 @@ const Clients = (() => {
     if (fields.pass.length < 8) {
       Dashboard.toast('Password must be at least 8 characters', 'error'); return;
     }
+    // Tier-1 fix C — coach assignment is required so downstream alt-request,
+    // grace notifications, and workout coach_id stamping all work correctly.
+    if (!fields.coach) {
+      Dashboard.toast('Please assign a coach before creating the client', 'error');
+      const sel = document.getElementById('ac-coach');
+      sel?.focus();
+      sel?.classList.add('form-input-error');
+      setTimeout(() => sel?.classList.remove('form-input-error'), 2500);
+      return;
+    }
 
     const btn = document.getElementById('ac-submit-btn');
     _setBtnLoading(btn, 'Creating...');

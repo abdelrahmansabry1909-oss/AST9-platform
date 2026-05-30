@@ -126,6 +126,8 @@ const Dashboard = (() => {
                             window._wsPreselectClient = null;
                             WorkoutSession.mountCoachView(host, { preselectClientId: preselect });
                           },
+      // ── Client Settings (client-only) — change password + view sub state ──
+      'client-settings':  () => _renderClientSettings(),
       // ── Progression (coach) — 4-score overview + per-client detail ──
       'progression':      () => {
                             if (typeof Progression === 'undefined') return;
@@ -152,6 +154,77 @@ const Dashboard = (() => {
                           },
     };
     loaders[id]?.();
+  }
+
+  // Client Settings — populated each visit so subscription state is fresh.
+  function _renderClientSettings() {
+    const profile = (typeof Auth !== 'undefined' && Auth.getProfile) ? Auth.getProfile() : null;
+    const setText = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
+    setText('cs-email-display', profile?.email || '–');
+    setText('cs-name-display',  profile?.full_name || '–');
+
+    const state = (typeof Auth !== 'undefined' && Auth.getSubscriptionState)
+      ? Auth.getSubscriptionState() : null;
+    const host  = document.getElementById('cs-sub-state');
+    if (!host) return;
+
+    if (!state || state.effective_status === 'none') {
+      host.innerHTML = `<div class="empty-state" style="padding:16px 0">
+        <div class="empty-title" style="font-size:14px">No subscription on file</div>
+        <p class="empty-desc">Contact your coach to set up access.</p>
+      </div>`;
+      return;
+    }
+    const pill = (typeof SubscriptionService !== 'undefined')
+      ? SubscriptionService.formatPill(state)
+      : { label: state.effective_status, tone: 'gray' };
+    const toneStyles = {
+      teal:  'background:rgba(20,184,166,.14);color:var(--nc-teal,#14b8a6);border:1px solid rgba(20,184,166,.35)',
+      amber: 'background:rgba(245,158,11,.14);color:#f59e0b;border:1px solid rgba(245,158,11,.35)',
+      rose:  'background:rgba(244,63,94,.14);color:#f43f5e;border:1px solid rgba(244,63,94,.35)',
+      gray:  'background:rgba(148,163,184,.10);color:#94a3b8;border:1px solid rgba(148,163,184,.25)',
+    };
+    host.innerHTML = `
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <span style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;
+                     font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;
+                     ${toneStyles[pill.tone] || toneStyles.gray}">
+          <span style="width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.7"></span>
+          ${pill.label}
+        </span>
+      </div>
+      <div style="font-size:12px;color:var(--text-secondary);line-height:1.7">
+        <div><b style="color:var(--text-primary)">Plan:</b> ${state.plan ? state.plan + ' months' : '—'}</div>
+        <div><b style="color:var(--text-primary)">Start:</b> ${state.start_date || '—'}</div>
+        <div><b style="color:var(--text-primary)">Ends:</b> ${state.end_date || '—'}</div>
+        ${state.effective_status === 'grace' ? `
+          <div style="color:#f43f5e"><b>Grace until:</b> ${state.grace_until || '—'} (${state.grace_days_left} day(s) left)</div>` : ''}
+        ${state.effective_status === 'active' && state.days_remaining != null ? `
+          <div><b style="color:var(--text-primary)">Days remaining:</b> ${state.days_remaining}</div>` : ''}
+      </div>`;
+  }
+
+  // Populate the coach Progress Charts client picker. Called once after
+  // _showApp; silently no-ops for clients/admins-without-clients.
+  async function populateProgressClientSelect() {
+    const sel = document.getElementById('progress-client-select');
+    if (!sel) return;
+    if (typeof Auth === 'undefined' || !Auth.isAdminOrCoach || !Auth.isAdminOrCoach()) return;
+    let q = sb.from('profiles').select('id, full_name, email')
+      .eq('role', 'client').order('full_name');
+    if (Auth.isCoach && Auth.isCoach()) q = q.eq('assigned_coach', Auth.getUser()?.id);
+    const { data } = await q;
+    if (!data?.length) return;
+    // Keep the placeholder option, append clients.
+    const placeholder = sel.options[0];
+    sel.innerHTML = '';
+    if (placeholder) sel.appendChild(placeholder);
+    data.forEach((c) => {
+      const opt = document.createElement('option');
+      opt.value = c.id;
+      opt.textContent = c.full_name || c.email;
+      sel.appendChild(opt);
+    });
   }
 
   // Daily Routine section — clients get the check-off tracker, coaches/admins
@@ -1063,6 +1136,7 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
     submitPhaseUpgrade, showCelebration, closeCelebration,
     openModal, closeModal, calcSubEndDate,
     submitChangePassword,
+    populateProgressClientSelect,
     toast,
   };
 

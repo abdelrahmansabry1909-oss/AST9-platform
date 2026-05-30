@@ -207,12 +207,27 @@ const Auth = (() => {
     });
   }
 
+  // ── Guest / demo login ─────────────────────────────────────
+  // Demo accounts aren't provisioned in this build. Rather than leaving
+  // the UI button calling an undefined method (TypeError), expose a
+  // graceful stub that surfaces the state to the caller.
+  function loginAsGuest() {
+    const err = new Error(
+      'Demo accounts are not provisioned on this instance. '
+      + 'Contact admin@neucore.io for a trial — or sign in with your account.'
+    );
+    err.code = 'DEMO_UNAVAILABLE';
+    throw err;
+  }
+
   return {
     getUser, getProfile, getRole, isAdmin, isCoach, isAdminOrCoach,
     login, logout, sendPasswordReset, updatePassword, init, listen,
     loadProfile,
     // Subscription:
     getSubscriptionState, canWrite,
+    // Demo:
+    loginAsGuest,
     // Error type (UI compares e.code === 'SUBSCRIPTION_INACTIVE'):
     SubscriptionInactiveError,
   };
