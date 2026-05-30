@@ -118,6 +118,38 @@ const Dashboard = (() => {
       // ── My Program — client's read-only published training program ──
       'my-program':       () => (typeof ProgramPublish !== 'undefined'
                                  && ProgramPublish.renderClientProgram('#my-program-host')),
+      // ── Workout History (coach) — WorkoutSession.mountCoachView ──
+      'workout-history':  () => {
+                            if (typeof WorkoutSession === 'undefined') return;
+                            const host = document.getElementById('workout-history-root');
+                            const preselect = window._wsPreselectClient || null;
+                            window._wsPreselectClient = null;
+                            WorkoutSession.mountCoachView(host, { preselectClientId: preselect });
+                          },
+      // ── Progression (coach) — 4-score overview + per-client detail ──
+      'progression':      () => {
+                            if (typeof Progression === 'undefined') return;
+                            const host = document.getElementById('progression-root');
+                            Progression.mountCoachOverview(host);
+                          },
+      // ── Notifications inbox (everyone) + coach Alt-Exercise inbox ──
+      'notifications':    () => {
+                            const inboxHost = document.getElementById('notifications-root');
+                            const altHost   = document.getElementById('alt-requests-root');
+                            if (typeof Notifications !== 'undefined') {
+                              Notifications.mountInbox(inboxHost);
+                            }
+                            if (typeof AltExercise !== 'undefined' && Auth.isAdminOrCoach?.()) {
+                              // Optional deep-link preselect via notification link_params.
+                              const p = window._notifParams || {};
+                              window._notifParams = null;
+                              AltExercise.mountInbox(altHost, {
+                                preselectClientId: p.client_id || null,
+                              });
+                            } else if (altHost) {
+                              altHost.innerHTML = '';
+                            }
+                          },
     };
     loaders[id]?.();
   }

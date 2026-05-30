@@ -55,8 +55,9 @@ const Clients = (() => {
         <td>${subBadge}</td>
         <td style="font-size:12px;color:var(--text-tertiary)">${coachName}</td>
         <td>
-          <div style="display:flex;gap:6px">
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
             <button class="btn btn-ghost btn-xs" onclick="Dashboard.showSection('new-session'); setTimeout(()=>{document.getElementById('ns-name').value='${_esc(c.full_name||'')}';document.getElementById('ns-phase').value='${c.current_phase||'Phase 1'}'},100)">+ Session</button>
+            <button class="btn btn-ghost btn-xs" onclick="window._wsPreselectClient='${c.id}'; Dashboard.showSection('workout-history')">◐ Workouts</button>
             <button class="btn btn-teal btn-xs" onclick="Clients.prepPhaseUpgrade('${c.id}','${_esc(c.full_name||c.email)}')">⬆ Phase</button>
           </div>
         </td>

@@ -90,6 +90,45 @@
   </div>
 </div>
 
+<!-- ═══════════════════════ SUBSCRIPTION INACTIVE ═══════════════════════ -->
+<!-- Dedicated takeover screen shown when Auth blocks login because the
+     client's effective subscription state is expired/none/pending. Replaces
+     the old inline login-error message. Coach reactivation is the only way
+     out (rule locked in SubscriptionService). -->
+<div id="screen-subscription-inactive" class="hidden nc-login" style="background:#05080F">
+  <div class="nc-login-glow nc-login-glow--rose" style="background:radial-gradient(circle,rgba(244,63,94,0.18),transparent 60%)"></div>
+  <div class="nc-login-card" style="max-width:480px;text-align:center">
+    <div class="nc-login-brand" style="justify-content:center">
+      <span class="nc-login-mark" aria-hidden="true"></span>
+      <div>
+        <div class="nc-login-wordmark">NEUCORE</div>
+        <div class="nc-login-tagline">Subscription Inactive</div>
+      </div>
+    </div>
+
+    <div style="font-size:48px;margin:22px 0 8px;line-height:1">⏸</div>
+    <h1 class="nc-login-headline" id="sub-inactive-title" style="font-size:22px">Your subscription has expired.</h1>
+    <p class="nc-login-headline-sub" id="sub-inactive-sub" style="margin-bottom:22px">
+      Please contact your coach to reactivate your access.
+    </p>
+
+    <div id="sub-inactive-meta" class="hidden" style="
+        background:rgba(244,63,94,0.06);border:1px solid rgba(244,63,94,0.25);
+        border-radius:10px;padding:12px 14px;margin-bottom:18px;
+        font-size:12px;color:rgba(244,63,94,0.92);text-align:left;line-height:1.6">
+      <!-- Populated by UI._showSubscriptionInactive() -->
+    </div>
+
+    <a id="sub-inactive-contact" href="mailto:" class="nc-login-submit"
+       style="display:inline-block;text-align:center;text-decoration:none;background:linear-gradient(135deg,#f43f5e,#ec4899);margin-bottom:10px">
+      Contact Coach
+    </a>
+    <div class="nc-login-meta" style="margin-top:6px">
+      <span class="nc-link" id="sub-inactive-signout">← Sign out</span>
+    </div>
+  </div>
+</div>
+
 <!-- ═══════════════════════ APP ═══════════════════════ -->
 <div id="screen-app">
 
@@ -135,6 +174,12 @@
       </div>
       <div class="nav-item role-coach-admin" id="nav-progress" onclick="Dashboard.showSection('progress')" title="Progress Charts">
         <span class="nav-item-icon">◎</span><span class="nav-label">Progress Charts</span>
+      </div>
+      <div class="nav-item role-coach-admin" id="nav-workout-history" onclick="Dashboard.showSection('workout-history')" title="Workout History">
+        <span class="nav-item-icon">◐</span><span class="nav-label">Workout History</span>
+      </div>
+      <div class="nav-item role-coach-admin" id="nav-progression" onclick="Dashboard.showSection('progression')" title="Progression">
+        <span class="nav-item-icon">◭</span><span class="nav-label">Progression</span>
       </div>
 
       <div class="nav-section role-coach-admin">NeuCore Intelligence</div>
@@ -184,6 +229,8 @@
           <div class="user-name truncate" id="sb-user-name">–</div>
           <div class="user-role-tag" id="sb-user-role">–</div>
         </div>
+        <div id="notif-bell" class="logout-icon" title="Notifications"
+             style="position:relative;cursor:pointer;margin-right:6px">◔</div>
         <div class="logout-icon" title="Sign out" onclick="UI.handleLogout()">⏻</div>
       </div>
     </div>
@@ -954,20 +1001,35 @@
           <button class="btn btn-primary" onclick="Dashboard.openModal('modal-add-subscription')">+ New Subscription</button>
         </div>
       </div>
-      <div class="grid-3 stagger" style="margin-bottom:var(--sp-5)">
-        <div class="stat-card" style="--stat-color:var(--teal);--stat-color-ghost:var(--teal-glow);--stat-color-border:rgba(61,245,193,0.15)">
+      <div class="grid-4 stagger" style="margin-bottom:var(--sp-5)">
+        <div class="stat-card" data-sub-filter="active" style="--stat-color:var(--teal);--stat-color-ghost:var(--teal-glow);--stat-color-border:rgba(61,245,193,0.15);cursor:pointer">
           <div class="stat-card-bg"></div><div class="stat-label">Active</div>
           <div class="stat-value" id="sub-stat-active">–</div>
         </div>
-        <div class="stat-card" style="--stat-color:var(--amber);--stat-color-ghost:var(--amber-glow);--stat-color-border:rgba(245,200,66,0.15)">
+        <div class="stat-card" data-sub-filter="active" style="--stat-color:var(--amber);--stat-color-ghost:var(--amber-glow);--stat-color-border:rgba(245,200,66,0.15);cursor:pointer">
           <div class="stat-card-bg"></div><div class="stat-label">Expiring in 7 days</div>
           <div class="stat-value" id="sub-stat-expiring">–</div>
         </div>
-        <div class="stat-card" style="--stat-color:var(--rose);--stat-color-ghost:var(--rose-glow);--stat-color-border:rgba(245,66,108,0.15)">
+        <div class="stat-card" data-sub-filter="grace" style="--stat-color:#f43f5e;--stat-color-ghost:rgba(244,63,94,0.18);--stat-color-border:rgba(244,63,94,0.25);cursor:pointer">
+          <div class="stat-card-bg"></div><div class="stat-label">In Grace</div>
+          <div class="stat-value" id="sub-stat-grace">–</div>
+        </div>
+        <div class="stat-card" data-sub-filter="expired" style="--stat-color:var(--rose);--stat-color-ghost:var(--rose-glow);--stat-color-border:rgba(245,66,108,0.15);cursor:pointer">
           <div class="stat-card-bg"></div><div class="stat-label">Expired</div>
           <div class="stat-value" id="sub-stat-expired">–</div>
         </div>
       </div>
+
+      <!-- Filter chips — coach can scope the table to one effective state -->
+      <div id="subs-filter" class="subs-filter" style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap"
+           role="tablist" aria-label="Subscription filter">
+        <button class="btn btn-ghost btn-sm subs-filter-btn active" data-filter="all">All</button>
+        <button class="btn btn-ghost btn-sm subs-filter-btn" data-filter="active">Active</button>
+        <button class="btn btn-ghost btn-sm subs-filter-btn" data-filter="grace">Grace</button>
+        <button class="btn btn-ghost btn-sm subs-filter-btn" data-filter="expired">Expired</button>
+        <button class="btn btn-ghost btn-sm subs-filter-btn" data-filter="pending">Pending</button>
+      </div>
+
       <div class="card">
         <div class="table-wrap">
           <table>
@@ -1110,6 +1172,44 @@
           <p class="empty-desc">Progress charts and PDF export will appear here.</p>
         </div>
       </div>
+    </div>
+
+    <!-- ── WORKOUT HISTORY (coach) ── -->
+    <div class="section" id="section-workout-history">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="nc-dashboard-eyebrow">NeuCore Intelligence</div>
+          <h1 class="page-title">Workout <span class="accent" style="color:var(--nc-teal)">History</span></h1>
+          <p class="page-subtitle">Every Start/Finish a client has logged. Click a row for set-by-set detail.</p>
+        </div>
+      </div>
+      <div id="workout-history-root"></div>
+    </div>
+
+    <!-- ── PROGRESSION (coach) — Overall / Compliance / Recovery / Performance ── -->
+    <div class="section" id="section-progression">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="nc-dashboard-eyebrow">NeuCore Intelligence</div>
+          <h1 class="page-title">Progres<span class="accent" style="color:var(--nc-teal)">sion</span></h1>
+          <p class="page-subtitle">Aggregated 30-day signals — workouts, daily routine, friction. Formula v1.0.</p>
+        </div>
+      </div>
+      <div id="progression-root"></div>
+    </div>
+
+    <!-- ── NOTIFICATIONS (everyone) — generic inbox + coach alt-requests sub-card ── -->
+    <div class="section" id="section-notifications">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="nc-dashboard-eyebrow">NeuCore</div>
+          <h1 class="page-title">Notif<span class="accent" style="color:var(--nc-teal)">ications</span></h1>
+          <p class="page-subtitle">Every cross-module event lands here: requests, approvals, subscription updates.</p>
+        </div>
+      </div>
+      <div id="notifications-root"></div>
+      <!-- Coach-only: pending alt-exercise requests as their own pane -->
+      <div id="alt-requests-root" class="role-coach-admin" style="margin-top:18px"></div>
     </div>
 
     <!-- ── OUR SERVICES (NeuCore disciplines, shader-style cards) ── -->
@@ -1872,7 +1972,8 @@ setInterval(() => { if (!document.hidden) _refreshApprovalsBadge(); }, 60_000);
 <!-- jsPDF — professional PDF report engine (UMD global: window.jspdf), vendored locally -->
 <script src="js/lib/jspdf.umd.min.js"></script>
 <script src="js/pdfExport.js"></script>
-<script src="js/auth.js?v=20260522a"></script>
+<script src="js/subscriptionService.js?v=20260530a"></script>
+<script src="js/auth.js?v=20260530a"></script>
 <script src="js/dashboard.js"></script>
 <script src="js/clients.js"></script>
 <script src="js/subscriptions.js"></script>
@@ -1880,6 +1981,10 @@ setInterval(() => { if (!document.hidden) _refreshApprovalsBadge(); }, 60_000);
 <script src="js/gaitEngine.js"></script>
 <script src="js/programGenerator.js"></script>
 <script src="js/dailyRoutine.js"></script>
+<script src="js/workoutSession.js?v=20260531a"></script>
+<script src="js/notificationsService.js?v=20260601a"></script>
+<script src="js/altExerciseRequest.js?v=20260601a"></script>
+<script src="js/progressionEngine.js?v=20260602a"></script>
 <script src="js/programPublish.js"></script>
 <script src="js/bodyMap3D.v2.js"></script>
 <!-- Phase 3 modules -->
@@ -1941,8 +2046,12 @@ const UI = {
       btn.innerHTML = 'Sign In'; btn.disabled = false;
       UI._showApp();
     } catch(e) {
-      UI._loginErr(e.message);
       btn.innerHTML = 'Sign In'; btn.disabled = false;
+      if (e?.code === 'SUBSCRIPTION_INACTIVE') {
+        UI._showSubscriptionInactive(e.state);
+        return;
+      }
+      UI._loginErr(e.message);
     }
   },
 
@@ -1993,6 +2102,14 @@ const UI = {
       _refreshCommunityBadge();
       _refreshApprovalsBadge();
       Dashboard.populateProgressClientSelect?.();
+      // Feature 3 — wire the notifications bell + run idempotent
+      // subscription-notification check for the current client.
+      if (typeof Notifications !== 'undefined') {
+        Notifications.bindBell(document.getElementById('notif-bell'));
+        if (Auth.getRole?.() === 'client') {
+          Notifications.ensureSubscriptionForCurrent();
+        }
+      }
     }, 800);
     // Task 7: deep-link from landing.html (#start-assessment)
     UI._handleLandingHash();
@@ -2011,6 +2128,54 @@ const UI = {
   _showLogin() {
     document.getElementById('screen-login').classList.remove('hidden');
     document.getElementById('screen-app').style.display = 'none';
+    document.getElementById('screen-subscription-inactive')?.classList.add('hidden');
+  },
+
+  // Dedicated takeover for expired/none/pending. Replaces the old
+  // inline "Your subscription has expired" toast/error path.
+  // state ∈ { effective_status, end_date, grace_until, ... }
+  _showSubscriptionInactive(state) {
+    const ie     = document.getElementById('screen-subscription-inactive');
+    const title  = document.getElementById('sub-inactive-title');
+    const sub    = document.getElementById('sub-inactive-sub');
+    const meta   = document.getElementById('sub-inactive-meta');
+    const cta    = document.getElementById('sub-inactive-contact');
+    if (!ie) return;
+
+    document.getElementById('screen-login').classList.add('hidden');
+    document.getElementById('screen-app').style.display = 'none';
+
+    const status = state?.effective_status || 'expired';
+    const lines  = [];
+    if (status === 'pending') {
+      title.textContent = 'Your subscription isn’t active yet.';
+      sub.textContent   = 'Your coach has set up your plan but hasn’t activated it. Please reach out.';
+    } else if (status === 'none') {
+      title.textContent = 'No subscription on file.';
+      sub.textContent   = 'Please contact your coach to set up access.';
+    } else {
+      title.textContent = 'Your subscription has expired.';
+      sub.textContent   = 'Please contact your coach to reactivate your access.';
+      if (state?.end_date)    lines.push(`Plan ended: <b>${state.end_date}</b>`);
+      if (state?.grace_until) lines.push(`Grace ended: <b>${state.grace_until}</b>`);
+    }
+    if (lines.length) {
+      meta.innerHTML = lines.join('<br>');
+      meta.classList.remove('hidden');
+    } else {
+      meta.classList.add('hidden');
+    }
+
+    // Coach email lookup is server-side; for now mailto: stays blank so the
+    // user picks their address book. Future hook: prefill from profile.assigned_coach.
+    cta.href = 'mailto:?subject=Subscription%20reactivation%20request';
+
+    document.getElementById('sub-inactive-signout').onclick = async () => {
+      try { await Auth.logout(); } catch {}
+      window.location.href = 'index.html';
+    };
+
+    ie.classList.remove('hidden');
   },
 
   _loginErr(msg) {
@@ -2108,8 +2273,14 @@ if (typeof Auth !== 'undefined') {
       _bounceToLanding();
     }
   } catch(e) {
-    console.error('NeuCore boot error:', e);
     if (typeof UI !== 'undefined') UI._hideLoading();
+    if (e?.code === 'SUBSCRIPTION_INACTIVE') {
+      // Dedicated screen, not a bounce to landing — the user is a valid
+      // client whose subscription lapsed past the grace window.
+      UI._showSubscriptionInactive(e.state);
+      return;
+    }
+    console.error('NeuCore boot error:', e);
     if (loginIntent) _showLoginScreen(); else _bounceToLanding();
   }
 })();

@@ -29,6 +29,62 @@ const ClientDashboard = (() => {
       .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
+  // ── Subscription pill + grace banner (data from Auth cache) ─────
+  // Reads the effective state cached on the profile during Auth.init /
+  // Auth.login. No extra round-trip.
+  const PILL_TONE = {
+    teal:  'background:rgba(20,184,166,.14);color:var(--nc-teal,#14b8a6);border:1px solid rgba(20,184,166,.35)',
+    amber: 'background:rgba(245,158,11,.14);color:#f59e0b;border:1px solid rgba(245,158,11,.35)',
+    rose:  'background:rgba(244,63,94,.14);color:#f43f5e;border:1px solid rgba(244,63,94,.35)',
+    gray:  'background:rgba(148,163,184,.10);color:#94a3b8;border:1px solid rgba(148,163,184,.25)',
+  };
+
+  function _getState() {
+    if (typeof Auth === 'undefined' || !Auth.getSubscriptionState) return null;
+    return Auth.getSubscriptionState();
+  }
+
+  function _renderSubscriptionPill() {
+    const state = _getState();
+    if (!state) return '';
+    const pill  = (typeof SubscriptionService !== 'undefined')
+      ? SubscriptionService.formatPill(state)
+      : { label: 'Subscription', tone: 'gray' };
+    const style = PILL_TONE[pill.tone] || PILL_TONE.gray;
+    return `
+      <div class="cd-subscription-pill" title="Subscription status"
+           style="display:inline-flex;align-items:center;gap:6px;
+                  padding:6px 12px;border-radius:999px;font-size:11px;
+                  font-weight:600;letter-spacing:.04em;text-transform:uppercase;
+                  ${style}">
+        <span style="width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.7"></span>
+        ${_esc(pill.label)}
+      </div>`;
+  }
+
+  function _renderSubscriptionBanner() {
+    const state = _getState();
+    if (!state) return '';
+    if (state.effective_status !== 'grace') return '';
+    const g = state.grace_days_left ?? 0;
+    return `
+      <div role="alert"
+           style="margin-bottom:18px;padding:14px 18px;border-radius:12px;
+                  background:rgba(244,63,94,0.08);border:1px solid rgba(244,63,94,0.3);
+                  display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+        <span style="font-size:22px;line-height:1">⚠</span>
+        <div style="flex:1;min-width:220px">
+          <div style="font-size:14px;font-weight:700;color:#f43f5e;margin-bottom:2px">
+            Subscription grace period — ${g} day${g === 1 ? '' : 's'} left
+          </div>
+          <div style="font-size:12px;color:var(--text-secondary);line-height:1.5">
+            Your plan ended on ${_esc(state.end_date || '')}. Reach out to your coach to renew before
+            access becomes read-only on ${_esc(state.grace_until || '')}.
+          </div>
+        </div>
+      </div>`;
+  }
+
   // ── Public entry point — called by Dashboard.showSection('dashboard')
   //    when Auth.getRole() === 'client'.
   function render() {
@@ -40,11 +96,18 @@ const ClientDashboard = (() => {
     const clientId  = profile?.id || null;
 
     root.innerHTML = `
+      ${_renderSubscriptionBanner()}
+
       <!-- HEADER -->
       <div class="cd-header">
-        <div class="cd-eyebrow">Your Recovery</div>
-        <h1 class="cd-title">Welcome back, <span class="accent">${_esc(firstName)}</span>.</h1>
-        <p class="cd-subtitle">A read-only view of where you are today and where your coach is taking you.</p>
+        <div class="cd-header-top" style="display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap">
+          <div>
+            <div class="cd-eyebrow">Your Recovery</div>
+            <h1 class="cd-title">Welcome back, <span class="accent">${_esc(firstName)}</span>.</h1>
+            <p class="cd-subtitle">A read-only view of where you are today and where your coach is taking you.</p>
+          </div>
+          ${_renderSubscriptionPill()}
+        </div>
       </div>
 
       <!-- HERO — Point A vs Point B 3D Load Visualizer -->
@@ -69,6 +132,9 @@ const ClientDashboard = (() => {
           ${_renderOverlays({ currentA:{}, targetB:{} }, 'A')}
         </div>
       </div>
+
+      <!-- Feature 4 — Progression Engine gauges (renders async) -->
+      <div id="cd-progression-host" style="margin-bottom:18px"></div>
 
       <!-- 3-COLUMN METRIC ROW (Phase C fills this with real Chart.js) -->
       <div class="cd-metrics-grid">
@@ -118,6 +184,11 @@ const ClientDashboard = (() => {
     // Wire the toggle right away so it feels responsive even before
     // the skeleton finishes loading.
     _wireToggle();
+
+    // Feature 4 — render the 4-score progression panel into its slot.
+    if (typeof Progression !== 'undefined') {
+      Progression.mountClientPanel(document.getElementById('cd-progression-host'));
+    }
 
     // Mount / refresh the 3D visualizer once. Repeat renders for the
     // same client reuse the existing visualizer; switching client

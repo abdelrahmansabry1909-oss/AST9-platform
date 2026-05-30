@@ -341,7 +341,7 @@
     let row = null;
     try {
       const { data, error } = await sb.from('client_programs')
-        .select('program, published, published_at').eq('client_id', clientId).maybeSingle();
+        .select('id, program, published, published_at').eq('client_id', clientId).maybeSingle();
       if (error) throw error;
       row = data;
     } catch (e) {
@@ -402,9 +402,11 @@
           </span>`).join('')}
       </div>`;
 
-    // Each distinct workout, read-only
+    // Each distinct workout, read-only — plus a tracker slot that
+    // WorkoutSession.mountWorkouts() takes over after render.
     const workoutHTML = workouts.map((wk) => `
-      <div style="margin-bottom:20px;border:1px solid var(--border-subtle);border-radius:12px;padding:14px 16px;background:rgba(255,255,255,.015)">
+      <div class="ws-workout-card" data-workout-key="${esc(wk.id)}"
+           style="margin-bottom:20px;border:1px solid var(--border-subtle);border-radius:12px;padding:14px 16px;background:rgba(255,255,255,.015)">
         <div style="display:flex;align-items:center;gap:9px;margin-bottom:8px">
           <span style="width:26px;height:26px;border-radius:7px;background:rgba(20,184,166,.16);
                        border:1px solid rgba(20,184,166,.35);color:var(--nc-teal);font-weight:700;
@@ -414,10 +416,12 @@
         ${roSection('Warm-Up', wk.warmup, 'var(--nc-teal)')}
         ${roSection('Conditioning / Correctives', wk.main, 'var(--nc-gold, #D4AF37)')}
         ${roSection('Cool-Down', wk.cooldown, '#5A9BD4')}
+        <!-- WorkoutSession tracker (Start/Finish + per-exercise log) -->
+        <div data-workout-tracker-host="${esc(wk.id)}"></div>
       </div>`).join('');
 
     host.innerHTML = `
-      <div class="card">
+      <div class="card" data-program-host>
         <div class="card-header">
           <span class="card-title">Your Training Program</span>
           <span class="badge" style="background:rgba(20,184,166,.14);color:var(--nc-teal);border:1px solid rgba(20,184,166,.3)">
@@ -435,6 +439,16 @@
           Your daily routine is in the <b>𓆸 Daily Routine</b> tab — check off tasks each day.
         </div>
       </div>`;
+
+    // Mount the WorkoutSession tracker into every workout's slot.
+    const programHost = host.querySelector('[data-program-host]');
+    if (programHost) programHost._workouts = workouts;     // stash for re-renders
+    if (typeof WorkoutSession !== 'undefined' && programHost) {
+      WorkoutSession.mountWorkouts(programHost, {
+        programId: row.id || null,
+        workouts,
+      }).catch((e) => console.warn('[programPublish] tracker mount:', e?.message));
+    }
   }
 
   window.ProgramPublish = { render, getProgram, renderClientProgram };

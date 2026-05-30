@@ -42,17 +42,40 @@ const Auth = (() => {
     return _profile;
   }
 
-  // ── Check client subscription ───────────────────────────────
-  async function checkSubscription(userId) {
-    const today = new Date().toISOString().split('T')[0];
-    const { data } = await sb
-      .from('subscriptions')
-      .select('id, end_date, status')
-      .eq('client_id', userId)
-      .eq('status', 'active')
-      .gte('end_date', today)
-      .limit(1);
-    return !!(data && data.length > 0);
+  // ── Subscription gating ─────────────────────────────────────
+  // Delegated to SubscriptionService (single source of truth). Returns
+  // the effective state object and caches it on the profile so every
+  // module can read it synchronously via Auth.getSubscriptionState().
+  //
+  // Gate rule (locked):
+  //   active | grace  → login allowed, writes allowed
+  //   expired | none  → login blocked (UI shows #screen-subscription-inactive)
+  //   pending         → login blocked until coach activates
+  async function _refreshSubscriptionState(userId) {
+    if (typeof SubscriptionService === 'undefined') {
+      // Service not loaded — fail open in dev but warn loudly.
+      console.warn('[auth] SubscriptionService missing; allowing login');
+      return { effective_status: 'active', _unverified: true };
+    }
+    const state = await SubscriptionService.getEffectiveState(userId, { force: true });
+    if (_profile) _profile.subscription = state;
+    return state;
+  }
+
+  // Thrown by login/init when access must be denied. UI catches the
+  // code and routes to the inactive screen instead of the toast path.
+  class SubscriptionInactiveError extends Error {
+    constructor(state) {
+      super('Subscription inactive');
+      this.code  = 'SUBSCRIPTION_INACTIVE';
+      this.state = state;
+    }
+  }
+
+  function _gateClient(state) {
+    const s = state?.effective_status || 'none';
+    // active + grace get through. Everything else is blocked.
+    return s === 'active' || s === 'grace';
   }
 
   // ── Login ────────────────────────────────────────────────────
@@ -84,17 +107,18 @@ const Auth = (() => {
       const { data, error } = result;
       if (error) throw new Error(error.message);
       await loadProfile(data.user);
-      // Block expired clients
+      // Subscription gate for clients (active + grace pass through).
       if (_profile.role === 'client') {
-        const ok = await checkSubscription(data.user.id);
-        if (!ok) {
+        const state = await _refreshSubscriptionState(data.user.id);
+        if (!_gateClient(state)) {
           await sb.auth.signOut();
           _user = null; _profile = null;
-          throw new Error('Your subscription has expired. Please contact your coach to renew access.');
+          throw new SubscriptionInactiveError(state);
         }
       }
       return _profile;
     } catch(e) {
+      if (e?.code === 'SUBSCRIPTION_INACTIVE') throw e;
       if (e.message.includes('timed out')) {
         throw new Error('Unable to connect to authentication server. The server may be waking up from pause - please wait a moment and try again.');
       }
@@ -134,20 +158,34 @@ const Auth = (() => {
         await loadProfile(session.user);
         // Recheck subscription on page reload for clients
         if (_profile.role === 'client') {
-          const ok = await checkSubscription(session.user.id);
-          if (!ok) {
+          const state = await _refreshSubscriptionState(session.user.id);
+          if (!_gateClient(state)) {
             await sb.auth.signOut();
             _user = null; _profile = null;
-            return null;
+            throw new SubscriptionInactiveError(state);
           }
         }
         return _profile;
       }
       return null;
     } catch(e) {
+      if (e?.code === 'SUBSCRIPTION_INACTIVE') throw e;
       console.error('Auth init error:', e.message);
       return null;
     }
+  }
+
+  // ── Sync accessors for cached subscription state ────────────────
+  function getSubscriptionState() {
+    return _profile?.subscription || null;
+  }
+  // Write-gate read by future workout / routine modules. Delegates
+  // straight to SubscriptionService so the rule lives in one place.
+  function canWrite() {
+    if (!_profile) return false;
+    if (_profile.role !== 'client') return true;  // coaches/admins always.
+    if (typeof SubscriptionService === 'undefined') return true;
+    return SubscriptionService.canWrite(_profile.subscription);
   }
 
   // ── Listen for auth state changes ────────────────────────────
@@ -173,6 +211,10 @@ const Auth = (() => {
     getUser, getProfile, getRole, isAdmin, isCoach, isAdminOrCoach,
     login, logout, sendPasswordReset, updatePassword, init, listen,
     loadProfile,
+    // Subscription:
+    getSubscriptionState, canWrite,
+    // Error type (UI compares e.code === 'SUBSCRIPTION_INACTIVE'):
+    SubscriptionInactiveError,
   };
 })();
 
