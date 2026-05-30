@@ -1,318 +1,247 @@
-# PROJECT_STATUS.md — NeuCore Platform Verification
+# PROJECT_STATUS.md — NeuCore Platform (post-Tier 1)
 
 **Date:** 2026-05-30
-**Scope:** Static end-to-end verification of Features 1–4 + full client-journey audit.
-**Method:** Code-path tracing across every file touched + cross-checking schema/RLS/wiring. No live Supabase queries — every "Working" claim below is verifiable by inspecting the cited file path + line range.
-**App shell:** `app.html` only. `index.html` (legacy AST9) is intentionally not in scope.
+**Branch:** `claude/interesting-buck-452459`
+**Last commits:** `7265f09` (Tier 1), `4f65456` (Features 1–4 checkpoint)
+**Status:** Tier 1 code shipped. **Live verification halted** at a migration collision — decision required before any DB change applies.
 
 ---
 
 ## 0 · Executive Summary
 
-| Feature | Verdict | Confidence |
+| Stream | Status |
+|---|---|
+| Features 1–4 code | ✅ Committed (`4f65456`) — no regressions, syntax clean |
+| Tier 1 fixes | ✅ Committed (`7265f09`) — seven gaps closed |
+| Live DB — Feature migrations applied | ❌ **0 of 5** — blocked by collision |
+| Live DB — verification queries | ✅ Run; one critical finding |
+
+**Halt reason:** the live `public.notifications` table already exists with a **different schema** that predates this work. My Feature 3 migration uses `CREATE TABLE IF NOT EXISTS` and would silently no-op, leaving the wrong schema active and breaking every downstream call.
+
+**Decision required:** see §4 below — three paths, recommendation listed.
+
+---
+
+## 1 · Tier 1 fixes (committed in `7265f09`)
+
+All seven items from the previous status report's "Tier 1" list are now landed in code. No live-DB impact yet for items requiring a migration; pure code edits already merged.
+
+| Fix | What changed | Verified by |
 |---|---|---|
-| Subscription Grace System | **✅ Working** with 2 minor wiring gaps | High |
-| Workout Tracking          | **✅ Working** with 1 missing integration | High |
-| Notifications             | **⚠ Partially Working** — 1 cross-module gap + 1 silent failure mode | High |
-| Progression Engine        | **✅ Working** — formula v1 sound; coach overview depends on profiles RLS | High |
-| **Full Client Journey**   | **⚠ 6 gaps**, mostly client-sidebar visibility + flow disconnects | High |
+| **M** Client access to Case Studies | Removed `role-coach-admin` class on `nav-case-studies` in `app.html:192` | grep + manual visual trace; Share Case button still scoped to Community sub-tab |
+| **N** Client Settings page | New `nav-client-settings` (role-client-only) + `#section-client-settings` with email/name/change-password + subscription card; `Dashboard._renderClientSettings` loader | `node --check js/dashboard.js` ✓ |
+| **D** Demo Login | `Auth.loginAsGuest()` now throws typed `DEMO_UNAVAILABLE` error; `UI.handleDemoLogin` catches and surfaces clean toast | Trace + syntax check |
+| **L** `populateProgressClientSelect` | Implemented on `Dashboard`; scopes by `assigned_coach` for non-admins; populates `#progress-client-select` | Boot path now exercises a real function instead of optional-chained `undefined` |
+| **C** Require assigned coach | `submitAddClient` validates `fields.coach`; modal label marked required + hint | `js/clients.js` diff |
+| **FK guards (6 triggers)** | New migration `20260603_*` recreates all six notification trigger functions with `_profile_exists` guard | Migration on disk, not yet applied — see §3 |
+| **Phase Upgrade → inbox** | New `tg_profile_phase_upgrade` AFTER UPDATE trigger on `profiles.current_phase` publishes a `phase_upgrade` notification — JS unchanged | Migration on disk, not yet applied — see §3 |
 
-**No regressions** found in pre-existing modules. **No syntax errors** (all touched JS files pass `node --check`).
-
-**Top blockers before next feature work:**
-1. Client sidebar denies access to Case Studies + Settings (spec contradicts current `.role-*` gating)
-2. Phase Upgrade flow bypasses the notifications inbox
-3. Coach response to alt-exercise request doesn't modify the published program — only sends text
-4. Two existing tables FK to `auth.users(id)` while new tables FK to `profiles(id)`, creating a hidden integrity dependency on profiles-mirroring-auth.users
+**Code-level verification: clean.** All edits compile (`node --check` passes for every touched JS file).
 
 ---
 
-## 1 · Feature 1 — Subscription Grace System
+## 2 · Live Supabase State — what's actually in the database
 
-**Files**
-`supabase/migrations/20260530_subscription_grace.sql`, `js/subscriptionService.js`, `js/auth.js`, `js/subscriptions.js`, `js/clientDashboard.js`, `app.html` (#screen-subscription-inactive, #sub-stat-grace, #subs-filter)
+**Project:** `byquokhcbagofshsclfy` (eu-central-1, Postgres 17.6.1.111, ACTIVE_HEALTHY)
+**Profiles:** 3 (1 coach + 1 client + 1 other based on row counts)
+**Subscriptions:** 2 active (`2026-05-21→2026-08-21`, `2026-05-10→2026-08-10`)
+**RPM graphs:** 8 · phases: 5 · phase_submissions: 0
+**Client programs published:** 1 · routines: 1 · daily_routine_logs: 0
+**Assessments:** 20 · gait_assessments: 20 · body_map_states: 20
+**Case shares:** 1 · client posts: 3 · client groups: 1
 
-### Working ✅
-- View `v_client_subscription_state` returns one row per client with correct `effective_status` enum (`active|grace|expired|pending`). `security_invoker=true` so RLS on `subscriptions` governs visibility.
-- `SubscriptionService.getEffectiveState()` caches per-client for 30s; `listAllStates()` warms the cache while loading the coach table.
-- `Auth.login` and `Auth.init` both call `_refreshSubscriptionState`; both throw `SubscriptionInactiveError {code:'SUBSCRIPTION_INACTIVE', state}`. Caller (UI.handleLogin + boot try/catch) routes to `#screen-subscription-inactive` and bypasses the toast path. **Verified by tracing `auth.js:88-95` + `auth.js:142-148` + `app.html:_showSubscriptionInactive`.**
-- `Auth.canWrite()` returns true for `active|grace`, true for all non-client roles, false for `expired|pending|none`. Used by `WorkoutSession.start/finish/logExercise` + `AltExercise.openModal`.
-- Coach Subscriptions page: 4 stat cards (Active / Expiring / Grace / Expired), filter chips (`all/active/grace/expired/pending`), clickable stat cards trigger same filter. Grace + Expired rows show "↺ Reactivate" button.
-- Reactivation goes through `SubscriptionService.reactivate(clientId, {months})` which delegates to `SECURITY DEFINER` RPC `public.reactivate_subscription(...)`. Permission check (`admin OR assigned_coach`) lives in SQL.
-- Client dashboard pill (`active`→teal, ≤14d→amber, grace→rose) + grace banner above hero with days-left + end-date + grace-until.
+### Migrations tracked in `supabase_migrations.schema_migrations` (12)
+Pre-2026-05-21 baseline only — covers profiles/sessions/assessments/community/RLS hardening + the `case_study_approval` work.
 
-### Partially Working ⚠
-- **Wiring gap A**: `Subscriptions.loadAll()` is called when the coach navigates to Subscriptions, but `_wireFilter()` ran once at DOMContentLoaded. If the user navigates to `#section-subscriptions` *after* re-rendering its markup (no current flow does this, but hot-reload would), filter chip handlers don't rebind. **Severity: low**, future-risk only.
-- **Wiring gap B**: `app.html:_showApp` calls `Dashboard.populateProgressClientSelect?.()` but that function does not exist on `Dashboard` (grep returns no match). Silent no-op. Pre-existing, not introduced by Feature 1. **Severity: cosmetic**, but blocks the Progress Charts client dropdown from auto-populating.
+### Migrations on disk but **NOT tracked** (state drift)
+These tables exist (verified by row counts), so the SQL was applied via the SQL editor without going through the CLI:
 
-### Broken ❌
-None.
+| File on disk | Tables now present | Tracked? |
+|---|---|---|
+| `20260515_rpm_foundation.sql` | `rpm_graphs`, `rpm_phases`, `rpm_phase_exercises`, `phase_submissions`, `ai_feedback_log`, `subjective_assessments`, `visitor_inquiries` | ❌ |
+| `20260516_rpm_phase5.sql` | column additions on rpm_phases | ❌ |
+| `20260521_daily_routine.sql` | `daily_routine_logs` | ❌ |
+| `20260522_client_program_publish.sql` | `client_programs`, `client_routines` | ❌ |
+| `20260523_case_study_approval.sql` | status/reviewed_by columns on case_shares | ✅ (tracked) |
 
-### Missing Integrations
-- **Email/SMS push during grace**: out of scope per Feature 1 architecture lock, but worth noting again — Resend integration exists in `send-email` edge function, never invoked for grace.
-- **Daily cron** to sweep all clients and populate subscription notifications — currently only fires on the client's own `auth.init`, so coaches don't get the "grace started" notification until *the client* logs in.
+**Process gap, not a blocker.** Whoever applied them did so manually. Won't block Feature 1–4 migrations but should be folded into the registry eventually so `list_migrations` reflects reality.
 
----
+### Helpers / functions present
+- ✅ `public.is_admin()`, `public.is_coach()`, `public.is_coach_or_admin()` — from the RPM foundation
+- ❌ `public.notify()`, `public.reactivate_subscription()`, `public.ensure_subscription_notifications()`, `public._profile_exists()`, `public._clamp_score()` — **none applied**
 
-## 2 · Feature 2 — Workout Tracking
-
-**Files**
-`supabase/migrations/20260531_workout_tracking.sql`, `js/workoutSession.js`, `js/programPublish.js` (+ `js/dashboard.js`, `js/clients.js`, `app.html`)
-
-### Working ✅
-- Schema: `workout_sessions` + `workout_exercise_logs` with correct FKs to `profiles(id)` and `client_programs(id)`. Partial unique index `WHERE status='active'` enforces "one active session per client".
-- RLS: client owns own rows; assigned_coach can read + insert + update; admin all. Logs inherit via parent session join.
-- `WorkoutSession.start` auto-abandons a prior active session on a *different* workout key (resume semantics).
-- `mountWorkouts` is called from `renderClientProgram` after every render; each `[data-workout-tracker-host="<id>"]` slot gets either a "▶ Start Workout" CTA or a live tracker (timer + per-exercise rows + Finish).
-- Per-set inputs (reps + weight + "+ Add set"), "Done" checkbox, per-exercise notes — all upsert via `(session_id, exercise_index)` unique key with 600ms debounce.
-- Finish modal: intensity 1–10 slider + notes → updates `duration_seconds + intensity_rating + session_notes + status='completed'`.
-- Coach view: `mountCoachView` populates client dropdown (scoped by `assigned_coach` for non-admin), sessions table (When · Workout · Status · Duration · Intensity), set-by-set detail card.
-- Deep-link: Clients table "◐ Workouts" button stashes `window._wsPreselectClient` and triggers section change; loader consumes + nulls the global.
-- `Auth.canWrite()` short-circuit on every write call with toast "Read-only — subscription inactive."
-
-### Partially Working ⚠
-- **`WorkoutSession.start` coach_id derivation** uses `_coachOfClient(clientId)` which returns `Auth.getProfile()?.assigned_coach` *only for self*. For a coach inserting a session on behalf of a client (which RLS allows), `coach_id` becomes `null`. Existing flow doesn't expose this path in UI, but RLS technically permits it. **Severity: low**, hypothetical only.
-
-### Broken ❌
-None.
-
-### Missing Integrations
-- **Video preview inside the active workout row**: spec says each exercise should show its video preview. `client_programs.program.workouts[].exercises[]` currently stores exercise text only (no `exercise_id` linkage to the Exercise Library). Workout row renders name + target sets/reps but no thumbnail / no playback. Documented as deferred during Feature 2 architecture lock.
-- **Workout history → Progress Charts crossover**: the existing `Charts.renderClientProgressPage(clientId)` doesn't read `workout_sessions` data. Workout history lives in its own section; the progression engine consumes the same data but the legacy Charts page doesn't. **Severity: medium** — two competing views of "progress".
+### Views present
+- None of the new ones. `v_client_subscription_state` and `v_client_progression` don't exist yet.
 
 ---
 
-## 3 · Feature 3 — Notifications + Alt-Exercise
+## 3 · Live verification per feature
 
-**Files**
-`supabase/migrations/20260601_notifications_inbox.sql`, `js/notificationsService.js`, `js/altExerciseRequest.js`, `js/workoutSession.js` (+ `js/dashboard.js`, `app.html`)
-
-### Working ✅
-- `notifications` table + `WITH CHECK (false)` direct-INSERT policy + `SECURITY DEFINER public.notify(...)` RPC with locked authorization rules (self ✓ admin ✓ coach→own client ✓ client→own coach ✓).
-- `exercise_alternative_requests` table + client-INSERT policy + client-UPDATE-while-pending policy + coach-UPDATE policy.
-- 6 triggers attached:
-  - `tg_aer_insert` → notify coach with `alt_exercise_request`
-  - `tg_aer_update` → notify client with `alt_exercise_decided`
-  - `tg_phase_subm_insert` → notify graph.coach with `rpm_approval_pending`
-  - `tg_phase_subm_update` → notify client with `rpm_approval_decided`
-  - `tg_case_share_insert` → notify every admin
-  - `tg_case_share_update` → notify submitting coach
-- `ensure_subscription_notifications(client_id)` is idempotent (key = sub_id+type) and creates client + coach mirror entries on expiring/grace transitions. Called from `_showApp` on client init.
-- `NotificationsService`: list/unreadCount/markRead/markAllRead/archive/remove, Supabase realtime channel + 60s polling fallback, `bindBell(el)` wires badge + click, `mountInbox(host)` with severity-colored rows, deep-link via `link_section`+`link_params`.
-- `AltExercise.openModal(ctx)` writes a request row; trigger sends the notification. `AltExercise.mountInbox(host)` shows pending requests with Respond modal (Address/Decline + free-text response); trigger notifies the client.
-- "⇄ Alt" mini-button is wired into every WorkoutSession exercise row with full ctx (programId, workoutKey, exerciseIndex, exerciseName).
-- Bell in sidebar footer; `#section-notifications` with `#notifications-root` + coach-only `#alt-requests-root`.
-
-### Partially Working ⚠
-- **Deep-link destinations don't pre-select**: clicking a notification with `link_section='my-program'` and `link_params={request_id}` navigates to My Program, but `ProgramPublish.renderClientProgram` doesn't read `window._notifParams`. Same for `link_section='my-graph'`, `'rpm-approvals'`, `'subscriptions'`. User lands on the right page but has to find the specific item manually. **Severity: medium** (UX).
-- **Realtime requires Supabase setup**: `NotificationsService._ensureChannel()` subscribes via `sb.channel(...)`. If Realtime isn't enabled on the `notifications` table in Supabase Studio → Database → Replication, the channel subscription silently degrades to 60s polling. Documented in migration but worth a one-time setup step. **Severity: low**.
-- **Bell discoverability**: there's no `nav-notifications` sidebar entry. Inbox is reachable only via the bell or via a notification deep-link. **Severity: low** (cosmetic).
-
-### Broken ❌
-None at the code level. **Latent integrity risk:**
-- `notifications.recipient_id` FKs to `profiles(id) NOT NULL`. But `rpm_graphs.coach_id` (line 147 of `20260515_rpm_foundation.sql`) and `case_shares.coach_id` (line 55 of `AST9_Phase3_Migrations.sql`) FK to `auth.users(id)`. If a coach exists in `auth.users` without a matching `profiles` row, `tg_phase_subm_notify_coach` / `tg_case_share_notify_admins` will fail with FK violation, **rolling back the source INSERT** (the client's phase submission or coach's case share). In practice Supabase's standard signup trigger keeps `profiles` mirrored to `auth.users`, but this is an implicit invariant. **Severity: medium** — defensive fix recommended (`ON CONFLICT DO NOTHING` won't help because the FK fires before INSERT; the right fix is to skip the notify when `EXISTS (SELECT 1 FROM profiles WHERE id = v_coach)`).
-
-### Missing Integrations
-- **Phase Upgrade modal does NOT notify**: `Dashboard.submitPhaseUpgrade` (dashboard.js:893) updates `profiles.current_phase` directly and sends the legacy `phase_upgrade` email. It does **not** insert a notification. So the celebration confetti shows on coach's screen, but the client doesn't get an inbox entry when they next log in. **Severity: high** — explicit spec requirement ("celebration message sent to client") only partially met.
-- **Workout abandonment doesn't notify the coach**: when `WorkoutSession.start` auto-abandons a prior session, no notification fires. Spec didn't mandate this, but it would be a meaningful Recovery signal. **Severity: low**.
-- **Notifications aren't ever auto-archived**: read items remain in the list forever. No retention policy. **Severity: low** (becomes medium at scale).
-
----
-
-## 4 · Feature 4 — Progression Engine
-
-**Files**
-`supabase/migrations/20260602_progression_engine.sql`, `js/progressionEngine.js`, `js/dashboard.js`, `js/clientDashboard.js`, `app.html` (#section-progression, #cd-progression-host)
-
-### Working ✅
-- `v_client_progression` view with `security_invoker=true` → existing RLS on workout_sessions / daily_routine_logs / exercise_alternative_requests governs row visibility per user.
-- Formula v1.0 documented in the migration; carries `formula_version` column so reweight ships as v2 alongside v1.
-- All four scores compute correctly per the documented math:
-  - Compliance = 0.4·workout_completion + 0.4·routine + 0.2·exercise_completion
-  - Recovery = 100 − 10·overreach − 30·abandonment_rate − 5·alt_requests, clamped
-  - Performance = mean per-exercise (top-set Δ in window), mapped −20%↔+50% → 40↔100; defaults to 50 (neutral) when no qualifying data
-  - Overall = 0.4·Compliance + 0.3·Recovery + 0.3·Performance
-- `_clamp_score(v)` helper + COALESCE on every signal — null-safe.
-- `Progression.mountClientPanel(host)` renders four inline-SVG semicircular gauges + tone palette (≥80 teal, ≥60 lime, ≥40 amber, ≥20 orange, <20 rose) + supporting micro-stats per gauge + 7-day routine delta line + version stamp.
-- `Progression.mountCoachOverview(host)` lists all clients (one extra round-trip to `profiles` for names) with sortable columns + click-to-detail. Detail panel includes the four gauges + the full Signal Breakdown grid.
-
-### Partially Working ⚠
-- **Performance score is mostly 50/neutral** because typical NeuCore rehab programs rotate exercises and rarely repeat the same exercise 3× in 30 days. By design the engine returns 50 when `exercises_tracked_30d < 3`, but in practice this means Performance carries almost no signal for Phase 1/2 clients. **Severity: medium** — the score appears stable but is not actually measuring anything for most users. Worth re-weighting in v2 once nutrition + RPM-phase-advancement signals exist.
-- **Compliance "12 workouts/30d" target** (≈3/week) is too aggressive for rehab Phase 1 clients (whose programs are often 1–2 days/week). Currently a Phase 1 client doing exactly what's prescribed scores 17–33% on the workout slice. **Severity: medium** — recommend deriving the target from `client_programs.program.days_per_week` in v2.
-
-### Broken ❌
-None.
-
-### Missing Integrations
-- **Nutrition signal**: no `nutrition_logs` table exists, so the engine has no nutrition input — Compliance is technically a "workout + routine" composite. Spec called out four trackers (Workout, Routine, Nutrition, combined). **Severity: high** — Compliance score is misnamed until nutrition lands.
-- **Historical snapshots**: no `progression_history` table. Today's view always reads from live data; there's no record of what a client's overall score was last week. The pre-existing `progress_snapshots` table (AST9_Phase3_Migrations.sql) stores per-assessment ROM/control/force/neuro scores — *different concept*, not used here. **Severity: medium** — blocks any "your score went up 8 points this week" UX.
-- **Phase progression signal**: client advancing phases (Phase 1 → 2 → 3) is currently captured in `profiles.current_phase` but not consumed by the engine. **Severity: low**.
-
----
-
-## 5 · Full Client Journey Audit
-
-> Path: **Coach creates Client → Client logs in → Assessment view → Program view → Workout completion → Progress tracking**
-
-### Step 1 — Coach Creates Client
-**File:** `js/clients.js:67-117` (`submitAddClient`)
-
-| Status | Finding |
+### Feature 1 — Subscription Grace
+| Check | Result |
 |---|---|
-| ✅ | Modal collects name, email, temporary password, age, phase, phone, coach, goal |
-| ✅ | Calls Supabase edge function `/functions/v1/create-user` with bearer token; creates auth user + profiles row with `role='client'`, `assigned_coach`, etc. |
-| ✅ | Refreshes client list + dropdowns after success |
-| ⚠ | **Spec says "Create Username"**; current flow uses email as the auth identifier (Supabase Auth requires email). No `username` column exists. **Gap A.** |
-| ⚠ | **Spec says "Select Subscription Type / Duration / Activate Subscription" in the same flow**; current Add Client modal does NOT create a subscription. Coach must separately open the New Subscription modal and link the client. **Gap B.** |
-| ❌ | No assigned_coach validation: if coach is left blank, client is created with `assigned_coach=null`. Downstream: `AltExercise.openModal` blocks ("No coach assigned"), `WorkoutSession.start` writes `coach_id=null` (allowed by RLS), grace-period notifications skip the coach side. **Gap C.** |
+| Migration applied | ❌ Not applied |
+| `subscriptions` table exists with `grace_days` column | ❌ column missing |
+| `v_client_subscription_state` view | ❌ missing |
+| `public.reactivate_subscription` RPC | ❌ missing |
+| Existing subscription rows compatible with new view shape | ✅ (`plan, start_date, end_date, status` all present) |
+| Auth.canWrite() behavior **once applied** | Will compile + run; depends on the view |
 
-### Step 2 — Client Login
-**File:** `js/auth.js:60-110`, `app.html:UI.handleLogin`
+**Verdict:** Code is correct, awaiting migration apply.
 
-| Status | Finding |
+### Feature 2 — Workout Tracking
+| Check | Result |
 |---|---|
-| ✅ | Email + password authenticate against Supabase |
-| ✅ | Subscription state cached on `_profile.subscription` |
-| ✅ | Active + Grace pass; Expired/Pending/None routed to dedicated `#screen-subscription-inactive` (Feature 1) |
-| ✅ | Cold-start retry pattern handles paused Supabase instances |
-| ⚠ | "Continue as Demo" button (`Auth.loginAsGuest`) is referenced from `app.html:69` but `Auth.loginAsGuest` does NOT exist on the Auth IIFE. Click → TypeError. **Pre-existing bug; not introduced by recent features. Gap D.** |
+| Migration applied | ❌ Not applied |
+| `workout_sessions` / `workout_exercise_logs` exist | ❌ missing |
+| Legacy `public.workout_logs` exists | ⚠ Yes — different table, different shape (`program_exercise_id, weight_used, reps_completed text, sets_completed, feedback`). Empty (0 rows). Not referenced by any of my code. **Not a conflict** but creates a confusing duplication. |
+| Coach RLS works on assigned-coach | Depends on `profiles.assigned_coach` column — confirmed present in 4 of my migrations' RLS clauses. |
 
-### Step 3 — Assessment View (client side)
-**File:** `js/clientDashboard.js`, `src/neucore/client/*`
+**Verdict:** Apply will succeed. Should document or rename the legacy `workout_logs` to avoid confusion later.
 
-| Status | Finding |
+### Feature 3 — Notifications + Alt-Exercise ⚠ BLOCKED
+| Check | Result |
 |---|---|
-| ✅ | Client lands on `#section-client-dashboard` (role-aware routing) |
-| ✅ | Welcome header + subscription pill + grace banner (Feature 1) + Progress gauges (Feature 4) + Point A/B LoadVisualizer + 3 metric Chart.js panels (Force Steadiness / CoG / Risk Timeline) |
-| ⚠ | **Assessment Report card placeholder** (`cd-assessment` div) still shows "Loading…" hardcoded text. `loadProfile + loadGait` fetch the data but the assessment narrative + coach's notes + reported symptoms never get written into the DOM. **Severity: medium. Gap E.** |
-| ⚠ | "Peer Success Gallery" card still says "Coming soon". Stub from Phase A. **Severity: low.** |
-| ❌ | No way for the client to see their **RPM Reactive Graph** unless they discover the `nav-my-graph` sidebar item — and the My Graph section renders only if `RPMGraphViewer.init()` is wired. |
+| Migration applied | ❌ |
+| `public.notifications` table exists | ⚠ **YES — wrong schema** |
+| `public.notifications` rows | 0 |
+| `exercise_alternative_requests` exists | ❌ missing |
+| Six triggers exist | ❌ none |
+| `ensure_subscription_notifications` | ❌ missing |
+| Realtime publication enabled on `notifications` | Unknown — needs Studio check |
 
-### Step 4 — Program View
-**File:** `js/programPublish.js:330-450` (`renderClientProgram`), wired via `js/dashboard.js:120`
+**The collision (root cause of halt):**
 
-| Status | Finding |
+| Column in **legacy** `notifications` | Column in **my** `notifications` |
 |---|---|
-| ✅ | Reads `client_programs` (published only); shows phase, days/week, schedule chips, each workout with warmup/main/cooldown sections |
-| ✅ | After render, mounts `WorkoutSession.mountWorkouts(...)` so each workout has a Start/Finish slot |
-| ❌ | **Coach must publish before client sees anything.** The publish action lives in `programPublish.js` (after Generate in New Session). If the coach hits Generate but doesn't click Publish, `client_programs.published=false` and the client sees "No program published yet". No UI indication on the coach side that "this client has unpublished changes". **Gap F.** |
-| ❌ | **Exercise videos not surfaced.** Library has `video_url` per exercise; the program JSON has plain text exercise names. No exercise_id linkage. Documented in Features 2 + 3 as deferred. **Gap G.** |
-| ⚠ | **No "Notes from coach" or "Day name" override.** The published structure is what the rule-based generator produced; per-day labeling (e.g. "Push Day") doesn't survive publish unless the coach manually edits in the review panel. |
+| `id uuid PK` | `id uuid PK` |
+| `user_id uuid NOT NULL` | `recipient_id uuid NOT NULL` |
+| `from_user_id uuid` | `actor_id uuid` |
+| `type text NOT NULL` | `type text NOT NULL` |
+| `title text NOT NULL` | `title text NOT NULL` |
+| `message text` | `body text` |
+| — | `link_section text` |
+| — | `link_params jsonb NOT NULL DEFAULT '{}'` |
+| — | `severity text DEFAULT 'info'` |
+| `is_read boolean` | `read_at timestamptz` |
+| — | `archived boolean DEFAULT false` |
+| — | `data jsonb` |
+| `created_at` | `created_at` |
 
-### Step 5 — Workout Completion
-**File:** `js/workoutSession.js`
+Because my migration uses `CREATE TABLE IF NOT EXISTS notifications (...)`, it would **silently no-op** on this DB. Then `notify()` would `INSERT INTO notifications (recipient_id, ...)` against a table that only has `user_id` → **PostgreSQL error**, every trigger fails, every cross-module notification fails.
 
-| Status | Finding |
+### Feature 4 — Progression Engine
+| Check | Result |
 |---|---|
-| ✅ | Start Workout → row inserted with `status='active'` |
-| ✅ | Live timer, per-exercise sets/reps/weight inputs, debounced auto-save |
-| ✅ | Done checkbox, "+ Add set", per-exercise notes |
-| ✅ | "⇄ Alt" button → AltExercise modal (Feature 3) |
-| ✅ | Finish modal → intensity rating + workout notes, closes row with `duration_seconds + status='completed'` |
-| ✅ | Refresh / re-navigate resumes the active session from DB (one-active-per-client invariant) |
-| ⚠ | **No way to delete a partial set without page reload**: "+ Add set" creates a row; there's no "−" button. **Severity: low.** |
-| ⚠ | **Coach response to alt-request doesn't modify the program.** Coach can say "do X instead" in free text; client sees the text in their inbox notification, but the exercise in their next workout is still the original. **Gap H.** |
-| ❌ | **No way to skip an exercise.** Done checkbox marks it completed; unchecking it means "still doing", not "skipped". No tristate. Progression engine treats unchecked as incomplete, even if the client deliberately skipped (e.g. equipment unavailable). **Severity: low.** |
+| Migration applied | ❌ Not applied |
+| `_clamp_score` helper | ❌ missing |
+| `v_client_progression` view | ❌ missing |
+| Source data present | ✅ `daily_routine_logs` (table exists, 0 rows), `workout_sessions` (will exist after Feature 2 apply), `exercise_alternative_requests` (will exist after Feature 3 apply) |
 
-### Step 6 — Progress Tracking (client side)
-**File:** `js/progressionEngine.js:mountClientPanel`, `js/clientDashboard.js`
+**Verdict:** Will apply cleanly after Features 2 + 3 are resolved.
 
-| Status | Finding |
-|---|---|
-| ✅ | Four gauges render on client dashboard above the metrics grid |
-| ✅ | Each gauge shows score + supporting micro-stat + tone-coded label |
-| ✅ | 7-day routine delta visible |
-| ⚠ | **No historical trendline** — client sees today's score in isolation. No way to know if they're improving or regressing over the last 30/90 days. Tied to missing `progression_history` table. **Gap I.** |
-| ⚠ | **Performance score is meaningless for most clients today** (default 50 / no qualifying data — see Feature 4 partial-working). **Gap J.** |
+### Security advisors — pre-existing findings (not introduced by my work)
+- 4 × `anon_security_definer_function_executable` (`is_admin`, `is_admin_or_coach`, `is_coach`, `is_coach_or_admin`) — these helpers are callable by anon. Pre-existing.
+- 4 × `authenticated_security_definer_function_executable` (same functions + `get_my_role`) — pre-existing.
+- 1 × `rls_policy_always_true` (`visitor_inquiries_anon_insert WITH CHECK (true)`) — pre-existing.
+- 1 × `function_search_path_mutable` (`rpm_touch_updated_at`) — pre-existing.
+- 1 × `auth_leaked_password_protection` — Supabase auth setting; orthogonal to this work.
 
-### Step 7 — Coach views Client Progress
-**Files:** `js/progressionEngine.js:mountCoachOverview` + `js/workoutSession.js:mountCoachView` + `js/charts.js:renderClientProgressPage`
-
-| Status | Finding |
-|---|---|
-| ✅ | Coach sidebar Progression entry → overview table → click-row → detail |
-| ✅ | Coach sidebar Workout History entry → client picker → sessions → detail |
-| ⚠ | **Three competing surfaces** for "client progress":<br>1. **Progression** (new, Feature 4) — 4 scores<br>2. **Workout History** (new, Feature 2) — set-by-set<br>3. **Progress Charts** (existing) — per-assessment ROM/control/force/neuro snapshots, plus PDF export<br>None of these cross-link. Coach has to context-switch. **Gap K.** |
-| ❌ | **Progress Charts client dropdown never populates** because `Dashboard.populateProgressClientSelect` is referenced (`app.html:_showApp`) but doesn't exist on `Dashboard`. Optional chaining silently no-ops. **Pre-existing bug. Gap L.** |
+**None of my migrations introduce new advisor findings.** My SECURITY DEFINER functions (`notify`, `reactivate_subscription`, `ensure_subscription_notifications`, `_profile_exists`, `_clamp_score`, `tg_*`) all set `search_path = public` and would not trigger the mutable-search-path lint. I should expect them to surface on the `anon_security_definer_function_executable` lint once applied — and that's intentional: `notify` is callable by authenticated users (gated internally by my permission logic), while `reactivate_subscription` is granted to `authenticated` and gated by `is_admin OR assigned_coach`. Acceptable.
 
 ---
 
-## 6 · Client Sidebar Coverage vs Spec
+## 4 · 🛑 Decision required — three paths to resolve the notifications collision
 
-Original spec sidebar for clients:
+The legacy `notifications` table has **0 rows** and is not referenced by **any** code in the current branch (grep across `js/`, `src/`, `supabase/migrations/` returns no `notifications` usage outside the new module). It appears to be a vestige of an earlier feature that was never wired or was abandoned.
 
-| Spec item | Sidebar nav exists? | Role gating | Status |
-|---|---|---|---|
-| Program | ✅ `nav-my-program` | `role-client-only` | OK |
-| Daily Routine | ✅ `nav-daily-routine` | none (visible to all) | OK — though coaches see it too |
-| Nutrition Plan | ✅ `nav-nutrition-plan` | `role-client-only` | Stub UI |
-| Community | ✅ `nav-community` | none | OK |
-| **Case Studies** | ✅ `nav-case-studies` | **`role-coach-admin`** ❌ | **Client cannot reach Case Studies from sidebar.** Spec violation. **Gap M.** |
-| **Settings** | ✅ `nav-settings` | **`role-admin-only`** ❌ | **Client cannot change password from sidebar.** Spec violation. **Gap N.** |
+### Path A — Drop legacy + apply mine (recommended)
+- Run `DROP TABLE public.notifications CASCADE;` (zero data loss).
+- Apply migration `20260601_notifications_inbox.sql`.
+- All my code works as designed.
+- **Effort: ~30 sec. Risk: zero (table is empty + unused).**
 
-Bonus client items present but unmentioned by spec: My Reactive Graph (`nav-my-graph`), Dashboard (the role-aware home).
+### Path B — Rename my table to `inbox_notifications`
+- Edit my migration + every reference in `js/notificationsService.js`, `app.html`, and the trigger functions.
+- Live DB keeps both tables side-by-side.
+- **Effort: ~30 min. Risk: low. Penalty: ugly name + duplication.**
 
----
+### Path C — Reshape legacy notifications to match mine
+- Write an `ALTER TABLE` migration: rename `user_id`→`recipient_id`, `from_user_id`→`actor_id`, `message`→`body`; add `link_section`, `link_params`, `severity`, `read_at` (compute from `is_read`), `archived`, `data`.
+- Drop `is_read`.
+- Then apply the rest of `20260601_*` minus the `CREATE TABLE`.
+- **Effort: ~1 hour. Risk: medium (must handle the existing index/RLS/grant rebuild). No upside vs Path A.**
 
-## 7 · Consolidated Gap List (priority-ordered)
+**Recommendation: Path A.** Empty + unused legacy table; cleanest outcome.
 
-| ID | Gap | Severity | Fix effort | Where |
-|---|---|---|---|---|
-| **N** | Client cannot change password from sidebar (`nav-settings` is `role-admin-only`) | 🔴 High — explicit spec | XS — flip role class + clone a settings card | `app.html:219` + new `#section-client-settings` |
-| **M** | Client cannot reach Case Studies (`nav-case-studies` is `role-coach-admin`) | 🔴 High — explicit spec | XS — remove role class | `app.html:192` |
-| **F** | No "unpublished changes" indicator on coach side; client sees empty Program until coach manually publishes | 🟠 Medium | S | `js/programPublish.js` + Clients table column |
-| **G** | Exercise videos missing inside My Program / WorkoutSession rows | 🟠 Medium | M — needs `exercise_id` threaded through `client_programs.program.workouts[].exercises[]` + ProgramPublish editor + Workout row template | `js/programGenerator.js`, `js/programPublish.js`, `js/workoutSession.js` |
-| **H** | Coach alt-exercise response = text only, doesn't substitute the exercise in the program | 🟠 Medium | M — add "Suggest substitute (from library)" to the Respond modal + persist substitution | `js/altExerciseRequest.js` + new field on `exercise_alternative_requests` |
-| **E** | Client dashboard Assessment Report card hardcoded "Loading…" — never wired to data | 🟠 Medium | S | `js/clientDashboard.js` |
-| **K** | Three competing coach surfaces for "client progress" with no cross-links | 🟠 Medium | S — add a "More on this client" link section pointing to the other two | `js/progressionEngine.js` + `js/workoutSession.js` + `js/charts.js` |
-| **C** | New client created with `assigned_coach=null` if coach not picked → alt-exercise blocked, grace notifications skip coach | 🟡 Low | XS — required field validation in modal | `js/clients.js:79` |
-| **L** | `Dashboard.populateProgressClientSelect` doesn't exist; called at boot, silent no-op | 🟡 Low | XS | `js/dashboard.js` (add function) |
-| **D** | "Continue as Demo" calls `Auth.loginAsGuest` which doesn't exist → TypeError | 🟡 Low | XS — either implement guest or remove the link | `js/auth.js` or `app.html:69` |
-| **I** | No historical progression trendline; clients see today only | 🟡 Low | M — needs `progression_history` snapshot table + nightly capture | new migration + new module |
-| **J** | Performance score is mostly meaningless (defaults to 50 for most clients) | 🟡 Low | M — re-weight in v2 or derive from RPM phase advancement | new migration `_progression_v2.sql` |
-| Phase Upgrade ↦ no inbox notification | "celebration sent to client" partially met | 🟠 Medium | XS — add one `public.notify(...)` call | `js/dashboard.js:893 submitPhaseUpgrade` |
-| FK invariant — `rpm_graphs.coach_id` + `case_shares.coach_id` ref `auth.users` but notifications ref `profiles` | 🟡 Low (latent) | S — guard with EXISTS before notify | `supabase/migrations/20260601_notifications_inbox.sql` triggers |
-| Bell has no sidebar entry for discoverability | 🟡 Low — cosmetic | XS | `app.html` sidebar |
-| **A** | Spec wants "Create Username" — currently email-only | 🟡 Low — spec misalignment | S — add `username` column + login resolver | migration + `auth.js` |
-| **B** | Coach Add Client doesn't create subscription in same flow | 🟡 Low | S — extend modal with sub fields | `js/clients.js` + `app.html` |
-| Notification deep-link doesn't pre-select target item | 🟡 Low | S | individual loaders read `window._notifParams` |
-| Nutrition signal missing → Compliance is mis-labeled | 🟠 Medium (Future) | L — whole nutrition feature | future feature |
+After your call:
 
----
+### Apply order (once unblocked)
+1. `20260530_subscription_grace.sql` (Feature 1)
+2. `20260531_workout_tracking.sql` (Feature 2)
+3. Path A drop, then `20260601_notifications_inbox.sql` (Feature 3)
+4. `20260602_progression_engine.sql` (Feature 4)
+5. `20260603_notification_guards_and_phase_upgrade.sql` (Tier 1)
 
-## 8 · Recommended Sequence Before Any New Feature
-
-The verification produced **6 small fixes** that don't deserve their own "feature" but that unblock the spec compliance the platform currently fails:
-
-**Tier 1 (1–2 hours total)** — pure-spec compliance, no architecture:
-1. **N** + **M** — flip sidebar role classes so clients see Case Studies + Settings (5 min)
-2. **D** — either implement `Auth.loginAsGuest` or remove the demo link (5 min)
-3. **L** — implement `Dashboard.populateProgressClientSelect` (10 min)
-4. **C** — make `assigned_coach` required in Add Client modal (10 min)
-5. **Phase Upgrade → Notification** — add one `public.notify(...)` call to `submitPhaseUpgrade` (15 min)
-6. **FK guard** — wrap each trigger's notify call in `IF EXISTS (SELECT 1 FROM profiles WHERE id = v_recipient)` (20 min)
-
-**Tier 2 (½ day)** — UX completeness for already-built features:
-7. **E** — wire the Assessment Report card on client dashboard to real data
-8. **F** — coach-side "unpublished changes" badge + Clients-table column
-9. Notification deep-link pre-select for the three loaders (`my-program`, `rpm-approvals`, `subscriptions`)
-
-**Tier 3 (1+ day each)** — features in their own right:
-10. **G** — thread `exercise_id` through programs + surface videos in WorkoutSession rows
-11. **H** — coach response modal with substitute-exercise picker
-12. **K** — cross-links between Progression / Workout History / Progress Charts
-13. **I** — progression_history snapshot table + trendline
-14. Nutrition Plan (full feature; will rename Compliance correctly)
-15. Daily cron for subscription notifications (coach side gets grace alerts independent of client login)
-
-Recommendation: ship **Tier 1 in one commit** (zero architectural risk, closes 6 spec-compliance gaps), get sign-off, then choose Tier 2/3 priorities.
+### Live smoke tests I'll run automatically after apply
+- View existence + sample SELECT from `v_client_subscription_state` for the 2 known clients
+- `SELECT public.notify(auth.uid(), 'test', 'Verification', 'live smoke');` then read it back
+- Insert a fake `exercise_alternative_requests` row as a known client → confirm a `notifications` row appears via trigger
+- `SELECT public.ensure_subscription_notifications('<client_id>');` for the 2 known clients
+- `SELECT compliance, recovery, performance, overall, formula_version FROM v_client_progression;`
+- Re-run `get_advisors` and compare delta
 
 ---
 
-## 9 · Verdict
+## 5 · What's still verified at code level (won't change with migration application)
 
-**Stop-and-fix justified.** Before building Feature 5, the platform should clear at least Tier 1 — every item is small, every item closes a real spec gap, and three of them (M, N, D) directly contradict what the platform claims to deliver to clients.
+These were validated by static trace + `node --check` and remain green:
 
-Features 1–4 themselves are sound. The verification did **not** uncover any broken code path inside the four features as designed. The friction is at the **seams**: between the new features and the legacy modules (Phase Upgrade, Progress Charts, Add Client), and between the spec and the existing sidebar role classes.
+- ✅ Tier 1 sidebar role flips (M, N)
+- ✅ `Auth.loginAsGuest` no longer throws TypeError (D)
+- ✅ `Dashboard.populateProgressClientSelect` exists (L)
+- ✅ `submitAddClient` requires `coach` (C)
+- ✅ `_renderClientSettings` paints email, name, password modal, subscription pill + dates + days/grace remaining
+- ✅ `Notifications.bindBell` ↔ `Auth.canWrite` ↔ `SubscriptionService.formatPill` integration intact across all four features
+- ✅ `WorkoutSession.start/finish/logExercise` write paths gated by `Auth.canWrite()`
+- ✅ Alt-exercise modal blocks if `profile.assigned_coach == null` (covers the case where Fix C ever regresses)
+- ✅ Migration `20260603_*` correctly recreates all six trigger functions with the `_profile_exists` guard so a missing `profiles` row no longer rolls back the parent INSERT
+- ✅ Migration `20260603_*` Phase Upgrade trigger fires only when `current_phase` actually changes for a `client` role (no spam on coach/admin profile updates)
 
-No further feature implementation pending your review of this report.
+---
+
+## 6 · Findings unchanged from previous status (still TBD)
+
+These are deliberately deferred for the planned Tier 2/3 features:
+
+| ID | Gap | Will be addressed by |
+|---|---|---|
+| F | "Unpublished program" indicator coach-side | Tier 2 / Exercise Video feature |
+| G | Exercise videos inside My Program rows | **Next planned feature** (Exercise Video Integration) |
+| H | Coach alt-response = text only; no substitute persists | **Next planned feature** (Alt-Exercise Replacement) |
+| E | Client dashboard Assessment Report card hardcoded | **Next planned feature** (Assessment / 3D Hologram) |
+| K | Three competing coach progress surfaces | Future |
+| I | No progression-history snapshot table | Future progression v2 |
+| J | Performance score mostly neutral | Future progression v2 |
+| A | Username vs email | Future spec discussion |
+| B | Sub creation inside Add Client | Future |
+| Nutrition signal | Whole new feature | Future |
+| Daily cron for subscription notifications | Future |
+
+---
+
+## 7 · Next move
+
+**Per your instruction — stop after Tier 1 + verification.**
+
+I have stopped. No more code changes pending your call on §4.
+
+Once you choose a path, I will:
+1. Apply the 5 migrations in the correct order via MCP `apply_migration` (recorded in the schema_migrations registry).
+2. Run the smoke tests in §4.
+3. Re-run `get_advisors` to confirm no new findings.
+4. Append a "§8 · Live verification results" section to this file with the actual SQL outputs.
+5. Commit the updated PROJECT_STATUS.md.
+6. Hand back to you for Feature 5 selection (Exercise Video / Alt-Exercise Replacement / Assessment 3D).
+
+**No new feature development until you sign off on the migration path.**
