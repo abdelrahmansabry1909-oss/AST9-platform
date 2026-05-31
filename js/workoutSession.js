@@ -360,13 +360,26 @@
         </div>`;
     }).join('');
 
+    // ── Feature 6 — "🔄 Substituted" badge inside the live tracker
+    //    row. Same shape as the My Program badge; tooltip carries the
+    //    original exercise name + coach response (Q3 — replacement-only
+    //    display, original on hover).
+    const subBadge = (ex && ex._substitutedFrom) ? `
+      <span title="Originally: ${esc(ex._substitutedFrom)}${ex._substituteResponse ? ' — ' + esc(ex._substituteResponse) : ''}"
+            style="display:inline-flex;align-items:center;gap:4px;margin-left:6px;
+                   padding:1px 7px;border-radius:999px;font-size:10px;font-weight:600;
+                   background:rgba(20,184,166,.14);color:var(--nc-teal,#14b8a6);
+                   border:1px solid rgba(20,184,166,.35);cursor:help;vertical-align:1px">
+        🔄 Substituted
+      </span>` : '';
+
     return `
       <div class="ws-ex-row" data-ex-row="${idx}"
            style="padding:10px;border:1px solid var(--border-subtle);border-radius:8px;background:rgba(255,255,255,.02);${done ? 'opacity:.75' : ''}">
         ${mediaHTML}
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px">
           <div style="flex:1;min-width:140px">
-            <div style="font-size:13px;font-weight:600;color:var(--text-primary)">${esc(ex.name || 'Exercise')}</div>
+            <div style="font-size:13px;font-weight:600;color:var(--text-primary)">${esc(ex.name || 'Exercise')}${subBadge}</div>
             ${ex.sets || ex.reps ? `<div style="font-size:11px;color:var(--text-tertiary)">Target: ${esc(ex.sets || '?')} × ${esc(ex.reps || '?')}</div>` : ''}
           </div>
           <div style="display:flex;align-items:center;gap:8px">

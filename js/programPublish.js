@@ -413,6 +413,36 @@
       }, { onConflict: 'client_id' });
       if (routRes.error) throw routRes.error;
 
+      // ── Feature 6 — republish sweep (Q2) ──────────────────────────
+      // Auto-close all active substitutions for this client when a new
+      // program is published. A stale (workout_key, exercise_index)
+      // substitution from the prior program could otherwise swap the
+      // wrong exercise in the new one. We set status='declined' so the
+      // existing tg_aer_notify_client trigger fires once per closed
+      // request, with body "Closed — Program Republished" per user spec.
+      // Non-fatal — publish has already succeeded.
+      try {
+        const { data: closedRows, error: sweepErr } = await sb
+          .from('exercise_alternative_requests')
+          .update({
+            status:                 'declined',
+            substitute_exercise_id: null,
+            coach_response:         'Closed — Program Republished',
+            responded_at:           now,
+          })
+          .eq('client_id', _clientId)
+          .eq('status',    'addressed')
+          .not('substitute_exercise_id', 'is', null)
+          .select('id');
+        if (sweepErr) {
+          console.warn('[publish] substitution sweep:', sweepErr.message);
+        } else if (closedRows && closedRows.length) {
+          console.info(`[publish] closed ${closedRows.length} active substitution(s) on republish`);
+        }
+      } catch (sweepEx) {
+        console.warn('[publish] substitution sweep threw:', sweepEx?.message);
+      }
+
       if (status) { status.textContent = `✓ Published to ${_clientName || 'client'} — they can see it now.`; status.style.color = 'var(--lime, #16a34a)'; }
       _toast('Program & daily routine published to the client ✓', 'success');
     } catch (e) {
@@ -469,9 +499,55 @@
       ? p.schedule
       : Array.from({ length: p.days_per_week || 1 }, (_, i) => workouts[i % workouts.length].id);
 
+    // ── Feature 6 — override layer for substitutions ───────────────
+    //    Pull active substitutions for this client (status=addressed AND
+    //    substitute_exercise_id IS NOT NULL). For each (workout_key,
+    //    exercise_index) slot, keep only the most recent. Then swap each
+    //    matching exercise in workouts[] BEFORE F5's linkedIds scan, so
+    //    substitute ids are also resolved against the library.
+    //
+    //    Published program JSON is never mutated — the swap is in-memory
+    //    only, scoped to this render pass.
+    const subMap = new Map();  // "workoutKey|exerciseIndex" → row
+    try {
+      const { data: subRows } = await sb.from('exercise_alternative_requests')
+        .select('workout_key, exercise_index, substitute_exercise_id, coach_response, exercise_name, responded_at')
+        .eq('client_id', clientId)
+        .eq('status', 'addressed')
+        .not('substitute_exercise_id', 'is', null)
+        .order('responded_at', { ascending: false });
+      (subRows || []).forEach((r) => {
+        const k = r.workout_key + '|' + r.exercise_index;
+        if (!subMap.has(k)) subMap.set(k, r);   // keep most-recent (ordered DESC)
+      });
+    } catch (e) { console.warn('[program] substitution prefetch:', e?.message); }
+
+    if (subMap.size) {
+      workouts.forEach((wk) => {
+        ['warmup','main','cooldown'].forEach((k) => {
+          const list = wk[k] || [];
+          list.forEach((ex, i) => {
+            if (!ex) return;
+            const key = wk.id + '|' + i;
+            const sub = subMap.get(key);
+            if (!sub) return;
+            // Replace by ID; the new name will be filled in once we resolve
+            // the library row below. Stash original for the tooltip.
+            ex._substitutedFrom    = ex.name || sub.exercise_name || 'Original exercise';
+            ex._substituteResponse = sub.coach_response || '';
+            ex.exercise_id         = sub.substitute_exercise_id;
+            // name is overwritten after libMap resolves (see below);
+            // fallback to substitute_exercise_id-only until then.
+          });
+        });
+      });
+    }
+
     // ── Feature 5 — batch-resolve library metadata for every linked
     //    exercise in every workout. One round-trip (cached 5min after).
     //    Map: exercise_id → full exercises row.
+    //    Now (F6) also picks up substitute ids because the swap above
+    //    has rewritten ex.exercise_id in place.
     const linkedIds = new Set();
     workouts.forEach((wk) => {
       ['warmup','main','cooldown'].forEach((k) => {
@@ -487,6 +563,23 @@
         const all = await ExerciseLibrary.loadAll();
         all.forEach((e) => { if (linkedIds.has(e.id)) libMap.set(e.id, e); });
       } catch (e) { console.warn('[program] library prefetch:', e?.message); }
+    }
+
+    // ── Feature 6 — now that libMap is resolved, overwrite the
+    //    display name on substituted slots with the substitute's real
+    //    library name. (Q3: client sees ONLY the substitute name;
+    //    the original is exposed via the "🔄 Substituted" tooltip.)
+    if (subMap.size && libMap.size) {
+      workouts.forEach((wk) => {
+        ['warmup','main','cooldown'].forEach((k) => {
+          (wk[k] || []).forEach((ex) => {
+            if (ex && ex._substitutedFrom && ex.exercise_id) {
+              const meta = libMap.get(ex.exercise_id);
+              if (meta && meta.name) ex.name = meta.name;
+            }
+          });
+        });
+      });
     }
     // Stash on the host so the workout tracker can reuse it without
     // re-fetching (passed via the programHost element below).
@@ -517,12 +610,25 @@
         ? `<button type="button" class="btn btn-ghost btn-xs" data-cp-info="${esc(meta.id)}-${esc(String(i))}"
                   style="padding:3px 8px;font-size:11px">ℹ Instructions</button>`
         : '';
+      // ── Feature 6 — "🔄 Substituted" tooltip badge ──
+      //   Per Q3: client sees only the substitute exercise name; the
+      //   ORIGINAL name + coach response live in the tooltip on the badge.
+      const subBadge = (ex && ex._substitutedFrom) ? `
+        <span class="cp-sub-badge"
+              title="Originally: ${esc(ex._substitutedFrom)}${ex._substituteResponse ? ' — ' + esc(ex._substituteResponse) : ''}"
+              style="display:inline-flex;align-items:center;gap:4px;margin-left:6px;
+                     padding:1px 7px;border-radius:999px;font-size:10px;font-weight:600;
+                     background:rgba(20,184,166,.14);color:var(--nc-teal,#14b8a6);
+                     border:1px solid rgba(20,184,166,.35);cursor:help;vertical-align:1px">
+          🔄 Substituted
+        </span>` : '';
+
       return `
         <div class="cp-row" style="display:grid;grid-template-columns:auto auto 1fr auto;gap:10px 14px;align-items:start;padding:10px 0;border-bottom:1px solid var(--border-subtle)">
           <div style="width:22px;height:22px;border-radius:50%;background:${color}1f;border:1px solid ${color}44;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:${color};flex-shrink:0;margin-top:1px">${i + 1}</div>
           ${thumb}
           <div style="min-width:0">
-            <div style="font-size:13px;font-weight:600;color:var(--text-primary)">${esc(ex.name || 'Exercise')}</div>
+            <div style="font-size:13px;font-weight:600;color:var(--text-primary)">${esc(ex.name || 'Exercise')}${subBadge}</div>
             ${ex.notes ? `<div style="font-size:11px;color:var(--text-tertiary);margin-top:2px;line-height:1.4">${esc(ex.notes)}</div>` : ''}
             ${(previewBtn || instrBtn) ? `<div style="display:flex;gap:6px;margin-top:5px;flex-wrap:wrap">${previewBtn}${instrBtn}</div>` : ''}
             <div data-cp-inline="${esc((meta && meta.id) || '')}-${esc(String(i))}" class="hidden"

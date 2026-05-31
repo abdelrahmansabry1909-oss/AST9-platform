@@ -1,8 +1,8 @@
 # PROJECT_STATUS.md — NeuCore Platform
 
-**Last updated:** 2026-05-30
+**Last updated:** 2026-05-31
 **Branch:** `claude/interesting-buck-452459`
-**HEAD commit:** `2627a11` (Feature 5)
+**HEAD commit:** F6 just shipped (commit pending)
 **Worktree path:** `D:\ASThub\.claude\worktrees\interesting-buck-452459`
 **Origin repo:** `https://github.com/abdelrahmansabry1909-oss/AST9_HUB.git`
 **Live Supabase project:** `byquokhcbagofshsclfy` (eu-central-1, Postgres 17.6.1.111, ACTIVE_HEALTHY)
@@ -13,7 +13,7 @@
 
 ## 0 · One-line summary
 
-5 features shipped + 2 hardening passes + 7 migrations live + 7 new JS modules + full end-to-end live verification. **Features 1–4 frozen by user signoff; Feature 5 complete and stable but not yet "frozen." Awaiting user call on Feature 6 (Alt-Exercise Replacement) vs Feature 7 (Assessment / 3D Hologram).**
+6 features shipped + 2 hardening passes + 8 migrations live + 7 new JS modules + full end-to-end live verification. **Features 1–5 frozen by user signoff; Feature 6 complete and stable but not yet "frozen." Progression formula bumped v1.0 → v1.1 by F6 (no Recovery penalty for successfully-substituted requests). Next: Reliability + Defect Sweep, then Feature 7 (Assessment / 3D Hologram).**
 
 ---
 
@@ -27,7 +27,10 @@
 1. **Write-gate:** every client-side write call must check `Auth.canWrite()`. `active | grace → ok` · `expired | pending | none → toast + return`.
 2. **Single source of truth for subscription state:** read `Auth.getSubscriptionState()` (cached on `_profile.subscription`); never query `subscriptions` directly from a UI module — use `SubscriptionService`.
 3. **Notification authorization in SQL once:** never `INSERT INTO notifications` directly — always go through `public.notify(...)`. The `WITH CHECK (false)` direct-insert policy enforces this at the DB.
-4. **Progression formula immutable in place:** any reweight ships as a new view `v_client_progression` v2 + `formula_version` bump. Never edit v1 in place.
+4. **Progression formula immutable in place:** any reweight ships as a new view migration + `formula_version` bump (changelog header documenting exactly what changed). Never silently edit in place. F6 honored this rule by bumping v1.0 → v1.1 with the alt-CTE substitute-aware change documented in the migration header.
+
+### 1.2-bis · Program publishing rule (new with F6)
+5. **Published `client_programs.program` JSON is immutable.** Anything that needs to alter what the client sees ships as an *override layer* (per-render query → in-memory rewrite), never as a JSON mutation. F6's substitution flow is the canonical example. PDF exports, analytics, future personalization must follow the same pattern.
 
 ### 1.3 The five locked working-style rules (from user memory)
 1. Lock architecture before any code
@@ -118,7 +121,7 @@ Coach gets inbox notifications for alt-requests, RPM submissions, case approvals
 | View | Source migration | Purpose |
 |---|---|---|
 | `v_client_subscription_state` | `subscription_grace` (F1) | One row per client with `effective_status`, `days_remaining`, `grace_days_left`, `grace_until` |
-| `v_client_progression` | `progression_engine` (F4) | One row per client with `compliance`, `recovery`, `performance`, `overall` + signal counts, formula v1.0 |
+| `v_client_progression` | `progression_engine` (F4) → bumped by `alt_exercise_substitute` (F6) | One row per client with `compliance`, `recovery`, `performance`, `overall` + signal counts. **Formula v1.1** (F6): `alt_requests_30d` now excludes requests where `status='addressed' AND substitute_exercise_id IS NOT NULL` — no Recovery penalty for successfully-substituted requests. |
 
 ### 3.3 Functions added
 | Function | Type | Purpose |
@@ -155,9 +158,10 @@ All have `SET search_path = public` (advisor-clean). Trigger functions have `REV
 | `20260530202308` | `subscription_grace` | Feature 1 |
 | `20260530202413` | `workout_tracking` | Feature 2 |
 | `20260530202555` | `notifications_inbox` | Feature 3 |
-| `20260530203052` | `progression_engine` | Feature 4 |
+| `20260530203052` | `progression_engine` | Feature 4 (v1.0) |
 | `20260530203157` | `notification_guards_and_phase_upgrade` | Tier 1 |
-| (next) | `advisor_hardening` | Tier 2 |
+| `20260530204349` | `advisor_hardening` | Tier 2 |
+| `20260531123907` | `alt_exercise_substitute` | Feature 6 (column + index + trigger refresh + progression v1.1) |
 
 (plus the 12 pre-existing migrations + 4 untracked ones noted in §1.4)
 
@@ -198,7 +202,8 @@ See `FEATURE_STATUS.md` for the per-feature deep dive. Headline:
 | F4 Progression v1 | `4f65456` + `230f751` | ✅ |
 | Tier 1 (spec compliance + FK + Phase notif) | `7265f09` | — |
 | Tier 2 (advisor hardening) | `230f751` | — |
-| F5 Exercise Video Integration | `2627a11` | Complete + verified, not formally frozen |
+| F5 Exercise Video Integration | `2627a11` | ✅ (signed off pre-F6) |
+| F6 Alt-Exercise Replacement + Progression v1.1 | pending | Complete + smoke-verified, not formally frozen |
 
 ---
 
@@ -218,14 +223,14 @@ All verification artifacts cleaned up. Production data unaffected.
 
 ## 7 · Outstanding gaps (priority-ordered)
 
-Detail in `NEXT_STEPS.md §3`. Headline:
+Detail in `NEXT_STEPS.md §3` + `PRODUCT_AUDIT.md`. Headline:
 
-1. **Feature 6 — Alternative Exercise Replacement** (next per user-stated priority)
-2. **Feature 7 — Assessment / 3D Hologram Integration**
+1. **Reliability + Defect Sweep** (next per user direction Q4 — closes PRODUCT_AUDIT.md C1, C2, C3, C5 + high-severity TD3, TD4, TD5, TD10)
+2. **Feature 7 — Assessment / 3D Hologram Integration** (also closes PRODUCT_AUDIT.md TD11)
 3. Email/SMS push (high-severity notifications via Resend)
 4. Notification deep-link pre-select on target loaders
 5. Daily pg_cron for `ensure_subscription_notifications`
-6. Progression v2 (nutrition + RPM phase signals)
+6. Progression v2 (nutrition + RPM phase signals — would be `v_client_progression` v2.0)
 7. Nutrition Plan (whole new domain)
 8. Smaller polish: unpublished-program indicator, skip tristate, username vs email, three competing coach-progress surfaces unification.
 

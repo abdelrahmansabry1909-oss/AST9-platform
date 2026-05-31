@@ -1,37 +1,62 @@
 # NEXT_STEPS.md — NeuCore Platform
 
-**Last updated:** 2026-05-30
-**Read after:** `PROJECT_STATUS.md` + `FEATURE_STATUS.md`
+**Last updated:** 2026-05-31
+**Read after:** `PROJECT_STATUS.md` + `FEATURE_STATUS.md` + `PRODUCT_AUDIT.md` + `FEATURE_6_ARCHITECTURE.md`
 **Purpose:** Tell a future Claude session exactly what to build next, in what order, and what's locked vs. open.
 
 ---
 
 ## 0 · Where we are right now
 
-✅ 5 features shipped + live-verified · 7 migrations applied · 7 new JS modules · 12 commits on `claude/interesting-buck-452459` · HEAD at `2627a11`.
+✅ 6 features shipped + live-verified · 8 migrations applied · 7 new JS modules · F6 just shipped on `claude/interesting-buck-452459`.
 
-⏸ Awaiting user signoff on Feature 5 ("frozen") and a call on Feature 6 priority.
+🔒 Features 1–5 signed off (frozen). F6 complete + smoke-verified, not yet formally frozen.
 
-🛑 **No new feature work has been started.** This document is the on-ramp.
+🛑 **Per user direction Q4 in FEATURE_6_ARCHITECTURE.md:** Reliability + Defect Sweep is next, then Feature 7.
 
 ---
 
 ## 1 · Recommended build order
 
-User-stated priority at the close of Feature 4 (still valid):
-1. ✅ Feature 5: Exercise Video Integration — **DONE**
-2. ⏸ **Feature 6: Alternative Exercise Replacement Workflow** ← next
-3. ⏸ Feature 7: Assessment Results / 3D Hologram Integration
+User direction at the close of Feature 6 (locked):
+1. ✅ Feature 5: Exercise Video Integration — **DONE + 🔒 frozen**
+2. ✅ Feature 6: Alternative Exercise Replacement — **DONE** (awaiting user signoff to freeze)
+3. ⏸ **Reliability + Defect Sweep** ← next per Q4
+4. ⏸ Feature 7: Assessment Results / 3D Hologram Integration
 
-Rationale for keeping that order:
-- F6 is **strictly downstream of F5** (it reuses `ExercisePicker` + `exercise_id` threading verbatim — neither would be possible without F5). Shipping F6 next harvests that investment while context is fresh.
-- F7 is **standalone** — can be done before or after F6. Picking F6 first because the user said so and because F6's data model affects the alt-exercise pipeline already in production.
+### Reliability + Defect Sweep — scope locked from PRODUCT_AUDIT.md Part 4
 
-If priorities shift, F7 → F6 → smaller-polish-items is also a defensible order. Confirm with user before swapping.
+Single focused commit, ~1 day, fixes silently-broken-in-production issues:
+
+| Bucket | Fix | Source |
+|---|---|---|
+| C1 | Migrate `_sessions` + Programs list off `localStorage` onto `sessions` + `client_programs` tables. Add coach-side "Programs" reader that queries `client_programs` with coach filter. | PRODUCT_AUDIT TD1 + TD9 |
+| C2 | Move the Anthropic call into a Supabase edge function (`generate-program-narrative`) with the API key as a Supabase secret. UI calls the edge fn. | PRODUCT_AUDIT TD2 + TD17 |
+| C3 | Wire the client dashboard Assessment Report card to the latest `assessments` + `rehab_objective_assessments` + coach notes (replaces TD11 dead text — this is the first slice of F7). | PRODUCT_AUDIT TD11 |
+| C5 | Add current-phase guard to Phase Upgrade modal. Disable downgrade selection; refuse same-phase. | PRODUCT_AUDIT TD8 |
+| H1 | Replace "Back to NeuCore" `index.html` link with sign-out or remove. | PRODUCT_AUDIT TD3 |
+| H2 | Add role gating to mobile bottom-nav buttons. | PRODUCT_AUDIT TD4 |
+| H3 | Add `nav-notifications` sidebar entry visible to clients. | PRODUCT_AUDIT TD10 |
+| H7 | Replace `stat-sessions` count with a DB query. | PRODUCT_AUDIT TD5 |
+
+After the sweep, F7 lands. F7's first slice (C3) is already part of the sweep — F7 then expands it into the full Assessment / 3D Hologram integration.
 
 ---
 
-## 2 · Feature 6 — Architecture preview (NOT yet locked)
+## 2 · Feature 6 — SHIPPED (architecture record kept for posterity)
+
+This section was a planning preview before F6 shipped. The actual architecture-as-built is documented in `FEATURE_6_ARCHITECTURE.md` (12 sections, all 4 user decisions locked, with the v1.1 progression-formula adjustment forced by Q1 added as a documented v1.0→v1.1 bump in the migration). The text below is preserved as the historical record of what was *planned*.
+
+### ⚠ DIFFERENCES BETWEEN PLAN AND BUILD
+
+- **Migration carried THREE changes, not one** — the architecture preview anticipated only the `substitute_exercise_id` column, but Q1's "no penalty for resolved requests" forced a formula-version bump. F6's migration therefore also `CREATE OR REPLACE`-d `v_client_progression` as v1.1, with the `alt` CTE filtering out successfully-substituted requests. This honored the locked "no in-place silent drift" rule by being an explicit version-stamped migration with a CHANGELOG header.
+- **Republish sweep wording** — Q2 specified the exact body: `"Closed — Program Republished"` (not the original preview's "[Closed — program republished]"). Used verbatim.
+- **Original-exercise visibility (Q3)** — chose tooltip-only on the badge. Implemented on both surfaces (My Program in `programPublish._roExerciseRow` and Workout Tracker in `workoutSession._renderExerciseLogRow`).
+- **JS line count came in at ~155 (estimate matched).** Spread across 3 modules; zero new modules.
+
+---
+
+## 2-OLD · Feature 6 — Architecture preview (the plan, now superseded by FEATURE_6_ARCHITECTURE.md)
 
 When you (future Claude) get the "go" signal, propose this architecture first, then ask the open questions, then implement.
 
@@ -93,9 +118,10 @@ Total: **~155 lines, one migration, zero new modules** (all reusable pieces alre
 ### 🔥 Should be tackled soon
 | # | Gap | Effort | Why now |
 |---|---|---|---|
-| 1 | **F6 Alt-Exercise Replacement** | ~155 lines + 1 migration | Closes the spec promise "coach response substitutes the exercise" |
-| 2 | **F7 Assessment / 3D Hologram Integration** | ~200 lines | Closes the client-dashboard "Loading…" placeholder (gap E from initial audit) |
-| 3 | Email/SMS push for high-severity notifications | M | Coaches need offline awareness of alt-requests and grace events |
+| 1 | ✅ **F6 Alt-Exercise Replacement** | shipped 2026-05-31 | DONE — closed the spec promise + bumped progression to v1.1 |
+| 2 | **Reliability + Defect Sweep** | ~1 day, single commit | Closes PRODUCT_AUDIT C1, C2, C3, C5 + H1, H2, H3, H7 |
+| 3 | **F7 Assessment / 3D Hologram Integration** | ~200 lines, builds on sweep's C3 slice | Full expansion of the client-dashboard Assessment Report wiring |
+| 4 | Email/SMS push for high-severity notifications | M | Coaches need offline awareness of alt-requests and grace events |
 
 ### 🟡 Useful, can wait
 | # | Gap | Effort |
@@ -163,13 +189,12 @@ These are settled. Don't re-litigate unless the user signals a change.
 
 ## 6 · Things only the user can decide (when you next get a turn)
 
-1. **Is F5 formally frozen?** It's complete and verified but not explicitly signed off.
-2. **Confirm F6 is next** (vs F7 swap).
-3. **Approve the F6 architecture preview in §2** (or request changes).
-4. **Answer F6's three open questions in §2.4** (substitution scope, revert UX, client visibility).
-5. **(Optional) Widen `exercises.category` CHECK to include `'Conditioning'`** if you'd rather the chip be a category filter instead of a tag filter. 2-line migration.
-6. **(Optional)** Resolve the pre-existing security advisor warnings (12 of 15 are pre-existing — out of this work's scope but worth a future cleanup pass).
-7. **Push to remote?** Nothing has been pushed to origin yet — 5 unpushed commits on this branch.
+1. **Is F6 formally frozen?** It's complete + smoke-verified but not explicitly signed off (mirrors the F5 pattern).
+2. **Confirm Reliability + Defect Sweep is next** (vs jumping straight to F7).
+3. **Sweep commit shape** — one tight commit or one-per-fix?
+4. **(Optional) Widen `exercises.category` CHECK to include `'Conditioning'`** if you'd rather the chip be a category filter instead of a tag filter. 2-line migration.
+5. **(Optional)** Resolve the pre-existing security advisor warnings (12 of 15 are pre-existing — out of this work's scope but worth a future cleanup pass).
+6. **Push to remote?** Nothing has been pushed to origin yet — unpushed commits include F5 + F6 + handoff docs + PRODUCT_AUDIT + FEATURE_6_ARCHITECTURE.
 
 ---
 

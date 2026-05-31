@@ -1,8 +1,8 @@
 # FEATURE_STATUS.md — NeuCore Platform
 
-**Last updated:** 2026-05-30
+**Last updated:** 2026-05-31
 **Branch:** `claude/interesting-buck-452459`
-**HEAD commit:** `2627a11`
+**HEAD commit:** F6 just shipped (commit pending)
 **Live Supabase project:** `byquokhcbagofshsclfy` (eu-central-1, Postgres 17.6.1.111)
 
 Per-feature breakdown. For overall architecture see `PROJECT_STATUS.md`. For what to build next see `NEXT_STEPS.md`.
@@ -191,11 +191,11 @@ Closed 11 of the 14 security-advisor warnings introduced by Features 1–4 + Tie
 
 ---
 
-## ✅ Feature 5 — Exercise Video Integration
+## ✅ 🔒 Feature 5 — Exercise Video Integration
 
 **Commit:** `2627a11`
-**Status:** Shipped + live-verified (publish flow, workout flow, exercise_id reaches logs, legacy fallback)
-**Approval level:** Not yet "signed off / frozen" — user has not explicitly signed it off as they did for 1–4. Treat as complete-and-stable but eligible for refinement.
+**Status:** Signed off · Frozen
+**User signoff:** Yes (turn "Features 1–5 are signed off" before F6 implementation)
 
 ### What it does
 Threads the existing Exercise Library through `programPublish` editor → client program view → workout tracker. Linked exercises surface their thumbnail, ▶ Preview (inline expand 16:9 or fullscreen modal via Shift-click / narrow viewport), and ℹ Instructions disclosure (chips for joints + tags, sections for cues / common errors / progressions / regressions).
@@ -238,30 +238,62 @@ The live `exercises.category` CHECK constraint is `IN ('Rehab','Mobility','Stren
 
 ---
 
-## ⏸ Feature 6 — Alternative Exercise Replacement Workflow
+## ✅ Feature 6 — Alternative Exercise Replacement Workflow
 
-**Status:** Planned · architecture preview exists in `FEATURE_5_PROPOSAL.md §7`
-**Dependency:** Feature 5 is shipped → ready when you are.
+**Commit:** pending (shipped 2026-05-31)
+**Status:** Live + smoke-verified end-to-end
+**Approval level:** Not yet "signed off / frozen" — complete-and-stable but eligible for refinement based on real-coach usage.
+**Architecture record:** `FEATURE_6_ARCHITECTURE.md` (12 sections, all 4 user-decision questions locked).
 
-### What it will do
-Extend the coach alt-response flow so the coach can pick a **substitute exercise** from the Library (using the same `ExercisePicker` component shipped in F5). The substitute is persisted alongside the original request; the client's program view swaps the exercise for the substitute when one exists; progression engine attributes the workout to whatever was actually performed.
+### What it does
+Closes the half-finished F3 promise. Coach reviews an alt-request, picks a substitute from the Library via the reusable `ExercisePicker` (F5), optionally adds a note, marks Addressed. The client's My Program + Workout Tracker swap the original exercise for the substitute on the next render. Logs are written against the substitute's `exercise_id` so analytics attribute correctly.
 
-### Known scope (will be locked when user approves)
-- One column addition: `ALTER TABLE exercise_alternative_requests ADD COLUMN substitute_exercise_id uuid REFERENCES exercises(id) ON DELETE SET NULL`
-- `AltExercise.openModal` (coach side, Respond modal) grows a "🔄 Pick substitute" button → `ExercisePicker.open({...})`
-- `programPublish.renderClientProgram` checks for an active substitution per `(program_id, workout_key, exercise_index)` and swaps the row
-- `WorkoutSession` automatically uses the substitute's `exercise_id` in `logExercise` (no engine change)
-- Coach can revert a substitution (sets `substitute_exercise_id = null`)
+### Locked architecture — Option A (override layer, never mutates published JSON)
+- One column: `exercise_alternative_requests.substitute_exercise_id uuid REFERENCES exercises(id) ON DELETE SET NULL` + partial index `aer_active_substitutes_idx`
+- Trigger fn `tg_aer_notify_client` refreshed to enrich the body: "Your coach replaced *X* with *Y* — *response*"
+- `programPublish.renderClientProgram` builds a substitution Map (most-recent per slot) and swaps `exercise_id` + `name` in the in-memory `workouts[]` tree before F5's library prefetch — so libMap naturally resolves the substitute and all F5 media wiring works unchanged
+- `WorkoutSession._renderExerciseLogRow` shows the same "🔄 Substituted" tooltip badge on the live tracker row (Q3: replacement-only with original on hover)
+- `programPublish._publish()` adds a republish sweep: closes every active substitution for the client as `status='declined'` with body `"Closed — Program Republished"` (Q2)
+
+### v1.1 progression formula bump (per Q1 — locked)
+- `v_client_progression` `CREATE OR REPLACE`-d with v1.1
+- Only the `alt` CTE changed: requests where `status='addressed' AND substitute_exercise_id IS NOT NULL` are EXCLUDED from `alt_requests_30d` → no Recovery penalty for resolved-by-substitution requests
+- `formula_version` literal flipped `'1.0'` → `'1.1'`
+- Honors the locked "no in-place silent drift" rule via version-stamped migration with full changelog header
+
+### User decisions locked
+| Q | Answer | Implementation |
+|---|---|---|
+| Q1 | No Recovery penalty for successfully-substituted requests | v1.1 view `alt` CTE filters them out |
+| Q2 | Auto-close on republish with "Closed — Program Republished" | `_publish()` sweep with exact wording |
+| Q3 | Show only replacement; original via tooltip badge | "🔄 Substituted" pill with `title=` attribute on both render surfaces |
+| Q4 | F6 first, Reliability Sweep next | This commit; sweep on deck |
+
+### Files
+- DB: `supabase/migrations/20260606_alt_exercise_substitute.sql` — column + index + trigger fn refresh + v_client_progression v1.1
+- JS: edits to `js/altExerciseRequest.js` (substitute picker integration + inbox pill), `js/programPublish.js` (subMap fetch + swap + badge + republish sweep), `js/workoutSession.js` (inline badge on tracker row)
+- No new modules · No new HTML sections · No new modals
+
+### Live verification (2026-05-31)
+- Column + partial index + trigger fn + v1.1 view all confirmed via MCP
+- End-to-end DO $$ block (6 steps): client request → coach notif → substitute UPDATE → enriched client body (mentions both names + response) → render-time subMap lookup returns substitute id → workout_exercise_logs.exercise_id = substitute → v1.1 alt CTE excludes the substituted request → republish sweep flips status + clears column + emits "Closed — Program Republished" notification → cleanup
+- All 6 assertions passed. Zero residue across exercises/requests/notifications/sessions. Zero new advisor warnings.
+
+### Deferred slice (locked out of scope of F6)
+- Auto-suggest substitute by tag/joint overlap
+- Substitution audit history table (request row is single-substitute by design)
+- PDF export reflects substitutions
+- Notification deep-link pre-selects the substituted row in My Program (deferred F3 slice)
 
 ---
 
 ## ⏸ Feature 7 — Assessment Results / 3D Hologram Integration
 
-**Status:** Planned · partially designed (gap E from initial audit)
+**Status:** Planned (next after the Reliability + Defect Sweep per user direction Q4)
 **Dependency:** Standalone — no upstream feature blocks this.
 
 ### What it will do
-Wire the client-dashboard Assessment Report card (currently hardcoded "Loading…") to real data: pull the most-recent `rehab_objective_assessments` + `gait_assessments` + coach notes; populate the True Driver / Reported Symptoms / Coach's notes rows; cross-link to the 3D body map already rendered above.
+Wire the client-dashboard Assessment Report card (PRODUCT_AUDIT.md TD11 — currently hardcoded "Loading…") to real data: pull the most-recent `rehab_objective_assessments` + `gait_assessments` + coach notes; populate True Driver / Reported Symptoms / Coach's notes rows; cross-link to the 3D body map.
 
 ---
 
@@ -292,11 +324,11 @@ Wire the client-dashboard Assessment Report card (currently hardcoded "Loading�
 | F4 Progression Engine v1 | 1 | 1 new, 2 modified | ✅ live | 🔒 frozen |
 | Tier 1 Spec + FK + Phase Upgrade | 1 | 4 modified | ✅ live | — |
 | Tier 2 Advisor hardening | 1 | 0 | ✅ live | — |
-| F5 Exercise Video Integration | 0 | 2 new, 2 modified | ✅ live | not yet "frozen" |
-| **F6 Alt-Exercise Replacement** | **1 pending** | **TBD** | **⏸ planned** | — |
+| F5 Exercise Video Integration | 0 | 2 new, 2 modified | ✅ live | 🔒 frozen |
+| **F6 Alt-Exercise Replacement** | **1** | **0 new, 3 modified** | **✅ live** | not yet "frozen" |
 | **F7 Assessment / 3D Hologram** | **0 pending** | **TBD** | **⏸ planned** | — |
 
-**Live migrations applied: 7** (all in `supabase_migrations.schema_migrations`).
-**Live tables created by this work: 4** (`notifications`, `exercise_alternative_requests`, `workout_sessions`, `workout_exercise_logs`).
-**Live views created by this work: 2** (`v_client_subscription_state`, `v_client_progression`).
-**Live JS modules added by this work: 7** (`subscriptionService`, `workoutSession`, `notificationsService`, `altExerciseRequest`, `progressionEngine`, `exerciseInstructions`, `exercisePicker`).
+**Live migrations applied: 8** (all in `supabase_migrations.schema_migrations` — F6 added `20260531123907 alt_exercise_substitute`).
+**Live tables created by this work: 4** (`notifications`, `exercise_alternative_requests`, `workout_sessions`, `workout_exercise_logs`). F6 added one column to `exercise_alternative_requests`.
+**Live views created by this work: 2** (`v_client_subscription_state`, `v_client_progression` — bumped to v1.1 by F6).
+**Live JS modules added by this work: 7** (`subscriptionService`, `workoutSession`, `notificationsService`, `altExerciseRequest`, `progressionEngine`, `exerciseInstructions`, `exercisePicker`). F6 added **zero new modules** — reused F5's `ExercisePicker` verbatim.
