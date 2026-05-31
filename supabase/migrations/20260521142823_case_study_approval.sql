@@ -59,12 +59,6 @@ CREATE POLICY "case_shares_update" ON case_shares
 CREATE POLICY "case_shares_delete" ON case_shares
   FOR DELETE USING (auth.uid() = coach_id OR public.is_admin());
 
--- 3. Function grants -------------------------------------------------
--- Evaluating an RLS policy requires EXECUTE on every function it
--- references — for every role that may run the query, anon included.
--- Without these, a logged-out (or under-privileged) request errors out
--- instead of simply returning the rows its policy allows.
-GRANT EXECUTE ON FUNCTION public.is_admin()          TO anon, authenticated;
-GRANT EXECUTE ON FUNCTION public.is_coach()          TO anon, authenticated;
-GRANT EXECUTE ON FUNCTION public.is_coach_or_admin() TO anon, authenticated;
-GRANT EXECUTE ON FUNCTION public.is_admin_or_coach() TO anon, authenticated;
+-- Function grants moved to the companion migration to mirror the
+-- remote registry's two-version split:
+--   20260521144757_case_study_approval_grants.sql
