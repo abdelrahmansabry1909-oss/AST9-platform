@@ -157,16 +157,32 @@
   }
 
   function _exerciseRow(wi, key, ex, i) {
-    const f = (field, val, ph, w) =>
+    const f = (field, val, ph, w, extra = '') =>
       `<input data-w="${wi}" data-ex="${key}" data-i="${i}" data-f="${field}" value="${esc(val)}"
-        placeholder="${esc(ph)}" class="form-input" style="${w}"/>`;
+        placeholder="${esc(ph)}" class="form-input" style="${w}" ${extra}/>`;
+    // Feature 5 — show a small library badge when exercise_id is set so
+    // the coach can see at a glance which rows are library-backed.
+    const linked = !!ex.exercise_id;
     return `
       <div style="display:flex;gap:6px;align-items:flex-start;margin-bottom:6px;flex-wrap:wrap;
-                  padding:8px;border:1px solid var(--border-subtle);border-radius:8px;background:var(--bg-raised)">
+                  padding:8px;border:1px solid var(--border-subtle);border-radius:8px;background:var(--bg-raised)"
+           data-row="${wi}:${key}:${i}">
         <span style="font-size:11px;color:var(--text-tertiary);width:18px;text-align:center;padding-top:9px">${i + 1}</span>
-        <div style="flex:1;min-width:180px;display:flex;flex-direction:column;gap:6px">
-          ${f('name', ex.name, 'Exercise name', 'font-weight:600')}
+        <div style="flex:1;min-width:180px;display:flex;flex-direction:column;gap:6px;position:relative">
+          <div style="display:flex;gap:6px;align-items:center">
+            ${f('name', ex.name, 'Exercise name', 'font-weight:600;flex:1', 'autocomplete="off"')}
+            <button type="button" class="btn btn-ghost btn-sm" data-pick="${wi}:${key}:${i}"
+                    title="Pick from Library"
+                    style="white-space:nowrap;padding:6px 9px">📚 Library</button>
+          </div>
+          ${linked ? `<div style="font-size:10px;color:var(--nc-teal,#14b8a6);letter-spacing:.04em">
+            ◈ linked · ${esc(ex.exercise_id).slice(0,8)}…
+          </div>` : ''}
           ${f('notes', ex.notes, 'Coaching notes', 'font-size:12px')}
+          <div data-suggest="${wi}:${key}:${i}" class="hidden"
+               style="position:absolute;left:0;right:78px;top:36px;background:var(--bg-raised,#0f172a);
+                      border:1px solid var(--border-subtle);border-radius:8px;max-height:220px;
+                      overflow:auto;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.45)"></div>
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap">
           ${f('sets',  ex.sets,  'Sets',  'width:56px')}
@@ -181,20 +197,36 @@
 
   function _wireSection(wi, key) {
     const panel = document.getElementById('pp-program');
-    // field edits
+    // ── field edits ────────────────────────────────────────────
     panel.querySelectorAll(`[data-w="${wi}"][data-ex="${key}"]`).forEach((inp) => {
       inp.addEventListener('input', () => {
         const i = +inp.dataset.i, fld = inp.dataset.f;
         const arr = _program.workouts[wi][key];
-        if (arr[i]) arr[i][fld] = inp.value;
+        if (!arr[i]) return;
+        arr[i][fld] = inp.value;
+        // Feature 5 — autosuggest on the name field. Library row click
+        // sets exercise_id; manual typing alone keeps the link unless
+        // the name is cleared completely.
+        if (fld === 'name') {
+          if (!inp.value.trim()) arr[i].exercise_id = null;
+          _renderSuggest(wi, key, i, inp);
+        }
       });
+      // Hide suggestions on blur (delay so row clicks register).
+      if (inp.dataset.f === 'name') {
+        inp.addEventListener('blur', () => {
+          setTimeout(() => _hideSuggest(wi, key, i_of(inp)), 180);
+        });
+      }
     });
-    // add
+    // ── add ───────────────────────────────────────────────────
     panel.querySelector(`[data-add="${wi}:${key}"]`)?.addEventListener('click', () => {
-      _program.workouts[wi][key].push({ name: '', sets: '', reps: '', tempo: '', rest: '', notes: '' });
+      _program.workouts[wi][key].push({
+        exercise_id: null, name: '', sets: '', reps: '', tempo: '', rest: '', notes: '',
+      });
       _drawProgram();
     });
-    // remove
+    // ── remove ────────────────────────────────────────────────
     panel.querySelectorAll(`[data-rm^="${wi}:${key}:"]`).forEach((btn) => {
       btn.addEventListener('click', () => {
         const i = +btn.dataset.rm.split(':')[2];
@@ -202,6 +234,74 @@
         _drawProgram();
       });
     });
+    // ── 📚 Library button (Feature 5) ─────────────────────────
+    panel.querySelectorAll(`[data-pick^="${wi}:${key}:"]`).forEach((btn) => {
+      btn.addEventListener('click', () => {
+        if (typeof ExercisePicker === 'undefined') {
+          _toast('Library picker not loaded', 'error'); return;
+        }
+        const i = +btn.dataset.pick.split(':')[2];
+        // Pre-seed the filter from the program's phase if known.
+        const defaultFilter = (_program?.phase || '').startsWith('Phase ')
+          ? 'phase' + _program.phase.replace('Phase ', '') : 'all';
+        ExercisePicker.open({
+          title: 'Pick exercise from Library',
+          defaultFilter,
+          onSelect: ({ exercise_id, exercise_name }) => {
+            const row = _program.workouts[wi][key][i];
+            if (!row) return;
+            row.exercise_id = exercise_id;
+            row.name        = exercise_name;
+            _drawProgram();   // redraws → reflects link badge + new name
+          },
+        }).catch(() => {});  // user closed; nothing to do
+      });
+    });
+  }
+
+  // Helper: pull row index from a name input
+  function i_of(inp) {
+    const n = parseInt(inp?.dataset?.i, 10);
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  // ── Autosuggest (Feature 5) — types into name input, shows matches.
+  let _suggestTimer = null;
+  function _renderSuggest(wi, key, i, inp) {
+    if (typeof ExerciseLibrary === 'undefined') return;
+    clearTimeout(_suggestTimer);
+    _suggestTimer = setTimeout(async () => {
+      const q = inp.value.trim();
+      const suggest = document.querySelector(`[data-suggest="${wi}:${key}:${i}"]`);
+      if (!suggest) return;
+      if (q.length < 2) { suggest.classList.add('hidden'); return; }
+      const items = (await ExerciseLibrary.loadAll({ search: q })).slice(0, 6);
+      if (!items.length) { suggest.classList.add('hidden'); return; }
+      suggest.innerHTML = items.map((ex) => `
+        <div data-suggest-pick="${esc(ex.id)}"
+             style="padding:7px 10px;cursor:pointer;border-bottom:1px solid var(--border-subtle);font-size:12px">
+          <div style="font-weight:600;color:var(--text-primary)">${esc(ex.name)}</div>
+          <div style="font-size:11px;color:var(--text-tertiary)">${esc(ex.phase || '')} · ${esc(ex.category || '')}</div>
+        </div>`).join('');
+      suggest.classList.remove('hidden');
+      suggest.querySelectorAll('[data-suggest-pick]').forEach((row) => {
+        row.onmousedown = (e) => e.preventDefault();   // keep input focus
+        row.onclick = () => {
+          const ex = items.find((x) => x.id === row.dataset.suggestPick);
+          if (!ex) return;
+          const target = _program.workouts[wi][key][i];
+          if (!target) return;
+          target.exercise_id = ex.id;
+          target.name        = ex.name;
+          suggest.classList.add('hidden');
+          _drawProgram();
+        };
+      });
+    }, 180);
+  }
+  function _hideSuggest(wi, key, i) {
+    const suggest = document.querySelector(`[data-suggest="${wi}:${key}:${i}"]`);
+    if (suggest) suggest.classList.add('hidden');
   }
 
   // ── Daily routine editor ──────────────────────────────────
@@ -313,6 +413,36 @@
       }, { onConflict: 'client_id' });
       if (routRes.error) throw routRes.error;
 
+      // ── Feature 6 — republish sweep (Q2) ──────────────────────────
+      // Auto-close all active substitutions for this client when a new
+      // program is published. A stale (workout_key, exercise_index)
+      // substitution from the prior program could otherwise swap the
+      // wrong exercise in the new one. We set status='declined' so the
+      // existing tg_aer_notify_client trigger fires once per closed
+      // request, with body "Closed — Program Republished" per user spec.
+      // Non-fatal — publish has already succeeded.
+      try {
+        const { data: closedRows, error: sweepErr } = await sb
+          .from('exercise_alternative_requests')
+          .update({
+            status:                 'declined',
+            substitute_exercise_id: null,
+            coach_response:         'Closed — Program Republished',
+            responded_at:           now,
+          })
+          .eq('client_id', _clientId)
+          .eq('status',    'addressed')
+          .not('substitute_exercise_id', 'is', null)
+          .select('id');
+        if (sweepErr) {
+          console.warn('[publish] substitution sweep:', sweepErr.message);
+        } else if (closedRows && closedRows.length) {
+          console.info(`[publish] closed ${closedRows.length} active substitution(s) on republish`);
+        }
+      } catch (sweepEx) {
+        console.warn('[publish] substitution sweep threw:', sweepEx?.message);
+      }
+
       if (status) { status.textContent = `✓ Published to ${_clientName || 'client'} — they can see it now.`; status.style.color = 'var(--lime, #16a34a)'; }
       _toast('Program & daily routine published to the client ✓', 'success');
     } catch (e) {
@@ -341,7 +471,7 @@
     let row = null;
     try {
       const { data, error } = await sb.from('client_programs')
-        .select('program, published, published_at').eq('client_id', clientId).maybeSingle();
+        .select('id, program, published, published_at').eq('client_id', clientId).maybeSingle();
       if (error) throw error;
       row = data;
     } catch (e) {
@@ -369,26 +499,164 @@
       ? p.schedule
       : Array.from({ length: p.days_per_week || 1 }, (_, i) => workouts[i % workouts.length].id);
 
+    // ── Feature 6 — override layer for substitutions ───────────────
+    //    Pull active substitutions for this client (status=addressed AND
+    //    substitute_exercise_id IS NOT NULL). For each (workout_key,
+    //    exercise_index) slot, keep only the most recent. Then swap each
+    //    matching exercise in workouts[] BEFORE F5's linkedIds scan, so
+    //    substitute ids are also resolved against the library.
+    //
+    //    Published program JSON is never mutated — the swap is in-memory
+    //    only, scoped to this render pass.
+    const subMap = new Map();  // "workoutKey|exerciseIndex" → row
+    try {
+      const { data: subRows } = await sb.from('exercise_alternative_requests')
+        .select('workout_key, exercise_index, substitute_exercise_id, coach_response, exercise_name, responded_at')
+        .eq('client_id', clientId)
+        .eq('status', 'addressed')
+        .not('substitute_exercise_id', 'is', null)
+        .order('responded_at', { ascending: false });
+      (subRows || []).forEach((r) => {
+        const k = r.workout_key + '|' + r.exercise_index;
+        if (!subMap.has(k)) subMap.set(k, r);   // keep most-recent (ordered DESC)
+      });
+    } catch (e) { console.warn('[program] substitution prefetch:', e?.message); }
+
+    if (subMap.size) {
+      workouts.forEach((wk) => {
+        ['warmup','main','cooldown'].forEach((k) => {
+          const list = wk[k] || [];
+          list.forEach((ex, i) => {
+            if (!ex) return;
+            const key = wk.id + '|' + i;
+            const sub = subMap.get(key);
+            if (!sub) return;
+            // Replace by ID; the new name will be filled in once we resolve
+            // the library row below. Stash original for the tooltip.
+            ex._substitutedFrom    = ex.name || sub.exercise_name || 'Original exercise';
+            ex._substituteResponse = sub.coach_response || '';
+            ex.exercise_id         = sub.substitute_exercise_id;
+            // name is overwritten after libMap resolves (see below);
+            // fallback to substitute_exercise_id-only until then.
+          });
+        });
+      });
+    }
+
+    // ── Feature 5 — batch-resolve library metadata for every linked
+    //    exercise in every workout. One round-trip (cached 5min after).
+    //    Map: exercise_id → full exercises row.
+    //    Now (F6) also picks up substitute ids because the swap above
+    //    has rewritten ex.exercise_id in place.
+    const linkedIds = new Set();
+    workouts.forEach((wk) => {
+      ['warmup','main','cooldown'].forEach((k) => {
+        (wk[k] || []).forEach((ex) => {
+          if (ex && ex.exercise_id) linkedIds.add(ex.exercise_id);
+        });
+      });
+    });
+    let libMap = new Map();
+    if (linkedIds.size && typeof ExerciseLibrary !== 'undefined') {
+      try {
+        // Use the cached loadAll then filter — single query per render.
+        const all = await ExerciseLibrary.loadAll();
+        all.forEach((e) => { if (linkedIds.has(e.id)) libMap.set(e.id, e); });
+      } catch (e) { console.warn('[program] library prefetch:', e?.message); }
+    }
+
+    // ── Feature 6 — now that libMap is resolved, overwrite the
+    //    display name on substituted slots with the substitute's real
+    //    library name. (Q3: client sees ONLY the substitute name;
+    //    the original is exposed via the "🔄 Substituted" tooltip.)
+    if (subMap.size && libMap.size) {
+      workouts.forEach((wk) => {
+        ['warmup','main','cooldown'].forEach((k) => {
+          (wk[k] || []).forEach((ex) => {
+            if (ex && ex._substitutedFrom && ex.exercise_id) {
+              const meta = libMap.get(ex.exercise_id);
+              if (meta && meta.name) ex.name = meta.name;
+            }
+          });
+        });
+      });
+    }
+    // Stash on the host so the workout tracker can reuse it without
+    // re-fetching (passed via the programHost element below).
+    const _exMeta = (ex) => (ex && ex.exercise_id) ? (libMap.get(ex.exercise_id) || null) : null;
+
     const roSection = (title, list, color) => {
       if (!list || !list.length) return '';
       return `
         <div style="margin-bottom:16px">
           <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:${color};padding:8px 0 4px;border-bottom:1px solid ${color}33">${esc(title)}</div>
-          ${list.map((ex, i) => `
-            <div style="display:grid;grid-template-columns:auto 1fr auto;gap:10px 14px;align-items:start;padding:10px 0;border-bottom:1px solid var(--border-subtle)">
-              <div style="width:22px;height:22px;border-radius:50%;background:${color}1f;border:1px solid ${color}44;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:${color};flex-shrink:0">${i + 1}</div>
-              <div>
-                <div style="font-size:13px;font-weight:600;color:var(--text-primary)">${esc(ex.name || 'Exercise')}</div>
-                ${ex.notes ? `<div style="font-size:11px;color:var(--text-tertiary);margin-top:2px;line-height:1.4">${esc(ex.notes)}</div>` : ''}
-              </div>
-              <div style="font-size:12px;color:var(--text-secondary);white-space:nowrap;text-align:right">
-                ${ex.sets ? `<b style="color:${color}">${esc(ex.sets)}</b> sets` : ''}
-                ${ex.reps ? ` · ${esc(ex.reps)}` : ''}
-                ${ex.tempo ? `<br/><span style="font-size:11px;color:var(--text-tertiary)">tempo ${esc(ex.tempo)}${ex.rest ? ' · rest ' + esc(ex.rest) : ''}</span>` : ''}
-              </div>
-            </div>`).join('')}
+          ${list.map((ex, i) => _roExerciseRow(ex, i, color, _exMeta(ex))).join('')}
         </div>`;
     };
+
+    // Feature 5 — exercise row with optional thumbnail/preview/instructions.
+    // Legacy rows (no exercise_id, no metadata) render as before — same
+    // grid + same fields — so existing programs are unaffected.
+    function _roExerciseRow(ex, i, color, meta) {
+      const thumb = _thumbHTML(meta);
+      const hasInstructions = meta && typeof ExerciseInstructions !== 'undefined'
+        && ExerciseInstructions.build(meta).hasContent;
+      const previewBtn = meta && meta.video_url
+        ? `<button type="button" class="btn btn-ghost btn-xs" data-cp-preview="${esc(meta.id)}" data-cp-name="${esc(meta.name)}"
+                  data-cp-url="${esc(meta.video_url)}"
+                  style="padding:3px 8px;font-size:11px">▶ Preview</button>`
+        : '';
+      const instrBtn = hasInstructions
+        ? `<button type="button" class="btn btn-ghost btn-xs" data-cp-info="${esc(meta.id)}-${esc(String(i))}"
+                  style="padding:3px 8px;font-size:11px">ℹ Instructions</button>`
+        : '';
+      // ── Feature 6 — "🔄 Substituted" tooltip badge ──
+      //   Per Q3: client sees only the substitute exercise name; the
+      //   ORIGINAL name + coach response live in the tooltip on the badge.
+      const subBadge = (ex && ex._substitutedFrom) ? `
+        <span class="cp-sub-badge"
+              title="Originally: ${esc(ex._substitutedFrom)}${ex._substituteResponse ? ' — ' + esc(ex._substituteResponse) : ''}"
+              style="display:inline-flex;align-items:center;gap:4px;margin-left:6px;
+                     padding:1px 7px;border-radius:999px;font-size:10px;font-weight:600;
+                     background:rgba(20,184,166,.14);color:var(--nc-teal,#14b8a6);
+                     border:1px solid rgba(20,184,166,.35);cursor:help;vertical-align:1px">
+          🔄 Substituted
+        </span>` : '';
+
+      return `
+        <div class="cp-row" style="display:grid;grid-template-columns:auto auto 1fr auto;gap:10px 14px;align-items:start;padding:10px 0;border-bottom:1px solid var(--border-subtle)">
+          <div style="width:22px;height:22px;border-radius:50%;background:${color}1f;border:1px solid ${color}44;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:${color};flex-shrink:0;margin-top:1px">${i + 1}</div>
+          ${thumb}
+          <div style="min-width:0">
+            <div style="font-size:13px;font-weight:600;color:var(--text-primary)">${esc(ex.name || 'Exercise')}${subBadge}</div>
+            ${ex.notes ? `<div style="font-size:11px;color:var(--text-tertiary);margin-top:2px;line-height:1.4">${esc(ex.notes)}</div>` : ''}
+            ${(previewBtn || instrBtn) ? `<div style="display:flex;gap:6px;margin-top:5px;flex-wrap:wrap">${previewBtn}${instrBtn}</div>` : ''}
+            <div data-cp-inline="${esc((meta && meta.id) || '')}-${esc(String(i))}" class="hidden"
+                 style="margin-top:8px;border:1px solid var(--border-subtle);border-radius:8px;overflow:hidden"></div>
+            <div data-cp-instr="${esc((meta && meta.id) || '')}-${esc(String(i))}" class="hidden" style="margin-top:8px"></div>
+          </div>
+          <div style="font-size:12px;color:var(--text-secondary);white-space:nowrap;text-align:right">
+            ${ex.sets ? `<b style="color:${color}">${esc(ex.sets)}</b> sets` : ''}
+            ${ex.reps ? ` · ${esc(ex.reps)}` : ''}
+            ${ex.tempo ? `<br/><span style="font-size:11px;color:var(--text-tertiary)">tempo ${esc(ex.tempo)}${ex.rest ? ' · rest ' + esc(ex.rest) : ''}</span>` : ''}
+          </div>
+        </div>`;
+    }
+
+    function _thumbHTML(meta) {
+      if (!meta) return `<div style="width:60px"></div>`;  // keep grid aligned
+      const url = meta.thumbnail_url
+        || (meta.video_url && typeof ExerciseLibrary?.getThumbnailUrl === 'function'
+            ? ExerciseLibrary.getThumbnailUrl(meta.video_url) : null);
+      if (url) {
+        return `<img src="${esc(url)}" alt="" loading="lazy"
+                 style="width:60px;height:42px;object-fit:cover;border-radius:5px;background:#0f172a;cursor:pointer"
+                 data-cp-preview="${esc(meta.id)}" data-cp-name="${esc(meta.name)}"
+                 data-cp-url="${esc(meta.video_url || '')}">`;
+      }
+      return `<div style="width:60px;height:42px;border-radius:5px;background:rgba(255,255,255,.04);
+                          display:flex;align-items:center;justify-content:center;color:#475569;font-size:14px">▶</div>`;
+    }
 
     const pubDate = row.published_at ? new Date(row.published_at).toLocaleDateString() : '';
 
@@ -402,9 +670,11 @@
           </span>`).join('')}
       </div>`;
 
-    // Each distinct workout, read-only
+    // Each distinct workout, read-only — plus a tracker slot that
+    // WorkoutSession.mountWorkouts() takes over after render.
     const workoutHTML = workouts.map((wk) => `
-      <div style="margin-bottom:20px;border:1px solid var(--border-subtle);border-radius:12px;padding:14px 16px;background:rgba(255,255,255,.015)">
+      <div class="ws-workout-card" data-workout-key="${esc(wk.id)}"
+           style="margin-bottom:20px;border:1px solid var(--border-subtle);border-radius:12px;padding:14px 16px;background:rgba(255,255,255,.015)">
         <div style="display:flex;align-items:center;gap:9px;margin-bottom:8px">
           <span style="width:26px;height:26px;border-radius:7px;background:rgba(20,184,166,.16);
                        border:1px solid rgba(20,184,166,.35);color:var(--nc-teal);font-weight:700;
@@ -414,10 +684,12 @@
         ${roSection('Warm-Up', wk.warmup, 'var(--nc-teal)')}
         ${roSection('Conditioning / Correctives', wk.main, 'var(--nc-gold, #D4AF37)')}
         ${roSection('Cool-Down', wk.cooldown, '#5A9BD4')}
+        <!-- WorkoutSession tracker (Start/Finish + per-exercise log) -->
+        <div data-workout-tracker-host="${esc(wk.id)}"></div>
       </div>`).join('');
 
     host.innerHTML = `
-      <div class="card">
+      <div class="card" data-program-host>
         <div class="card-header">
           <span class="card-title">Your Training Program</span>
           <span class="badge" style="background:rgba(20,184,166,.14);color:var(--nc-teal);border:1px solid rgba(20,184,166,.3)">
@@ -435,6 +707,81 @@
           Your daily routine is in the <b>𓆸 Daily Routine</b> tab — check off tasks each day.
         </div>
       </div>`;
+
+    // ── Feature 5 — wire preview + instructions buttons ────────
+    host.querySelectorAll('[data-cp-preview]').forEach((el) => {
+      el.addEventListener('click', (e) => {
+        const id  = el.dataset.cpPreview;
+        const nm  = el.dataset.cpName;
+        const url = el.dataset.cpUrl;
+        if (!url) return;
+        // Default: inline expand IN the row; Shift-click or ▶ button on
+        // narrow screens falls back to the existing modal player.
+        if (e.shiftKey || window.innerWidth < 640) {
+          if (typeof ExerciseUI !== 'undefined') ExerciseUI.openVideoModal(id, nm, url);
+          return;
+        }
+        // Find the inline slot belonging to this row (data-cp-inline=<id>-<index>)
+        const row = el.closest('.cp-row');
+        const inline = row?.querySelector('[data-cp-inline]');
+        if (!inline) return;
+        if (!inline.classList.contains('hidden')) {
+          inline.classList.add('hidden'); inline.innerHTML = '';
+          return;
+        }
+        const embed = (typeof ExerciseLibrary?.getEmbedUrl === 'function')
+          ? ExerciseLibrary.getEmbedUrl(url) : url;
+        inline.innerHTML = `
+          <div style="position:relative;width:100%;padding-top:56.25%;background:#000">
+            <iframe src="${esc(embed || '')}" allowfullscreen
+              style="position:absolute;inset:0;width:100%;height:100%;border:0"></iframe>
+            <button type="button" data-cp-inline-close
+                    style="position:absolute;top:6px;right:8px;background:rgba(0,0,0,.6);
+                           color:#fff;border:0;border-radius:4px;padding:3px 8px;font-size:11px;cursor:pointer">✕</button>
+            <button type="button" data-cp-open-modal data-id="${esc(id)}" data-name="${esc(nm)}" data-url="${esc(url)}"
+                    style="position:absolute;bottom:6px;right:8px;background:rgba(20,184,166,.85);
+                           color:#fff;border:0;border-radius:4px;padding:3px 8px;font-size:11px;cursor:pointer">⛶ Fullscreen</button>
+          </div>`;
+        inline.classList.remove('hidden');
+        inline.querySelector('[data-cp-inline-close]').onclick = () => {
+          inline.classList.add('hidden'); inline.innerHTML = '';
+        };
+        inline.querySelector('[data-cp-open-modal]').onclick = (ev) => {
+          ev.stopPropagation();
+          if (typeof ExerciseUI !== 'undefined') ExerciseUI.openVideoModal(id, nm, url);
+        };
+      });
+    });
+    host.querySelectorAll('[data-cp-info]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const key = btn.dataset.cpInfo;
+        const slot = host.querySelector(`[data-cp-instr="${CSS.escape(key)}"]`);
+        if (!slot) return;
+        if (!slot.classList.contains('hidden')) {
+          slot.classList.add('hidden'); slot.innerHTML = '';
+          return;
+        }
+        const id = key.split('-')[0];
+        const meta = libMap.get(id);
+        if (!meta || typeof ExerciseInstructions === 'undefined') return;
+        slot.innerHTML = ExerciseInstructions.renderFull(meta);
+        slot.classList.remove('hidden');
+      });
+    });
+
+    // Mount the WorkoutSession tracker into every workout's slot.
+    const programHost = host.querySelector('[data-program-host]');
+    if (programHost) {
+      programHost._workouts = workouts;     // stash for re-renders
+      programHost._libMap   = libMap;       // Feature 5 — share with tracker
+    }
+    if (typeof WorkoutSession !== 'undefined' && programHost) {
+      WorkoutSession.mountWorkouts(programHost, {
+        programId: row.id || null,
+        workouts,
+        libMap,                              // Feature 5 — no re-fetch
+      }).catch((e) => console.warn('[programPublish] tracker mount:', e?.message));
+    }
   }
 
   window.ProgramPublish = { render, getProgram, renderClientProgram };

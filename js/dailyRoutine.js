@@ -9,8 +9,12 @@
      • mountCoachView(container, opts) — coach-facing adherence dashboard:
          pick a client → 30-day heatmap, streak, 7/30-day averages.
 
-   Data: public.daily_routine_logs  (see 20260521_daily_routine.sql)
-   Storage fallback: localStorage when Supabase is unavailable.
+   Data: public.daily_routine_logs  (single source of truth as of the
+                                     System Stabilization Pass — the
+                                     localStorage fallback was removed
+                                     because its shape did not match the
+                                     live schema and silently produced
+                                     unreadable rows when SB failed).
 ═══════════════════════════════════════════════════════════════ */
 (() => {
   'use strict';
@@ -119,24 +123,21 @@
     document.head.appendChild(el);
   }
 
-  // ── Supabase persistence (graceful localStorage fallback) ──
+  // ── Supabase persistence — single source of truth ──────────────
   const _hasSB = () => typeof sb !== 'undefined' && sb;
-  const _lsKey = (cid, date) => `dr_log_${cid}_${date}`;
 
   async function loadLog(clientId, date) {
-    if (_hasSB()) {
-      try {
-        const { data, error } = await sb.from('daily_routine_logs')
-          .select('completed_tasks, total_tasks, completed_count, percent')
-          .eq('client_id', clientId).eq('log_date', date).maybeSingle();
-        if (error) throw error;
-        if (data) return data;
-      } catch (e) { console.warn('[dailyRoutine] load failed, using local:', e.message); }
-    }
+    if (!_hasSB()) return null;
     try {
-      const raw = localStorage.getItem(_lsKey(clientId, date));
-      return raw ? JSON.parse(raw) : null;
-    } catch { return null; }
+      const { data, error } = await sb.from('daily_routine_logs')
+        .select('completed_tasks, total_tasks, completed_count, percent')
+        .eq('client_id', clientId).eq('log_date', date).maybeSingle();
+      if (error) throw error;
+      return data || null;
+    } catch (e) {
+      console.warn('[dailyRoutine] load failed:', e.message);
+      return null;
+    }
   }
 
   async function saveLog(clientId, date, completedIds, total) {
@@ -147,60 +148,54 @@
       completed_tasks: completedIds, total_tasks: total,
       completed_count, percent, updated_at: new Date().toISOString(),
     };
-    try { localStorage.setItem(_lsKey(clientId, date), JSON.stringify(row)); } catch {}
-    if (_hasSB()) {
-      const { error } = await sb.from('daily_routine_logs')
-        .upsert(row, { onConflict: 'client_id,log_date' });
-      if (error) throw error;
+    if (!_hasSB()) {
+      // No Supabase = no persistence. Surface to the caller so the UI
+      // can warn instead of silently dropping the user's check-ins.
+      throw new Error('Storage unavailable — your check-in was not saved.');
     }
+    const { error } = await sb.from('daily_routine_logs')
+      .upsert(row, { onConflict: 'client_id,log_date' });
+    if (error) throw error;
     return row;
   }
 
   // Load the routine the COACH published for this client (client_routines).
-  // Falls back to the standard NeuCore routine when none is published.
+  // Falls back to the standard NeuCore routine ONLY when the coach hasn't
+  // published one yet (that's a normal product state, not a failure).
   async function loadRoutine(clientId) {
-    if (_hasSB()) {
-      try {
-        const { data, error } = await sb.from('client_routines')
-          .select('tasks, published').eq('client_id', clientId).maybeSingle();
-        if (error) throw error;
-        if (data && data.published && Array.isArray(data.tasks) && data.tasks.length) {
-          return data.tasks.map((t, i) => ({
-            id:      i,
-            label:   t.label || `Task ${i + 1}`,
-            section: t.section === 'evening' ? 'evening' : 'morning',
-            emoji:   t.emoji || '🌀',
-            meta:    t.meta || '',
-            details: Array.isArray(t.details) ? t.details : (t.details ? [String(t.details)] : []),
-          }));
-        }
-      } catch (e) { console.warn('[dailyRoutine] published routine load failed:', e.message); }
-    }
+    if (!_hasSB()) return ROUTINE.slice();
+    try {
+      const { data, error } = await sb.from('client_routines')
+        .select('tasks, published').eq('client_id', clientId).maybeSingle();
+      if (error) throw error;
+      if (data && data.published && Array.isArray(data.tasks) && data.tasks.length) {
+        return data.tasks.map((t, i) => ({
+          id:      i,
+          label:   t.label || `Task ${i + 1}`,
+          section: t.section === 'evening' ? 'evening' : 'morning',
+          emoji:   t.emoji || '🌀',
+          meta:    t.meta || '',
+          details: Array.isArray(t.details) ? t.details : (t.details ? [String(t.details)] : []),
+        }));
+      }
+    } catch (e) { console.warn('[dailyRoutine] published routine load failed:', e.message); }
     return ROUTINE.slice();
   }
 
   async function historyFor(clientId, days) {
+    if (!_hasSB()) return [];
     const since = new Date(Date.now() - (days - 1) * 86400000).toISOString().slice(0, 10);
-    if (_hasSB()) {
-      try {
-        const { data, error } = await sb.from('daily_routine_logs')
-          .select('log_date, percent, completed_count, total_tasks')
-          .eq('client_id', clientId).gte('log_date', since)
-          .order('log_date', { ascending: true });
-        if (error) throw error;
-        return data || [];
-      } catch (e) { console.warn('[dailyRoutine] history failed:', e.message); }
+    try {
+      const { data, error } = await sb.from('daily_routine_logs')
+        .select('log_date, percent, completed_count, total_tasks')
+        .eq('client_id', clientId).gte('log_date', since)
+        .order('log_date', { ascending: true });
+      if (error) throw error;
+      return data || [];
+    } catch (e) {
+      console.warn('[dailyRoutine] history failed:', e.message);
+      return [];
     }
-    // localStorage fallback
-    const out = [];
-    for (let i = 0; i < days; i++) {
-      const d = new Date(Date.now() - i * 86400000).toISOString().slice(0, 10);
-      try {
-        const raw = localStorage.getItem(_lsKey(clientId, d));
-        if (raw) { const r = JSON.parse(raw); out.push({ log_date: d, ...r }); }
-      } catch {}
-    }
-    return out.sort((a, b) => a.log_date.localeCompare(b.log_date));
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -225,13 +220,18 @@
     const date = opts.date || todayStr();
     const readOnly = !!opts.readOnly;
 
-    // The routine the coach published for this client (or the standard one).
-    const routine = opts.routine || await loadRoutine(clientId);
+    // Stabilization Pass: parallelize the two independent reads. With
+    // the LS fast-path removed, doing these sequentially adds a full
+    // network round-trip to every tracker mount. Promise.all collapses
+    // them into one frame.
+    const [routine, log] = await Promise.all([
+      opts.routine ? Promise.resolve(opts.routine) : loadRoutine(clientId),
+      loadLog(clientId, date),
+    ]);
 
     const state = { checked: {}, expanded: {}, pop: null, saving: false, savedAt: null };
 
     // Restore today's progress
-    const log = await loadLog(clientId, date);
     if (log && Array.isArray(log.completed_tasks)) {
       log.completed_tasks.forEach((id) => { state.checked[id] = true; });
     }
@@ -261,7 +261,7 @@
       const el = host.querySelector('#dr-save');
       if (!el) return;
       if (state.saving) { el.textContent = '• Saving…'; el.style.color = '#60a5fa'; }
-      else if (state.savedAt === 'error') { el.textContent = '• Save failed — retried locally'; el.style.color = '#ef4444'; }
+      else if (state.savedAt === 'error') { el.textContent = '• Save failed — please retry'; el.style.color = '#ef4444'; }
       else if (state.savedAt) { el.textContent = '✓ Saved'; el.style.color = '#16a34a'; }
       else { el.textContent = ''; }
     }

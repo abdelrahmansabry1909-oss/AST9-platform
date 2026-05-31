@@ -55,9 +55,11 @@ const Clients = (() => {
         <td>${subBadge}</td>
         <td style="font-size:12px;color:var(--text-tertiary)">${coachName}</td>
         <td>
-          <div style="display:flex;gap:6px">
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
             <button class="btn btn-ghost btn-xs" onclick="Dashboard.showSection('new-session'); setTimeout(()=>{document.getElementById('ns-name').value='${_esc(c.full_name||'')}';document.getElementById('ns-phase').value='${c.current_phase||'Phase 1'}'},100)">+ Session</button>
-            <button class="btn btn-teal btn-xs" onclick="Clients.prepPhaseUpgrade('${c.id}','${_esc(c.full_name||c.email)}')">⬆ Phase</button>
+            <button class="btn btn-ghost btn-xs" onclick="window._wsPreselectClient='${c.id}'; Dashboard.showSection('workout-history')">◐ Workouts</button>
+            <button class="btn btn-teal btn-xs"
+              ${c.current_phase === 'Phase 3' ? 'disabled title="Already at top phase"' : `onclick="Clients.prepPhaseUpgrade('${c.id}','${_esc(c.full_name||c.email)}')"`}>⬆ Phase</button>
           </div>
         </td>
       </tr>`;
@@ -81,6 +83,16 @@ const Clients = (() => {
     }
     if (fields.pass.length < 8) {
       Dashboard.toast('Password must be at least 8 characters', 'error'); return;
+    }
+    // Tier-1 fix C — coach assignment is required so downstream alt-request,
+    // grace notifications, and workout coach_id stamping all work correctly.
+    if (!fields.coach) {
+      Dashboard.toast('Please assign a coach before creating the client', 'error');
+      const sel = document.getElementById('ac-coach');
+      sel?.focus();
+      sel?.classList.add('form-input-error');
+      setTimeout(() => sel?.classList.remove('form-input-error'), 2500);
+      return;
     }
 
     const btn = document.getElementById('ac-submit-btn');
@@ -116,10 +128,95 @@ const Clients = (() => {
     }
   }
 
-  function prepPhaseUpgrade(clientId, clientName) {
+  // Reliability Sweep / Priority D — async-ified so we can fetch the
+  // client's current_phase first, stamp it onto the modal, disable
+  // options at-or-below current, and refuse silent downgrades.
+  async function prepPhaseUpgrade(clientId, clientName) {
     const sel = document.getElementById('pu-client');
     if (sel) sel.value = clientId;
+
+    // Fetch current phase. Defensive: open modal anyway if fetch fails
+    // (we still validate again in submitPhaseUpgrade).
+    let current = null;
+    try {
+      const { data } = await sb.from('profiles')
+        .select('current_phase').eq('id', clientId).maybeSingle();
+      current = data?.current_phase || null;
+    } catch (e) {
+      console.warn('[phase-upgrade] current-phase fetch failed:', e.message);
+    }
+
+    _applyPhaseUpgradeGuards(current);
     Dashboard.openModal('modal-phase-upgrade');
+  }
+
+  // Phase ordering helper — converts "Phase N" to a number for comparison.
+  function _phaseOrd(p) {
+    if (!p) return 0;
+    const m = String(p).match(/(\d+)/);
+    return m ? parseInt(m[1], 10) : 0;
+  }
+
+  // Stamp current phase on the modal, disable options at-or-below it,
+  // and either show the upgrade form or a "top-phase" banner.
+  // Per Q-D1: Phase 3 client = banner + disabled options.
+  function _applyPhaseUpgradeGuards(currentPhase) {
+    const modal = document.getElementById('modal-phase-upgrade');
+    if (!modal) return;
+
+    // Stash current phase on the modal element for submit-time re-validation.
+    modal.dataset.currentPhase = currentPhase || 'Phase 1';
+    const curOrd = _phaseOrd(currentPhase);
+
+    // Find the current-phase pill (lazily injected next to the modal title) — create it if missing.
+    let pill = modal.querySelector('[data-pu-current]');
+    if (!pill) {
+      const hdr = modal.querySelector('.modal-header h3');
+      if (hdr) {
+        pill = document.createElement('span');
+        pill.setAttribute('data-pu-current', '1');
+        pill.style.cssText = 'margin-left:10px;font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;background:rgba(20,184,166,.14);color:var(--nc-teal,#14b8a6);border:1px solid rgba(20,184,166,.35);vertical-align:2px';
+        hdr.appendChild(pill);
+      }
+    }
+    if (pill) pill.textContent = currentPhase ? 'Currently on ' + currentPhase : '';
+
+    // Disable options at-or-below current phase on the select.
+    const sel = modal.querySelector('#pu-phase');
+    if (sel) {
+      let firstEnabled = null;
+      Array.from(sel.options).forEach((opt) => {
+        const ord = _phaseOrd(opt.value);
+        const disabled = ord <= curOrd;
+        opt.disabled = disabled;
+        if (!disabled && firstEnabled === null) firstEnabled = opt.value;
+      });
+      if (firstEnabled) sel.value = firstEnabled;
+    }
+
+    // Banner + submit-button disable for Phase 3 (top phase).
+    const banner    = _ensureTopPhaseBanner(modal);
+    const submitBtn = modal.querySelector('[onclick="Dashboard.submitPhaseUpgrade()"]');
+    if (curOrd >= 3) {
+      if (banner) banner.style.display = '';
+      if (submitBtn) { submitBtn.disabled = true; submitBtn.title = 'Already at top phase'; }
+    } else {
+      if (banner) banner.style.display = 'none';
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.title = ''; }
+    }
+  }
+
+  function _ensureTopPhaseBanner(modal) {
+    let banner = modal.querySelector('[data-pu-top-banner]');
+    if (banner) return banner;
+    const body = modal.querySelector('.modal-body');
+    if (!body) return null;
+    banner = document.createElement('div');
+    banner.setAttribute('data-pu-top-banner', '1');
+    banner.style.cssText = 'display:none;margin:0 0 14px;padding:12px 14px;border-radius:10px;background:rgba(245,158,11,.10);border:1px solid rgba(245,158,11,.35);font-size:12px;color:#f59e0b;line-height:1.5';
+    banner.innerHTML = '<b>Already at top phase.</b> This client is on Phase 3 — nothing to upgrade.';
+    body.prepend(banner);
+    return banner;
   }
 
   // ── Coaches ─────────────────────────────────────────────────
@@ -231,19 +328,38 @@ const Clients = (() => {
     const phase    = _gv('ex-phase');
     const video    = _gv('ex-video');
     const desc     = _gv('ex-desc');
+    // Reliability Sweep / H5 — parse new tags + target_joints inputs.
+    const tags         = _parseCSV(_gv('ex-tags'));
+    const targetJoints = _parseCSV(_gv('ex-target-joints'));
     if (!name) { Dashboard.toast('Exercise name required', 'error'); return; }
 
-    const { error } = await sb.from('exercises').insert({
+    const insert = {
       name, category, phase,
       video_url: video || null,
       description: desc || null,
-      created_by: Auth.getUser()?.id
-    });
+      created_by: Auth.getUser()?.id,
+    };
+    // Only attach array columns when non-empty so we don't overwrite
+    // schema defaults ('{}'::text[]) with empty arrays on save.
+    if (tags.length)         insert.tags          = tags;
+    if (targetJoints.length) insert.target_joints = targetJoints;
+
+    const { error } = await sb.from('exercises').insert(insert);
     if (error) { Dashboard.toast(error.message, 'error'); return; }
     Dashboard.toast('Exercise added!', 'success');
     Dashboard.closeModal('modal-add-exercise');
-    ['ex-name','ex-video','ex-desc'].forEach(id => { const e = document.getElementById(id); if(e) e.value = ''; });
+    ['ex-name','ex-video','ex-desc','ex-tags','ex-target-joints'].forEach((id) => {
+      const e = document.getElementById(id); if (e) e.value = '';
+    });
     loadExercises();
+  }
+
+  // CSV → trimmed, de-duplicated, lower-cased array. Empty → [].
+  function _parseCSV(s) {
+    if (!s) return [];
+    return Array.from(new Set(
+      String(s).split(',').map((t) => t.trim().toLowerCase()).filter(Boolean)
+    ));
   }
 
   async function deleteExercise(id) {

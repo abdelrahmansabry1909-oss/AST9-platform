@@ -29,6 +29,62 @@ const ClientDashboard = (() => {
       .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
+  // ── Subscription pill + grace banner (data from Auth cache) ─────
+  // Reads the effective state cached on the profile during Auth.init /
+  // Auth.login. No extra round-trip.
+  const PILL_TONE = {
+    teal:  'background:rgba(20,184,166,.14);color:var(--nc-teal,#14b8a6);border:1px solid rgba(20,184,166,.35)',
+    amber: 'background:rgba(245,158,11,.14);color:#f59e0b;border:1px solid rgba(245,158,11,.35)',
+    rose:  'background:rgba(244,63,94,.14);color:#f43f5e;border:1px solid rgba(244,63,94,.35)',
+    gray:  'background:rgba(148,163,184,.10);color:#94a3b8;border:1px solid rgba(148,163,184,.25)',
+  };
+
+  function _getState() {
+    if (typeof Auth === 'undefined' || !Auth.getSubscriptionState) return null;
+    return Auth.getSubscriptionState();
+  }
+
+  function _renderSubscriptionPill() {
+    const state = _getState();
+    if (!state) return '';
+    const pill  = (typeof SubscriptionService !== 'undefined')
+      ? SubscriptionService.formatPill(state)
+      : { label: 'Subscription', tone: 'gray' };
+    const style = PILL_TONE[pill.tone] || PILL_TONE.gray;
+    return `
+      <div class="cd-subscription-pill" title="Subscription status"
+           style="display:inline-flex;align-items:center;gap:6px;
+                  padding:6px 12px;border-radius:999px;font-size:11px;
+                  font-weight:600;letter-spacing:.04em;text-transform:uppercase;
+                  ${style}">
+        <span style="width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.7"></span>
+        ${_esc(pill.label)}
+      </div>`;
+  }
+
+  function _renderSubscriptionBanner() {
+    const state = _getState();
+    if (!state) return '';
+    if (state.effective_status !== 'grace') return '';
+    const g = state.grace_days_left ?? 0;
+    return `
+      <div role="alert"
+           style="margin-bottom:18px;padding:14px 18px;border-radius:12px;
+                  background:rgba(244,63,94,0.08);border:1px solid rgba(244,63,94,0.3);
+                  display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+        <span style="font-size:22px;line-height:1">⚠</span>
+        <div style="flex:1;min-width:220px">
+          <div style="font-size:14px;font-weight:700;color:#f43f5e;margin-bottom:2px">
+            Subscription grace period — ${g} day${g === 1 ? '' : 's'} left
+          </div>
+          <div style="font-size:12px;color:var(--text-secondary);line-height:1.5">
+            Your plan ended on ${_esc(state.end_date || '')}. Reach out to your coach to renew before
+            access becomes read-only on ${_esc(state.grace_until || '')}.
+          </div>
+        </div>
+      </div>`;
+  }
+
   // ── Public entry point — called by Dashboard.showSection('dashboard')
   //    when Auth.getRole() === 'client'.
   function render() {
@@ -40,11 +96,18 @@ const ClientDashboard = (() => {
     const clientId  = profile?.id || null;
 
     root.innerHTML = `
+      ${_renderSubscriptionBanner()}
+
       <!-- HEADER -->
       <div class="cd-header">
-        <div class="cd-eyebrow">Your Recovery</div>
-        <h1 class="cd-title">Welcome back, <span class="accent">${_esc(firstName)}</span>.</h1>
-        <p class="cd-subtitle">A read-only view of where you are today and where your coach is taking you.</p>
+        <div class="cd-header-top" style="display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap">
+          <div>
+            <div class="cd-eyebrow">Your Recovery</div>
+            <h1 class="cd-title">Welcome back, <span class="accent">${_esc(firstName)}</span>.</h1>
+            <p class="cd-subtitle">A read-only view of where you are today and where your coach is taking you.</p>
+          </div>
+          ${_renderSubscriptionPill()}
+        </div>
       </div>
 
       <!-- HERO — Point A vs Point B 3D Load Visualizer -->
@@ -70,6 +133,9 @@ const ClientDashboard = (() => {
         </div>
       </div>
 
+      <!-- Feature 4 — Progression Engine gauges (renders async) -->
+      <div id="cd-progression-host" style="margin-bottom:18px"></div>
+
       <!-- 3-COLUMN METRIC ROW (Phase C fills this with real Chart.js) -->
       <div class="cd-metrics-grid">
         ${_metricCard('Force Steadiness',  'Joint stability during movement', 'cd-metric-force')}
@@ -77,25 +143,23 @@ const ClientDashboard = (() => {
         ${_metricCard('Risk Timeline',     'What an unaddressed load pattern projects to', 'cd-metric-risk', 'danger')}
       </div>
 
-      <!-- ASSESSMENT REPORT + RIGHT RAIL -->
+      <!-- ASSESSMENT REPORT + RIGHT RAIL
+           Reliability Sweep / Priority C: rows are now populated by
+           _renderAssessmentReport() from real assessment + gait +
+           subjective data. Initial state is a single skeleton row
+           replaced after data fetch (no more permanent "Loading…"). -->
       <div class="cd-secondary-grid">
         <div class="card glass-card cd-assessment">
           <div class="card-header">
             <span class="card-title">Assessment Report</span>
             <span class="badge badge-phase1">From your coach</span>
           </div>
-          <div class="cd-assessment-body">
+          <div class="cd-assessment-body" id="cd-assessment-body">
             <div class="cd-assessment-row">
-              <div class="cd-assessment-label">True Driver</div>
-              <div class="cd-assessment-value">Loading…</div>
-            </div>
-            <div class="cd-assessment-row">
-              <div class="cd-assessment-label">Reported Symptoms</div>
-              <div class="cd-assessment-value">Loading…</div>
-            </div>
-            <div class="cd-assessment-row">
-              <div class="cd-assessment-label">Coach's notes</div>
-              <div class="cd-assessment-value cd-assessment-notes">Your coach will write a brief here once your first session is complete.</div>
+              <div class="cd-assessment-value" style="opacity:.6">
+                <span class="spinner spinner-sm" style="margin-right:6px;vertical-align:-2px"></span>
+                Loading your assessment…
+              </div>
             </div>
           </div>
         </div>
@@ -118,6 +182,11 @@ const ClientDashboard = (() => {
     // Wire the toggle right away so it feels responsive even before
     // the skeleton finishes loading.
     _wireToggle();
+
+    // Feature 4 — render the 4-score progression panel into its slot.
+    if (typeof Progression !== 'undefined') {
+      Progression.mountClientPanel(document.getElementById('cd-progression-host'));
+    }
 
     // Mount / refresh the 3D visualizer once. Repeat renders for the
     // same client reuse the existing visualizer; switching client
@@ -159,14 +228,18 @@ const ClientDashboard = (() => {
     _viz = null;
     _renderedFor = clientId;
 
-    const [assessment, gait] = await Promise.all([
+    const [assessment, gait, subjective] = await Promise.all([
       _loadLatestAssessment(clientId),
       _loadLatestGait(clientId),
+      _loadLatestSubjective(clientId),   // Priority C — fills "Coach's notes"
     ]);
     _profile = _deriveProfile(assessment);
 
     // Phase C — render the three metric charts in parallel to the 3D mount.
     _renderMetricCharts(assessment, gait, _profile);
+
+    // Reliability Sweep / Priority C — populate the Assessment Report card.
+    _renderAssessmentReport({ assessment, gait, subjective });
 
     // Refresh overlay numbers with derived data.
     const wrap = document.getElementById('cd-load-overlays');
@@ -228,6 +301,70 @@ const ClientDashboard = (() => {
       console.warn('[client-dashboard] gait load threw:', e.message);
       return null;
     }
+  }
+
+  // Reliability Sweep / Priority C — latest subjective summary, defensively
+  // wrapped. RPMSubjective.pullSubjectiveSummary may not be loaded in every
+  // build; in that case we return null and Coach's notes falls through to
+  // the empty-state copy.
+  async function _loadLatestSubjective(clientId) {
+    if (!clientId) return null;
+    if (typeof RPMSubjective === 'undefined' || !RPMSubjective.pullSubjectiveSummary) return null;
+    try {
+      return await RPMSubjective.pullSubjectiveSummary(clientId);
+    } catch (e) {
+      console.warn('[client-dashboard] subjective load threw:', e.message);
+      return null;
+    }
+  }
+
+  // Reliability Sweep / Priority C — replaces the perma-"Loading…"
+  // placeholder rows on the client dashboard with real data when an
+  // assessment exists, or a single empty-state row (per Q-C1) when none.
+  function _renderAssessmentReport({ assessment, gait, subjective }) {
+    const host = document.getElementById('cd-assessment-body');
+    if (!host) return;
+
+    const hasAnything = !!(assessment || gait || subjective);
+    if (!hasAnything) {
+      // Q-C1 + Stabilization Pass: shared empty-state helper. app.html
+      // load order (dashboard.js → clientDashboard.js) guarantees this.
+      host.innerHTML = Dashboard.emptyState(
+        '◈',
+        'Assessment not run yet',
+        'Your coach will run an assessment after your first session — your True Driver, reported symptoms, and coach\'s notes will appear here.');
+      return;
+    }
+
+    // True Driver: phase_recommendation from objective scoring → gait worst case → fallback
+    const trueDriver = (assessment && assessment.phase_recommendation)
+      || (gait && gait.worst_case_scenario)
+      || '—';
+
+    // Reported Symptoms: subjective external_pain → pain_flags joined → none
+    let reported = '—';
+    if (subjective && subjective.external_pain) reported = subjective.external_pain;
+    else if (assessment && Array.isArray(assessment.pain_flags) && assessment.pain_flags.length) {
+      reported = assessment.pain_flags.join(', ');
+    } else if (assessment) reported = 'None reported';
+
+    // Coach's notes: recap_notes → free_form_notes → default copy
+    const coachNotes = (subjective && (subjective.recap_notes || subjective.free_form_notes))
+      || 'Your coach will write a brief here after your next session.';
+
+    host.innerHTML = `
+      <div class="cd-assessment-row">
+        <div class="cd-assessment-label">True Driver</div>
+        <div class="cd-assessment-value">${_esc(trueDriver)}</div>
+      </div>
+      <div class="cd-assessment-row">
+        <div class="cd-assessment-label">Reported Symptoms</div>
+        <div class="cd-assessment-value">${_esc(reported)}</div>
+      </div>
+      <div class="cd-assessment-row">
+        <div class="cd-assessment-label">Coach's notes</div>
+        <div class="cd-assessment-value cd-assessment-notes">${_esc(coachNotes)}</div>
+      </div>`;
   }
 
   // ── Phase C — Chart.js panels ────────────────────────────────────
