@@ -1058,24 +1058,36 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
       }
     }
 
-    const { error } = await sb.from('profiles')
-      .update({ current_phase: newPhase })
-      .eq('id', clientId);
-
+    // Fix C1 — authoritative, server-side phase change via RPC.
+    // set_client_phase() enforces authorization (admin OR assigned coach),
+    // valid phase, and the no-downgrade / no-same-phase rules, then performs
+    // the protected UPDATE under the Fix-C2 bypass token. We celebrate ONLY
+    // when the DB returns the updated row — never optimistically (the old
+    // direct UPDATE silently no-op'd for non-admin coaches yet "succeeded").
+    const { data: updated, error } = await sb.rpc('set_client_phase', {
+      p_client_id: clientId,
+      p_new_phase: newPhase,
+    });
     if (error) { toast(error.message, 'error'); return; }
+    const confirmedPhase = Array.isArray(updated) ? updated[0]?.current_phase : updated?.current_phase;
+    if (confirmedPhase !== newPhase) {
+      toast('Phase change did not take effect — please retry.', 'error');
+      return;
+    }
 
-    // Send celebration email
+    // Best-effort celebration email. Its failure must NOT fake success —
+    // the DB change is already confirmed above.
     try {
       const token = (await sb.auth.getSession()).data.session?.access_token;
       await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ type: 'phase_upgrade', client_id: clientId, new_phase: newPhase, message })
+        body: JSON.stringify({ type: 'phase_upgrade', client_id: clientId, new_phase: confirmedPhase, message })
       });
     } catch(e) { console.warn('Email send failed:', e); }
 
-    toast(`Client upgraded to ${newPhase}! 🎉`, 'success');
-    showCelebration(newPhase);
+    toast(`Client upgraded to ${confirmedPhase}! 🎉`, 'success');
+    showCelebration(confirmedPhase);
     closeModal('modal-phase-upgrade');
     await Clients.loadAll?.();
     await _populateClientSelects();
