@@ -327,17 +327,12 @@ const ClientDashboard = (() => {
 
     const hasAnything = !!(assessment || gait || subjective);
     if (!hasAnything) {
-      // Q-C1: single placeholder when no assessment exists
-      host.innerHTML = `
-        <div class="cd-assessment-row">
-          <div class="cd-assessment-value cd-assessment-notes"
-               style="text-align:center;padding:8px 0;color:var(--text-secondary)">
-            Your coach will run an assessment after your first session.
-            <br/><span style="font-size:11px;color:var(--text-tertiary)">
-              Your True Driver, reported symptoms, and coach's notes will appear here.
-            </span>
-          </div>
-        </div>`;
+      // Q-C1 + Stabilization Pass: shared empty-state helper. app.html
+      // load order (dashboard.js → clientDashboard.js) guarantees this.
+      host.innerHTML = Dashboard.emptyState(
+        '◈',
+        'Assessment not run yet',
+        'Your coach will run an assessment after your first session — your True Driver, reported symptoms, and coach\'s notes will appear here.');
       return;
     }
 

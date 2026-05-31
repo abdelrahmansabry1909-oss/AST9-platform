@@ -7,18 +7,7 @@
 
 const Dashboard = (() => {
 
-  // ── Local session storage ────────────────────────────────────
-  const SESSIONS_KEY = 'ast9_sessions_v2';
-  let _sessions = (() => {
-    try { return JSON.parse(localStorage.getItem(SESSIONS_KEY) || '[]'); }
-    catch { return []; }
-  })();
-
-  function saveSessions() {
-    try { localStorage.setItem(SESSIONS_KEY, JSON.stringify(_sessions)); } catch { /* storage blocked */ }
-  }
-
-  // Last generated program bundle — consumed by exportProfessionalPDF().
+  // In-memory PDF handoff between Generate and Export buttons (per-tab).
   let _lastBundle = null;
 
   // ═══════════════════════════════════════════════════════════
@@ -425,25 +414,6 @@ const Dashboard = (() => {
     requestAnimationFrame(update);
   }
 
-  function _renderRecentSessions() {
-    const el = document.getElementById('recent-sessions-list');
-    if (!el) return;
-    const sessions = _sessions.slice(0, 5);
-    if (!sessions.length) {
-      el.innerHTML = _emptyState('◈', 'No sessions yet', 'Generate your first session to see it here.');
-      return;
-    }
-    el.innerHTML = sessions.map(s => `
-      <div class="flex items-center gap-3" style="padding:11px 0; border-bottom:1px solid var(--border-subtle)">
-        <div class="avatar avatar-sm" style="background:conic-gradient(from 180deg,var(--teal),var(--amber))">${(s.name||'?')[0].toUpperCase()}</div>
-        <div class="flex-1 truncate">
-          <div style="font-size:13px;font-weight:600;color:var(--text-primary)">${s.name}</div>
-          <div style="font-size:11px;color:var(--text-tertiary)">${new Date(s.createdAt).toLocaleDateString()}</div>
-        </div>
-        <span class="badge ${_phaseBadge(s.phase)}">${s.phase}</span>
-      </div>`).join('');
-  }
-
   async function _renderRecentClients() {
     const el = document.getElementById('dashboard-clients-list');
     if (!el) return;
@@ -637,15 +607,13 @@ Keep output clean, structured, and clinically precise.`;
       if (outEl) outEl.textContent = aiText;
       if (panel) panel.classList.remove('hidden');
 
-      // ── STEP 5: Save locally ─────────────────────────────────
-      const session = {
-        name, phase: _gv('ns-phase'), goal: _gv('ns-goal'),
-        output: aiText, scores, program, createdAt: new Date().toISOString(),
-      };
-      _sessions.unshift(session);
-      saveSessions();
-
-      // Keep the full bundle so "Export Professional PDF" can build the report.
+      // ── STEP 5: PDF handoff (in-memory only) ─────────────────
+      // Stabilization Pass: removed the localStorage cache write that
+      // used to mirror this bundle. Persistence happens in the next
+      // step via _saveToSupabase → public.sessions (single source of
+      // truth). _lastBundle stays as an in-memory handoff so the
+      // "Export Professional PDF" button (which fires from the same
+      // tab) can rebuild the report without an extra DB round-trip.
       _lastBundle = { name, assessment, scores, gait, program, aiText, clientId: activeClientId };
 
       // ── STEP 6: Persist to Supabase (non-blocking) ───────────
@@ -951,11 +919,14 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
       .order('published_at', { ascending: false });
 
     if (error) {
-      el.innerHTML = `<div class="empty-state"><span class="empty-icon">⚠</span><div class="empty-title">Could not load programs</div><p class="empty-desc">${error.message}</p></div>`;
+      el.innerHTML = _emptyState('⚠', 'Could not load programs', error.message);
       return;
     }
     if (!data || !data.length) {
-      el.innerHTML = `<div class="empty-state"><span class="empty-icon">◈</span><div class="empty-title">No programs published yet</div><p class="empty-desc">Run New Session, generate a program, then publish it for your client.</p><button class="btn btn-primary" onclick="Dashboard.showSection('new-session')">+ New Session</button></div>`;
+      el.innerHTML = _emptyState(
+        '◈', 'No programs published yet',
+        'Run New Session, generate a program, then publish it for your client.',
+        { label: '+ New Session', onclick: "Dashboard.showSection('new-session')" });
       return;
     }
 
@@ -985,23 +956,6 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
     }).join('');
   }
 
-  function toggleProgram(i, card) {
-    const body  = card.querySelector('.prog-body');
-    const arrow = card.querySelector('.prog-arrow');
-    const open  = body.classList.toggle('hidden');
-    if (arrow) arrow.style.transform = open ? '' : 'rotate(90deg)';
-  }
-
-  function rePreviewWeb(i) {
-    const s = _sessions[i];
-    const setVal = (id, v) => { const e = document.getElementById(id); if(e) e.value = v; };
-    setVal('ns-name', s.name);
-    setVal('ns-phase', s.phase);
-    setVal('ns-goal', s.goal || '');
-    const outEl = document.getElementById('program-output-text');
-    if (outEl) outEl.textContent = s.output;
-    previewWeb();
-  }
 
   // ═══════════════════════════════════════════════════════════
   //  POPULATE CLIENT SELECTS
@@ -1255,15 +1209,24 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
     return phase === 'Phase 1' ? 'badge-phase1' : phase === 'Phase 2' ? 'badge-phase2' : 'badge-phase3';
   }
 
-  function _emptyState(icon, title, desc) {
-    return `<div class="empty-state"><span class="empty-icon">${icon}</span><div class="empty-title">${title}</div><p class="empty-desc">${desc}</p></div>`;
+  // Stabilization Pass: shared empty-state helper. Every dashboard
+  // module should call this (or window.UI.emptyState) instead of
+  // hand-rolling the markup, so Assessment / Programs / Progression /
+  // Notifications / Workouts all look identical. Optional `cta` =
+  // { label, onclick } renders a button under the description.
+  function _emptyState(icon, title, desc, cta) {
+    const btn = cta
+      ? `<button class="btn btn-primary" style="margin-top:14px" onclick="${cta.onclick}">${cta.label}</button>`
+      : '';
+    return `<div class="empty-state"><span class="empty-icon">${icon}</span>`
+         + `<div class="empty-title">${title}</div>`
+         + `<p class="empty-desc">${desc}</p>${btn}</div>`;
   }
 
   return {
     initShell, showSection, initTabs,
     loadDashboardStats,
     generateProgram, previewWeb, renderProgramsList,
-    toggleProgram, rePreviewWeb,
     exportProfessionalPDF,
     fillClientFromSelect,
     openClientInfoTab,
@@ -1272,6 +1235,7 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
     submitChangePassword,
     populateProgressClientSelect,
     toast,
+    emptyState: _emptyState,
   };
 
 })();

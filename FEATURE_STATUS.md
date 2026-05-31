@@ -179,6 +179,56 @@ Any change to the formula ships as a new migration `20260xxx_progression_v2.sql`
 
 ---
 
+## ✅ System Stabilization Pass
+
+**Commit:** pending (shipped 2026-05-31)
+**Status:** Live + smoke-verified end-to-end
+**Migrations:** `20260601_sessions_rls_tighten.sql` (RLS bug fix) + `profiles_assigned_coach_index` (supporting index, via apply_migration)
+**Audit closed:** the `sessions` RLS multi-tenant leak + every remaining dual-source localStorage data path introduced during F1–F6
+
+### Scope (per user direction)
+1. Fix remaining localStorage fallbacks in UI (ensure DB is single source of truth)
+2. Fix coach sessions RLS cross-coach visibility issue
+3. Normalize empty states across Assessment / Programs / Progression dashboards
+4. Audit and remove dual-source / fallback data paths from F1–F6
+5. All dashboards read Supabase only
+
+### What shipped
+
+**Migrations (bug fixes only, per stabilization rules):**
+- `sessions` RLS replaced — 2 permissive policies → 4 scoped policies. SELECT now requires admin OR owning coach OR own client OR assigned coach. INSERT now requires `coach_id = auth.uid()` (was unchecked — any coach could attribute a session to any other coach). UPDATE allowed for admin + owning coach only. DELETE admin-only.
+- `profiles_assigned_coach_idx` partial index — supports the EXISTS subquery used by the new sessions policy AND the same pattern reused by `client_programs`, `client_routines`, `daily_routine_logs`, `workout_sessions`, `notifications`, `exercise_alternative_requests` policies. Closes a per-row seq-scan that was latent across the platform.
+
+**JS dual-source excisions:**
+- `js/dailyRoutine.js` — entire localStorage fallback layer removed. The cache's shape (completed_tasks/total_tasks/percent) didn't match the live schema (completed/battery_pct), so on Supabase failure the cache wrote rows the F4 progression view couldn't read. Load/save/history are now Supabase-only; `saveLog` throws on no-SB instead of silently dropping check-ins.
+- `js/dashboard.js` — `_sessions` localStorage cache + key (`ast9_sessions_v2`) + `saveSessions()` + writer call removed. Orphaned dead helpers `_renderRecentSessions`, `toggleProgram`, `rePreviewWeb` deleted (no callers post-Sweep). Window export trimmed.
+
+**Empty-state normalization:**
+- `Dashboard.emptyState(icon, title, desc, cta?)` generalized + exposed for cross-module use.
+- `clientDashboard` Assessment Report card + `progressionEngine` overview both call it directly (load-order guarantee makes defensive guards unnecessary).
+- `renderProgramsList` empty state migrated from inline markup to the helper's CTA option.
+- Three biggest dashboards (Assessment, Programs, Progression) now render identical empty-state markup.
+
+**Simplify pass applied:**
+The /simplify skill ran 4 parallel review agents (reuse / simplification / efficiency / altitude). Consensus across 3 of 4 agents was that the initial `(typeof Dashboard !== 'undefined' && Dashboard.emptyState) ? ... : <inline fallback>` defensive checks were over-engineered and the fallback strings already diverged from the canonical helper — defeating the unification goal. Removed the guards (`app.html` load order guarantees Dashboard exists by the time consumers run). Also: trimmed narrative comments, parallelized `loadRoutine` + `loadLog` in `mountTracker` (sequential I/O regression flagged by the efficiency agent), and added the `profiles_assigned_coach_idx` (also flagged by the efficiency agent). Two altitude findings deferred: `saveLog` upstream offline-mode UI (would be a new feature), and a BEFORE UPDATE trigger pinning `client_id`/`coach_id` immutability on `sessions` (logged as follow-up hardening).
+
+### Files
+- Migration: `supabase/migrations/20260601_sessions_rls_tighten.sql` (sessions policies + supporting index)
+- EDIT: `js/dashboard.js`, `js/clientDashboard.js`, `js/dailyRoutine.js`, `js/progressionEngine.js`
+- No new modules · no new HTML sections · no new tables · no new edge functions
+
+### Live verification
+- All 4 new sessions policies attached and visible in `pg_policies` (SELECT scoped / INSERT scoped / UPDATE owner / DELETE admin)
+- `profiles_assigned_coach_idx` partial index live (`WHERE assigned_coach IS NOT NULL`)
+- Regression sweep: F1 view returns 2 rows · F4 formula stays `'1.1'` · F6 substitute column present · F3 notifications no-direct-insert policy intact
+- Advisor count: **15 — same as pre-Stabilization. Zero new warnings.**
+
+### Known follow-ups logged (NOT in this pass)
+- BEFORE UPDATE trigger on `sessions` pinning `client_id` + `coach_id` immutability (defense in depth — owning coach can currently rewrite either column via the UPDATE policy; no UI does this today)
+- An upstream "offline mode" detection that disables write surfaces when Supabase is unreachable (rather than per-call throws). Out of stabilization scope — would be a new feature.
+
+---
+
 ## ✅ Reliability + Defect Sweep — Priorities A → D + Highs (H1, H2, H3, H5, H7)
 
 **Commit:** pending (shipped 2026-05-31)
@@ -387,7 +437,8 @@ Wire the client-dashboard Assessment Report card (PRODUCT_AUDIT.md TD11 — curr
 | Tier 2 Advisor hardening | 1 | 0 | ✅ live | — |
 | F5 Exercise Video Integration | 0 | 2 new, 2 modified | ✅ live | 🔒 frozen |
 | F6 Alt-Exercise Replacement | 1 | 0 new, 3 modified | ✅ live | 🔒 frozen |
-| **Reliability + Defect Sweep (A→D + H1/H2/H3/H5/H7)** | **0** | **0 new, 4 modified** | **✅ live** | not yet "frozen" |
+| Reliability + Defect Sweep (A→D + H1/H2/H3/H5/H7) | 0 | 0 new, 4 modified | ✅ live | 🔒 frozen |
+| **System Stabilization Pass** | **1 RLS + 1 index** | **0 new, 4 modified** | **✅ live** | not yet "frozen" |
 | **F7 Assessment / 3D Hologram** | **0 pending** | **TBD** | **⏸ planned** | — |
 
 **Live migrations applied: 8** (all in `supabase_migrations.schema_migrations` — F6 added `20260531123907 alt_exercise_substitute`).

@@ -143,10 +143,11 @@
 
     const rows = await listAll();
     if (!rows.length) {
-      host.querySelector('#prog-table-host').innerHTML =
-        `<div class="empty-state" style="padding:32px"><span class="empty-icon">◎</span>
-         <div class="empty-title">No clients yet</div>
-         <p class="empty-desc">Scores appear once a client logs workouts or daily routine entries.</p></div>`;
+      // Stabilization Pass: shared empty-state helper (load order
+      // guarantees Dashboard.emptyState exists by the time we run).
+      host.querySelector('#prog-table-host').innerHTML = Dashboard.emptyState(
+        '◎', 'No clients yet',
+        'Scores appear once a client logs workouts or daily routine entries.');
       return;
     }
     // Fetch display names (one extra round-trip — small).

@@ -13,7 +13,7 @@
 
 ## 0 · One-line summary
 
-6 features shipped + 2 hardening passes + 1 reliability sweep + 8 migrations live + 7 new JS modules + full end-to-end live verification. **Features 1–6 frozen by user signoff; Reliability + Defect Sweep complete and stable but not yet "frozen." Sweep closed all remaining Critical + 5 High audit findings (C1, C2, C3, C5, H1, H2, H3, H5, H7) with zero migrations and zero new modules. Next: Feature 7 (Assessment / 3D Hologram).**
+6 features shipped + 2 hardening passes + 1 reliability sweep + 1 stabilization pass + 10 migrations live + 7 new JS modules + full end-to-end live verification. **Features 1–6 + Reliability Sweep frozen by user signoff; System Stabilization Pass complete and stable but not yet "frozen." Stabilization closed the sessions RLS multi-tenant leak, excised every remaining localStorage dual-source data path, normalized empty states across Assessment / Programs / Progression, and added a partial index that closes a per-row seq-scan latent across 6 tables. Next: Feature 7 (Assessment / 3D Hologram).**
 
 ---
 
@@ -162,6 +162,8 @@ All have `SET search_path = public` (advisor-clean). Trigger functions have `REV
 | `20260530203157` | `notification_guards_and_phase_upgrade` | Tier 1 |
 | `20260530204349` | `advisor_hardening` | Tier 2 |
 | `20260531123907` | `alt_exercise_substitute` | Feature 6 (column + index + trigger refresh + progression v1.1) |
+| (pending) | `sessions_rls_tighten` | Stabilization Pass — RLS hardening + supporting index for assigned_coach EXISTS |
+| (pending) | `profiles_assigned_coach_index` | Stabilization Pass — partial index supporting EXISTS subqueries reused across 6 tables |
 
 (plus the 12 pre-existing migrations + 4 untracked ones noted in §1.4)
 
@@ -204,7 +206,8 @@ See `FEATURE_STATUS.md` for the per-feature deep dive. Headline:
 | Tier 2 (advisor hardening) | `230f751` | — |
 | F5 Exercise Video Integration | `2627a11` | ✅ (signed off pre-F6) |
 | F6 Alt-Exercise Replacement + Progression v1.1 | `9a8f68b` | ✅ (signed off post-F6) |
-| Reliability + Defect Sweep (A→D + Highs) | pending | Complete + smoke-verified, not formally frozen |
+| Reliability + Defect Sweep (A→D + Highs) | `7ffb20a` | ✅ (signed off post-Sweep) |
+| System Stabilization Pass (RLS + LS excision + empties) | pending | Complete + smoke-verified, not formally frozen |
 
 ---
 
@@ -227,9 +230,10 @@ All verification artifacts cleaned up. Production data unaffected.
 Detail in `NEXT_STEPS.md §3` + `PRODUCT_AUDIT.md`. Headline:
 
 1. ✅ **Reliability + Defect Sweep** — DONE (closed C1, C2, C3, C5, H1, H2, H3, H5, H7)
-2. **Feature 7 — Assessment / 3D Hologram Integration** (Sweep wired the first slice via TD11; F7 expands it to full hologram cross-link)
-3. **Deferred Highs** — H4 (client workout history), H6 (coach reassignment UI), H8 (onboarding flows)
-4. **New surfaced gap** — `sessions` RLS lets every coach read every other coach's sessions (filtered client-side by Sweep, needs server-side fix)
+2. ✅ **System Stabilization Pass** — DONE (closed the sessions RLS leak server-side + removed all remaining LS dual-source paths + normalized empty states)
+3. **Feature 7 — Assessment / 3D Hologram Integration** (Sweep wired the first slice via TD11; F7 expands it to full hologram cross-link)
+4. **Deferred Highs** — H4 (client workout history), H6 (coach reassignment UI), H8 (onboarding flows)
+5. **Logged follow-ups from Stabilization** — BEFORE UPDATE trigger pinning `sessions.client_id` + `coach_id` immutability; upstream "offline mode" detection that disables write surfaces when SB unreachable
 5. Email/SMS push (high-severity notifications via Resend)
 6. Notification deep-link pre-select on target loaders
 7. Daily pg_cron for `ensure_subscription_notifications`

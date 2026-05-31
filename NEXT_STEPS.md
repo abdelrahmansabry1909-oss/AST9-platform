@@ -8,9 +8,9 @@
 
 ## 0 · Where we are right now
 
-✅ 6 features + 1 reliability sweep shipped + live-verified · 8 migrations applied · 7 new JS modules · Reliability + Defect Sweep just shipped on `claude/interesting-buck-452459`.
+✅ 6 features + 1 reliability sweep + 1 system stabilization pass shipped + live-verified · 10 migrations applied · 7 new JS modules · System Stabilization Pass just shipped on `claude/interesting-buck-452459`.
 
-🔒 Features 1–6 signed off (frozen). Reliability Sweep complete + smoke-verified, not yet formally frozen.
+🔒 Features 1–6 + Reliability Sweep signed off (frozen). System Stabilization Pass complete + smoke-verified, not yet formally frozen.
 
 🛑 **Next per the locked plan:** Feature 7 — Assessment Results / 3D Hologram Integration.
 
@@ -18,13 +18,14 @@
 
 ## 1 · Recommended build order
 
-Updated post-Sweep:
+Updated post-Stabilization:
 1. ✅ Feature 5: Exercise Video Integration — **DONE + 🔒 frozen**
 2. ✅ Feature 6: Alternative Exercise Replacement — **DONE + 🔒 frozen**
-3. ✅ Reliability + Defect Sweep (A→D + H1/H2/H3/H5/H7) — **DONE** (awaiting signoff to freeze)
-4. ⏸ **Feature 7: Assessment Results / 3D Hologram Integration** ← next
-5. ⏸ Deferred Highs: H4 (client workout history), H6 (coach reassignment UI), H8 (onboarding flows) — each needs its own architecture pass
-6. ⏸ Surfaced gap: `sessions` RLS multi-tenant tightening — Medium, separate pass
+3. ✅ Reliability + Defect Sweep — **DONE + 🔒 frozen**
+4. ✅ System Stabilization Pass — **DONE** (awaiting signoff to freeze)
+5. ⏸ **Feature 7: Assessment Results / 3D Hologram Integration** ← next
+6. ⏸ Deferred Highs: H4 (client workout history), H6 (coach reassignment UI), H8 (onboarding flows) — each needs its own architecture pass
+7. ⏸ Logged follow-ups from Stabilization: (a) BEFORE UPDATE trigger pinning `sessions.client_id` + `coach_id` immutability; (b) upstream "offline mode" UI that disables write surfaces when SB unreachable
 
 ### Reliability + Defect Sweep — scope locked from PRODUCT_AUDIT.md Part 4
 
