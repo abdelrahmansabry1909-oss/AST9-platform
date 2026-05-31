@@ -176,13 +176,33 @@
   // Mounts a Start/Finish + per-exercise log UI into every
   //   [data-workout-tracker-host="<workoutKey>"]
   // node inside `host`. Idempotent — safe to call after re-renders.
-  async function mountWorkouts(host, { programId = null, workouts = [] } = {}) {
+  // Feature 5: `libMap` (id → exercises row) is passed from
+  // programPublish.renderClientProgram so each exercise row can
+  // surface its thumbnail / video / instructions without re-fetching.
+  async function mountWorkouts(host, { programId = null, workouts = [], libMap = null } = {}) {
     if (!host) return;
     const clientId = Auth.getUser()?.id;
     if (!clientId) return;
 
     const active = await getActiveSession(clientId);
     const activeLogs = active ? (await detail(active.id)).logs : [];
+
+    // Fallback: if caller didn't pass a libMap, build one ourselves
+    // (covers any future caller that mounts the tracker standalone).
+    let resolvedLibMap = libMap;
+    if (!resolvedLibMap && typeof ExerciseLibrary !== 'undefined') {
+      const linked = new Set();
+      workouts.forEach((wk) => ['warmup','main','cooldown'].forEach((k) =>
+        (wk[k] || []).forEach((ex) => { if (ex?.exercise_id) linked.add(ex.exercise_id); })));
+      if (linked.size) {
+        try {
+          const all = await ExerciseLibrary.loadAll();
+          resolvedLibMap = new Map();
+          all.forEach((e) => { if (linked.has(e.id)) resolvedLibMap.set(e.id, e); });
+        } catch {}
+      }
+    }
+    resolvedLibMap = resolvedLibMap || new Map();
 
     workouts.forEach((wk) => {
       const slot = host.querySelector(`[data-workout-tracker-host="${CSS.escape(wk.id)}"]`);
@@ -191,11 +211,12 @@
         clientId, programId, workout: wk,
         activeSession: (active && active.workout_key === wk.id) ? active : null,
         activeLogs,
+        libMap: resolvedLibMap,
       });
     });
   }
 
-  function _renderTrackerSlot(slot, { clientId, programId, workout, activeSession, activeLogs }) {
+  function _renderTrackerSlot(slot, { clientId, programId, workout, activeSession, activeLogs, libMap = new Map() }) {
     const canWrite = Auth.canWrite();
     const sessionLive = !!activeSession;
 
@@ -254,7 +275,8 @@
         </div>
 
         <div class="ws-exercise-list" style="display:flex;flex-direction:column;gap:8px">
-          ${allExercises.map((ex, i) => _renderExerciseLogRow(ex, i, logByIndex.get(i))).join('')}
+          ${allExercises.map((ex, i) => _renderExerciseLogRow(ex, i, logByIndex.get(i),
+              ex && ex.exercise_id ? libMap.get(ex.exercise_id) : null)).join('')}
         </div>
       </div>`;
 
@@ -284,18 +306,45 @@
     // Wire per-exercise inputs.
     slot.querySelectorAll('[data-ex-row]').forEach((row) => {
       const idx = parseInt(row.dataset.exRow, 10);
-      _wireExerciseRow(row, activeSession.id, allExercises[idx], idx, {
+      const ex  = allExercises[idx];
+      _wireExerciseRow(row, activeSession.id, ex, idx, {
         programId,
         workoutKey: workout.id,
+        meta: ex && ex.exercise_id ? libMap.get(ex.exercise_id) : null,
       });
     });
   }
 
-  function _renderExerciseLogRow(ex, idx, existing) {
+  function _renderExerciseLogRow(ex, idx, existing, meta) {
     const sets   = existing?.sets || [];
     const notes  = existing?.notes || '';
     const done   = !!existing?.completed;
     const setRows = Math.max(sets.length, 1);
+
+    // Feature 5 — surfacing fragment: thumbnail + ▶ Preview + ℹ Info
+    // Only rendered when `meta` (the resolved exercises library row) is
+    // present. Legacy / free-text exercises leave this block empty so
+    // their row stays exactly as before.
+    const thumbUrl = meta && (meta.thumbnail_url
+      || (meta.video_url && typeof ExerciseLibrary?.getThumbnailUrl === 'function'
+          ? ExerciseLibrary.getThumbnailUrl(meta.video_url) : null));
+    const hasVideo = !!(meta && meta.video_url);
+    const hasInstructions = !!(meta && typeof ExerciseInstructions !== 'undefined'
+      && ExerciseInstructions.build(meta).hasContent);
+    const mediaHTML = meta ? `
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        ${thumbUrl
+          ? `<img src="${esc(thumbUrl)}" alt="" loading="lazy"
+                  data-ws-preview style="width:54px;height:36px;object-fit:cover;border-radius:4px;background:#0f172a;cursor:pointer">`
+          : ''}
+        <div style="display:flex;gap:5px;flex-wrap:wrap">
+          ${hasVideo ? `<button type="button" class="btn btn-ghost btn-xs" data-ws-preview style="padding:2px 7px;font-size:11px">▶ Preview</button>` : ''}
+          ${hasInstructions ? `<button type="button" class="btn btn-ghost btn-xs" data-ws-info style="padding:2px 7px;font-size:11px">ℹ Info</button>` : ''}
+        </div>
+      </div>
+      <div data-ws-inline class="hidden"
+           style="margin-bottom:6px;border:1px solid var(--border-subtle);border-radius:6px;overflow:hidden"></div>
+      <div data-ws-instr  class="hidden" style="margin-bottom:6px"></div>` : '';
 
     const setInputs = Array.from({ length: setRows }, (_, i) => {
       const s = sets[i] || {};
@@ -314,6 +363,7 @@
     return `
       <div class="ws-ex-row" data-ex-row="${idx}"
            style="padding:10px;border:1px solid var(--border-subtle);border-radius:8px;background:rgba(255,255,255,.02);${done ? 'opacity:.75' : ''}">
+        ${mediaHTML}
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px">
           <div style="flex:1;min-width:140px">
             <div style="font-size:13px;font-weight:600;color:var(--text-primary)">${esc(ex.name || 'Exercise')}</div>
@@ -366,12 +416,68 @@
       logExercise(sessionId, {
         exerciseIndex: idx,
         exerciseName:  ex.name || `Exercise ${idx + 1}`,
+        exerciseId:    ex.exercise_id || null,    // Feature 5 — thread to log row
         sets, notes, completed,
       }).catch((e) => {
         if (e.message !== 'subscription_inactive') console.warn('[workout] log err:', e.message);
       });
       row.style.opacity = completed ? .75 : 1;
     };
+
+    // Feature 5 — per-row Preview (inline expand OR modal) + Info.
+    const meta = ctx.meta;
+    row.querySelectorAll('[data-ws-preview]').forEach((el) => {
+      el.addEventListener('click', (e) => {
+        if (!meta || !meta.video_url) return;
+        const id  = meta.id;
+        const nm  = meta.name;
+        const url = meta.video_url;
+        // Shift-click OR narrow screens go to the fullscreen modal.
+        if (e.shiftKey || window.innerWidth < 640) {
+          if (typeof ExerciseUI !== 'undefined') ExerciseUI.openVideoModal(id, nm, url);
+          return;
+        }
+        const inline = row.querySelector('[data-ws-inline]');
+        if (!inline) return;
+        if (!inline.classList.contains('hidden')) {
+          inline.classList.add('hidden'); inline.innerHTML = '';
+          return;
+        }
+        const embed = (typeof ExerciseLibrary?.getEmbedUrl === 'function')
+          ? ExerciseLibrary.getEmbedUrl(url) : url;
+        inline.innerHTML = `
+          <div style="position:relative;width:100%;padding-top:56.25%;background:#000">
+            <iframe src="${esc(embed || '')}" allowfullscreen
+              style="position:absolute;inset:0;width:100%;height:100%;border:0"></iframe>
+            <button type="button" data-ws-inline-close
+                    style="position:absolute;top:5px;right:6px;background:rgba(0,0,0,.6);color:#fff;
+                           border:0;border-radius:4px;padding:2px 6px;font-size:11px;cursor:pointer">✕</button>
+            <button type="button" data-ws-open-modal
+                    style="position:absolute;bottom:5px;right:6px;background:rgba(20,184,166,.85);color:#fff;
+                           border:0;border-radius:4px;padding:2px 6px;font-size:11px;cursor:pointer">⛶ Fullscreen</button>
+          </div>`;
+        inline.classList.remove('hidden');
+        inline.querySelector('[data-ws-inline-close]').onclick = () => {
+          inline.classList.add('hidden'); inline.innerHTML = '';
+        };
+        inline.querySelector('[data-ws-open-modal]').onclick = (ev) => {
+          ev.stopPropagation();
+          if (typeof ExerciseUI !== 'undefined') ExerciseUI.openVideoModal(id, nm, url);
+        };
+      });
+    });
+    row.querySelector('[data-ws-info]')?.addEventListener('click', () => {
+      if (!meta) return;
+      const slot = row.querySelector('[data-ws-instr]');
+      if (!slot) return;
+      if (!slot.classList.contains('hidden')) {
+        slot.classList.add('hidden'); slot.innerHTML = '';
+        return;
+      }
+      if (typeof ExerciseInstructions === 'undefined') return;
+      slot.innerHTML = ExerciseInstructions.renderFull(meta);
+      slot.classList.remove('hidden');
+    });
     const debounce = () => {
       clearTimeout(saveTimer);
       saveTimer = setTimeout(persist, 600);
