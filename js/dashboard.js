@@ -339,14 +339,68 @@ const Dashboard = (() => {
       _setStat('stat-expiring', expiring.length);
     }
 
-    // Sessions count (local)
-    _setStat('stat-sessions', _sessions.length);
-
-    // Recent sessions
-    _renderRecentSessions();
+    // ── Reliability Sweep / Priority A ─────────────────────────────
+    //  Sessions count + Recent Sessions now read from the `sessions`
+    //  DB table (not localStorage `_sessions`). For coaches we scope
+    //  to coach_id = me; admins see all. Filtering is client-side
+    //  because the live `sessions` RLS policy "Coaches read all
+    //  sessions" is permissive across coaches — that's a separate
+    //  multi-tenant leak logged in RELIABILITY_SWEEP_ARCHITECTURE.md
+    //  §9 to fix in a future RLS-tightening pass.
+    if (Auth.isAdminOrCoach()) {
+      await _loadSessionsStatAndRecent();
+    } else {
+      // Clients never landed here pre-sweep either; defensive no-op.
+      _setStat('stat-sessions', 0);
+      const el = document.getElementById('recent-sessions-list');
+      if (el) el.innerHTML = '';
+    }
 
     // Recent clients
     await _renderRecentClients();
+  }
+
+  // Priority A — single round-trip: count + last 5 rows for this coach
+  // (admins get the whole platform). Joined to profiles for client name.
+  async function _loadSessionsStatAndRecent() {
+    const me = Auth.getUser()?.id;
+    const coachScope = Auth.isCoach();
+
+    // ── Count
+    let countQ = sb.from('sessions').select('*', { count: 'exact', head: true });
+    if (coachScope && me) countQ = countQ.eq('coach_id', me);
+    const { count } = await countQ;
+    _setStat('stat-sessions', count ?? 0);
+
+    // ── Recent 5 (joined to profile for client name)
+    let recentQ = sb.from('sessions')
+      .select('id, client_id, phase, created_at, coach_id, '
+            + 'client:profiles!sessions_client_id_fkey(full_name, email)')
+      .order('created_at', { ascending: false })
+      .limit(5);
+    if (coachScope && me) recentQ = recentQ.eq('coach_id', me);
+    const { data: rows, error } = await recentQ;
+
+    const el = document.getElementById('recent-sessions-list');
+    if (!el) return;
+    if (error || !rows || !rows.length) {
+      el.innerHTML = _emptyState('◈', 'No sessions yet',
+        'Generate your first session to see it here.');
+      return;
+    }
+    el.innerHTML = rows.map((s) => {
+      const name = s.client?.full_name || s.client?.email || '—';
+      const phase = s.phase || 'Phase 1';
+      return `
+        <div class="flex items-center gap-3" style="padding:11px 0; border-bottom:1px solid var(--border-subtle)">
+          <div class="avatar avatar-sm" style="background:conic-gradient(from 180deg,var(--teal),var(--amber))">${(name||'?')[0].toUpperCase()}</div>
+          <div class="flex-1 truncate">
+            <div style="font-size:13px;font-weight:600;color:var(--text-primary)">${name}</div>
+            <div style="font-size:11px;color:var(--text-tertiary)">${new Date(s.created_at).toLocaleDateString()}</div>
+          </div>
+          <span class="badge ${_phaseBadge(phase)}">${phase}</span>
+        </div>`;
+    }).join('');
   }
 
   function _setStat(id, val) {
@@ -540,26 +594,42 @@ Keep output clean, structured, and clinically precise.`;
         }
       }
 
-      // ── STEP 4: AI narrative (Claude) ────────────────────────
+      // ── STEP 4: AI narrative (via the generate-program edge function)
+      //
+      // Reliability Sweep / Priority B — the previous in-browser
+      // fetch() to api.anthropic.com (no key, CORS-blocked, silent
+      // fallback that produced a fake success toast) is replaced with
+      // a Supabase Functions invocation. The edge function holds the
+      // GEMINI_API_KEY as a server-side secret and calls Gemini 2.0
+      // Flash. Response shape from the function = raw Gemini envelope:
+      //   { candidates: [{ content: { parts: [{ text: "..." }] } }], ... }
+      // or, on error, the function returns the upstream error JSON.
+      //
+      // Per Q-B1: NO health-check ping. We attempt the call at
+      // generate-time and surface a clear runtime warning toast on
+      // failure — coach is never lied to about AI availability.
       btn.innerHTML = '<span class="spinner"></span> Generating AI analysis...';
       let aiText = '';
+      let aiUnavailable = false;
       try {
-        const res = await fetch('https://api.anthropic.com/v1/messages', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            model:      'claude-sonnet-4-20250514',
-            max_tokens: 1200,
-            messages:   [{ role: 'user', content: buildPrompt() }],
-          }),
-        });
-        const result = await res.json();
-        if (result.error) throw new Error(result.error.message);
-        aiText = result.content?.map(i => i.text || '').join('\n') || '';
+        const { data: aiData, error: aiErr } = await sb.functions.invoke(
+          'generate-program', { body: { prompt: buildPrompt() } });
+        if (aiErr) throw aiErr;
+        // Gemini happy path
+        const parts = aiData?.candidates?.[0]?.content?.parts || [];
+        aiText = parts.map((p) => p?.text || '').join('\n').trim();
+        // Function may also pass through an upstream error JSON with no candidates
+        if (!aiText) {
+          const upstream = aiData?.error || aiData?.message;
+          throw new Error(upstream || 'AI returned no narrative text');
+        }
       } catch(aiErr) {
-        // AI narrative is a bonus — don't fail the whole flow
-        console.warn('AI narrative skipped:', aiErr.message);
-        aiText = `[AI narrative unavailable — check API key]\n\nScores: ROM ${scores.rom_score}% · Control ${scores.control_score}% · Force ${scores.force_score}% · Neurology ${scores.neurology_score}%\nComposite: ${scores.composite_score}% → ${scores.phase_recommendation}`;
+        console.warn('AI narrative unavailable:', aiErr?.message || aiErr);
+        aiUnavailable = true;
+        // Local fallback narrative built from engine output — keeps the
+        // PDF and Programs view useful even when AI is down. Coach knows
+        // because of the warning toast emitted further below.
+        aiText = `[AI narrative unavailable]\n\nScores: ROM ${scores.rom_score}% · Control ${scores.control_score}% · Force ${scores.force_score}% · Neurology ${scores.neurology_score}%\nComposite: ${scores.composite_score}% → ${scores.phase_recommendation}`;
       }
 
       const outEl = document.getElementById('program-output-text');
@@ -582,7 +652,15 @@ Keep output clean, structured, and clinically precise.`;
       // Client is the one selected in the active session (Client Info tab).
       _saveToSupabase(activeClientId, scores, program, aiText, gait, assessment);
 
+      // Reliability Sweep / Priority B — honest toasts. Program is
+      // always "generated" (engines + JSON are local), but if the
+      // AI narrative leg failed we surface that as a separate
+      // warning so the coach knows the analysis text is the fallback.
       toast('Program generated!', 'success');
+      if (aiUnavailable) {
+        toast('AI narrative unavailable — program structure still generated. '
+            + 'Check the GEMINI_API_KEY secret on the edge function.', 'warning', 6000);
+      }
 
     } catch(e) {
       toast('Generation failed: ' + e.message, 'error');
@@ -854,31 +932,57 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
     window.open(URL.createObjectURL(blob), '_blank');
   }
 
-  function renderProgramsList() {
+  // Priority A — Programs page now reads from client_programs (the
+  // F5/F6 source of truth), NOT localStorage. RLS scopes the result
+  // automatically per `client_programs_coach_all`: admin sees all,
+  // coach sees their own + assigned-clients. Per Q-A1 the card links
+  // to detail rather than rendering the inline AI narrative (the
+  // narrative lives in sessions.output, not in client_programs).
+  async function renderProgramsList() {
     const el = document.getElementById('programs-list');
     if (!el) return;
-    if (!_sessions.length) {
-      el.innerHTML = `<div class="empty-state"><span class="empty-icon">◈</span><div class="empty-title">No programs yet</div><p class="empty-desc">Generate your first session to see it here.</p><button class="btn btn-primary" onclick="Dashboard.showSection('new-session')">+ New Session</button></div>`;
+    el.innerHTML = `<div style="text-align:center;padding:40px"><span class="spinner spinner-lg"></span></div>`;
+
+    const { data, error } = await sb.from('client_programs')
+      .select('id, client_id, published, published_at, '
+            + 'program, '   // pulled for phase + days_per_week meta
+            + 'client:profiles!client_programs_client_id_fkey(full_name, email, current_phase)')
+      .eq('published', true)
+      .order('published_at', { ascending: false });
+
+    if (error) {
+      el.innerHTML = `<div class="empty-state"><span class="empty-icon">⚠</span><div class="empty-title">Could not load programs</div><p class="empty-desc">${error.message}</p></div>`;
       return;
     }
-    el.innerHTML = _sessions.map((s, i) => `
-      <div class="card card-hover" style="margin-bottom:12px;cursor:pointer" onclick="Dashboard.toggleProgram(${i},this)">
-        <div class="flex items-center gap-3">
-          <div class="avatar" style="background:conic-gradient(from 180deg,var(--teal),var(--amber))">${(s.name||'?')[0].toUpperCase()}</div>
-          <div class="flex-1 truncate">
-            <div style="font-weight:600;font-size:14px">${s.name}</div>
-            <div style="font-size:12px;color:var(--text-tertiary)">${s.goal||''} · ${new Date(s.createdAt).toLocaleDateString()}</div>
+    if (!data || !data.length) {
+      el.innerHTML = `<div class="empty-state"><span class="empty-icon">◈</span><div class="empty-title">No programs published yet</div><p class="empty-desc">Run New Session, generate a program, then publish it for your client.</p><button class="btn btn-primary" onclick="Dashboard.showSection('new-session')">+ New Session</button></div>`;
+      return;
+    }
+
+    el.innerHTML = data.map((row) => {
+      const name  = row.client?.full_name || row.client?.email || '—';
+      const phase = row.program?.phase || row.client?.current_phase || 'Phase 1';
+      const days  = row.program?.days_per_week ? `${row.program.days_per_week} days/wk` : '';
+      const when  = row.published_at ? new Date(row.published_at).toLocaleDateString() : '';
+      const cid   = row.client_id;
+      return `
+        <div class="card card-hover" style="margin-bottom:12px">
+          <div class="flex items-center gap-3">
+            <div class="avatar" style="background:conic-gradient(from 180deg,var(--teal),var(--amber))">${(name||'?')[0].toUpperCase()}</div>
+            <div class="flex-1 truncate">
+              <div style="font-weight:600;font-size:14px">${name}</div>
+              <div style="font-size:12px;color:var(--text-tertiary)">Published ${when}${days ? ' · ' + days : ''}</div>
+            </div>
+            <span class="badge ${_phaseBadge(phase)}">${phase}</span>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-ghost btn-xs"
+                      onclick="window._wsPreselectClient='${cid}'; Dashboard.showSection('workout-history')">◐ Workouts</button>
+              <button class="btn btn-ghost btn-xs"
+                      onclick="window._notifParams={client_id:'${cid}'}; Dashboard.showSection('progression')">◭ Progression</button>
+            </div>
           </div>
-          <span class="badge ${_phaseBadge(s.phase)}">${s.phase}</span>
-          <span style="color:var(--text-tertiary);font-size:18px;transition:transform 0.2s" class="prog-arrow">›</span>
-        </div>
-        <div class="prog-body hidden" style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border-subtle)">
-          <pre class="program-output">${s.output}</pre>
-          <div style="margin-top:12px;display:flex;gap:8px">
-            <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();Dashboard.rePreviewWeb(${i})">🌐 Web Preview</button>
-          </div>
-        </div>
-      </div>`).join('');
+        </div>`;
+    }).join('');
   }
 
   function toggleProgram(i, card) {
@@ -969,6 +1073,36 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
     const message  = document.getElementById('pu-message')?.value;
 
     if (!clientId) { toast('Select a client', 'error'); return; }
+
+    // Reliability Sweep / Priority D — defensive re-validation.
+    // Re-fetch current phase server-side (don't trust the modal dataset
+    // alone — defends against direct call / DOM tampering / stale modal).
+    const { data: prof } = await sb.from('profiles')
+      .select('current_phase').eq('id', clientId).maybeSingle();
+    const currentPhase = prof?.current_phase || 'Phase 1';
+
+    const ord = (p) => {
+      const m = String(p || '').match(/(\d+)/);
+      return m ? parseInt(m[1], 10) : 0;
+    };
+    const curOrd = ord(currentPhase);
+    const newOrd = ord(newPhase);
+
+    if (newOrd === 0) { toast('Select a target phase', 'error'); return; }
+    if (newOrd === curOrd) {
+      toast(`Client is already on ${currentPhase}. No change made.`, 'info');
+      return;
+    }
+    if (newOrd < curOrd) {
+      toast('Downgrade not supported via this flow. Contact an admin.', 'error');
+      return;
+    }
+    // Skip-phase upgrade confirmation (e.g. Phase 1 → Phase 3 directly).
+    if (newOrd - curOrd >= 2) {
+      if (!confirm(`Skip-phase upgrade from ${currentPhase} to ${newPhase} — proceed?`)) {
+        return;
+      }
+    }
 
     const { error } = await sb.from('profiles')
       .update({ current_phase: newPhase })

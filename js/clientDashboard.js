@@ -143,25 +143,23 @@ const ClientDashboard = (() => {
         ${_metricCard('Risk Timeline',     'What an unaddressed load pattern projects to', 'cd-metric-risk', 'danger')}
       </div>
 
-      <!-- ASSESSMENT REPORT + RIGHT RAIL -->
+      <!-- ASSESSMENT REPORT + RIGHT RAIL
+           Reliability Sweep / Priority C: rows are now populated by
+           _renderAssessmentReport() from real assessment + gait +
+           subjective data. Initial state is a single skeleton row
+           replaced after data fetch (no more permanent "Loading…"). -->
       <div class="cd-secondary-grid">
         <div class="card glass-card cd-assessment">
           <div class="card-header">
             <span class="card-title">Assessment Report</span>
             <span class="badge badge-phase1">From your coach</span>
           </div>
-          <div class="cd-assessment-body">
+          <div class="cd-assessment-body" id="cd-assessment-body">
             <div class="cd-assessment-row">
-              <div class="cd-assessment-label">True Driver</div>
-              <div class="cd-assessment-value">Loading…</div>
-            </div>
-            <div class="cd-assessment-row">
-              <div class="cd-assessment-label">Reported Symptoms</div>
-              <div class="cd-assessment-value">Loading…</div>
-            </div>
-            <div class="cd-assessment-row">
-              <div class="cd-assessment-label">Coach's notes</div>
-              <div class="cd-assessment-value cd-assessment-notes">Your coach will write a brief here once your first session is complete.</div>
+              <div class="cd-assessment-value" style="opacity:.6">
+                <span class="spinner spinner-sm" style="margin-right:6px;vertical-align:-2px"></span>
+                Loading your assessment…
+              </div>
             </div>
           </div>
         </div>
@@ -230,14 +228,18 @@ const ClientDashboard = (() => {
     _viz = null;
     _renderedFor = clientId;
 
-    const [assessment, gait] = await Promise.all([
+    const [assessment, gait, subjective] = await Promise.all([
       _loadLatestAssessment(clientId),
       _loadLatestGait(clientId),
+      _loadLatestSubjective(clientId),   // Priority C — fills "Coach's notes"
     ]);
     _profile = _deriveProfile(assessment);
 
     // Phase C — render the three metric charts in parallel to the 3D mount.
     _renderMetricCharts(assessment, gait, _profile);
+
+    // Reliability Sweep / Priority C — populate the Assessment Report card.
+    _renderAssessmentReport({ assessment, gait, subjective });
 
     // Refresh overlay numbers with derived data.
     const wrap = document.getElementById('cd-load-overlays');
@@ -299,6 +301,75 @@ const ClientDashboard = (() => {
       console.warn('[client-dashboard] gait load threw:', e.message);
       return null;
     }
+  }
+
+  // Reliability Sweep / Priority C — latest subjective summary, defensively
+  // wrapped. RPMSubjective.pullSubjectiveSummary may not be loaded in every
+  // build; in that case we return null and Coach's notes falls through to
+  // the empty-state copy.
+  async function _loadLatestSubjective(clientId) {
+    if (!clientId) return null;
+    if (typeof RPMSubjective === 'undefined' || !RPMSubjective.pullSubjectiveSummary) return null;
+    try {
+      return await RPMSubjective.pullSubjectiveSummary(clientId);
+    } catch (e) {
+      console.warn('[client-dashboard] subjective load threw:', e.message);
+      return null;
+    }
+  }
+
+  // Reliability Sweep / Priority C — replaces the perma-"Loading…"
+  // placeholder rows on the client dashboard with real data when an
+  // assessment exists, or a single empty-state row (per Q-C1) when none.
+  function _renderAssessmentReport({ assessment, gait, subjective }) {
+    const host = document.getElementById('cd-assessment-body');
+    if (!host) return;
+
+    const hasAnything = !!(assessment || gait || subjective);
+    if (!hasAnything) {
+      // Q-C1: single placeholder when no assessment exists
+      host.innerHTML = `
+        <div class="cd-assessment-row">
+          <div class="cd-assessment-value cd-assessment-notes"
+               style="text-align:center;padding:8px 0;color:var(--text-secondary)">
+            Your coach will run an assessment after your first session.
+            <br/><span style="font-size:11px;color:var(--text-tertiary)">
+              Your True Driver, reported symptoms, and coach's notes will appear here.
+            </span>
+          </div>
+        </div>`;
+      return;
+    }
+
+    // True Driver: phase_recommendation from objective scoring → gait worst case → fallback
+    const trueDriver = (assessment && assessment.phase_recommendation)
+      || (gait && gait.worst_case_scenario)
+      || '—';
+
+    // Reported Symptoms: subjective external_pain → pain_flags joined → none
+    let reported = '—';
+    if (subjective && subjective.external_pain) reported = subjective.external_pain;
+    else if (assessment && Array.isArray(assessment.pain_flags) && assessment.pain_flags.length) {
+      reported = assessment.pain_flags.join(', ');
+    } else if (assessment) reported = 'None reported';
+
+    // Coach's notes: recap_notes → free_form_notes → default copy
+    const coachNotes = (subjective && (subjective.recap_notes || subjective.free_form_notes))
+      || 'Your coach will write a brief here after your next session.';
+
+    host.innerHTML = `
+      <div class="cd-assessment-row">
+        <div class="cd-assessment-label">True Driver</div>
+        <div class="cd-assessment-value">${_esc(trueDriver)}</div>
+      </div>
+      <div class="cd-assessment-row">
+        <div class="cd-assessment-label">Reported Symptoms</div>
+        <div class="cd-assessment-value">${_esc(reported)}</div>
+      </div>
+      <div class="cd-assessment-row">
+        <div class="cd-assessment-label">Coach's notes</div>
+        <div class="cd-assessment-value cd-assessment-notes">${_esc(coachNotes)}</div>
+      </div>`;
   }
 
   // ── Phase C — Chart.js panels ────────────────────────────────────

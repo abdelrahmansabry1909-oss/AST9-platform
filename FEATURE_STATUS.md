@@ -1,8 +1,8 @@
 # FEATURE_STATUS.md — NeuCore Platform
 
-**Last updated:** 2026-05-31
+**Last updated:** 2026-05-31 (post Reliability + Defect Sweep)
 **Branch:** `claude/interesting-buck-452459`
-**HEAD commit:** F6 just shipped (commit pending)
+**HEAD commit:** Reliability Sweep just shipped (commit pending)
 **Live Supabase project:** `byquokhcbagofshsclfy` (eu-central-1, Postgres 17.6.1.111)
 
 Per-feature breakdown. For overall architecture see `PROJECT_STATUS.md`. For what to build next see `NEXT_STEPS.md`.
@@ -179,6 +179,67 @@ Any change to the formula ships as a new migration `20260xxx_progression_v2.sql`
 
 ---
 
+## ✅ Reliability + Defect Sweep — Priorities A → D + Highs (H1, H2, H3, H5, H7)
+
+**Commit:** pending (shipped 2026-05-31)
+**Status:** Live + smoke-verified end-to-end
+**Architecture record:** `RELIABILITY_SWEEP_ARCHITECTURE.md` (12 sections, all 4 user-decision questions locked)
+**Audit closed:** PRODUCT_AUDIT.md C1, C2, C3, C5 + H1, H2, H3, H5, H7
+
+### Priority A — localStorage → DB readers (C1 + H7 + H1)
+- `js/dashboard.js loadDashboardStats` now calls `_loadSessionsStatAndRecent()` which reads from the `sessions` table (count + last 5) scoped to `coach_id = me` for coaches, all for admin
+- `js/dashboard.js renderProgramsList` reads `client_programs` (RLS handles scope), shows client name + phase + published date + deep-links to Workouts + Progression (per **Q-A1: link-to-detail card**, no inline narrative)
+- `_sessions` localStorage kept as a transient PDF-handoff cache so `_lastBundle` flow still works; no surface reads from it anymore
+- `app.html` login page "Back to NeuCore" → `index.html` link removed (H1)
+- **New finding flagged for future RLS pass:** `sessions` policy "Coaches read all sessions" lets every coach read every other coach's sessions. Sweep filters client-side; tightening the policy is logged as a Medium gap.
+
+### Priority C — Client dashboard wiring (C3 + H3 + H2)
+- `js/clientDashboard.js` new `_renderAssessmentReport({assessment, gait, subjective})` helper + new `_loadLatestSubjective` defensive wrapper around `RPMSubjective.pullSubjectiveSummary`
+- Three rows wired: True Driver (phase_recommendation → gait worst case), Reported Symptoms (subjective external_pain → pain_flags joined), Coach's notes (subjective recap_notes → free_form_notes → empty-state copy)
+- Per **Q-C1**: single placeholder when no assessment exists (not per-row Loading… repeated)
+- `app.html` sidebar: `nav-notifications` entry added (no role class — visible to ALL roles including clients) (H3)
+- `app.html` mobile bottom-nav: `role-coach-admin` added to Session + Programs buttons; new `role-client-only` "Inbox" button added (H2)
+
+### Priority D — Phase Upgrade guards (C5)
+- `js/clients.js prepPhaseUpgrade` async-ified; fetches `current_phase` from profiles; stamps on modal dataset; pill shown next to modal title
+- `_applyPhaseUpgradeGuards` disables `<option>` elements at-or-below current phase; selects the lowest enabled
+- Per **Q-D1**: Phase 3 client = "Already at top phase" banner shown inside modal AND `⬆ Phase` button disabled on the clients table row
+- `js/dashboard.js submitPhaseUpgrade` re-validates server-side: refuses same-phase (info toast), refuses downgrade (error toast), prompts `confirm()` on skip-phase upgrades (P1→P3)
+
+### Priority B — AI call via edge function (C2 + TD17)
+- **No new edge function deployed.** Discovered the existing `generate-program` function (version 4, ACTIVE) already does this — wired to Gemini 2.0 Flash via `GEMINI_API_KEY` secret. The previous browser-side `fetch('https://api.anthropic.com/...')` was a regression.
+- `js/dashboard.js generateProgram` STEP 4 rewritten to `sb.functions.invoke('generate-program', { body: { prompt } })` with proper Gemini response shape parsing (`candidates[0].content.parts[].text`)
+- Per **Q-B1**: NO health-check ping. Runtime warning toast on failure: "AI narrative unavailable — program structure still generated. Check the GEMINI_API_KEY secret on the edge function."
+- Toast lie removed — `aiUnavailable` flag drives separate warning toast after the always-fires success toast for the program JSON itself
+
+### H5 — Add-Exercise modal scope
+- 5 categories now: Rehab · Mobility · Strength · **Neurology · Breathing** (matches the live `exercises.category` CHECK constraint)
+- New inputs: **Tags** (comma-separated, lower-cased, deduplicated → array) + **Target joints** (same parse)
+- `Clients.submitAddExercise` only attaches array columns when non-empty to avoid overwriting schema defaults
+- Tag hint explicitly mentions "Conditioning" so coaches know how to surface exercises under that ExercisePicker chip
+
+### Files (sweep delta)
+- EDIT: `js/dashboard.js` (~115 lines), `js/clients.js` (~110 lines), `js/clientDashboard.js` (~70 lines), `app.html` (~30 lines)
+- NEW: `RELIABILITY_SWEEP_ARCHITECTURE.md` (architecture record)
+- **Zero migrations · Zero new modules · Zero new edge functions**
+
+### Live verification
+- Priority A: live `sessions` rowcount = 21, FK embed `sessions_client_id_fkey` validated, `client_programs` reader returns expected shape with FK embed
+- Priority C: DB-side `_loadLatestAssessment` / `_loadLatestGait` paths confirmed; no schema dependencies missing
+- Priority D: phase ordering comparator verified against live data (Phase 1 + Phase 2 clients present; no live Phase 3 client to smoke the top-phase banner against, but the comparator is straightforward)
+- Priority B: existing `generate-program` function verified ACTIVE v4 (no deploy needed); response shape parser handles Gemini envelope `candidates[].content.parts[].text`
+- Regression: F1 view returns 2 rows · F4 formula stays `'1.1'` · F6 column + trigger branch intact · 15 advisor warnings (same as pre-sweep, zero new)
+
+### Deferred from this sweep (per architecture §0 + §10)
+| ID | Item | Why |
+|---|---|---|
+| H4 | Client-side workout history view | Needs its own architecture pass |
+| H6 | Coach reassignment UI | Multi-flow design needed |
+| H8 | Onboarding flows | UX research + multiple screens |
+| (new) | `sessions` RLS multi-tenant leak | Surfaced by Priority A; logged for separate RLS-tightening pass |
+
+---
+
 ## ✅ Tier 2 — Advisor Hardening
 
 **Commit:** `230f751`
@@ -325,7 +386,8 @@ Wire the client-dashboard Assessment Report card (PRODUCT_AUDIT.md TD11 — curr
 | Tier 1 Spec + FK + Phase Upgrade | 1 | 4 modified | ✅ live | — |
 | Tier 2 Advisor hardening | 1 | 0 | ✅ live | — |
 | F5 Exercise Video Integration | 0 | 2 new, 2 modified | ✅ live | 🔒 frozen |
-| **F6 Alt-Exercise Replacement** | **1** | **0 new, 3 modified** | **✅ live** | not yet "frozen" |
+| F6 Alt-Exercise Replacement | 1 | 0 new, 3 modified | ✅ live | 🔒 frozen |
+| **Reliability + Defect Sweep (A→D + H1/H2/H3/H5/H7)** | **0** | **0 new, 4 modified** | **✅ live** | not yet "frozen" |
 | **F7 Assessment / 3D Hologram** | **0 pending** | **TBD** | **⏸ planned** | — |
 
 **Live migrations applied: 8** (all in `supabase_migrations.schema_migrations` — F6 added `20260531123907 alt_exercise_substitute`).

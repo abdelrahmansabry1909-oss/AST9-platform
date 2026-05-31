@@ -13,7 +13,7 @@
 
 ## 0 · One-line summary
 
-6 features shipped + 2 hardening passes + 8 migrations live + 7 new JS modules + full end-to-end live verification. **Features 1–5 frozen by user signoff; Feature 6 complete and stable but not yet "frozen." Progression formula bumped v1.0 → v1.1 by F6 (no Recovery penalty for successfully-substituted requests). Next: Reliability + Defect Sweep, then Feature 7 (Assessment / 3D Hologram).**
+6 features shipped + 2 hardening passes + 1 reliability sweep + 8 migrations live + 7 new JS modules + full end-to-end live verification. **Features 1–6 frozen by user signoff; Reliability + Defect Sweep complete and stable but not yet "frozen." Sweep closed all remaining Critical + 5 High audit findings (C1, C2, C3, C5, H1, H2, H3, H5, H7) with zero migrations and zero new modules. Next: Feature 7 (Assessment / 3D Hologram).**
 
 ---
 
@@ -203,7 +203,8 @@ See `FEATURE_STATUS.md` for the per-feature deep dive. Headline:
 | Tier 1 (spec compliance + FK + Phase notif) | `7265f09` | — |
 | Tier 2 (advisor hardening) | `230f751` | — |
 | F5 Exercise Video Integration | `2627a11` | ✅ (signed off pre-F6) |
-| F6 Alt-Exercise Replacement + Progression v1.1 | pending | Complete + smoke-verified, not formally frozen |
+| F6 Alt-Exercise Replacement + Progression v1.1 | `9a8f68b` | ✅ (signed off post-F6) |
+| Reliability + Defect Sweep (A→D + Highs) | pending | Complete + smoke-verified, not formally frozen |
 
 ---
 
@@ -225,14 +226,16 @@ All verification artifacts cleaned up. Production data unaffected.
 
 Detail in `NEXT_STEPS.md §3` + `PRODUCT_AUDIT.md`. Headline:
 
-1. **Reliability + Defect Sweep** (next per user direction Q4 — closes PRODUCT_AUDIT.md C1, C2, C3, C5 + high-severity TD3, TD4, TD5, TD10)
-2. **Feature 7 — Assessment / 3D Hologram Integration** (also closes PRODUCT_AUDIT.md TD11)
-3. Email/SMS push (high-severity notifications via Resend)
-4. Notification deep-link pre-select on target loaders
-5. Daily pg_cron for `ensure_subscription_notifications`
-6. Progression v2 (nutrition + RPM phase signals — would be `v_client_progression` v2.0)
-7. Nutrition Plan (whole new domain)
-8. Smaller polish: unpublished-program indicator, skip tristate, username vs email, three competing coach-progress surfaces unification.
+1. ✅ **Reliability + Defect Sweep** — DONE (closed C1, C2, C3, C5, H1, H2, H3, H5, H7)
+2. **Feature 7 — Assessment / 3D Hologram Integration** (Sweep wired the first slice via TD11; F7 expands it to full hologram cross-link)
+3. **Deferred Highs** — H4 (client workout history), H6 (coach reassignment UI), H8 (onboarding flows)
+4. **New surfaced gap** — `sessions` RLS lets every coach read every other coach's sessions (filtered client-side by Sweep, needs server-side fix)
+5. Email/SMS push (high-severity notifications via Resend)
+6. Notification deep-link pre-select on target loaders
+7. Daily pg_cron for `ensure_subscription_notifications`
+8. Progression v2 (nutrition + RPM phase signals — would be `v_client_progression` v2.0)
+9. Nutrition Plan (whole new domain)
+10. Smaller polish: unpublished-program indicator, skip tristate, username vs email, three competing coach-progress surfaces unification, all the Medium items from PRODUCT_AUDIT.md.
 
 ---
 

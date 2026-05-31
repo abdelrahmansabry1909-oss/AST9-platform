@@ -29,10 +29,10 @@
   <div class="nc-login-glow nc-login-glow--teal"></div>
   <div class="nc-login-glow nc-login-glow--cyan"></div>
 
-  <a href="index.html" class="nc-login-back" aria-label="Back to landing">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-    Back to NeuCore
-  </a>
+  <!-- Reliability Sweep / H1: legacy "Back to NeuCore" link removed
+       (used to point at index.html — the deprecated AST9 shell).
+       Active app.html is the only shell; nothing to go "back" to. -->
+
 
   <div class="nc-login-card">
     <div class="nc-login-brand">
@@ -210,6 +210,12 @@
       <div class="nav-item" id="nav-community" onclick="Dashboard.showSection('community')" title="Community">
         <span class="nav-item-icon">◈</span><span class="nav-label">Community</span>
         <span id="badge-community" class="nav-badge hidden">0</span>
+      </div>
+      <!-- Reliability Sweep / H3: Notifications nav entry for ALL roles.
+           Bell icon in the sidebar footer remains as a quick-access; this
+           entry gives mobile clients a discoverable way into the inbox. -->
+      <div class="nav-item" id="nav-notifications" onclick="Dashboard.showSection('notifications')" title="Notifications">
+        <span class="nav-item-icon">◔</span><span class="nav-label">Notifications</span>
       </div>
 
       <div class="nav-section role-admin-only">Admin</div>
@@ -1573,19 +1579,26 @@
 
   </main>
 
-  <!-- Mobile bottom nav -->
+  <!-- Mobile bottom nav
+       Reliability Sweep / H2: buttons are now role-gated via the same
+       CSS classes that scope the sidebar. Coaches keep the original 4;
+       clients see Home + Community + Notifications instead of the
+       coach-only Session/Programs that used to render blank for them. -->
   <nav class="mobile-bottom-nav" id="mobile-bottom-nav">
     <button class="mob-nav-btn active" id="mobnav-dashboard" onclick="Dashboard.showSection('dashboard');_setMobNav('dashboard')">
       <span>⬡</span><span>Home</span>
     </button>
-    <button class="mob-nav-btn" id="mobnav-session" onclick="Dashboard.showSection('new-session');_setMobNav('session')">
+    <button class="mob-nav-btn role-coach-admin" id="mobnav-session" onclick="Dashboard.showSection('new-session');_setMobNav('session')">
       <span>✦</span><span>Session</span>
     </button>
     <button class="mob-nav-btn" id="mobnav-community" onclick="Dashboard.showSection('community');_setMobNav('community')">
       <span>◈</span><span>Community</span>
     </button>
-    <button class="mob-nav-btn" id="mobnav-programs" onclick="Dashboard.showSection('programs');_setMobNav('programs')">
+    <button class="mob-nav-btn role-coach-admin" id="mobnav-programs" onclick="Dashboard.showSection('programs');_setMobNav('programs')">
       <span>◌</span><span>Programs</span>
+    </button>
+    <button class="mob-nav-btn role-client-only" id="mobnav-notifications" onclick="Dashboard.showSection('notifications');_setMobNav('notifications')">
+      <span>◔</span><span>Inbox</span>
     </button>
   </nav>
 
@@ -1745,10 +1758,16 @@
       <div class="input-row">
         <div class="form-group">
           <label class="form-label">Category</label>
+          <!-- Reliability Sweep / H5: full set of 5 schema-allowed
+               values (was: only Rehab/Mobility/Strength). Conditioning
+               is intentionally NOT a category — it's a tag, surfaced
+               by the ExercisePicker chip via tag='conditioning'. -->
           <select id="ex-category" class="form-input">
             <option value="Rehab">Rehab</option>
             <option value="Mobility">Mobility</option>
             <option value="Strength">Strength</option>
+            <option value="Neurology">Neurology</option>
+            <option value="Breathing">Breathing</option>
           </select>
         </div>
         <div class="form-group">
@@ -1762,6 +1781,18 @@
       </div>
       <div class="form-group"><label class="form-label">Video URL (YouTube)</label><input id="ex-video" class="form-input" placeholder="https://youtube.com/watch?v=..."/></div>
       <div class="form-group"><label class="form-label">Description / Coaching Cues</label><textarea id="ex-desc" class="form-input" placeholder="Coaching cues, common errors, progressions, regressions..."></textarea></div>
+      <!-- Reliability Sweep / H5: tags + target_joints. tags drives the
+           "Conditioning" chip in the F5 ExercisePicker; target_joints
+           feeds F5 Instructions sidebar. Both are comma-separated. -->
+      <div class="form-group">
+        <label class="form-label">Tags <span style="color:var(--text-tertiary);font-weight:400">(comma-separated)</span></label>
+        <input id="ex-tags" class="form-input" placeholder="e.g. conditioning, posterior-chain, single-leg"/>
+        <div class="form-hint">Add <code>conditioning</code> here to surface this exercise under the "Conditioning" filter in the Library picker.</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Target joints <span style="color:var(--text-tertiary);font-weight:400">(comma-separated)</span></label>
+        <input id="ex-target-joints" class="form-input" placeholder="e.g. hip, knee, ankle"/>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="Dashboard.closeModal('modal-add-exercise')">Cancel</button>

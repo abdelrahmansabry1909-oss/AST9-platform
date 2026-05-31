@@ -9,6 +9,29 @@ This is an **architecture-level review + product audit done from the perspective
 
 ---
 
+## ⚡ Status as of 2026-05-31 post-Reliability-Sweep
+
+The following findings have been **closed**:
+
+| ID | Closed by |
+|---|---|
+| C1 (TD1 + TD9) localStorage Programs/sessions | Reliability + Defect Sweep — Priority A |
+| C2 (TD2 + TD17) Anthropic in browser + silent fail | Reliability + Defect Sweep — Priority B |
+| C3 (TD11) Client dashboard "Loading…" placeholders | Reliability + Defect Sweep — Priority C |
+| C4 F6 missing | Feature 6 — `9a8f68b` |
+| C5 (TD8) Phase Upgrade has no validation | Reliability + Defect Sweep — Priority D |
+| H1 (TD3) login → index.html legacy link | Reliability + Defect Sweep — Priority A bundle |
+| H2 (TD4) mobile nav not role-gated | Reliability + Defect Sweep — Priority C bundle |
+| H3 (TD10) no client Notifications sidebar entry | Reliability + Defect Sweep — Priority C bundle |
+| H5 (TD6) Add-Exercise modal scope mismatch | Reliability + Defect Sweep — H5 |
+| H7 (TD5) `stat-sessions` from localStorage | Reliability + Defect Sweep — Priority A |
+
+**Still open (deferred Highs + all Mediums):** H4 (client workout history), H6 (coach reassignment), H8 (onboarding flows), plus all Medium items + a new surfaced gap: `sessions` RLS multi-tenant leak (Medium).
+
+The rest of this document is preserved as the historical record of the original audit. Reading order: this banner → Part 1 (architecture summary) → Part 3 (priority tables) → individual issue blocks for items not yet closed.
+
+---
+
 ## Part 1 — Understanding & Roadmap
 
 ### 1.1 What NeuCore is

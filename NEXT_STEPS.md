@@ -8,21 +8,23 @@
 
 ## 0 · Where we are right now
 
-✅ 6 features shipped + live-verified · 8 migrations applied · 7 new JS modules · F6 just shipped on `claude/interesting-buck-452459`.
+✅ 6 features + 1 reliability sweep shipped + live-verified · 8 migrations applied · 7 new JS modules · Reliability + Defect Sweep just shipped on `claude/interesting-buck-452459`.
 
-🔒 Features 1–5 signed off (frozen). F6 complete + smoke-verified, not yet formally frozen.
+🔒 Features 1–6 signed off (frozen). Reliability Sweep complete + smoke-verified, not yet formally frozen.
 
-🛑 **Per user direction Q4 in FEATURE_6_ARCHITECTURE.md:** Reliability + Defect Sweep is next, then Feature 7.
+🛑 **Next per the locked plan:** Feature 7 — Assessment Results / 3D Hologram Integration.
 
 ---
 
 ## 1 · Recommended build order
 
-User direction at the close of Feature 6 (locked):
+Updated post-Sweep:
 1. ✅ Feature 5: Exercise Video Integration — **DONE + 🔒 frozen**
-2. ✅ Feature 6: Alternative Exercise Replacement — **DONE** (awaiting user signoff to freeze)
-3. ⏸ **Reliability + Defect Sweep** ← next per Q4
-4. ⏸ Feature 7: Assessment Results / 3D Hologram Integration
+2. ✅ Feature 6: Alternative Exercise Replacement — **DONE + 🔒 frozen**
+3. ✅ Reliability + Defect Sweep (A→D + H1/H2/H3/H5/H7) — **DONE** (awaiting signoff to freeze)
+4. ⏸ **Feature 7: Assessment Results / 3D Hologram Integration** ← next
+5. ⏸ Deferred Highs: H4 (client workout history), H6 (coach reassignment UI), H8 (onboarding flows) — each needs its own architecture pass
+6. ⏸ Surfaced gap: `sessions` RLS multi-tenant tightening — Medium, separate pass
 
 ### Reliability + Defect Sweep — scope locked from PRODUCT_AUDIT.md Part 4
 
@@ -189,12 +191,13 @@ These are settled. Don't re-litigate unless the user signals a change.
 
 ## 6 · Things only the user can decide (when you next get a turn)
 
-1. **Is F6 formally frozen?** It's complete + smoke-verified but not explicitly signed off (mirrors the F5 pattern).
-2. **Confirm Reliability + Defect Sweep is next** (vs jumping straight to F7).
-3. **Sweep commit shape** — one tight commit or one-per-fix?
-4. **(Optional) Widen `exercises.category` CHECK to include `'Conditioning'`** if you'd rather the chip be a category filter instead of a tag filter. 2-line migration.
-5. **(Optional)** Resolve the pre-existing security advisor warnings (12 of 15 are pre-existing — out of this work's scope but worth a future cleanup pass).
-6. **Push to remote?** Nothing has been pushed to origin yet — unpushed commits include F5 + F6 + handoff docs + PRODUCT_AUDIT + FEATURE_6_ARCHITECTURE.
+1. **Is the Reliability + Defect Sweep formally frozen?** Complete + smoke-verified but not explicitly signed off.
+2. **Confirm Feature 7 is next** (vs picking up a deferred High first).
+3. **Provision `GEMINI_API_KEY`** in Supabase project secrets if it isn't already. The `generate-program` edge function uses it. Without it, the new honest-toast warning will fire on every Generate (program still saves; only the AI narrative is missing).
+4. **(Future, out of Sweep scope)** Tighten the `sessions` RLS so coaches can't read other coaches' sessions. Logged as Medium.
+5. **(Optional)** Widen `exercises.category` CHECK to include `'Conditioning'` if you'd prefer it as a category instead of a tag.
+6. **(Optional)** Resolve the 12 pre-existing security advisor warnings.
+7. **Push to remote?** Nothing has been pushed to origin yet — unpushed commits include F5 + F6 + handoff docs + PRODUCT_AUDIT + FEATURE_6_ARCHITECTURE + RELIABILITY_SWEEP_ARCHITECTURE.
 
 ---
 
