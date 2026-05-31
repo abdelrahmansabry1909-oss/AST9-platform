@@ -1,0 +1,302 @@
+# FEATURE_STATUS.md — NeuCore Platform
+
+**Last updated:** 2026-05-30
+**Branch:** `claude/interesting-buck-452459`
+**HEAD commit:** `2627a11`
+**Live Supabase project:** `byquokhcbagofshsclfy` (eu-central-1, Postgres 17.6.1.111)
+
+Per-feature breakdown. For overall architecture see `PROJECT_STATUS.md`. For what to build next see `NEXT_STEPS.md`.
+
+---
+
+## Status legend
+
+| Symbol | Meaning |
+|---|---|
+| ✅ shipped | Code committed + migrations applied + live-verified |
+| ⚠ partial | Code committed but a slice deliberately deferred (see "Deferred slice") |
+| ⏸ planned | Architecture-locked, not yet built |
+| ❌ blocked | Needs a user decision before continuing |
+| 🔒 frozen | Signed off — do not modify unless a bug is discovered |
+
+---
+
+## ✅ 🔒 Feature 1 — Subscription Grace + Write-Gate Service
+
+**Commit:** `4f65456` (code) · `230f751` (live verified) · `7265f09` (Tier-1 hardening)
+**Status:** Signed off · Frozen
+**User signoff:** Yes (turn "Sign off Features 1-4 as complete")
+
+### What it does
+Adds a 7-day grace window after `subscriptions.end_date`. During grace, login + read access remain available; the subscription pill turns rose and a banner above the client home prompts renewal. Past grace, login is replaced by a dedicated `#screen-subscription-inactive` takeover.
+
+### Locked architecture
+- `SubscriptionService` is the single source of truth (`getEffectiveState`, `listAllStates`, `canWrite`, `formatPill`, `reactivate`)
+- Effective state cached on `_profile.subscription` after `Auth.init` / `Auth.login`
+- **Write-gate rule:** `active | grace → write` · `expired | pending | none → read-only`. Every future write path checks `Auth.canWrite()`.
+
+### Files
+- DB: `supabase/migrations/20260530_subscription_grace.sql` — view `v_client_subscription_state`, RPC `public.reactivate_subscription`
+- JS: `js/subscriptionService.js`, edits to `js/auth.js`, `js/subscriptions.js`, `js/clientDashboard.js`
+- HTML: `#screen-subscription-inactive`, `#sub-stat-grace`, `#subs-filter` chips
+
+### Live verification (230f751)
+- View returns correct rows for the 2 live clients (83d / 72d remaining → `active`)
+- `reactivate_subscription` RPC permission gate (admin OR assigned_coach) holds in SQL
+- Pill + banner render correctly per state
+
+### Deferred slice
+- Email/SMS push on grace transitions (Resend integration exists, not wired)
+- Daily pg_cron to sweep all clients (today only fires when the affected client logs in)
+
+---
+
+## ✅ 🔒 Feature 2 — Workout Session Tracking
+
+**Commit:** `4f65456` (code) · `230f751` (live verified)
+**Status:** Signed off · Frozen
+
+### What it does
+Adds full workout-execution tracking: "Start Workout" creates a session with a live timer; per-exercise sets/reps/weight + notes auto-save (600 ms debounce); "Finish Workout" prompts for intensity rating (1–10) + session notes; coach gets a Workout History page with set-by-set detail.
+
+### Locked architecture
+- `workout_sessions` — one row per Start press; partial unique index enforces **one active session per client** (auto-abandon on conflict)
+- `workout_exercise_logs` — one row per exercise, sets stored as `jsonb [{n, reps, weight, rpe?}]`, unique `(session_id, exercise_index)` for clean upsert
+- `WorkoutSession` data layer: `start`, `finish`, `abandon`, `logExercise`, `getActiveSession`, `history`, `detail`
+- `WorkoutSession.mountWorkouts(host, { programId, workouts, libMap })` — client tracker mount point, called from `programPublish.renderClientProgram`
+- `WorkoutSession.mountCoachView(host, { preselectClientId })` — coach Workout History page
+- **Every write call gates via `Auth.canWrite()`** (Feature 1 contract)
+
+### Files
+- DB: `supabase/migrations/20260531_workout_tracking.sql`
+- JS: `js/workoutSession.js`, edits to `js/programPublish.js`, `js/dashboard.js`, `js/clients.js`
+- HTML: sidebar entry "Workout History", `#section-workout-history`, "◐ Workouts" action per client row
+
+### Live verification (230f751)
+- One-active-per-client invariant raises `23505` on second insert
+- `workout_exercise_logs` upsert on `(session_id, exercise_index)` works
+- RLS scoped correctly (client owns; assigned_coach reads/writes; admin all)
+
+### Deferred slice
+- Tristate "skip" (today: unchecked = incomplete, no explicit skip)
+- Exercise videos inside workout rows — landed in Feature 5
+
+---
+
+## ✅ 🔒 Feature 3 — Notifications + Alt-Exercise + Cross-Module Retrofit (FULL)
+
+**Commit:** `4f65456` (code) · `230f751` (live verified) · `7265f09` (FK guards) · `1d97fbd` (collision audit)
+**Status:** Signed off · Frozen
+
+### What it does
+Generic polymorphic inbox + alt-exercise request flow + 6 server-side triggers that retrofit RPM phase submissions, case-study approvals, and subscription expiring/grace into the same inbox without editing those legacy modules.
+
+### Locked architecture
+- `notifications` — `recipient_id`, `actor_id`, `type`, `title`, `body`, `link_section`, `link_params jsonb`, `severity (info|warning|critical)`, `read_at`, `archived`, `data jsonb`
+- **INSERT only via `public.notify(...)` SECURITY DEFINER RPC** — direct INSERT blocked by `WITH CHECK (false)` policy
+- Authorization in SQL once: self · admin · coach→own client · client→own coach
+- Cross-module retrofit via 6 triggers (no JS edits to RPM / Community / Subscription modules)
+- `ensure_subscription_notifications(client_id)` — idempotent (key = `(client, type, sub_id)`); called from `Auth.init` per client
+- Realtime channel + 60s polling fallback in `NotificationsService.subscribe`
+
+### Files
+- DB: `supabase/migrations/20260601_notifications_inbox.sql` (+ `drop_legacy_notifications` precursor)
+- JS: `js/notificationsService.js`, `js/altExerciseRequest.js`, edits to `js/workoutSession.js` (⇄ Alt button), `js/auth.js` (init-time call), `js/dashboard.js` (loader), `app.html` (bell + `#section-notifications`)
+
+### Path A note (1d97fbd)
+A legacy empty `notifications` table predated this work with shape `(user_id, from_user_id, message, is_read)`. Pre-drop verification confirmed 0 rows + 0 dependencies; dropped CASCADE; new schema applied clean. Documented in `PROJECT_STATUS.md §4`.
+
+### Live verification (230f751)
+- `notify()` self-test round-trip works
+- Alt-exercise insert → coach notification appears via trigger
+- Alt-exercise update → client notification appears via trigger
+- Phase upgrade trigger fires with full payload (Tier-1 addition)
+- `ensure_subscription_notifications` correctly no-ops for clients outside thresholds
+
+### Deferred slice
+- Notification deep-link pre-select on target loaders (lands on section, doesn't highlight item)
+- Email/SMS push (Resend exists, not wired)
+- Auto-archive retention policy
+- Mute / preferences UI
+
+---
+
+## ✅ 🔒 Feature 4 — Progression Engine v1
+
+**Commit:** `4f65456` (code) · `230f751` (live verified — Bug 2 fix included)
+**Status:** Signed off · Frozen · **Formula v1.0 — reweighting requires v2 migration**
+
+### What it does
+Four scores per client over a rolling 30-day window: Compliance · Recovery · Performance · Overall. Renders as four semicircular SVG gauges on the client dashboard; sortable table + per-client signal breakdown on the coach Progression page.
+
+### Locked formulas (v1.0 — documented in the migration header)
+- **Compliance** = 0.4·workout_completion_rate + 0.4·routine_adherence_pct + 0.2·session_completion_quality. Target ≈ 3 workouts/week (`completed × 100/12` clamped to 100).
+- **Recovery** = 100 − 10·overreach_sessions(≥9/10) − 30·abandonment_rate − 5·alt_requests_30d, clamped 0–100.
+- **Performance** = mean per-exercise (latest top-set vol vs first in window) mapped −20%↔+50% → 40↔100; **50 = neutral** when no exercise has ≥3 sessions in window.
+- **Overall** = 0.4·Compliance + 0.3·Recovery + 0.3·Performance.
+
+### Files
+- DB: `supabase/migrations/20260602_progression_engine.sql` — view `v_client_progression` (`security_invoker=true`), helper `_clamp_score`. **Live-adapted for `daily_routine_logs.battery_pct` schema** (the disk file `20260521_daily_routine.sql` defines `percent`, live has `battery_pct + completed bool`).
+- JS: `js/progressionEngine.js` — inline-SVG gauges (no chart-lib dep), tone palette
+- HTML: sidebar entry "Progression", `#section-progression`, `#cd-progression-host` on client home
+
+### Live verification (230f751)
+Score shifted **45.0 → 52.8** after one completed workout — matches formula exactly (0.4·23.3 + 0.3·95 + 0.3·50 = 52.82).
+
+### Known limitations (deliberate v1)
+- **Performance score is mostly 50/neutral** for most NeuCore clients because rehab programs rotate exercises and rarely repeat one 3× in 30d. Acceptable in v1; reweight in v2 when nutrition + RPM-phase signals land.
+- Compliance's "3/week target" too aggressive for Phase 1 rehab clients (1–2 sessions/week is normal). Same — reweight in v2.
+
+### Reweighting rule (locked)
+Any change to the formula ships as a new migration `20260xxx_progression_v2.sql` + bumps `formula_version`. NEVER edit `v_client_progression` in place — visible numbers must not drift silently.
+
+### Deferred slice
+- Historical snapshot table for trendlines ("score went up 8 this week")
+- Nutrition signal (whole feature; renames Compliance correctly)
+- RPM phase advancement signal
+
+---
+
+## ✅ Tier 1 — Spec-Compliance + FK Guards + Phase Upgrade Notif
+
+**Commit:** `7265f09`
+**Status:** Shipped + verified (no signoff needed — was a bug-fix pass)
+
+### Closed gaps from the post-Feature-4 audit
+| ID | Fix | Where |
+|---|---|---|
+| **M** | Clients can reach Case Studies via sidebar | `app.html nav-case-studies` (removed `role-coach-admin`) |
+| **N** | Clients can change password via sidebar Settings | new `#section-client-settings` + `nav-client-settings` |
+| **D** | `Auth.loginAsGuest` no longer TypeErrors | implemented as typed `DEMO_UNAVAILABLE` error |
+| **L** | `Dashboard.populateProgressClientSelect` exists | populates `#progress-client-select` from assigned clients |
+| **C** | Add Client modal requires assigned coach | `submitAddClient` validates `fields.coach` |
+| **FK** | Notification triggers FK-safe | new `_profile_exists` guard wrapping every `notify()` call |
+| **Phase Upgrade** | Coach upgrade fires a client inbox notification | new `tg_profile_phase_upgrade` trigger on `profiles.current_phase` |
+
+### Files
+- DB: `supabase/migrations/20260603_notification_guards_and_phase_upgrade.sql`
+- JS: edits to `app.html`, `js/auth.js`, `js/clients.js`, `js/dashboard.js`
+
+---
+
+## ✅ Tier 2 — Advisor Hardening
+
+**Commit:** `230f751`
+**Status:** Shipped + verified
+
+Closed 11 of the 14 security-advisor warnings introduced by Features 1–4 + Tier 1. The remaining 3 (`notify`, `reactivate_subscription`, `ensure_subscription_notifications` callable by authenticated) are intentional — they're gated internally and called from the JS layer.
+
+### Files
+- DB: `supabase/migrations/20260604_advisor_hardening.sql` — `SET search_path = public` on helpers + REVOKE EXECUTE on trigger functions (which shouldn't be RPC-callable)
+
+---
+
+## ✅ Feature 5 — Exercise Video Integration
+
+**Commit:** `2627a11`
+**Status:** Shipped + live-verified (publish flow, workout flow, exercise_id reaches logs, legacy fallback)
+**Approval level:** Not yet "signed off / frozen" — user has not explicitly signed it off as they did for 1–4. Treat as complete-and-stable but eligible for refinement.
+
+### What it does
+Threads the existing Exercise Library through `programPublish` editor → client program view → workout tracker. Linked exercises surface their thumbnail, ▶ Preview (inline expand 16:9 or fullscreen modal via Shift-click / narrow viewport), and ℹ Instructions disclosure (chips for joints + tags, sections for cues / common errors / progressions / regressions).
+
+### Locked architecture (Option A — zero migrations)
+- Program JSON gains an optional `exercise_id` field on each `{warmup,main,cooldown}[]` entry. Stores **both** `exercise_id` and `exercise_name` per spec.
+- Library is the single source of truth — `renderClientProgram` does `ExerciseLibrary.loadAll()` (5-min cache) once per render and builds an id→row Map; passed to `WorkoutSession.mountWorkouts({ libMap })` so the tracker doesn't re-fetch.
+- Legacy free-text rows (no `exercise_id`) render exactly as before. Mixed payloads (linked + legacy in the same workout) are explicitly supported and live-verified.
+- **`ExercisePicker` is reusable** — `window.ExercisePicker.open({ defaultFilter, onSelect })` returns a Promise. Used by Feature 5 publish editor; will be reused unchanged by Feature 6 alt-response modal.
+- **`ExerciseInstructions` is the only place** that decides how clinical text fields become rendered sections (forward-compat for a future `instructions` field).
+
+### 8 user-stated requirements — all honoured
+| # | Requirement | Where |
+|---|---|---|
+| 1 | Store both `exercise_id` + `exercise_name` in program JSON | `programPublish._wireSection` picker + autosuggest both set both fields |
+| 2 | Library remains single source of truth | live lookup at render, no snapshot |
+| 3 | `ExercisePicker` reusable for Feature 6 | `js/exercisePicker.js` |
+| 4 | Both autosuggest + Library-button workflows | both implemented in `_exerciseRow` |
+| 5 | Both inline + fullscreen player | inline 16:9 expand by default · Shift-click or `<640px` viewport → existing `ExerciseUI.openVideoModal` |
+| 6 | Surface thumbnail · instructions · joints · tags | thumbnail tile + `ExerciseInstructions.renderFull` (chips + sections) |
+| 7 | Reusable instruction-builder helper | `js/exerciseInstructions.js` |
+| 8 | 7 filter chips | `ExercisePicker.FILTERS` — All / Phase 1–3 / Mobility / Strength / Conditioning |
+
+### Conditioning chip note
+The live `exercises.category` CHECK constraint is `IN ('Rehab','Mobility','Strength','Neurology','Breathing')`. No `Conditioning`. Under the zero-migration constraint, the chip routes to `tag='conditioning'`. Coaches tag exercises to surface them. Widening the CHECK to include `Conditioning` is a 2-line migration if you prefer that path.
+
+### Files
+- NEW: `js/exerciseInstructions.js`, `js/exercisePicker.js`, `FEATURE_5_PROPOSAL.md` (kept as design record)
+- EDIT: `js/programPublish.js`, `js/workoutSession.js`, `app.html`
+- NO migration. NO changes to `exerciseLibrary.js`, `exerciseUI.js`, `auth.js`, services, `dashboard.js`, `index.html`.
+
+### Live verification
+- Seeded a library exercise, published a program with one linked row + one legacy row, started a workout, logged both → `exercise_id` reaches `workout_exercise_logs.exercise_id` for the linked row, stays null for the legacy row. Analytics LEFT JOIN recovers the library row for the linked log.
+- All verification rows cleaned up; `client_programs` restored to prior payload.
+
+### Deferred slice (locked out of scope of F5)
+- `exercises.default_prescription jsonb` auto-fill (Option B from proposal)
+- Polished `exercises.instructions text` field (Option C — helper already accepts it when present)
+- Equipment / difficulty / duration metadata
+
+---
+
+## ⏸ Feature 6 — Alternative Exercise Replacement Workflow
+
+**Status:** Planned · architecture preview exists in `FEATURE_5_PROPOSAL.md §7`
+**Dependency:** Feature 5 is shipped → ready when you are.
+
+### What it will do
+Extend the coach alt-response flow so the coach can pick a **substitute exercise** from the Library (using the same `ExercisePicker` component shipped in F5). The substitute is persisted alongside the original request; the client's program view swaps the exercise for the substitute when one exists; progression engine attributes the workout to whatever was actually performed.
+
+### Known scope (will be locked when user approves)
+- One column addition: `ALTER TABLE exercise_alternative_requests ADD COLUMN substitute_exercise_id uuid REFERENCES exercises(id) ON DELETE SET NULL`
+- `AltExercise.openModal` (coach side, Respond modal) grows a "🔄 Pick substitute" button → `ExercisePicker.open({...})`
+- `programPublish.renderClientProgram` checks for an active substitution per `(program_id, workout_key, exercise_index)` and swaps the row
+- `WorkoutSession` automatically uses the substitute's `exercise_id` in `logExercise` (no engine change)
+- Coach can revert a substitution (sets `substitute_exercise_id = null`)
+
+---
+
+## ⏸ Feature 7 — Assessment Results / 3D Hologram Integration
+
+**Status:** Planned · partially designed (gap E from initial audit)
+**Dependency:** Standalone — no upstream feature blocks this.
+
+### What it will do
+Wire the client-dashboard Assessment Report card (currently hardcoded "Loading…") to real data: pull the most-recent `rehab_objective_assessments` + `gait_assessments` + coach notes; populate the True Driver / Reported Symptoms / Coach's notes rows; cross-link to the 3D body map already rendered above.
+
+---
+
+## ⏸ Other deferred items (smaller, can interleave)
+
+| Item | Effort | Owner-feature when sensible |
+|---|---|---|
+| Daily pg_cron for `ensure_subscription_notifications` | S | Operational task — not feature-bound |
+| Email/SMS push for high-severity notifications | M | Could ride with F6 |
+| Notification deep-link pre-select on target loaders | S | Could ride with F6 |
+| Three competing coach-progress surfaces unification | M | F7 or later |
+| Workout history → Progress Charts crossover | S | F7 or later |
+| Progression v2 (nutrition + RPM phase signals) | L | After nutrition feature |
+| Nutrition Plan (full feature) | L | Its own feature |
+| Username vs email at signup | S | Spec misalignment — discuss before building |
+| "Unpublished program" indicator coach-side | S | UX polish |
+| Per-exercise skip tristate | S | UX polish |
+
+---
+
+## Summary table
+
+| Feature | DB migrations | JS modules | Status | Signoff |
+|---|---|---|---|---|
+| F1 Subscription Grace | 1 | 4 modified, 1 new | ✅ live | 🔒 frozen |
+| F2 Workout Tracking | 1 | 1 new, 4 modified | ✅ live | 🔒 frozen |
+| F3 Notifications + Alt-Exercise + retrofit | 2 (+1 drop) | 2 new, 3 modified | ✅ live | 🔒 frozen |
+| F4 Progression Engine v1 | 1 | 1 new, 2 modified | ✅ live | 🔒 frozen |
+| Tier 1 Spec + FK + Phase Upgrade | 1 | 4 modified | ✅ live | — |
+| Tier 2 Advisor hardening | 1 | 0 | ✅ live | — |
+| F5 Exercise Video Integration | 0 | 2 new, 2 modified | ✅ live | not yet "frozen" |
+| **F6 Alt-Exercise Replacement** | **1 pending** | **TBD** | **⏸ planned** | — |
+| **F7 Assessment / 3D Hologram** | **0 pending** | **TBD** | **⏸ planned** | — |
+
+**Live migrations applied: 7** (all in `supabase_migrations.schema_migrations`).
+**Live tables created by this work: 4** (`notifications`, `exercise_alternative_requests`, `workout_sessions`, `workout_exercise_logs`).
+**Live views created by this work: 2** (`v_client_subscription_state`, `v_client_progression`).
+**Live JS modules added by this work: 7** (`subscriptionService`, `workoutSession`, `notificationsService`, `altExerciseRequest`, `progressionEngine`, `exerciseInstructions`, `exercisePicker`).

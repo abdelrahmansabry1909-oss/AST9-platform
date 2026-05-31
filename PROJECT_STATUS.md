@@ -1,283 +1,264 @@
-# PROJECT_STATUS.md — NeuCore Platform (Path A complete · live verified)
+# PROJECT_STATUS.md — NeuCore Platform
 
-**Date:** 2026-05-30
+**Last updated:** 2026-05-30
 **Branch:** `claude/interesting-buck-452459`
-**Live Supabase project:** `byquokhcbagofshsclfy` (eu-central-1, PG 17.6.1.111, ACTIVE_HEALTHY)
-**Status:** All 7 migrations applied + registered. End-to-end smoke tests passed. Verification artifacts cleaned up.
+**HEAD commit:** `2627a11` (Feature 5)
+**Worktree path:** `D:\ASThub\.claude\worktrees\interesting-buck-452459`
+**Origin repo:** `https://github.com/abdelrahmansabry1909-oss/AST9_HUB.git`
+**Live Supabase project:** `byquokhcbagofshsclfy` (eu-central-1, Postgres 17.6.1.111, ACTIVE_HEALTHY)
+
+> This document is a **handoff snapshot.** A future Claude session reading this + `FEATURE_STATUS.md` + `NEXT_STEPS.md` has every fact needed to continue without rebuilding context.
 
 ---
 
-## 0 · Executive Summary
+## 0 · One-line summary
 
-| Stream | Verdict |
-|---|---|
-| Features 1–4 code | ✅ Committed (`4f65456`) |
-| Tier 1 fixes | ✅ Committed (`7265f09`) |
-| Path A — drop legacy notifications | ✅ Applied (`drop_legacy_notifications`) |
-| 5 feature migrations | ✅ All applied + tracked in `schema_migrations` |
-| Live data check | ✅ 2 active subscriptions, both correctly classified `active` with 72 and 83 days remaining |
-| `notify()` RPC | ✅ Live tested — insert + read back works |
-| Alt-exercise trigger (insert) | ✅ Live tested — coach notification produced |
-| Alt-exercise trigger (update) | ✅ Live tested — client notification produced |
-| Phase Upgrade trigger | ✅ Live tested — `from_phase`/`to_phase` payload populated |
-| `ensure_subscription_notifications` | ✅ Live tested — correctly no-op for both active clients (>7d remaining) |
-| Progression engine | ✅ Live tested — score shifted **45.0 → 52.8** after one completed workout, exactly per formula |
-| Unique-active-session invariant | ✅ Live tested — 23505 raised on second active insert |
-| RLS on all 4 new tables | ✅ All enabled with policies attached |
-| Advisor delta | ✅ +3 net warnings, all intentional (notify / reactivate / ensure_sub callable by authenticated) |
-| Cleanup | ✅ All verification rows removed |
+5 features shipped + 2 hardening passes + 7 migrations live + 7 new JS modules + full end-to-end live verification. **Features 1–4 frozen by user signoff; Feature 5 complete and stable but not yet "frozen." Awaiting user call on Feature 6 (Alt-Exercise Replacement) vs Feature 7 (Assessment / 3D Hologram).**
 
 ---
 
-## 1 · Migration registry (live)
+## 1 · Critical context for a future session
 
-The Supabase `supabase_migrations.schema_migrations` table now records every migration. Drift eliminated for this body of work.
+### 1.1 Two app shells exist — work only in `app.html`
+- `app.html` is the active NeuCore shell with role-aware sidebar (`role-coach-admin`, `role-client-only`, `role-admin-only`).
+- `index.html` is the **legacy AST9 single-role shell** — out of scope, deliberately untouched. **Never edit `index.html`** unless the user explicitly says so.
 
-| Version (UTC) | Name | Applied via |
-|---|---|---|
-| 20260530202156 | `drop_legacy_notifications` | MCP `apply_migration` |
-| 20260530202308 | `subscription_grace` | MCP `apply_migration` |
-| 20260530202413 | `workout_tracking` | MCP `apply_migration` |
-| 20260530202555 | `notifications_inbox` | MCP `apply_migration` |
-| 20260530203052 | `progression_engine` | MCP `apply_migration` (live-adapted for `daily_routine_logs.battery_pct`) |
-| 20260530203157 | `notification_guards_and_phase_upgrade` | MCP `apply_migration` |
-| 20260530XXXXXX | `advisor_hardening` | MCP `apply_migration` |
+### 1.2 The four locked architectural rules
+1. **Write-gate:** every client-side write call must check `Auth.canWrite()`. `active | grace → ok` · `expired | pending | none → toast + return`.
+2. **Single source of truth for subscription state:** read `Auth.getSubscriptionState()` (cached on `_profile.subscription`); never query `subscriptions` directly from a UI module — use `SubscriptionService`.
+3. **Notification authorization in SQL once:** never `INSERT INTO notifications` directly — always go through `public.notify(...)`. The `WITH CHECK (false)` direct-insert policy enforces this at the DB.
+4. **Progression formula immutable in place:** any reweight ships as a new view `v_client_progression` v2 + `formula_version` bump. Never edit v1 in place.
 
-Local disk files updated to match the as-applied SQL. The pre-existing 4 untracked migrations on disk (`20260515_rpm_foundation`, `20260516_rpm_phase5`, `20260521_daily_routine`, `20260522_client_program_publish`) remain unregistered — they're someone else's work and out of scope for this verification.
+### 1.3 The five locked working-style rules (from user memory)
+1. Lock architecture before any code
+2. One feature at a time
+3. No scope drift
+4. Verify before signoff
+5. After signoff, the feature is **frozen** — don't touch unless a bug surfaces
 
----
+### 1.4 Two pre-existing schema oddities — be aware
+- **Migration registry drift.** Four migration files exist on disk but aren't in `supabase_migrations.schema_migrations`: `20260515_rpm_foundation`, `20260516_rpm_phase5`, `20260521_daily_routine`, `20260522_client_program_publish`. Their tables exist (rpm_graphs, daily_routine_logs, client_programs) — applied via the SQL editor, not the CLI. Not a blocker; just don't trust `list_migrations()` as a complete map.
+- **`daily_routine_logs` shape differs from its disk migration.** Live has `(id, client_id, log_date, completed bool, battery_pct int, completed_at)`. Disk file defines `(percent, total_tasks, completed_tasks jsonb, completed_count, updated_at)`. The Feature 4 view `v_client_progression` was adapted live to derive `routine_pct = COALESCE(battery_pct, completed?100:0)`. The on-disk migration file matches the live-applied SQL — they're consistent now.
 
-## 2 · Live objects inventory (post-apply)
-
-**4 tables** (RLS enabled, policies attached, all 0 rows after cleanup):
-- `public.notifications` (4 policies)
-- `public.exercise_alternative_requests` (4 policies)
-- `public.workout_sessions` (4 policies)
-- `public.workout_exercise_logs` (1 policy that inherits via parent session)
-
-**2 views** (security_invoker=true so callers' RLS applies):
-- `public.v_client_subscription_state`
-- `public.v_client_progression`
-
-**12 functions:**
-- Subscription: `reactivate_subscription`
-- Notifications: `notify`, `ensure_subscription_notifications`
-- Helpers: `_clamp_score`, `_profile_exists`
-- Triggers: `tg_aer_notify_coach`, `tg_aer_notify_client`, `tg_phase_subm_notify_coach`, `tg_phase_subm_notify_client`, `tg_case_share_notify_admins`, `tg_case_share_notify_coach`, `tg_profile_phase_upgrade`
-
-**8 triggers** wired:
-- `tg_aer_insert`, `tg_aer_update` on `exercise_alternative_requests`
-- `tg_phase_subm_insert`, `tg_phase_subm_update` on `phase_submissions`
-- `tg_case_share_insert`, `tg_case_share_update` on `case_shares`
-- `tg_profile_phase_upgrade` on `profiles.current_phase`
-- `workout_exercise_logs_touch` (updated_at maintenance)
+### 1.5 Foreign-key invariant
+- `notifications.recipient_id` FKs to `profiles(id) NOT NULL`.
+- `rpm_graphs.coach_id` and `case_shares.coach_id` FK to `auth.users(id)` (legacy schema).
+- The six notification triggers wrap every `notify()` call in `IF public._profile_exists(v_recipient)` (Tier 1). If a coach exists in auth but not in profiles, the trigger silently no-ops instead of rolling back the parent INSERT.
 
 ---
 
-## 3 · Live smoke test results
+## 2 · Current architecture
 
-### 3.1 Subscription state
-```sql
-SELECT client_id, plan, end_date, grace_days, days_remaining,
-       grace_days_left, grace_until, effective_status
-FROM v_client_subscription_state;
+### 2.1 Role model
+- `profiles.role ∈ {admin, coach, client}` · `profiles.assigned_coach` FKs `profiles(id)` for clients.
+- Sidebar visibility driven by `Dashboard.initShell` via `.role-coach-admin` / `.role-client-only` / `.role-admin-only` CSS classes.
+- Loader registry: `js/dashboard.js → const loaders = { 'dashboard': ..., 'client-settings': ..., 'workout-history': ..., 'notifications': ..., 'progression': ..., ... }`.
+
+### 2.2 Auth flow
+- `Auth.init` → loads `_profile` from `profiles` → for clients, calls `_refreshSubscriptionState` → if `expired | pending | none`, throws `SubscriptionInactiveError {code: 'SUBSCRIPTION_INACTIVE', state}`. UI boot catches and shows `#screen-subscription-inactive`.
+- `Auth.canWrite()` returns true for non-clients, delegates to `SubscriptionService.canWrite(state)` for clients.
+- `Auth.getSubscriptionState()` returns the cached `_profile.subscription`.
+
+### 2.3 Cross-module communication
+- **Notifications inbox** is the canonical seam. Modules don't call each other; they `INSERT` into their own tables and let DB triggers publish into `notifications`. UI badge subscribes via Supabase Realtime + 60s poll fallback.
+- **Subscription state** is read once per session and cached on `_profile.subscription` — no per-component re-fetch.
+- **Library lookup** for program rendering is one batched `ExerciseLibrary.loadAll()` per `renderClientProgram`; the resulting Map is passed to `WorkoutSession.mountWorkouts({ libMap })`.
+
+### 2.4 Data flow (client journey)
+
 ```
-| client_id | plan | end_date | grace_days | days_remaining | grace_days_left | grace_until | effective_status |
-|---|---|---|---|---|---|---|---|
-| b0077a6c… (Ahmedmohamed) | 3 | 2026-08-21 | 7 | 83 | 90 | 2026-08-28 | **active** |
-| db6a91e6… (BODZ) | 3 | 2026-08-10 | 7 | 72 | 79 | 2026-08-17 | **active** |
+Coach creates Client (Clients.submitAddClient → create-user edge fn → profiles row)
+        ↓
+Coach creates Subscription (Subscriptions.submit → subscriptions row)
+        ↓
+Coach runs New Session (assessments + rehab_objective_assessments + gait_assessments + body_map_states)
+        ↓
+Coach Generate → Review → Publish (ProgramPublish → upsert client_programs.program + client_routines.tasks)
+        ↓
+Client logs in (Auth.login → SubscriptionService gate)
+        ↓
+Client lands on Client Dashboard (3D LoadVisualizer + Progression gauges + Subscription pill)
+        ↓
+Client navigates to My Program (ProgramPublish.renderClientProgram → ExerciseLibrary lookup
+                                  → WorkoutSession.mountWorkouts with libMap)
+        ↓
+Client starts workout (WorkoutSession.start → workout_sessions row)
+        ↓
+Client logs sets/reps/weight (WorkoutSession.logExercise → workout_exercise_logs upsert
+                                with exercise_id when row is library-linked)
+        ↓
+Client may request alternative (AltExercise.openModal → exercise_alternative_requests INSERT
+                                  → tg_aer_insert trigger → notification to coach)
+        ↓
+Client finishes workout (WorkoutSession.finish → row status='completed', intensity, notes)
+        ↓
+Progression engine recalculates on next render (v_client_progression view reads workout_sessions
+                                                  + workout_exercise_logs + daily_routine_logs
+                                                  + exercise_alternative_requests)
+        ↓
+Coach sees the workout in Workout History (mountCoachView)
+Coach sees updated scores in Progression overview (mountCoachOverview)
+Coach gets inbox notifications for alt-requests, RPM submissions, case approvals,
+       subscription expiring/grace, phase upgrades
+```
 
-Both correctly classified. `grace_until` correctly = end_date + 7d.
+---
 
-### 3.2 Progression engine — baseline
-Both clients (no workout history yet): Overall **45.0** · Compliance 0 · Recovery 100 · Performance 50 · v1.0. Matches formula: 0.4·0 + 0.3·100 + 0.3·50 = 45.
+## 3 · Live Supabase state inventory
 
-### 3.3 Progression engine — after 1 completed workout
-Started + finished one workout for client b00 (intensity 7, one completed exercise with 2 sets, in-window alt-request also active). Re-queried view:
-
-| metric | baseline | after | formula |
+### 3.1 Tables added by this work (RLS enabled, all policies attached)
+| Table | RLS | Rows | Source migration |
 |---|---|---|---|
-| workouts_completed_30d | 0 | 1 | — |
-| exercise_completion_pct_30d | 0 | 100 | 1 of 1 marked done |
-| compliance | 0.0 | 23.3 | 0.4·8.33 + 0.4·0 + 0.2·100 = 23.3 ✓ |
-| recovery | 100.0 | 95.0 | 100 − 5·(1 alt) = 95 ✓ |
-| performance | 50.0 | 50.0 | only 1 exercise < 3 minimum ✓ |
-| **overall** | **45.0** | **52.8** | 0.4·23.3 + 0.3·95 + 0.3·50 = 52.82 ✓ |
+| `notifications` | ✅ 4 policies | 0 | `notifications_inbox` (Feature 3) |
+| `exercise_alternative_requests` | ✅ 4 policies | 0 | `notifications_inbox` (Feature 3) |
+| `workout_sessions` | ✅ 4 policies + partial-unique-active-idx | 0 | `workout_tracking` (Feature 2) |
+| `workout_exercise_logs` | ✅ 1 policy (inherits via parent) + unique (session, idx) | 0 | `workout_tracking` (Feature 2) |
 
-Engine is correct, deterministic, and matches the formula documented in the migration header.
-
-### 3.4 notify() RPC self-test
-```sql
-SELECT public.notify(auth.uid(), 'verification_test', 'Live verification smoke test', ...);
-SELECT * FROM notifications WHERE type='verification_test';
-```
-→ Returns a UUID. Row appears with `recipient_id`, `actor_id`, `type='verification_test'`, `severity='info'`, `read_at=null`, `archived=false`. ✓
-
-### 3.5 Alt-exercise trigger chain
-Step 1 — Insert request as client b00 ⇒ Tempo Goblet Squat:
-```
-INSERT INTO exercise_alternative_requests ... RETURNING id;
-```
-→ Trigger `tg_aer_insert` fired; notification row appeared for coach:
-- `type='alt_exercise_request'` · `title='Alternative exercise requested'`
-- `severity='warning'` · `link_section='notifications'`
-- `link_params={request_id, client_id}` · `data.exercise_name='Tempo Goblet Squat'`
-
-Step 2 — Update status='addressed' with coach_response:
-→ Trigger `tg_aer_update` fired; notification row appeared for client:
-- `type='alt_exercise_decided'` · `title='Your alternative exercise was addressed'`
-- `severity='info'` · `body='[verification] Sub: Box squat with 2-sec pause, knees out.'`
-
-Full bidirectional flow verified end-to-end. ✓
-
-### 3.6 Phase Upgrade trigger
-```sql
-UPDATE profiles SET current_phase='Phase 2' WHERE id='b0077a6c-…';
-SELECT * FROM notifications WHERE type='phase_upgrade';
-```
-→ Trigger `tg_profile_phase_upgrade` fired:
-- `recipient_id=b0077a6c…` · `title='🏆 Phase upgrade — Phase 2'`
-- `body='Your coach advanced you to Phase 2. ...'`
-- `data.from_phase='Phase 1'`, `data.to_phase='Phase 2'` ✓
-- `link_section='dashboard'`, `severity='info'`
-
-The "celebration message" channel from the spec is now fulfilled by the inbox (in addition to the existing email path).
-
-### 3.7 `ensure_subscription_notifications` idempotency
-Called for both active clients (both >7d remaining, neither in grace):
-```sql
-SELECT public.ensure_subscription_notifications('b0077a6c-…');
-SELECT public.ensure_subscription_notifications('db6a91e6-…');
-SELECT type, COUNT(*) FROM notifications
-  WHERE type IN ('subscription_expiring','subscription_grace','subscription_expired')
-  GROUP BY type;
-```
-→ Returns 0 rows. Function correctly no-ops when outside thresholds. ✓
-
-### 3.8 Unique-active-session invariant
-```sql
--- Already one active session for client b00; insert another
-INSERT INTO workout_sessions (..., status='active') VALUES (...);
-```
-→ Postgres `23505: duplicate key value violates unique constraint "workout_sessions_one_active_uidx"`. The one-active-per-client partial unique index works as designed; the JS service's auto-abandon logic is what prevents this in production. ✓
-
-### 3.9 Workout exercise log upsert
-```sql
-INSERT INTO workout_exercise_logs (session_id, exercise_index, sets, ...)
-VALUES (..., '[{n:1,reps:8,weight:24},{n:2,reps:8,weight:24}]', ...);
--- Then upsert same (session_id, exercise_index) with different sets
-INSERT INTO ... ON CONFLICT (session_id, exercise_index) DO UPDATE SET sets = EXCLUDED.sets;
-```
-→ First INSERT returns row with set_count=2. Upsert returns same row with set_count=1 (updated). The unique constraint matches `WorkoutSession.logExercise()`'s `onConflict: 'session_id,exercise_index'`. ✓
-
-### 3.10 RLS audit
-```sql
-SELECT table, rls_on, policy_count FROM ... WHERE table_name IN (the 4 new tables);
-```
-| Table | RLS on | Policies |
+### 3.2 Views added (both `security_invoker=true` — RLS on underlying tables governs)
+| View | Source migration | Purpose |
 |---|---|---|
-| `notifications` | ✅ | 4 (select, update, no-direct-insert, delete) |
-| `exercise_alternative_requests` | ✅ | 4 (client-insert, select, client-update-pending, coach-update) |
-| `workout_sessions` | ✅ | 4 (client-own, coach-read, coach-write, coach-update) |
-| `workout_exercise_logs` | ✅ | 1 (access via parent session join) |
+| `v_client_subscription_state` | `subscription_grace` (F1) | One row per client with `effective_status`, `days_remaining`, `grace_days_left`, `grace_until` |
+| `v_client_progression` | `progression_engine` (F4) | One row per client with `compliance`, `recovery`, `performance`, `overall` + signal counts, formula v1.0 |
+
+### 3.3 Functions added
+| Function | Type | Purpose |
+|---|---|---|
+| `public.notify(...)` | SECURITY DEFINER | Single insert path for notifications inbox. Authz inside. |
+| `public.reactivate_subscription(client, months, start, notes)` | SECURITY DEFINER | Coach/admin gated. Inserts new active subscription row. |
+| `public.ensure_subscription_notifications(client)` | SECURITY DEFINER | Idempotent. Inserts expiring/grace notifications per billing window. |
+| `public._profile_exists(uuid)` | STABLE | Trigger-safety guard. |
+| `public._clamp_score(numeric)` | IMMUTABLE | View math helper. |
+| `public.touch_workout_log_updated_at()` | trigger fn | maintenance |
+| `tg_aer_notify_coach()`, `tg_aer_notify_client()` | trigger fn | Alt-exercise notifications |
+| `tg_phase_subm_notify_coach()`, `tg_phase_subm_notify_client()` | trigger fn | RPM approval notifications |
+| `tg_case_share_notify_admins()`, `tg_case_share_notify_coach()` | trigger fn | Case study approval notifications |
+| `tg_profile_phase_upgrade()` | trigger fn | Coach phase upgrade → client inbox |
+
+All have `SET search_path = public` (advisor-clean). Trigger functions have `REVOKE EXECUTE FROM anon, authenticated, public` (they're not RPC-callable).
+
+### 3.4 Triggers attached
+| Trigger | Table | Event |
+|---|---|---|
+| `tg_aer_insert` | `exercise_alternative_requests` | AFTER INSERT |
+| `tg_aer_update` | `exercise_alternative_requests` | AFTER UPDATE OF status |
+| `tg_phase_subm_insert` | `phase_submissions` | AFTER INSERT |
+| `tg_phase_subm_update` | `phase_submissions` | AFTER UPDATE OF status |
+| `tg_case_share_insert` | `case_shares` | AFTER INSERT |
+| `tg_case_share_update` | `case_shares` | AFTER UPDATE OF status |
+| `tg_profile_phase_upgrade` | `profiles` | AFTER UPDATE OF current_phase |
+| `workout_exercise_logs_touch` | `workout_exercise_logs` | BEFORE UPDATE (maintenance) |
+
+### 3.5 Migrations in `supabase_migrations.schema_migrations` (this work)
+| Version | Name | Feature |
+|---|---|---|
+| `20260530202156` | `drop_legacy_notifications` | Path A precursor |
+| `20260530202308` | `subscription_grace` | Feature 1 |
+| `20260530202413` | `workout_tracking` | Feature 2 |
+| `20260530202555` | `notifications_inbox` | Feature 3 |
+| `20260530203052` | `progression_engine` | Feature 4 |
+| `20260530203157` | `notification_guards_and_phase_upgrade` | Tier 1 |
+| (next) | `advisor_hardening` | Tier 2 |
+
+(plus the 12 pre-existing migrations + 4 untracked ones noted in §1.4)
+
+### 3.6 Security advisors — current state
+- **15 warnings total** (12 pre-existing + 3 introduced by this work).
+- 3 from this work are **all intentional** (gated internally):
+  - `notify(authenticated)` callable — needed by `AltExercise.openModal` etc.
+  - `reactivate_subscription(authenticated)` callable — needed by `SubscriptionService.reactivate`
+  - `ensure_subscription_notifications(authenticated)` callable — needed by `Auth.init`
+- 12 pre-existing warnings (is_admin, is_coach, get_my_role, etc.) are out of scope.
 
 ---
 
-## 4 · Real bugs surfaced by live verification
+## 4 · Database schema changes summary
 
-Two bugs that **would have shipped silently** if we hadn't verified against the live DB:
+| Migration | Adds | Modifies |
+|---|---|---|
+| `subscription_grace` | view `v_client_subscription_state`, RPC `reactivate_subscription` | `subscriptions` += `grace_days int DEFAULT 7` |
+| `workout_tracking` | tables `workout_sessions`, `workout_exercise_logs` + partial unique idx + trigger | — |
+| `notifications_inbox` | tables `notifications`, `exercise_alternative_requests` + 6 triggers + RPC `notify` + RPC `ensure_subscription_notifications` | — |
+| `progression_engine` | view `v_client_progression` + helper `_clamp_score` | — |
+| `notification_guards_and_phase_upgrade` | helper `_profile_exists` + trigger `tg_profile_phase_upgrade` | recreates 6 notification trigger fns with FK guard |
+| `advisor_hardening` | — | SET search_path on 3 helpers + REVOKE EXECUTE on 8 trigger fns and 3 anon-restrictions |
 
-### Bug 1 — Notifications schema collision
-A legacy `public.notifications` table predated my work with shape `(user_id, from_user_id, message, is_read)`. My migration's `CREATE TABLE IF NOT EXISTS` would have **silently no-op'd** and every `notify()` insert would have failed at runtime with "column recipient_id does not exist".
-
-**Fix**: pre-drop verification confirmed 0 rows + no FKs + no policies/triggers/functions/code references → `DROP TABLE ... CASCADE` migration → new schema lands clean.
-
-### Bug 2 — Progression view referenced wrong column
-The on-disk `20260521_daily_routine.sql` defines `daily_routine_logs.percent`. The **live** table actually has `daily_routine_logs.battery_pct` (different shape — someone applied a different version). My Feature 4 migration failed loudly on first apply.
-
-**Fix**: rewrote `routine_norm` CTE to derive routine_pct from `battery_pct` when present, else `100 if completed else 0`. Migration succeeded on retry. View now works regardless of which schema version is live.
-
-Both bugs are now fixed in the live DB and in the on-disk migration files.
+**Feature 5 added zero migrations.** Program JSON gained an optional `exercise_id` field at the `workouts[].{warmup,main,cooldown}[]` entry level — JSON shape evolution only.
 
 ---
 
-## 5 · Advisor delta
+## 5 · Completed features
 
-**Before any of this work:** 12 security warnings (all pre-existing — search-path on `rpm_touch_updated_at`, anon insert on `visitor_inquiries`, helper functions exposed via RPC, auth password protection setting).
+See `FEATURE_STATUS.md` for the per-feature deep dive. Headline:
 
-**After Features 1-4 + Tier 1 (before hardening):** 23 warnings (12 pre-existing + 11 new from this work).
-
-**After advisor_hardening migration:** **15 warnings.** Net delta from this work = **+3**, all intentional:
-
-| Warning | Status |
-|---|---|
-| `notify(authenticated)` callable | ✅ **By design** — gated internally by recipient/coach/admin permission logic |
-| `reactivate_subscription(authenticated)` callable | ✅ **By design** — gated by `is_admin OR assigned_coach` check inside the function |
-| `ensure_subscription_notifications(authenticated)` callable | ✅ **By design** — invoked from `Auth.init` for the current user |
-
-All other Feature 1-4 functions (the 6 trigger functions, the 3 helpers `_clamp_score`/`_profile_exists`/`touch_workout_log_updated_at`) are now properly hardened: `SET search_path = public` everywhere, EXECUTE revoked from `anon` + `public`, trigger functions also revoked from `authenticated`.
-
-The 12 pre-existing warnings are unchanged — closing them is out of scope for this work.
+| Feature | Commits | Frozen? |
+|---|---|---|
+| F1 Subscription Grace | `4f65456` + `230f751` + `7265f09` | ✅ |
+| F2 Workout Tracking | `4f65456` + `230f751` | ✅ |
+| F3 Notifications + Alt + Retrofit | `4f65456` + `230f751` + `7265f09` | ✅ |
+| F4 Progression v1 | `4f65456` + `230f751` | ✅ |
+| Tier 1 (spec compliance + FK + Phase notif) | `7265f09` | — |
+| Tier 2 (advisor hardening) | `230f751` | — |
+| F5 Exercise Video Integration | `2627a11` | Complete + verified, not formally frozen |
 
 ---
 
-## 6 · Files / commits
+## 6 · Live-verified features
 
-| Commit | Branch position |
-|---|---|
-| `4f65456` | Features 1–4 + first PROJECT_STATUS.md |
-| `7265f09` | Tier 1 fixes (M, N, D, L, C, FK guards, Phase Upgrade notif) |
-| `1d97fbd` | Status update — collision found |
-| **(pending)** | **Path A migrations + Bug 2 + advisor hardening + final status** |
+Every feature listed above was verified end-to-end against the live Supabase project:
 
-On-disk source matches the live DB:
-- `supabase/migrations/20260530_subscription_grace.sql`
-- `supabase/migrations/20260531_workout_tracking.sql`
-- `supabase/migrations/20260601_notifications_inbox.sql`
-- `supabase/migrations/20260602_progression_engine.sql` ← updated (live `battery_pct` adapt)
-- `supabase/migrations/20260603_notification_guards_and_phase_upgrade.sql`
-- `supabase/migrations/20260604_advisor_hardening.sql` ← new (search_path + revokes)
+- **F1:** Subscription view returns correct effective_status for the 2 live clients (active, 83d & 72d remaining).
+- **F2:** Insert/upsert paths work; one-active-per-client unique constraint raises `23505` as designed; RLS scoped correctly.
+- **F3:** `notify()` self-test round-trip; alt-exercise trigger chain (insert → coach notification, update → client notification); phase upgrade trigger emits `from_phase`/`to_phase`; `ensure_subscription_notifications` idempotent.
+- **F4:** Score shifted 45.0 → 52.8 after one workout — matches formula exactly.
+- **F5:** Coach publish with mixed linked + legacy rows; workout flow logs `exercise_id` for linked, null for legacy; analytics LEFT JOIN recovers library row for linked log.
 
-(The `drop_legacy_notifications` step is a database-only one-shot — no on-disk file is needed because the schema it dropped was never part of this repo.)
+All verification artifacts cleaned up. Production data unaffected.
 
 ---
 
-## 7 · Spec compliance status (post Path A)
+## 7 · Outstanding gaps (priority-ordered)
 
-| Spec area | Live status |
-|---|---|
-| Two-role auth (coach/client) + role-aware sidebar | ✅ |
-| Coach creates client (email + temp password + coach assignment) | ✅ (Tier 1 fix C requires assigned_coach) |
-| Subscription create/activate/reactivate by coach | ✅ live (RPC verified) |
-| 7-day grace period | ✅ live (view + helper) |
-| Days-remaining display | ✅ (client dashboard pill, settings page) |
-| Login blocked after grace | ✅ (`Auth._gateClient`) |
-| Client home: assessment data + 3D + charts | ⚠ Assessment Report card still hardcoded "Loading…" (gap E from earlier audit) |
-| Program (Day 1, Day 2…) + Start/Finish Workout | ✅ live (workout_sessions + UI hooked) |
-| Per-exercise sets/reps/weight + notes | ✅ live (workout_exercise_logs unique upsert verified) |
-| Exercise video preview inside program | ❌ deferred (Feature 5: Exercise Video Integration) |
-| Alternative exercise request | ✅ live (trigger chain verified both directions) |
-| Coach alt-response substitutes exercise | ❌ deferred (Feature 6: Alt-Exercise Replacement) |
-| Progression engine (Compliance / Recovery / Performance / Overall) | ✅ live + math-verified |
-| Cross-module notifications (RPM / case / subscription / alt / phase) | ✅ live (triggers + ensure_sub) |
-| Community + Case Studies + Daily Routine | ✅ pre-existing (untouched) |
+Detail in `NEXT_STEPS.md §3`. Headline:
+
+1. **Feature 6 — Alternative Exercise Replacement** (next per user-stated priority)
+2. **Feature 7 — Assessment / 3D Hologram Integration**
+3. Email/SMS push (high-severity notifications via Resend)
+4. Notification deep-link pre-select on target loaders
+5. Daily pg_cron for `ensure_subscription_notifications`
+6. Progression v2 (nutrition + RPM phase signals)
+7. Nutrition Plan (whole new domain)
+8. Smaller polish: unpublished-program indicator, skip tristate, username vs email, three competing coach-progress surfaces unification.
 
 ---
 
-## 8 · Remaining gaps (unchanged from previous audit, intentionally deferred)
+## 8 · Branch state
 
-These are the planned Feature 5/6/7 priorities the user mentioned, in order:
+```
+2627a11 feat(F5): Exercise Video Integration — zero migrations, JSON shape evolution   ← HEAD
+230f751 verify(live): Path A complete — 7 migrations live + smoke-passed
+1d97fbd docs(status): live verification halted at notifications collision
+7265f09 fix(tier1): spec compliance + FK guards + phase upgrade notification
+4f65456 feat(platform): Features 1-4 + verification report
+defa453 fix(client-sidebar): gate New Session + Programs as role-coach-admin
+59a7b48 feat(client): Chart.js metric panels (Force Steadiness, CoG, Risk Timeline)
+34b131d feat(client): live Point A/B Load Visualizer + assessment-driven profile
+f5cac7c feat(client): role-aware client dashboard scaffold (Phase A)
+```
 
-1. **Exercise Video Integration** — thread `exercise_id` from the Library through `client_programs.program.workouts[].exercises[]`; surface video previews inside Workout rows.
-2. **Alternative Exercise Replacement Workflow** — extend coach Respond modal with a substitute-exercise picker; persist the substitution so the program updates, not just the notification.
-3. **Assessment Results / 3D Hologram Integration** — wire the client-dashboard Assessment Report card to real data (gap E).
-
-Plus the smaller items the previous audit listed: per-exercise skip tristate, progression history snapshot table (for trendlines), three competing coach-progress surfaces unification, nutrition signal, daily cron for subscription notifications.
+**Nothing pushed.** Working tree clean except for the three handoff docs being generated now.
 
 ---
 
-## 9 · Status
+## 9 · How to continue
 
-**Path A complete. Live Supabase verified. No new feature development started.**
+Read in this order:
 
-Awaiting your call on Feature 5/6/7 ordering. Per your standing rule (lock architecture, one feature at a time, no scope drift), I'll wait for explicit go-ahead before any further work.
+1. `PROJECT_STATUS.md` (this file) — for the big picture
+2. `FEATURE_STATUS.md` — per-feature deep dive
+3. `NEXT_STEPS.md` — recommended build order + Feature 6 architecture preview
+
+The user's standing rule: **lock architecture before any code, one feature at a time, no scope drift.** Always propose architecture first, get a "go" or scope changes, then build.
+
+For live Supabase work, the project ID is `byquokhcbagofshsclfy` and the MCP tools (`mcp__f0b78c38-76ea-4245-8df6-3f1d98401250__*`) are available via `ToolSearch`.
+
+For files: every JS module is an IIFE that exposes a single `window.XYZ` global. Migrations live in `supabase/migrations/` with the date-prefixed naming convention. **Always use `apply_migration` (not `execute_sql`) for DDL** so the registry stays consistent.
