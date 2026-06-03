@@ -145,9 +145,11 @@ serve(async (req) => {
     return new Response(JSON.stringify({ error: "Rate limit — please wait a moment" }), { status: 429, headers: CORS });
   }
 
-  // Insert via service role (bypasses RLS but the table allows anon INSERT anyway)
+  // Insert with the ANON key — public-safe functions hold NO service role
+  // (Edge Finalization S9). visitor_inquiries permits anon INSERT, so RLS
+  // is satisfied without elevated privilege.
   const supaUrl = Deno.env.get("SUPABASE_URL")!;
-  const supaKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const supaKey = Deno.env.get("SUPABASE_ANON_KEY")!;
   const sb = createClient(supaUrl, supaKey, { auth: { persistSession: false } });
 
   const emailSent = await sendEmail(v.data);
