@@ -83,8 +83,11 @@ export function deriveLoadProfile(assessment) {
   const currentA = {
     'Lower Back': _blend(
       _painOf(j, 'LumbarSpine'),
-      // Spine pain flags bump load even without ROM measurements
-      (a.sp_flex_pain ? 30 : 0) + (a.sp_ext_pain ? 20 : 0),
+      // Spine pain flags bump load even without ROM measurements.
+      // F7: column names are spine_flexion_pain / spine_extension_pain
+      // on rehab_objective_assessments (booleans) — the old sp_flex_pain
+      // / sp_ext_pain keys never existed, so this contributor was dead.
+      (a.spine_flexion_pain ? 30 : 0) + (a.spine_extension_pain ? 20 : 0),
     ),
     'Right Hip':  _blend(
       _painOf(j, 'RightHip'),
