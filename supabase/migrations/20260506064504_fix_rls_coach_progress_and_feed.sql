@@ -1,0 +1,23 @@
+-- ═══════════════════════════════════════════════════════════════
+--  Marker file — RLS fix for coach Progress Charts + client feed
+--
+--  This version (20260506064504) is recorded in the remote
+--  supabase_migrations.schema_migrations registry. It was applied
+--  via the Supabase SQL Editor before the project adopted
+--  CLI-managed migrations, so the original SQL is not in this repo.
+--
+--  This stub exists ONLY so the Supabase CLI's filename-matching
+--  check passes ("Remote migration versions not found in local
+--  migrations directory"). On production it will be skipped
+--  because the version is already registered as applied.
+--
+--  On a FRESH preview / branch database, this stub will run as a
+--  no-op — meaning the preview DB will be MISSING the schema this
+--  migration originally created. If preview parity is required,
+--  run `supabase db pull --schema public` against production
+--  once to reconstruct the schema as a consolidated initial
+--  migration, then delete these markers.
+-- ═══════════════════════════════════════════════════════════════
+
+-- No-op — original SQL applied via Supabase SQL Editor, see header.
+SELECT 1;

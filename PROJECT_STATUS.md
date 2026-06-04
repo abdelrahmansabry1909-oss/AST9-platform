@@ -231,7 +231,7 @@ Detail in `NEXT_STEPS.md §3` + `PRODUCT_AUDIT.md`. Headline:
 
 1. ✅ **Reliability + Defect Sweep** — DONE (closed C1, C2, C3, C5, H1, H2, H3, H5, H7)
 2. ✅ **System Stabilization Pass** — DONE (closed the sessions RLS leak server-side + removed all remaining LS dual-source paths + normalized empty states)
-3. **Feature 7 — Assessment / 3D Hologram Integration** (Sweep wired the first slice via TD11; F7 expands it to full hologram cross-link)
+3. ✅ **Feature 7 — Assessment / 3D Hologram Integration** — DONE (S1–S4): fixed the dead data path, shared AssessmentSnapshot loader/renderer, client hero + coach Recovery parity (procedural skeleton)
 4. **Deferred Highs** — H4 (client workout history), H6 (coach reassignment UI), H8 (onboarding flows)
 5. **Logged follow-ups from Stabilization** — BEFORE UPDATE trigger pinning `sessions.client_id` + `coach_id` immutability; upstream "offline mode" detection that disables write surfaces when SB unreachable
 5. Email/SMS push (high-severity notifications via Resend)

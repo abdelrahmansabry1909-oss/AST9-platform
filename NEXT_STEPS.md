@@ -12,7 +12,7 @@
 
 🔒 Features 1–6 + Reliability Sweep signed off (frozen). System Stabilization Pass complete + smoke-verified, not yet formally frozen.
 
-🛑 **Next per the locked plan:** Feature 7 — Assessment Results / 3D Hologram Integration.
+✅ **Feature 7 — Assessment Results / 3D Hologram Integration: DONE** (S1–S4, frontend-only). See FEATURE_7_ARCHITECTURE.md.
 
 ---
 
@@ -23,7 +23,7 @@ Updated post-Stabilization:
 2. ✅ Feature 6: Alternative Exercise Replacement — **DONE + 🔒 frozen**
 3. ✅ Reliability + Defect Sweep — **DONE + 🔒 frozen**
 4. ✅ System Stabilization Pass — **DONE** (awaiting signoff to freeze)
-5. ⏸ **Feature 7: Assessment Results / 3D Hologram Integration** ← next
+5. ✅ **Feature 7: Assessment Results / 3D Hologram Integration** — DONE (S1–S4)
 6. ⏸ Deferred Highs: H4 (client workout history), H6 (coach reassignment UI), H8 (onboarding flows) — each needs its own architecture pass
 7. ⏸ Logged follow-ups from Stabilization: (a) BEFORE UPDATE trigger pinning `sessions.client_id` + `coach_id` immutability; (b) upstream "offline mode" UI that disables write surfaces when SB unreachable
 

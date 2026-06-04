@@ -398,13 +398,17 @@ Closes the half-finished F3 promise. Coach reviews an alt-request, picks a subst
 
 ---
 
-## ⏸ Feature 7 — Assessment Results / 3D Hologram Integration
+## ✅ Feature 7 — Assessment Results / 3D Hologram Integration
 
-**Status:** Planned (next after the Reliability + Defect Sweep per user direction Q4)
+**Status:** ✅ Live (S1–S4) — frontend-only; no migrations / edge / RLS / AI changes. Procedural NeuCore skeleton; client dashboard + coach parity view.
 **Dependency:** Standalone — no upstream feature blocks this.
 
-### What it will do
-Wire the client-dashboard Assessment Report card (PRODUCT_AUDIT.md TD11 — currently hardcoded "Loading…") to real data: pull the most-recent `rehab_objective_assessments` + `gait_assessments` + coach notes; populate True Driver / Reported Symptoms / Coach's notes rows; cross-link to the 3D body map.
+### What it did
+- **Fixed the dead client-dashboard data path.** The old loader queried a non-existent `rehab_objective_assessments.client_id` (PostgREST 400, swallowed → always illustrative). Now joins `assessments` (client_id) → `rehab_objective_assessments` (assessment_id) and merges `body_map_states.joint_data`.
+- **Shared `js/assessmentSnapshot.js`** (`loadLatest` / `renderReport` / `mountHologram`) used by BOTH the client dashboard and the new coach Recovery modal — one implementation, no duplication.
+- **Client hero hologram + Assessment Report** (True Driver / Reported Symptoms / Coach's notes) now reflect the real latest assessment; fixed `loadMetrics` spine field names (`spine_flexion_pain` / `spine_extension_pain`).
+- **Coach parity:** per-row "◉ Recovery" action opens a read-only hologram + report for an assigned client (coach RLS; disposes WebGL on close).
+- **Notes:** 3D model = existing procedural NeuCore skeleton (ecorché `.glb` swap remains a future, separate effort). Painted `joint_data` is empty in current data, so hotspots derive from objective ROM until coaches paint joints.
 
 ---
 
@@ -439,7 +443,7 @@ Wire the client-dashboard Assessment Report card (PRODUCT_AUDIT.md TD11 — curr
 | F6 Alt-Exercise Replacement | 1 | 0 new, 3 modified | ✅ live | 🔒 frozen |
 | Reliability + Defect Sweep (A→D + H1/H2/H3/H5/H7) | 0 | 0 new, 4 modified | ✅ live | 🔒 frozen |
 | **System Stabilization Pass** | **1 RLS + 1 index** | **0 new, 4 modified** | **✅ live** | not yet "frozen" |
-| **F7 Assessment / 3D Hologram** | **0 pending** | **TBD** | **⏸ planned** | — |
+| **F7 Assessment / 3D Hologram** | **0** | **1 new, 3 modified** | **✅ live** | — |
 
 **Live migrations applied: 8** (all in `supabase_migrations.schema_migrations` — F6 added `20260531123907 alt_exercise_substitute`).
 **Live tables created by this work: 4** (`notifications`, `exercise_alternative_requests`, `workout_sessions`, `workout_exercise_logs`). F6 added one column to `exercise_alternative_requests`.

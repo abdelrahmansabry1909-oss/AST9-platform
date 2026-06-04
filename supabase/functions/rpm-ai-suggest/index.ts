@@ -28,6 +28,7 @@
 
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { requireRole, rateLimit, HttpError } from "../_shared/auth.ts";
 
 const CORS = {
   "Access-Control-Allow-Origin":  "*",
@@ -203,6 +204,22 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: CORS });
   if (req.method !== "POST")    return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405, headers: CORS });
 
+  // AuthZ (S8): staff only — anon key / clients rejected. The exercises
+  // read uses the CALLER-SCOPED client (RLS), so no service role is held.
+  // deno-lint-ignore no-explicit-any
+  let sbAdmin: any;
+  try {
+    const { user, userClient } = await requireRole(req, ["coach", "admin"]);
+    if (rateLimit(`rpmai:${user.id}`, 30, 5 * 60_000)) {
+      return new Response(JSON.stringify({ error: "Rate limit — please wait" }), { status: 429, headers: CORS });
+    }
+    sbAdmin = userClient;
+  } catch (e) {
+    const status = e instanceof HttpError ? e.status : 401;
+    const message = e instanceof HttpError ? e.message : "Unauthorized";
+    return new Response(JSON.stringify({ error: message }), { status, headers: CORS });
+  }
+
   let body: any;
   try { body = await req.json(); }
   catch { return new Response(JSON.stringify({ error: "Invalid JSON" }), { status: 400, headers: CORS }); }
@@ -211,10 +228,6 @@ serve(async (req) => {
   if (!["phases", "exercises"].includes(kind)) {
     return new Response(JSON.stringify({ error: "kind must be 'phases' or 'exercises'" }), { status: 400, headers: CORS });
   }
-
-  const supaUrl = Deno.env.get("SUPABASE_URL")!;
-  const supaKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-  const sbAdmin = createClient(supaUrl, supaKey, { auth: { persistSession: false } });
 
   if (kind === "phases") {
     const phaseCount = Math.max(3, Math.min(7, parseInt(body.phase_count ?? 5, 10) || 5));

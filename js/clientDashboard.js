@@ -144,10 +144,10 @@ const ClientDashboard = (() => {
       </div>
 
       <!-- ASSESSMENT REPORT + RIGHT RAIL
-           Reliability Sweep / Priority C: rows are now populated by
-           _renderAssessmentReport() from real assessment + gait +
-           subjective data. Initial state is a single skeleton row
-           replaced after data fetch (no more permanent "Loading…"). -->
+           F7: rows are populated by AssessmentSnapshot.renderReport() from
+           real objective + gait + subjective data (shared with the coach
+           Recovery modal). Initial state is a single skeleton row replaced
+           after data fetch (no more permanent "Loading…"). -->
       <div class="cd-secondary-grid">
         <div class="card glass-card cd-assessment">
           <div class="card-header">
@@ -228,18 +228,28 @@ const ClientDashboard = (() => {
     _viz = null;
     _renderedFor = clientId;
 
-    const [assessment, gait, subjective] = await Promise.all([
-      _loadLatestAssessment(clientId),
-      _loadLatestGait(clientId),
-      _loadLatestSubjective(clientId),   // Priority C — fills "Coach's notes"
-    ]);
-    _profile = _deriveProfile(assessment);
+    // F7 — single shared loader. Correct joins (assessments → objective
+    // via assessment_id; the old rehab_objective_assessments.client_id
+    // query was dead) + the coach-painted body_map_states.joint_data
+    // merged into the load profile.
+    const snap = (window.AssessmentSnapshot && window.AssessmentSnapshot.loadLatest)
+      ? await window.AssessmentSnapshot.loadLatest(clientId)
+      : null;
+    const objective  = snap?.objective  || null;
+    const gait       = snap?.gait       || null;
+    const subjective = snap?.subjective  || null;
+    _profile = snap?.profile || _fallbackProfile();
 
     // Phase C — render the three metric charts in parallel to the 3D mount.
-    _renderMetricCharts(assessment, gait, _profile);
+    // Charts + report read objective-shaped fields (composite_score,
+    // phase_recommendation, pain_flags).
+    _renderMetricCharts(objective, gait, _profile);
 
-    // Reliability Sweep / Priority C — populate the Assessment Report card.
-    _renderAssessmentReport({ assessment, gait, subjective });
+    // Assessment Report card — real True Driver / Reported Symptoms / notes.
+    // Shared with the coach Recovery modal (window.AssessmentSnapshot).
+    if (window.AssessmentSnapshot && window.AssessmentSnapshot.renderReport) {
+      window.AssessmentSnapshot.renderReport(document.getElementById('cd-assessment-body'), snap);
+    }
 
     // Refresh overlay numbers with derived data.
     const wrap = document.getElementById('cd-load-overlays');
@@ -267,105 +277,13 @@ const ClientDashboard = (() => {
     _viz.setState(_state);
   }
 
-  async function _loadLatestAssessment(clientId) {
-    if (!clientId || typeof sb === 'undefined') return null;
-    try {
-      const { data, error } = await sb
-        .from('rehab_objective_assessments')
-        .select('*')
-        .eq('client_id', clientId)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (error) { console.warn('[client-dashboard] assessment load:', error.message); return null; }
-      return data || null;
-    } catch (e) {
-      console.warn('[client-dashboard] assessment load threw:', e.message);
-      return null;
-    }
-  }
+  // F7 — the three latest-row loaders + profile derivation moved to the
+  // shared window.AssessmentSnapshot.loadLatest (js/assessmentSnapshot.js),
+  // which also fixes the dead rehab_objective_assessments.client_id query.
 
-  async function _loadLatestGait(clientId) {
-    if (!clientId || typeof sb === 'undefined') return null;
-    try {
-      const { data, error } = await sb
-        .from('gait_assessments')
-        .select('*')
-        .eq('client_id', clientId)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (error) { console.warn('[client-dashboard] gait load:', error.message); return null; }
-      return data || null;
-    } catch (e) {
-      console.warn('[client-dashboard] gait load threw:', e.message);
-      return null;
-    }
-  }
-
-  // Reliability Sweep / Priority C — latest subjective summary, defensively
-  // wrapped. RPMSubjective.pullSubjectiveSummary may not be loaded in every
-  // build; in that case we return null and Coach's notes falls through to
-  // the empty-state copy.
-  async function _loadLatestSubjective(clientId) {
-    if (!clientId) return null;
-    if (typeof RPMSubjective === 'undefined' || !RPMSubjective.pullSubjectiveSummary) return null;
-    try {
-      return await RPMSubjective.pullSubjectiveSummary(clientId);
-    } catch (e) {
-      console.warn('[client-dashboard] subjective load threw:', e.message);
-      return null;
-    }
-  }
-
-  // Reliability Sweep / Priority C — replaces the perma-"Loading…"
-  // placeholder rows on the client dashboard with real data when an
-  // assessment exists, or a single empty-state row (per Q-C1) when none.
-  function _renderAssessmentReport({ assessment, gait, subjective }) {
-    const host = document.getElementById('cd-assessment-body');
-    if (!host) return;
-
-    const hasAnything = !!(assessment || gait || subjective);
-    if (!hasAnything) {
-      // Q-C1 + Stabilization Pass: shared empty-state helper. app.html
-      // load order (dashboard.js → clientDashboard.js) guarantees this.
-      host.innerHTML = Dashboard.emptyState(
-        '◈',
-        'Assessment not run yet',
-        'Your coach will run an assessment after your first session — your True Driver, reported symptoms, and coach\'s notes will appear here.');
-      return;
-    }
-
-    // True Driver: phase_recommendation from objective scoring → gait worst case → fallback
-    const trueDriver = (assessment && assessment.phase_recommendation)
-      || (gait && gait.worst_case_scenario)
-      || '—';
-
-    // Reported Symptoms: subjective external_pain → pain_flags joined → none
-    let reported = '—';
-    if (subjective && subjective.external_pain) reported = subjective.external_pain;
-    else if (assessment && Array.isArray(assessment.pain_flags) && assessment.pain_flags.length) {
-      reported = assessment.pain_flags.join(', ');
-    } else if (assessment) reported = 'None reported';
-
-    // Coach's notes: recap_notes → free_form_notes → default copy
-    const coachNotes = (subjective && (subjective.recap_notes || subjective.free_form_notes))
-      || 'Your coach will write a brief here after your next session.';
-
-    host.innerHTML = `
-      <div class="cd-assessment-row">
-        <div class="cd-assessment-label">True Driver</div>
-        <div class="cd-assessment-value">${_esc(trueDriver)}</div>
-      </div>
-      <div class="cd-assessment-row">
-        <div class="cd-assessment-label">Reported Symptoms</div>
-        <div class="cd-assessment-value">${_esc(reported)}</div>
-      </div>
-      <div class="cd-assessment-row">
-        <div class="cd-assessment-label">Coach's notes</div>
-        <div class="cd-assessment-value cd-assessment-notes">${_esc(coachNotes)}</div>
-      </div>`;
-  }
+  // F7 — Assessment Report rendering moved to the shared
+  // window.AssessmentSnapshot.renderReport so the client dashboard and the
+  // coach Recovery modal render identically from one implementation.
 
   // ── Phase C — Chart.js panels ────────────────────────────────────
   function _renderMetricCharts(assessment, gait, profile) {
@@ -396,10 +314,12 @@ const ClientDashboard = (() => {
     }
   }
 
-  function _deriveProfile(assessment) {
-    // window.deriveLoadProfile comes from src/main.js (ADR-002 bridge).
+  // Illustrative fallback when the snapshot/derive bridge isn't ready or the
+  // client has no signal to colour the hologram. deriveLoadProfile(null)
+  // returns the same illustrative FALLBACK_A (ADR-002 bridge from main.js).
+  function _fallbackProfile() {
     if (typeof window.deriveLoadProfile === 'function') {
-      return window.deriveLoadProfile(assessment);
+      return window.deriveLoadProfile(null);
     }
     // Defensive fallback if the module bundle hasn't loaded yet.
     return {
