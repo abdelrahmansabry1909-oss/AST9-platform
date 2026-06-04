@@ -56,20 +56,20 @@
   async function loadLatest(clientId) {
     if (!clientId || typeof sb === 'undefined') return { ...EMPTY };
 
-    // 1) Parent assessment — the only assessment table with client_id.
-    const assessment = await _latest('assessments', 'client_id', clientId);
-
-    // 2) Objective ROM/scores — keyed by assessment_id (no client_id).
-    const objective = assessment?.id
-      ? await _latest('rehab_objective_assessments', 'assessment_id', assessment.id)
-      : null;
-
-    // 3) Gait, 4) body map, 5) subjective — all carry client_id.
-    const [gait, bodyMap, subjective] = await Promise.all([
+    // Fetch everything keyed by client_id in parallel. (assessments is the
+    // only assessment table that carries client_id.)
+    const [assessment, gait, bodyMap, subjective] = await Promise.all([
+      _latest('assessments', 'client_id', clientId),
       _latest('gait_assessments', 'client_id', clientId),
       _latest('body_map_states', 'client_id', clientId, 'updated_at'),
       _latest('subjective_assessments', 'client_id', clientId),
     ]);
+
+    // Objective ROM/scores — keyed by assessment_id (no client_id), so it
+    // follows once we know the latest assessment.
+    const objective = assessment?.id
+      ? await _latest('rehab_objective_assessments', 'assessment_id', assessment.id)
+      : null;
 
     // 6) Derive the per-region load profile for the 3D visualizer.
     //    Feed objective ROM + the coach-painted joint_data together.

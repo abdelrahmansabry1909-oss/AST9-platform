@@ -144,10 +144,10 @@ const ClientDashboard = (() => {
       </div>
 
       <!-- ASSESSMENT REPORT + RIGHT RAIL
-           Reliability Sweep / Priority C: rows are now populated by
-           _renderAssessmentReport() from real assessment + gait +
-           subjective data. Initial state is a single skeleton row
-           replaced after data fetch (no more permanent "Loading…"). -->
+           F7: rows are populated by AssessmentSnapshot.renderReport() from
+           real objective + gait + subjective data (shared with the coach
+           Recovery modal). Initial state is a single skeleton row replaced
+           after data fetch (no more permanent "Loading…"). -->
       <div class="cd-secondary-grid">
         <div class="card glass-card cd-assessment">
           <div class="card-header">
