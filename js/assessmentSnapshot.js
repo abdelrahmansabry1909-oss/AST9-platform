@@ -89,5 +89,89 @@
     return { assessment, objective, gait, subjective, bodyMap, profile, hasRealData };
   }
 
-  window.AssessmentSnapshot = { loadLatest };
+  // ── Shared rendering (used by client dashboard + coach Recovery modal) ──
+  function _esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, (c) =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  // Render True Driver / Reported Symptoms / Coach's notes into hostEl from a
+  // snapshot. opts lets a surface override the empty/notes copy (client vs coach);
+  // defaults preserve the original client-dashboard wording.
+  function renderReport(hostEl, snap, opts = {}) {
+    if (!hostEl) return;
+    const objective  = (snap && snap.objective)  || null;
+    const gait       = (snap && snap.gait)       || null;
+    const subjective = (snap && snap.subjective) || null;
+
+    const emptyIcon  = opts.emptyIcon  || '◈';
+    const emptyTitle = opts.emptyTitle || 'Assessment not run yet';
+    const emptyDesc  = opts.emptyDesc  ||
+      'Your coach will run an assessment after your first session — your True Driver, reported symptoms, and coach\'s notes will appear here.';
+    const notesFallback = opts.notesFallback ||
+      'Your coach will write a brief here after your next session.';
+
+    if (!(objective || gait || subjective)) {
+      hostEl.innerHTML = (typeof Dashboard !== 'undefined' && Dashboard.emptyState)
+        ? Dashboard.emptyState(emptyIcon, emptyTitle, emptyDesc)
+        : `<div class="empty-state" style="padding:24px 8px">
+             <span class="empty-icon">${_esc(emptyIcon)}</span>
+             <div class="empty-title">${_esc(emptyTitle)}</div>
+             <p class="empty-desc">${_esc(emptyDesc)}</p></div>`;
+      return;
+    }
+
+    // True Driver: objective phase_recommendation → gait worst case → fallback
+    const trueDriver = (objective && objective.phase_recommendation)
+      || (gait && gait.worst_case_scenario) || '—';
+
+    // Reported Symptoms: subjective external_pain → objective pain_flags → none
+    let reported = '—';
+    if (subjective && subjective.external_pain) reported = subjective.external_pain;
+    else if (objective && Array.isArray(objective.pain_flags) && objective.pain_flags.length) {
+      reported = objective.pain_flags.join(', ');
+    } else if (objective) reported = 'None reported';
+
+    const coachNotes = (subjective && (subjective.recap_notes || subjective.free_form_notes))
+      || notesFallback;
+
+    hostEl.innerHTML = `
+      <div class="cd-assessment-row">
+        <div class="cd-assessment-label">True Driver</div>
+        <div class="cd-assessment-value">${_esc(trueDriver)}</div>
+      </div>
+      <div class="cd-assessment-row">
+        <div class="cd-assessment-label">Reported Symptoms</div>
+        <div class="cd-assessment-value">${_esc(reported)}</div>
+      </div>
+      <div class="cd-assessment-row">
+        <div class="cd-assessment-label">Coach's notes</div>
+        <div class="cd-assessment-value cd-assessment-notes">${_esc(coachNotes)}</div>
+      </div>`;
+  }
+
+  // Mount the 3D hologram for a snapshot into hostEl. Returns a lifecycle
+  // handle { setState, destroy } — the CALLER owns disposal (e.g. on modal
+  // close) to avoid leaking a WebGL context.
+  function mountHologram(hostEl, snap, opts = {}) {
+    const noop = { setState() {}, destroy() {} };
+    if (!hostEl) return noop;
+    const Viz = window.LoadVisualizer;
+    const profile = (snap && snap.profile)
+      || (typeof window.deriveLoadProfile === 'function' ? window.deriveLoadProfile(null) : null);
+    if (!Viz || !profile) {
+      hostEl.innerHTML = `<div class="cd-placeholder">
+        <span class="cd-placeholder-icon">⚠</span>
+        <div class="cd-placeholder-sub">3D engine not ready — reload the page.</div></div>`;
+      return noop;
+    }
+    let viz = new Viz(hostEl, profile);
+    viz.setState(opts.state === 'B' ? 'B' : 'A');
+    return {
+      setState(s) { try { viz && viz.setState && viz.setState(s); } catch (e) {} },
+      destroy()   { try { viz && viz.destroy && viz.destroy(); } catch (e) {} viz = null; },
+    };
+  }
+
+  window.AssessmentSnapshot = { loadLatest, renderReport, mountHologram };
 })();

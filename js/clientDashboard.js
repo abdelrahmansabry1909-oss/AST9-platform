@@ -246,7 +246,10 @@ const ClientDashboard = (() => {
     _renderMetricCharts(objective, gait, _profile);
 
     // Assessment Report card — real True Driver / Reported Symptoms / notes.
-    _renderAssessmentReport({ assessment: objective, gait, subjective });
+    // Shared with the coach Recovery modal (window.AssessmentSnapshot).
+    if (window.AssessmentSnapshot && window.AssessmentSnapshot.renderReport) {
+      window.AssessmentSnapshot.renderReport(document.getElementById('cd-assessment-body'), snap);
+    }
 
     // Refresh overlay numbers with derived data.
     const wrap = document.getElementById('cd-load-overlays');
@@ -278,54 +281,9 @@ const ClientDashboard = (() => {
   // shared window.AssessmentSnapshot.loadLatest (js/assessmentSnapshot.js),
   // which also fixes the dead rehab_objective_assessments.client_id query.
 
-  // Reliability Sweep / Priority C — replaces the perma-"Loading…"
-  // placeholder rows on the client dashboard with real data when an
-  // assessment exists, or a single empty-state row (per Q-C1) when none.
-  function _renderAssessmentReport({ assessment, gait, subjective }) {
-    const host = document.getElementById('cd-assessment-body');
-    if (!host) return;
-
-    const hasAnything = !!(assessment || gait || subjective);
-    if (!hasAnything) {
-      // Q-C1 + Stabilization Pass: shared empty-state helper. app.html
-      // load order (dashboard.js → clientDashboard.js) guarantees this.
-      host.innerHTML = Dashboard.emptyState(
-        '◈',
-        'Assessment not run yet',
-        'Your coach will run an assessment after your first session — your True Driver, reported symptoms, and coach\'s notes will appear here.');
-      return;
-    }
-
-    // True Driver: phase_recommendation from objective scoring → gait worst case → fallback
-    const trueDriver = (assessment && assessment.phase_recommendation)
-      || (gait && gait.worst_case_scenario)
-      || '—';
-
-    // Reported Symptoms: subjective external_pain → pain_flags joined → none
-    let reported = '—';
-    if (subjective && subjective.external_pain) reported = subjective.external_pain;
-    else if (assessment && Array.isArray(assessment.pain_flags) && assessment.pain_flags.length) {
-      reported = assessment.pain_flags.join(', ');
-    } else if (assessment) reported = 'None reported';
-
-    // Coach's notes: recap_notes → free_form_notes → default copy
-    const coachNotes = (subjective && (subjective.recap_notes || subjective.free_form_notes))
-      || 'Your coach will write a brief here after your next session.';
-
-    host.innerHTML = `
-      <div class="cd-assessment-row">
-        <div class="cd-assessment-label">True Driver</div>
-        <div class="cd-assessment-value">${_esc(trueDriver)}</div>
-      </div>
-      <div class="cd-assessment-row">
-        <div class="cd-assessment-label">Reported Symptoms</div>
-        <div class="cd-assessment-value">${_esc(reported)}</div>
-      </div>
-      <div class="cd-assessment-row">
-        <div class="cd-assessment-label">Coach's notes</div>
-        <div class="cd-assessment-value cd-assessment-notes">${_esc(coachNotes)}</div>
-      </div>`;
-  }
+  // F7 — Assessment Report rendering moved to the shared
+  // window.AssessmentSnapshot.renderReport so the client dashboard and the
+  // coach Recovery modal render identically from one implementation.
 
   // ── Phase C — Chart.js panels ────────────────────────────────────
   function _renderMetricCharts(assessment, gait, profile) {

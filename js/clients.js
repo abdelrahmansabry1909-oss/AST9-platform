@@ -58,6 +58,7 @@ const Clients = (() => {
           <div style="display:flex;gap:6px;flex-wrap:wrap">
             <button class="btn btn-ghost btn-xs" onclick="Dashboard.showSection('new-session'); setTimeout(()=>{document.getElementById('ns-name').value='${_esc(c.full_name||'')}';document.getElementById('ns-phase').value='${c.current_phase||'Phase 1'}'},100)">+ Session</button>
             <button class="btn btn-ghost btn-xs" onclick="window._wsPreselectClient='${c.id}'; Dashboard.showSection('workout-history')">◐ Workouts</button>
+            <button class="btn btn-ghost btn-xs" onclick="Clients.openRecovery('${c.id}','${_esc(c.full_name||c.email)}')">◉ Recovery</button>
             <button class="btn btn-teal btn-xs"
               ${c.current_phase === 'Phase 3' ? 'disabled title="Already at top phase"' : `onclick="Clients.prepPhaseUpgrade('${c.id}','${_esc(c.full_name||c.email)}')"`}>⬆ Phase</button>
           </div>
@@ -394,10 +395,81 @@ const Clients = (() => {
     btn.disabled = false;
   }
 
+  // ── F7 — Coach Recovery Snapshot (parity view of a client's hologram) ──
+  // Reuses the shared window.AssessmentSnapshot loader + renderer; coach RLS
+  // already permits reading an assigned client's assessment + body-map rows.
+  let _crViz   = null;
+  let _crState = 'A';
+
+  async function openRecovery(clientId, name) {
+    const titleEl  = document.getElementById('cr-title');
+    const canvasEl = document.getElementById('cr-canvas');
+    const reportEl = document.getElementById('cr-report');
+    if (titleEl)  titleEl.textContent = name ? `Recovery Snapshot — ${name}` : 'Recovery Snapshot';
+    if (canvasEl) canvasEl.innerHTML = '';
+    if (reportEl) reportEl.innerHTML = '<div class="cd-assessment-row"><div class="cd-assessment-value" style="opacity:.6"><span class="spinner spinner-sm" style="margin-right:6px;vertical-align:-2px"></span>Loading…</div></div>';
+
+    Dashboard.openModal('modal-client-recovery');
+
+    // Dispose any prior hologram, reset toggle, wire controls (idempotent).
+    try { if (_crViz) _crViz.destroy(); } catch (e) {}
+    _crViz = null;
+    _crState = 'A';
+    _crSyncToggle();
+    _crWire();
+
+    const AS = window.AssessmentSnapshot;
+    if (!AS) { if (reportEl) reportEl.innerHTML = '<p class="empty-desc" style="padding:16px">Snapshot module not loaded.</p>'; return; }
+
+    let snap = null;
+    try { snap = await AS.loadLatest(clientId); }
+    catch (e) { console.warn('[recovery] load failed:', e && e.message); }
+
+    AS.renderReport(reportEl, snap, {
+      emptyTitle:    'No assessment yet',
+      emptyDesc:     'This client has no assessment on record yet.',
+      notesFallback: 'No coach notes recorded for this assessment.',
+    });
+    _crViz = AS.mountHologram(canvasEl, snap, { state: _crState });
+  }
+
+  function closeRecovery() {
+    try { if (_crViz) _crViz.destroy(); } catch (e) {}
+    _crViz = null;
+    Dashboard.closeModal('modal-client-recovery');
+  }
+
+  function _crSetState(s) {
+    _crState = (s === 'B') ? 'B' : 'A';
+    _crSyncToggle();
+    if (_crViz) _crViz.setState(_crState);
+  }
+
+  function _crSyncToggle() {
+    document.querySelectorAll('#modal-client-recovery [data-cr-state]').forEach((btn) => {
+      btn.classList.toggle('active', btn.dataset.crState === _crState);
+    });
+  }
+
+  // Static modal markup → wire the A/B toggle + backdrop-close once.
+  function _crWire() {
+    document.querySelectorAll('#modal-client-recovery [data-cr-state]').forEach((btn) => {
+      if (btn.dataset.wired) return;
+      btn.dataset.wired = '1';
+      btn.addEventListener('click', () => _crSetState(btn.dataset.crState));
+    });
+    const overlay = document.getElementById('modal-client-recovery');
+    if (overlay && !overlay.dataset.wiredClose) {
+      overlay.dataset.wiredClose = '1';
+      overlay.addEventListener('click', (e) => { if (e.target === overlay) closeRecovery(); });
+    }
+  }
+
   return {
     loadAll, submitAddClient, prepPhaseUpgrade,
     loadCoaches, submitAddCoach, removeCoach,
     loadExercises, submitAddExercise, deleteExercise,
+    openRecovery, closeRecovery,
   };
 
 })();

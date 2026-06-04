@@ -1664,6 +1664,29 @@
   </div>
 </div>
 
+<!-- Feature 7 — Client Recovery Snapshot (coach parity view of the client's hologram + assessment) -->
+<div class="modal-overlay hidden" id="modal-client-recovery">
+  <div class="modal" style="max-width:640px;width:92vw">
+    <div class="modal-header">
+      <h3 id="cr-title">Recovery Snapshot</h3>
+      <button class="btn-icon" onclick="Clients.closeRecovery()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="cd-hero-top" style="margin-bottom:10px">
+        <div class="cd-toggle" role="tablist" aria-label="Load state">
+          <button class="cd-toggle-btn active" data-cr-state="A" type="button">● Current <span class="cd-toggle-sub">(A)</span></button>
+          <button class="cd-toggle-btn"        data-cr-state="B" type="button">◯ Target <span class="cd-toggle-sub">(B)</span></button>
+        </div>
+      </div>
+      <div id="cr-canvas" class="cd-hero-canvas" style="min-height:320px;position:relative"></div>
+      <div class="card glass-card" style="margin-top:14px">
+        <div class="card-header"><span class="card-title">Assessment Report</span></div>
+        <div class="cd-assessment-body" id="cr-report"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Add Subscription -->
 <div class="modal-overlay hidden" id="modal-add-subscription">
   <div class="modal">
