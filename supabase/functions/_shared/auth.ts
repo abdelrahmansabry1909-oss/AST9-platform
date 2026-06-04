@@ -129,22 +129,20 @@ export async function requireRole(
 }
 
 // ── requireCron — gate for system/scheduled functions (no user) ──
-//  'system' is NOT a profiles.role; it is proven by a shared secret
-//  set on the scheduled job. Constant-time comparison.
-export function requireCron(req: Request): void {
-  const expected = Deno.env.get('CRON_SECRET') ?? ''
+//  'system' is NOT a profiles.role; it is proven by the x-cron-secret
+//  header, validated against the SINGLE source of truth — the Supabase
+//  Vault secret 'cron_secret' — via the verify_cron_secret() RPC. No
+//  CRON_SECRET env var (eliminates dual-store drift). The caller passes
+//  a service-role client because the RPC is revoked from client roles.
+export async function requireCron(req: Request, sb: SupabaseClient): Promise<void> {
   const got = req.headers.get('x-cron-secret') ?? ''
-  if (!expected || !timingSafeEqual(got, expected)) {
-    throw new HttpError(401, 'Forbidden')
+  if (!got) throw new HttpError(401, 'Forbidden')
+  const { data: ok, error } = await sb.rpc('verify_cron_secret', { p_secret: got })
+  if (error) {
+    console.error('[edge] verify_cron_secret failed:', error.message)
+    throw new HttpError(500, 'cron secret verification failed')
   }
-}
-
-function timingSafeEqual(a: string, b: string): boolean {
-  // Length leak is acceptable; protect against per-char early-exit.
-  if (a.length !== b.length) return false
-  let diff = 0
-  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i)
-  return diff === 0
+  if (ok !== true) throw new HttpError(401, 'Forbidden')
 }
 
 // ── HTML escaping for any caller-supplied string echoed into email/HTML

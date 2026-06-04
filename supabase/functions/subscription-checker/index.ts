@@ -10,7 +10,9 @@
 //  platform 401'd every night, so the job silently did nothing
 //  (confirmed via net._http_response: status 401). Now:
 //    • verify_jwt = false (cron carries no JWT)
-//    • requireCron(req) — x-cron-secret must match CRON_SECRET, else 401
+//    • requireCron(req, sb) — x-cron-secret validated against the Vault
+//      secret 'cron_secret' (single source of truth) via the
+//      verify_cron_secret() RPC; no CRON_SECRET env. 401 on mismatch.
 //    • expiry flip delegated to the canonical check_subscription_expiry()
 //      DB function (no duplicated logic)
 //    • expiring-soon emails are idempotent via subscriptions.notified_7d
@@ -28,12 +30,14 @@ serve(async (req) => {
   try {
     if (req.method !== 'POST') throw new HttpError(405, 'Method not allowed')
 
-    // Gate: shared cron secret. No user context (system job).
-    requireCron(req)
-
     const url = Deno.env.get('SUPABASE_URL') ?? ''
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     const sb = createClient(url, serviceKey, { auth: { persistSession: false } })
+
+    // Gate: x-cron-secret validated against the Vault 'cron_secret'
+    // (single source of truth) via verify_cron_secret(). Uses the
+    // service-role client because that RPC is revoked from client roles.
+    await requireCron(req, sb)
 
     // 1) Flip past-due subscriptions to 'expired' via the canonical DB
     //    function (single source of truth; deduplicates the old inline logic).
