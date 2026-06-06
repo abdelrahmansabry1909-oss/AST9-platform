@@ -2,13 +2,15 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 <meta name="description" content="NeuCore — AI biomechanics, movement intelligence, and neuro-performance optimization. An AST9 Solution."/>
 <title>NeuCore — An AST9 Solution</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <link rel="stylesheet" href="css/styles.css"/>
   <link rel="stylesheet" href="css/styles_holographic.css"/>
   <link rel="stylesheet" href="css/neucore-design-system.css"/>
+  <link rel="stylesheet" href="css/mobile-shell.css"/>
+  <link rel="stylesheet" href="css/client-theme.css"/>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>"/>
 </head>
 <body>
@@ -155,7 +157,10 @@
       <div class="nav-item role-coach-admin" id="nav-programs" onclick="Dashboard.showSection('programs')" title="Programs">
         <span class="nav-item-icon">◈</span><span class="nav-label">Programs</span>
       </div>
-      <div class="nav-item" id="nav-daily-routine" onclick="Dashboard.showSection('daily-routine')" title="Daily Routine">
+      <!-- Daily Routine is coach/admin-only in the nav now: the coach adherence
+           dashboard. Clients reach their routine inside Train (folded in S2);
+           this avoids a duplicate desktop path. Section + workflow unchanged. -->
+      <div class="nav-item role-coach-admin" id="nav-daily-routine" onclick="Dashboard.showSection('daily-routine')" title="Daily Routine">
         <span class="nav-item-icon">𓆸</span><span class="nav-label">Daily Routine</span>
       </div>
       <div class="nav-item role-client-only" id="nav-nutrition-plan" onclick="Dashboard.showSection('nutrition-plan')" title="Nutrition Plan">
@@ -202,8 +207,21 @@
       <div class="nav-item role-client-only" id="nav-my-graph" onclick="Dashboard.showSection('my-graph')" title="My Reactive Graph">
         <span class="nav-item-icon">↟</span><span class="nav-label">My Graph</span>
       </div>
-      <div class="nav-item role-client-only" id="nav-my-program" onclick="Dashboard.showSection('my-program')" title="My Program">
+      <!-- My Program retired from client nav (folded into Train → "Your full
+           plan" in S2). Hidden in nav for everyone (it was client-only); the
+           #section-my-program section + renderClientProgram workflow are kept
+           intact for deep-link/fallback use. -->
+      <div class="nav-item" id="nav-my-program" onclick="Dashboard.showSection('my-program')" title="My Program" style="display:none">
         <span class="nav-item-icon">◈</span><span class="nav-label">My Program</span>
+      </div>
+      <div class="nav-item role-client-only" id="nav-client-train" onclick="Dashboard.showSection('client-train')" title="Train">
+        <span class="nav-item-icon">◈</span><span class="nav-label">Train</span>
+      </div>
+      <div class="nav-item role-client-only" id="nav-client-progress" onclick="Dashboard.showSection('client-progress')" title="Progress">
+        <span class="nav-item-icon">◮</span><span class="nav-label">Progress</span>
+      </div>
+      <div class="nav-item role-client-only" id="nav-client-coach" onclick="Dashboard.showSection('client-coach')" title="Coach">
+        <span class="nav-item-icon">✦</span><span class="nav-label">Coach</span>
       </div>
 
       <div class="nav-section">Community</div>
@@ -211,10 +229,11 @@
         <span class="nav-item-icon">◈</span><span class="nav-label">Community</span>
         <span id="badge-community" class="nav-badge hidden">0</span>
       </div>
-      <!-- Reliability Sweep / H3: Notifications nav entry for ALL roles.
-           Bell icon in the sidebar footer remains as a quick-access; this
-           entry gives mobile clients a discoverable way into the inbox. -->
-      <div class="nav-item" id="nav-notifications" onclick="Dashboard.showSection('notifications')" title="Notifications">
+      <!-- Notifications is coach/admin-only in the nav now: the inbox +
+           alt-exercise queue. Clients get the same data reframed on the Coach
+           tab (S4), so the raw inbox is no longer a separate client path.
+           Section + workflow unchanged for coach/admin. -->
+      <div class="nav-item role-coach-admin" id="nav-notifications" onclick="Dashboard.showSection('notifications')" title="Notifications">
         <span class="nav-item-icon">◔</span><span class="nav-label">Notifications</span>
       </div>
 
@@ -245,6 +264,43 @@
     </div>
   </aside>
 
+  <!-- ── Mobile client tab bar + More sheet (Recovery Journey · S0).
+       Role-gated (body.nc-client) and mobile-only via CSS; coaches,
+       admins, and desktop keep the sidebar untouched. Drives the
+       existing Dashboard.showSection router via js/clientShell.js. ── -->
+  <nav class="nc-tabbar" id="nc-tabbar" role="tablist" aria-label="Primary">
+    <button class="nc-tab" type="button" role="tab" data-tab="today"    aria-selected="true"><span class="nc-tab-ico" aria-hidden="true">◉</span>Today</button>
+    <button class="nc-tab" type="button" role="tab" data-tab="train"    aria-selected="false"><span class="nc-tab-ico" aria-hidden="true">◈</span>Train</button>
+    <button class="nc-tab" type="button" role="tab" data-tab="progress" aria-selected="false"><span class="nc-tab-ico" aria-hidden="true">◮</span>Progress</button>
+    <button class="nc-tab" type="button" role="tab" data-tab="coach"    aria-selected="false"><span class="nc-tab-ico" aria-hidden="true">♥</span>Coach</button>
+    <button class="nc-tab" type="button" role="tab" data-tab="more"     aria-selected="false"><span class="nc-tab-ico" aria-hidden="true">⋯</span>More</button>
+  </nav>
+
+  <div class="nc-sheet" id="nc-more-sheet" role="dialog" aria-modal="true" aria-label="More">
+    <div class="nc-sheet-scrim"></div>
+    <div class="nc-sheet-panel">
+      <div class="nc-sheet-handle"></div>
+      <div class="nc-sheet-title">More</div>
+
+      <div class="nc-sheet-group">Recovery</div>
+      <button class="nc-sheet-link" type="button" data-section="my-graph"><span class="nc-sheet-ico" aria-hidden="true">↟</span>Advanced Insights</button>
+      <button class="nc-sheet-link" type="button" data-section="client-progress" data-open="history"><span class="nc-sheet-ico" aria-hidden="true">◷</span>Assessment History</button>
+      <button class="nc-sheet-link" type="button" data-section="client-progress" data-open="report"><span class="nc-sheet-ico" aria-hidden="true">◔</span>Recovery Reports</button>
+
+      <div class="nc-sheet-group">Wellness</div>
+      <button class="nc-sheet-link" type="button" data-section="nutrition-plan"><span class="nc-sheet-ico" aria-hidden="true">◴</span>Nutrition</button>
+
+      <div class="nc-sheet-group">Resources</div>
+      <button class="nc-sheet-link" type="button" data-section="case-studies"><span class="nc-sheet-ico" aria-hidden="true">◧</span>Case Studies</button>
+      <button class="nc-sheet-link" type="button" data-section="community"><span class="nc-sheet-ico" aria-hidden="true">◈</span>Community</button>
+      <button class="nc-sheet-link" type="button" data-section="services"><span class="nc-sheet-ico" aria-hidden="true">✦</span>Services</button>
+
+      <div class="nc-sheet-group">Account</div>
+      <button class="nc-sheet-link" type="button" data-section="client-settings"><span class="nc-sheet-ico" aria-hidden="true">◎</span>Settings</button>
+      <button class="nc-sheet-link" type="button" data-section="__logout"><span class="nc-sheet-ico" aria-hidden="true">⏻</span>Sign Out</button>
+    </div>
+  </div>
+
   <!-- MAIN -->
   <main class="main-content">
 
@@ -261,6 +317,26 @@
          continue to land on #section-dashboard below) ── -->
     <div class="section" id="section-client-dashboard">
       <div id="client-dashboard-root"></div>
+    </div>
+
+    <!-- ── CLIENT PROGRESS (Recovery Journey · analytics home). S0 mounts the
+         existing progression panel here; S3 adds trends, assessment history,
+         and the relocated hologram. ── -->
+    <div class="section" id="section-client-progress">
+      <div id="client-progress-root"></div>
+    </div>
+
+    <!-- ── CLIENT TRAIN (Recovery Journey · guided journey = Daily Routine +
+         Program merged). Mounted by clientShell on the Train tab. ── -->
+    <div class="section" id="section-client-train">
+      <div id="client-train-root"></div>
+    </div>
+
+    <!-- ── CLIENT COACH (Recovery Journey · recovery support screen). Coach
+         Presence + Latest Guidance + Accountability + a single Contact CTA.
+         Not an inbox. Mounted by clientShell on the Coach tab. ── -->
+    <div class="section" id="section-client-coach">
+      <div id="client-coach-root"></div>
     </div>
 
     <!-- ── NUTRITION PLAN (Phase A stub — full implementation TBD) ── -->
@@ -2096,7 +2172,12 @@ setInterval(() => { if (!document.hidden) _refreshApprovalsBadge(); }, 60_000);
 <script src="js/communityUI.js"></script>
 <!-- Feature 7 — shared assessment→hologram loader (used by client dashboard + coach Recovery modal) -->
 <script src="js/assessmentSnapshot.js"></script>
+<script src="js/clientUtil.js"></script>
 <script src="js/clientDashboard.js"></script>
+<script src="js/clientTrain.js"></script>
+<script src="js/clientProgress.js"></script>
+<script src="js/clientCoach.js"></script>
+<script src="js/clientShell.js"></script>
 <script src="js/exerciseLibrary.js"></script>
 <script src="js/exerciseUI.js"></script>
 <script src="js/charts.js"></script>
@@ -2206,6 +2287,7 @@ const UI = {
     document.getElementById('screen-login').classList.add('hidden');
     document.getElementById('screen-app').style.display = 'block';
     Dashboard.initShell();
+    if (typeof ClientShell !== 'undefined') ClientShell.init();
     Dashboard.showSection('dashboard');
     // Phase 3: refresh badges + populate progress client select
     setTimeout(() => {

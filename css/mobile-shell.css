@@ -1,0 +1,102 @@
+/* ═══════════════════════════════════════════════════════════════
+   Mobile client shell — Recovery Journey redesign, step S0.
+
+   A role-gated bottom tab bar + More sheet for clients on mobile.
+   Additive and reversible: it only activates under `body.nc-client`
+   at <=768px, so coaches, admins, and all desktop layouts are
+   untouched. Reuses NeuCore design tokens (--nc-*).
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Hidden by default everywhere. Shown only for clients on mobile. */
+.nc-tabbar { display: none; }
+.nc-sheet  { display: none; }
+
+@media (max-width: 768px) {
+  /* Client mobile: the desktop sidebar is replaced by a bottom tab bar. */
+  body.nc-client #sidebar { display: none; }
+
+  /* The legacy mobile bottom nav is a duplicate path now superseded by the
+     Recovery Journey tab bar; hide it for clients (coaches keep theirs). */
+  body.nc-client .mobile-bottom-nav { display: none; }
+
+  body.nc-client .nc-tabbar {
+    display: flex;
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    z-index: 1000;
+    gap: 2px;
+    padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+    background: rgba(14, 26, 36, 0.94);          /* --nc-bg-secondary, translucent */
+    border-top: 1px solid var(--nc-border, rgba(255,255,255,0.08));
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  /* Keep scroll content clear of the fixed bar. */
+  body.nc-client .main-content {
+    padding-bottom: calc(76px + env(safe-area-inset-bottom));
+  }
+}
+
+/* A tab: large touch target, icon over label. */
+.nc-tab {
+  flex: 1 1 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 3px;
+  min-height: 52px;                               /* coarse-pointer target */
+  padding: 6px 2px;
+  border: 0; background: transparent;
+  color: var(--nc-text-muted, #64748B);
+  font: 600 10px/1 var(--nc-font-body, system-ui, sans-serif);
+  letter-spacing: 0.02em;
+  border-radius: var(--nc-r-md, 12px);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: color var(--nc-dur-fast, 180ms) var(--nc-ease, ease);
+}
+.nc-tab .nc-tab-ico { font-size: 20px; line-height: 1; }
+.nc-tab[aria-selected="true"] { color: var(--nc-teal, #14B8A6); }
+.nc-tab:active { color: var(--nc-text-secondary, #94A3B8); }
+
+/* More sheet: a bottom sheet overlay. */
+.nc-sheet.is-open { display: block; position: fixed; inset: 0; z-index: 1100; }
+.nc-sheet-scrim  { position: absolute; inset: 0; background: rgba(0,0,0,0.5); }
+.nc-sheet-panel {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  background: var(--nc-bg-elevated, #122130);
+  border-top: 1px solid var(--nc-border, rgba(255,255,255,0.08));
+  border-top-left-radius: var(--nc-r-xl, 24px);
+  border-top-right-radius: var(--nc-r-xl, 24px);
+  padding: 10px 12px calc(16px + env(safe-area-inset-bottom));
+  box-shadow: var(--nc-shadow-lg, 0 20px 60px rgba(0,0,0,0.55));
+  max-height: 82vh; overflow-y: auto;
+}
+.nc-sheet-handle {
+  width: 36px; height: 4px; border-radius: 99px;
+  background: var(--nc-border-strong, rgba(255,255,255,0.14));
+  margin: 4px auto 12px;
+}
+.nc-sheet-title {
+  font: 700 11px/1 var(--nc-font-body, system-ui, sans-serif);
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--nc-text-muted, #64748B); margin: 0 8px 8px;
+}
+.nc-sheet-group {
+  font: 700 10px/1 var(--nc-font-body, system-ui, sans-serif);
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--nc-text-muted, #64748B);
+  margin: 14px 8px 4px;
+}
+.nc-sheet-link {
+  display: flex; align-items: center; gap: 12px;
+  width: 100%; min-height: 48px; padding: 12px;
+  border: 0; background: transparent; text-align: left;
+  color: var(--nc-text-primary, #F8FAFC);
+  font: 500 15px/1.2 var(--nc-font-body, system-ui, sans-serif);
+  border-radius: var(--nc-r-md, 12px); cursor: pointer;
+}
+.nc-sheet-link:active { background: rgba(255,255,255,0.05); }
+.nc-sheet-link .nc-sheet-ico {
+  font-size: 18px; width: 22px; text-align: center;
+  color: var(--nc-text-secondary, #94A3B8);
+}

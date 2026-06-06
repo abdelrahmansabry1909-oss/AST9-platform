@@ -1,8 +1,8 @@
 # PROJECT_STATUS.md — NeuCore Platform
 
-**Last updated:** 2026-05-31
+**Last updated:** 2026-06-06
 **Branch:** `claude/interesting-buck-452459`
-**HEAD commit:** F6 just shipped (commit pending)
+**HEAD commit:** Client Mobile Redesign S6 just shipped (commit pending)
 **Worktree path:** `D:\ASThub\.claude\worktrees\interesting-buck-452459`
 **Origin repo:** `https://github.com/abdelrahmansabry1909-oss/AST9_HUB.git`
 **Live Supabase project:** `byquokhcbagofshsclfy` (eu-central-1, Postgres 17.6.1.111, ACTIVE_HEALTHY)
@@ -13,7 +13,7 @@
 
 ## 0 · One-line summary
 
-6 features shipped + 2 hardening passes + 1 reliability sweep + 1 stabilization pass + 10 migrations live + 7 new JS modules + full end-to-end live verification. **Features 1–6 + Reliability Sweep frozen by user signoff; System Stabilization Pass complete and stable but not yet "frozen." Stabilization closed the sessions RLS multi-tenant leak, excised every remaining localStorage dual-source data path, normalized empty states across Assessment / Programs / Progression, and added a partial index that closes a per-row seq-scan latent across 6 tables. Next: Feature 7 (Assessment / 3D Hologram).**
+6 features shipped + 2 hardening passes + 1 reliability sweep + 1 stabilization pass + Feature 7 (Assessment / 3D Hologram) + the **Client Mobile Redesign (S0–S6)** + 10 migrations live + full end-to-end live verification. **Features 1–6 + Reliability Sweep frozen by user signoff; F7 live. The Client Mobile Redesign replaced the client desktop-sidebar experience with a mobile-first, dark, calm 5-tab app (Today · Train · Progress · Coach · More), built S0→S6 one commit per step, presentation-layer only, coach/admin desktop untouched, and audited production-ready in S6 (one Low defect found and fixed, no Critical/High/Medium). See `CLIENT_DASHBOARD_MOBILE_REDESIGN.md` §11–13. Next: Feature 8 (Recovery Pulse, designed in `FEATURE_8_PROPOSAL.md`) or address pre-existing audit item H-1 (client-side-only write-gate).**
 
 ---
 
