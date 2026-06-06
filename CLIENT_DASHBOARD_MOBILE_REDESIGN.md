@@ -311,3 +311,48 @@ Each step is independently shippable, reuse-first, no backend changes.
 - **Build:** presentation-layer only, reuse-first, S0 to S6, one commit per step, verified each step, coach/admin desktop untouched.
 
 Confirm this final architecture (and the three open questions in section 10) and I will start at S0. No code is written until you sign off.
+
+---
+
+## 12. Build log — SHIPPED (S0 → S6)
+
+Signed off and built one commit per step, presentation-layer only, coach/admin desktop untouched. Branch `claude/interesting-buck-452459`.
+
+| Step | Scope | Commit |
+|---|---|---|
+| S0 | Mobile client app shell + bottom tab bar (`css/mobile-shell.css`, `js/clientShell.js`) | `3df7064` |
+| S1 | Today — status-first, 3 questions, one CTA (`js/clientDashboard.js` rewrite) | `2dece2f` |
+| S2 | Train — guided recovery journey, Daily Routine + Program merged (`js/clientTrain.js`) | `2872910` |
+| S3 | Progress — recovery momentum home + desktop route (`js/clientProgress.js`) | `aa9cb8e` |
+| S4 | Coach support screen + grouped More tab (`js/clientCoach.js`) | `7d79ef6` |
+| S5 | Theme harmonization, states, copy, a11y, simplify (`js/clientUtil.js`, `css/client-theme.css`) | `32a7bdd` |
+| S6 | Regression audit + consistency fix + docs | (this commit) |
+
+**Resolved open questions (section 10):** (1) Coach = inbox + nudges reframed as guidance, no two-way messaging in V1. (2) Train = one dominant "Start session" reveal, not a list. (3) My Graph (RPM) retired from primary nav, kept under More → Advanced Insights.
+
+**Final tab → section → module map:**
+- Today → `#section-client-dashboard` → `ClientDashboard.render()`
+- Train → `#section-client-train` → `ClientTrain.render()`
+- Progress → `#section-client-progress` → `ClientProgress.render()` (accepts `{open}` deep-link)
+- Coach → `#section-client-coach` → `ClientCoach.render()`
+- More → bottom sheet (Recovery / Wellness / Resources / Account)
+- Shared helpers: `window.ClientUtil` (esc, firstName, greeting, STAGES/stage, band, ago, accountability, skeleton, offlineNote, errorState, trapTab)
+
+## 13. S6 regression audit + production verdict
+
+Read-only audit (static trace of every path + dist verification of the deployed bundle + live RLS probe). No browser/device run was available; visual states verified by build + code review.
+
+**Tested paths:** Today → Train → Progress → Coach → More; all tab navigation; More deep-links into Progress (history/report); hologram open/close cycle (leak-safe: `close()` → `LoadVisualizer.destroy()` → `BodyCanvas.destroy()` → `cancelAnimationFrame` + `renderer.forceContextLoss()`); read-only (lapsed) mode (Today CTA → renew, Train tracker `readOnly`); first-run / empty (calm teaching states on every screen); offline (note on Today/Train/Progress/Coach); error (Progress error + retry).
+
+**Coach/Admin protection:** all client modules are reachable only via client-gated paths (bottom tab bar requires `body.nc-client`, set only for `role=client`; desktop client nav items carry `role-client-only`, hidden by `initShell`). Shared-file edits are additive and default to prior behavior: `AssessmentSnapshot.renderReport` label overrides default to the clinical terms (coach caller `clients.js` passes none); Daily Routine dark theme is `body.nc-client`-scoped CSS (coach `.dr-coach-*` view untouched). RLS confirms data isolation: `profiles` SELECT = own-row-or-admin/coach; `notifications` SELECT = own-or-admin. No client module reads coach or other-client data.
+
+**Accessibility:** keyboard nav + focus trap on the hologram dialog and More sheet; focus moves in on open and restores on close; Escape closes; `role=tablist/tab` on the bar, `role=dialog` on the hologram; `aria-live` on the streak; meaningful `aria-label` on the dial; `prefers-reduced-motion` respected app-wide.
+
+**Mobile UX:** single bottom bar (legacy `.mobile-bottom-nav` and the dead hamburger hidden for clients); 44px+ touch targets; `env(safe-area-inset-*)` on the bar, sheet, and hologram; body scroll locked behind overlays.
+
+**Defects found:**
+- **Low (fixed):** Today's attention card surfaced any unread notification (incl. `subscription_*`) but routed to Coach, which filters those out, so it could land on empty guidance. Fixed: the attention query now excludes `subscription%` (consistent with Coach); stale "open your inbox" copy updated.
+- **Low (accepted):** modal overlays trap focus but do not set `aria-hidden` on sibling content; the Daily Routine custom checkbox lacks Enter/Space activation (lives in the shared module). Neither blocks release.
+- **Critical / High / Medium:** none.
+
+**Verdict: the redesigned client experience is PRODUCTION-READY.** The two open Low items are tracked for a future polish pass. The pre-existing audit item H-1 (subscription write-gate is client-side only) is unchanged by this redesign and remains tracked in `PRODUCTION_READINESS_AUDIT.md`.

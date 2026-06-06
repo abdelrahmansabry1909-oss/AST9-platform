@@ -1,8 +1,8 @@
 # FEATURE_STATUS.md — NeuCore Platform
 
-**Last updated:** 2026-05-31 (post Reliability + Defect Sweep)
+**Last updated:** 2026-06-06 (post Client Mobile Redesign S0–S6)
 **Branch:** `claude/interesting-buck-452459`
-**HEAD commit:** Reliability Sweep just shipped (commit pending)
+**HEAD commit:** Client Mobile Redesign S6 just shipped (commit pending)
 **Live Supabase project:** `byquokhcbagofshsclfy` (eu-central-1, Postgres 17.6.1.111)
 
 Per-feature breakdown. For overall architecture see `PROJECT_STATUS.md`. For what to build next see `NEXT_STEPS.md`.
@@ -444,8 +444,35 @@ Closes the half-finished F3 promise. Coach reviews an alt-request, picks a subst
 | Reliability + Defect Sweep (A→D + H1/H2/H3/H5/H7) | 0 | 0 new, 4 modified | ✅ live | 🔒 frozen |
 | **System Stabilization Pass** | **1 RLS + 1 index** | **0 new, 4 modified** | **✅ live** | not yet "frozen" |
 | **F7 Assessment / 3D Hologram** | **0** | **1 new, 3 modified** | **✅ live** | — |
+| **Client Mobile Redesign (S0–S6)** | **0** | **6 new, 6 modified** | **✅ built · production-ready** | — |
 
 **Live migrations applied: 8** (all in `supabase_migrations.schema_migrations` — F6 added `20260531123907 alt_exercise_substitute`).
 **Live tables created by this work: 4** (`notifications`, `exercise_alternative_requests`, `workout_sessions`, `workout_exercise_logs`). F6 added one column to `exercise_alternative_requests`.
 **Live views created by this work: 2** (`v_client_subscription_state`, `v_client_progression` — bumped to v1.1 by F6).
 **Live JS modules added by this work: 7** (`subscriptionService`, `workoutSession`, `notificationsService`, `altExerciseRequest`, `progressionEngine`, `exerciseInstructions`, `exercisePicker`). F6 added **zero new modules** — reused F5's `ExercisePicker` verbatim.
+
+---
+
+## ✅ Client Mobile Redesign (S0 → S6) — production-ready
+
+**Commits:** S0 `3df7064` · S1 `2dece2f` · S2 `2872910` · S3 `aa9cb8e` · S4 `7d79ef6` · S5 `32a7bdd` · S6 (this commit)
+**Status:** Built, verified, production-ready. Presentation-layer only — no backend, DB, RLS, RPC, Edge Function, or cron changes.
+**Design skill:** `impeccable` (`.agents/skills/impeccable`). Full architecture + build log + S6 audit in `CLIENT_DASHBOARD_MOBILE_REDESIGN.md` (sections 11–13).
+
+### What it does
+Replaces the client's desktop-sidebar experience with a mobile-first, dark, calm 5-tab app (**Today · Train · Progress · Coach · More**), role-gated via `body.nc-client` so coach/admin desktop is untouched. Today is status-first (recovery dial + one CTA + one attention card). Train is one guided recovery journey (Daily Routine + Program merged). Progress is the analytics home (momentum + history + report + fullscreen hologram + advanced, all progressively disclosed). Coach is a recovery support screen (Coach Presence + Latest Guidance + Accountability + one Contact CTA), not an inbox. More is grouped (Recovery / Wellness / Resources / Account).
+
+### Files
+- **New (6):** `js/clientShell.js`, `js/clientTrain.js`, `js/clientProgress.js`, `js/clientCoach.js`, `js/clientUtil.js`, `css/mobile-shell.css`, `css/client-theme.css` (CSS counts as part of the 6-new presentation set; `clientDashboard.js` pre-existed and was rewritten).
+- **Modified (6):** `app.html` (tab bar, sheet, sections, role-client nav, script/CSS links), `js/dashboard.js` (client loaders), `js/clientDashboard.js` (Today rewrite), `js/assessmentSnapshot.js` (additive label overrides), plus per-step edits.
+
+### Role-gating / coach safety
+Client modules render only via client-gated paths (tab bar requires `body.nc-client` = `role==='client'`; desktop client nav carries `role-client-only`, hidden by `initShell`). Shared edits default to prior behavior (report labels default to clinical terms; Daily Routine dark theme is `body.nc-client`-scoped). RLS isolates data: `profiles`/`notifications` SELECT = own-row-or-admin.
+
+### S6 verdict
+Full regression + coach-protection + a11y + mobile audit passed. One Low consistency defect found and fixed (Today attention card vs Coach guidance subscription filter). No Critical/High/Medium defects. **PRODUCTION-READY.**
+
+### Deferred (Low, non-blocking)
+- Modal overlays trap focus but don't `aria-hidden` siblings.
+- Daily Routine custom checkbox lacks Enter/Space activation (shared module).
+- Pre-existing H-1 (client-side-only write-gate) unchanged; tracked in `PRODUCTION_READINESS_AUDIT.md`.

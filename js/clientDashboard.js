@@ -243,15 +243,18 @@ const ClientDashboard = (() => {
       return _attentionCard(el, '⚠', `Plan ends in ${d} day${d === 1 ? '' : 's'}`, 'Reach out to your coach to renew before access pauses.', 'coach');
     }
 
-    // Priority 2: the latest unread message from the coach side.
+    // Priority 2: the latest unread guidance from the coach side. Subscription
+    // alerts are excluded here (handled above and via the header pill) so this
+    // stays consistent with the Coach screen, which also filters them out.
     try {
       const uid = (typeof Auth !== 'undefined' && Auth.getUser) ? Auth.getUser()?.id : clientId;
       if (uid) {
         const { data } = await sb.from('notifications')
           .select('title').eq('recipient_id', uid).is('read_at', null)
+          .not('type', 'like', 'subscription%')
           .order('created_at', { ascending: false }).limit(1);
         if (data && data.length) {
-          return _attentionCard(el, '✦', data[0].title || 'New update from your coach', 'Tap to open your inbox.', 'coach');
+          return _attentionCard(el, '✦', data[0].title || 'New update from your coach', 'Tap to see what your coach shared.', 'coach');
         }
       }
     } catch (_) { /* non-blocking */ }
