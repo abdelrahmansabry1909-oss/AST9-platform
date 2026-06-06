@@ -157,7 +157,10 @@
       <div class="nav-item role-coach-admin" id="nav-programs" onclick="Dashboard.showSection('programs')" title="Programs">
         <span class="nav-item-icon">◈</span><span class="nav-label">Programs</span>
       </div>
-      <div class="nav-item" id="nav-daily-routine" onclick="Dashboard.showSection('daily-routine')" title="Daily Routine">
+      <!-- Daily Routine is coach/admin-only in the nav now: the coach adherence
+           dashboard. Clients reach their routine inside Train (folded in S2);
+           this avoids a duplicate desktop path. Section + workflow unchanged. -->
+      <div class="nav-item role-coach-admin" id="nav-daily-routine" onclick="Dashboard.showSection('daily-routine')" title="Daily Routine">
         <span class="nav-item-icon">𓆸</span><span class="nav-label">Daily Routine</span>
       </div>
       <div class="nav-item role-client-only" id="nav-nutrition-plan" onclick="Dashboard.showSection('nutrition-plan')" title="Nutrition Plan">
@@ -204,8 +207,15 @@
       <div class="nav-item role-client-only" id="nav-my-graph" onclick="Dashboard.showSection('my-graph')" title="My Reactive Graph">
         <span class="nav-item-icon">↟</span><span class="nav-label">My Graph</span>
       </div>
-      <div class="nav-item role-client-only" id="nav-my-program" onclick="Dashboard.showSection('my-program')" title="My Program">
+      <!-- My Program retired from client nav (folded into Train → "Your full
+           plan" in S2). Hidden in nav for everyone (it was client-only); the
+           #section-my-program section + renderClientProgram workflow are kept
+           intact for deep-link/fallback use. -->
+      <div class="nav-item" id="nav-my-program" onclick="Dashboard.showSection('my-program')" title="My Program" style="display:none">
         <span class="nav-item-icon">◈</span><span class="nav-label">My Program</span>
+      </div>
+      <div class="nav-item role-client-only" id="nav-client-train" onclick="Dashboard.showSection('client-train')" title="Train">
+        <span class="nav-item-icon">◈</span><span class="nav-label">Train</span>
       </div>
       <div class="nav-item role-client-only" id="nav-client-progress" onclick="Dashboard.showSection('client-progress')" title="Progress">
         <span class="nav-item-icon">◮</span><span class="nav-label">Progress</span>
@@ -219,10 +229,11 @@
         <span class="nav-item-icon">◈</span><span class="nav-label">Community</span>
         <span id="badge-community" class="nav-badge hidden">0</span>
       </div>
-      <!-- Reliability Sweep / H3: Notifications nav entry for ALL roles.
-           Bell icon in the sidebar footer remains as a quick-access; this
-           entry gives mobile clients a discoverable way into the inbox. -->
-      <div class="nav-item" id="nav-notifications" onclick="Dashboard.showSection('notifications')" title="Notifications">
+      <!-- Notifications is coach/admin-only in the nav now: the inbox +
+           alt-exercise queue. Clients get the same data reframed on the Coach
+           tab (S4), so the raw inbox is no longer a separate client path.
+           Section + workflow unchanged for coach/admin. -->
+      <div class="nav-item role-coach-admin" id="nav-notifications" onclick="Dashboard.showSection('notifications')" title="Notifications">
         <span class="nav-item-icon">◔</span><span class="nav-label">Notifications</span>
       </div>
 
