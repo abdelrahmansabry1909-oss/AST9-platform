@@ -21,7 +21,7 @@
   // Primary tab id -> existing section id (routed via Dashboard.showSection).
   const TAB_SECTION = {
     today:    'dashboard',
-    train:    'daily-routine',
+    train:    'client-train',
     progress: 'client-progress',
     coach:    'notifications',
   };
@@ -62,11 +62,17 @@
     const section = TAB_SECTION[tab];
     if (!section || typeof Dashboard === 'undefined') return;
     Dashboard.showSection(section);
-    // S0: the Progress tab section has no Dashboard loader yet, so mount the
-    // existing client progression panel here to land on a real screen.
-    // S3 replaces this with trends + assessment history + hologram.
+    // The new client sections have no Dashboard loader; mount their content here.
+    if (tab === 'train')    _mountTrain();
+    // S0: Progress tab mounts the existing progression panel until S3 replaces
+    // it with trends + assessment history + hologram.
     if (tab === 'progress') _mountProgress();
     setActive(tab);
+  }
+
+  function _mountTrain() {
+    const host = document.getElementById('client-train-root');
+    if (host && window.ClientTrain && ClientTrain.render) ClientTrain.render(host);
   }
 
   function _mountProgress() {

@@ -263,7 +263,6 @@
     <div class="nc-sheet-panel">
       <div class="nc-sheet-handle"></div>
       <div class="nc-sheet-title">More</div>
-      <button class="nc-sheet-link" type="button" data-section="my-program"><span class="nc-sheet-ico" aria-hidden="true">◈</span>My Program</button>
       <button class="nc-sheet-link" type="button" data-section="my-graph"><span class="nc-sheet-ico" aria-hidden="true">↟</span>Advanced Insights</button>
       <button class="nc-sheet-link" type="button" data-section="nutrition-plan"><span class="nc-sheet-ico" aria-hidden="true">◴</span>Nutrition Plan</button>
       <button class="nc-sheet-link" type="button" data-section="services"><span class="nc-sheet-ico" aria-hidden="true">✦</span>Our Services</button>
@@ -297,6 +296,12 @@
          and the relocated hologram. ── -->
     <div class="section" id="section-client-progress">
       <div id="client-progress-root"></div>
+    </div>
+
+    <!-- ── CLIENT TRAIN (Recovery Journey · guided journey = Daily Routine +
+         Program merged). Mounted by clientShell on the Train tab. ── -->
+    <div class="section" id="section-client-train">
+      <div id="client-train-root"></div>
     </div>
 
     <!-- ── NUTRITION PLAN (Phase A stub — full implementation TBD) ── -->
@@ -2133,6 +2138,7 @@ setInterval(() => { if (!document.hidden) _refreshApprovalsBadge(); }, 60_000);
 <!-- Feature 7 — shared assessment→hologram loader (used by client dashboard + coach Recovery modal) -->
 <script src="js/assessmentSnapshot.js"></script>
 <script src="js/clientDashboard.js"></script>
+<script src="js/clientTrain.js"></script>
 <script src="js/clientShell.js"></script>
 <script src="js/exerciseLibrary.js"></script>
 <script src="js/exerciseUI.js"></script>
