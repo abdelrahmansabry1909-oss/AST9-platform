@@ -2,13 +2,14 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 <meta name="description" content="NeuCore — AI biomechanics, movement intelligence, and neuro-performance optimization. An AST9 Solution."/>
 <title>NeuCore — An AST9 Solution</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <link rel="stylesheet" href="css/styles.css"/>
   <link rel="stylesheet" href="css/styles_holographic.css"/>
   <link rel="stylesheet" href="css/neucore-design-system.css"/>
+  <link rel="stylesheet" href="css/mobile-shell.css"/>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>"/>
 </head>
 <body>
@@ -245,6 +246,34 @@
     </div>
   </aside>
 
+  <!-- ── Mobile client tab bar + More sheet (Recovery Journey · S0).
+       Role-gated (body.nc-client) and mobile-only via CSS; coaches,
+       admins, and desktop keep the sidebar untouched. Drives the
+       existing Dashboard.showSection router via js/clientShell.js. ── -->
+  <nav class="nc-tabbar" id="nc-tabbar" aria-label="Primary">
+    <button class="nc-tab" type="button" data-tab="today"    aria-selected="true"><span class="nc-tab-ico" aria-hidden="true">◉</span>Today</button>
+    <button class="nc-tab" type="button" data-tab="train"    aria-selected="false"><span class="nc-tab-ico" aria-hidden="true">◈</span>Train</button>
+    <button class="nc-tab" type="button" data-tab="progress" aria-selected="false"><span class="nc-tab-ico" aria-hidden="true">◮</span>Progress</button>
+    <button class="nc-tab" type="button" data-tab="coach"    aria-selected="false"><span class="nc-tab-ico" aria-hidden="true">✉</span>Coach</button>
+    <button class="nc-tab" type="button" data-tab="more"     aria-selected="false"><span class="nc-tab-ico" aria-hidden="true">⋯</span>More</button>
+  </nav>
+
+  <div class="nc-sheet" id="nc-more-sheet" role="dialog" aria-modal="true" aria-label="More">
+    <div class="nc-sheet-scrim"></div>
+    <div class="nc-sheet-panel">
+      <div class="nc-sheet-handle"></div>
+      <div class="nc-sheet-title">More</div>
+      <button class="nc-sheet-link" type="button" data-section="my-program"><span class="nc-sheet-ico" aria-hidden="true">◈</span>My Program</button>
+      <button class="nc-sheet-link" type="button" data-section="my-graph"><span class="nc-sheet-ico" aria-hidden="true">↟</span>Advanced Insights</button>
+      <button class="nc-sheet-link" type="button" data-section="nutrition-plan"><span class="nc-sheet-ico" aria-hidden="true">◴</span>Nutrition Plan</button>
+      <button class="nc-sheet-link" type="button" data-section="services"><span class="nc-sheet-ico" aria-hidden="true">✦</span>Our Services</button>
+      <button class="nc-sheet-link" type="button" data-section="case-studies"><span class="nc-sheet-ico" aria-hidden="true">◧</span>Case Studies</button>
+      <button class="nc-sheet-link" type="button" data-section="community"><span class="nc-sheet-ico" aria-hidden="true">◈</span>Community</button>
+      <button class="nc-sheet-link" type="button" data-section="client-settings"><span class="nc-sheet-ico" aria-hidden="true">◎</span>Settings</button>
+      <button class="nc-sheet-link" type="button" data-section="__logout"><span class="nc-sheet-ico" aria-hidden="true">⏻</span>Sign out</button>
+    </div>
+  </div>
+
   <!-- MAIN -->
   <main class="main-content">
 
@@ -261,6 +290,13 @@
          continue to land on #section-dashboard below) ── -->
     <div class="section" id="section-client-dashboard">
       <div id="client-dashboard-root"></div>
+    </div>
+
+    <!-- ── CLIENT PROGRESS (Recovery Journey · analytics home). S0 mounts the
+         existing progression panel here; S3 adds trends, assessment history,
+         and the relocated hologram. ── -->
+    <div class="section" id="section-client-progress">
+      <div id="client-progress-root"></div>
     </div>
 
     <!-- ── NUTRITION PLAN (Phase A stub — full implementation TBD) ── -->
@@ -2097,6 +2133,7 @@ setInterval(() => { if (!document.hidden) _refreshApprovalsBadge(); }, 60_000);
 <!-- Feature 7 — shared assessment→hologram loader (used by client dashboard + coach Recovery modal) -->
 <script src="js/assessmentSnapshot.js"></script>
 <script src="js/clientDashboard.js"></script>
+<script src="js/clientShell.js"></script>
 <script src="js/exerciseLibrary.js"></script>
 <script src="js/exerciseUI.js"></script>
 <script src="js/charts.js"></script>
@@ -2206,6 +2243,7 @@ const UI = {
     document.getElementById('screen-login').classList.add('hidden');
     document.getElementById('screen-app').style.display = 'block';
     Dashboard.initShell();
+    if (typeof ClientShell !== 'undefined') ClientShell.init();
     Dashboard.showSection('dashboard');
     // Phase 3: refresh badges + populate progress client select
     setTimeout(() => {
