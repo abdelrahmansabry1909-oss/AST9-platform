@@ -61,25 +61,10 @@
     if (tab === 'more') { openMore(); return; }
     const section = TAB_SECTION[tab];
     if (!section || typeof Dashboard === 'undefined') return;
+    // Section content is mounted by the Dashboard.showSection loaders, shared
+    // by these mobile tabs and the desktop client sidebar items (S3).
     Dashboard.showSection(section);
-    // The new client sections have no Dashboard loader; mount their content here.
-    if (tab === 'train')    _mountTrain();
-    // S0: Progress tab mounts the existing progression panel until S3 replaces
-    // it with trends + assessment history + hologram.
-    if (tab === 'progress') _mountProgress();
     setActive(tab);
-  }
-
-  function _mountTrain() {
-    const host = document.getElementById('client-train-root');
-    if (host && window.ClientTrain && ClientTrain.render) ClientTrain.render(host);
-  }
-
-  function _mountProgress() {
-    const host = document.getElementById('client-progress-root');
-    if (host && typeof Progression !== 'undefined' && Progression.mountClientPanel) {
-      Progression.mountClientPanel(host);
-    }
   }
 
   function setActive(tab) {

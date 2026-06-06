@@ -107,6 +107,13 @@ const Dashboard = (() => {
       // ── My Program — client's read-only published training program ──
       'my-program':       () => (typeof ProgramPublish !== 'undefined'
                                  && ProgramPublish.renderClientProgram('#my-program-host')),
+      // ── Recovery Journey redesign — client Train + Progress (client-only).
+      //    Shared by the mobile tab bar (clientShell) and the desktop client
+      //    sidebar items. Coaches/admins never navigate to these sections.
+      'client-train':     () => (typeof ClientTrain !== 'undefined'
+                                 && ClientTrain.render && ClientTrain.render('#client-train-root')),
+      'client-progress':  () => (typeof ClientProgress !== 'undefined'
+                                 && ClientProgress.render && ClientProgress.render('#client-progress-root')),
       // ── Workout History (coach) — WorkoutSession.mountCoachView ──
       'workout-history':  () => {
                             if (typeof WorkoutSession === 'undefined') return;

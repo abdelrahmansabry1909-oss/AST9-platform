@@ -206,6 +206,9 @@
       <div class="nav-item role-client-only" id="nav-my-program" onclick="Dashboard.showSection('my-program')" title="My Program">
         <span class="nav-item-icon">◈</span><span class="nav-label">My Program</span>
       </div>
+      <div class="nav-item role-client-only" id="nav-client-progress" onclick="Dashboard.showSection('client-progress')" title="Progress">
+        <span class="nav-item-icon">◮</span><span class="nav-label">Progress</span>
+      </div>
 
       <div class="nav-section">Community</div>
       <div class="nav-item" id="nav-community" onclick="Dashboard.showSection('community')" title="Community">
@@ -2139,6 +2142,7 @@ setInterval(() => { if (!document.hidden) _refreshApprovalsBadge(); }, 60_000);
 <script src="js/assessmentSnapshot.js"></script>
 <script src="js/clientDashboard.js"></script>
 <script src="js/clientTrain.js"></script>
+<script src="js/clientProgress.js"></script>
 <script src="js/clientShell.js"></script>
 <script src="js/exerciseLibrary.js"></script>
 <script src="js/exerciseUI.js"></script>
