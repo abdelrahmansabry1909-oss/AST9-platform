@@ -25,16 +25,10 @@
 (() => {
   'use strict';
 
-  const _esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) =>
-    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-
-  function _band(s) {
-    if (s >= 80) return { color: '#14B8A6', word: 'Strong' };
-    if (s >= 60) return { color: '#84CC16', word: 'Steady' };
-    if (s >= 40) return { color: '#F59E0B', word: 'Building' };
-    if (s >= 20) return { color: '#F97316', word: 'Early days' };
-    return            { color: '#67E8F9', word: 'Getting started' };
-  }
+  // Shared helpers (S5): delegate to ClientUtil so the band scale and
+  // escaping stay identical across Today / Train / Progress / Coach.
+  const _esc  = (s) => ClientUtil.esc(s);
+  const _band = (s) => ClientUtil.band(s);
 
   // Recovery timeline from real assessment history (composite score over time).
   async function _timeline(uid) {
@@ -59,7 +53,7 @@
     if (pts.length < 2) return { word: 'Building', arrow: '', msg: 'Your recovery trend appears as you complete more check-ins.' };
     const d = pts[pts.length - 1].score - pts[0].score;
     if (d >= 3)  return { word: 'Improving', arrow: '↑', msg: 'Your recovery is trending up. Keep going.' };
-    if (d <= -3) return { word: 'Building',  arrow: '',  msg: 'Stay consistent — momentum builds with each session.' };
+    if (d <= -3) return { word: 'Building',  arrow: '',  msg: 'Stay consistent. Momentum builds with each session.' };
     return            { word: 'Steady',    arrow: '→', msg: 'Holding steady. Consistency is paying off.' };
   }
 
@@ -117,13 +111,14 @@
 
     host.innerHTML = `
       <div style="max-width:520px;margin:0 auto;padding:6px 2px 8px">
+        ${ClientUtil.isOffline() ? ClientUtil.offlineNote() : ''}
         <div style="margin:4px 4px 16px">
           <div style="font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--nc-text-muted,#64748B)">Recovery Journey</div>
           <div style="font-size:20px;font-weight:800;letter-spacing:-.01em;color:var(--nc-text-primary,#F8FAFC)">Your Progress</div>
         </div>
         <div id="cp-summary" style="border-radius:var(--nc-r-2xl,28px);background:var(--nc-bg-card,rgba(15,23,42,.7));
              border:1px solid var(--nc-border,rgba(255,255,255,.08));box-shadow:var(--nc-shadow-card,0 8px 32px rgba(0,0,0,.4));padding:20px">
-          <div style="display:flex;justify-content:center;padding:16px 0"><span class="spinner"></span></div>
+          ${ClientUtil.skeleton(120, 'var(--nc-r-xl,20px)')}
         </div>
         ${_disclosure('history', 'Check-in history')}
         ${_disclosure('report',  'Your latest report')}
@@ -139,7 +134,13 @@
         (window.Progression && Progression.getScores) ? Progression.getScores(uid) : Promise.resolve(null),
         _timeline(uid),
       ]);
-    } catch (e) { console.warn('[progress] load:', e?.message); }
+    } catch (e) {
+      // A real load failure (vs. a new client with no data, which resolves
+      // empty): show a calm error with a retry rather than a blank summary.
+      console.warn('[progress] load:', e?.message);
+      ClientUtil.errorState(host.querySelector('#cp-summary'), 'We could not load your progress', () => render(container, opts));
+      return;
+    }
 
     _renderSummary(host, scores, pts);
 
@@ -147,6 +148,11 @@
     _wireDisclosure(host, 'report',  (panel) => {
       if (window.AssessmentSnapshot && AssessmentSnapshot.renderReport) {
         AssessmentSnapshot.renderReport(panel, snap, {
+          // Recovery-focused labels for the client (the coach keeps the
+          // clinical defaults; these only apply to this client surface).
+          driverLabel: 'What we are focusing on',
+          symptomsLabel: 'What you have been feeling',
+          notesLabel: 'From your coach',
           emptyTitle: 'No report yet',
           emptyDesc: 'Your coach will add a short recovery note after your next assessment.',
         });
@@ -231,8 +237,14 @@
   function _openHologram(snap) {
     if (document.getElementById('cp-holo-overlay')) return;
     let state = 'A';
+    const prevFocus = document.activeElement;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';     // scroll-lock behind the overlay
     const ov = document.createElement('div');
     ov.id = 'cp-holo-overlay';
+    ov.setAttribute('role', 'dialog');
+    ov.setAttribute('aria-modal', 'true');
+    ov.setAttribute('aria-label', 'Body load map');
     ov.style.cssText = 'position:fixed;inset:0;z-index:1200;background:var(--nc-bg-primary,#07111A);display:flex;flex-direction:column';
     const tBtn = (st, label) => `<button type="button" data-st="${st}"
       style="flex:1;max-width:160px;min-height:44px;border-radius:var(--nc-r-full,999px);cursor:pointer;font-size:13px;font-weight:700;
@@ -253,10 +265,21 @@
       ? AssessmentSnapshot.mountHologram(ov.querySelector('#cp-holo-canvas'), snap, { state })
       : { setState() {}, destroy() {} };
 
-    const close = () => { try { handle.destroy(); } catch (_) {} ov.remove(); document.removeEventListener('keydown', onKey); };
-    const onKey = (e) => { if (e.key === 'Escape') close(); };
+    const close = () => {
+      try { handle.destroy(); } catch (_) {}
+      ov.remove();
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prevOverflow;          // restore scroll
+      try { prevFocus && prevFocus.focus && prevFocus.focus(); } catch (_) {}  // restore focus
+    };
+    // Esc closes; Tab is trapped within the overlay (focus management).
+    const onKey = (e) => {
+      if (e.key === 'Escape') { close(); return; }
+      ClientUtil.trapTab(e, ov, 'button');
+    };
     document.addEventListener('keydown', onKey);
     ov.querySelector('#cp-holo-back')?.addEventListener('click', close);
+    ov.querySelector('#cp-holo-back')?.focus();              // move focus into the dialog
     ov.querySelectorAll('[data-st]').forEach((b) => b.addEventListener('click', () => {
       state = b.dataset.st;
       handle.setState(state);

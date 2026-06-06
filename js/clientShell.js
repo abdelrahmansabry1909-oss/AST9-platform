@@ -75,8 +75,30 @@
     });
   }
 
-  function openMore()  { document.getElementById('nc-more-sheet')?.classList.add('is-open'); }
-  function closeMore() { document.getElementById('nc-more-sheet')?.classList.remove('is-open'); }
+  let _morePrevFocus = null;
+  function _moreKey(e) {
+    const sheet = document.getElementById('nc-more-sheet');
+    if (!sheet) return;
+    if (e.key === 'Escape') { closeMore(); return; }
+    ClientUtil.trapTab(e, sheet, '.nc-sheet-link');
+  }
+  function openMore() {
+    const sheet = document.getElementById('nc-more-sheet');
+    if (!sheet) return;
+    _morePrevFocus = document.activeElement;
+    sheet.classList.add('is-open');
+    document.body.style.overflow = 'hidden';          // scroll-lock behind the sheet
+    document.addEventListener('keydown', _moreKey);
+    sheet.querySelector('.nc-sheet-link')?.focus();   // move focus into the sheet
+  }
+  function closeMore() {
+    const sheet = document.getElementById('nc-more-sheet');
+    if (!sheet) return;
+    sheet.classList.remove('is-open');
+    document.body.style.overflow = '';                // restore scroll
+    document.removeEventListener('keydown', _moreKey);
+    try { _morePrevFocus && _morePrevFocus.focus && _morePrevFocus.focus(); } catch (_) {}
+  }
 
   window.ClientShell = { init, go };
 })();

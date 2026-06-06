@@ -22,16 +22,11 @@
 (() => {
   'use strict';
 
-  const _esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) =>
-    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-
-  // Recovery Journey language (consistent with the Today screen).
-  const STAGES = ['Mobility Restoration', 'Strength Rebuilding', 'Return to Performance', 'Peak Performance'];
-
-  function _stageIndex(phase) {
-    const n = parseInt(String(phase || '').replace(/\D/g, ''), 10) || 1;
-    return Math.max(0, Math.min(STAGES.length - 1, n - 1));
-  }
+  // Shared helpers (S5): delegate to ClientUtil so escaping and the
+  // Recovery Journey stage map stay identical across the client screens.
+  const _esc        = (s) => ClientUtil.esc(s);
+  const STAGES      = ClientUtil.STAGES;
+  const _stageIndex = (phase) => ClientUtil.stageIndex(phase);
 
   function _nextMilestone(nextStage) {
     switch (nextStage) {
@@ -50,24 +45,8 @@
     }</div>`;
   }
 
-  // Consecutive most-recent days at >=60% (today not yet done does not break it).
-  async function _streak(clientId) {
-    try {
-      if (!clientId || !(window.DailyRoutine && DailyRoutine.historyFor)) return 0;
-      const hist = await DailyRoutine.historyFor(clientId, 30);   // ascending [{log_date, percent}]
-      const byDate = {};
-      (hist || []).forEach((h) => { byDate[h.log_date] = h.percent ?? 0; });
-      let streak = 0;
-      for (let i = 0; i < 30; i++) {
-        const d = new Date(Date.now() - i * 86400000).toISOString().slice(0, 10);
-        const p = byDate[d];
-        if (p != null && p >= 60) streak++;
-        else if (i === 0) continue;        // today not logged yet — keep the streak
-        else break;
-      }
-      return streak;
-    } catch (_) { return 0; }
-  }
+  // Streak via the shared accountability calc (S5).
+  const _streak = async (clientId) => (await ClientUtil.accountability(clientId)).streak;
 
   async function render(container) {
     const host = typeof container === 'string' ? document.querySelector(container) : container;
@@ -78,15 +57,23 @@
     const idx      = _stageIndex(profile?.current_phase);
     const nextStage = idx < STAGES.length - 1 ? STAGES[idx + 1] : null;
 
+    // Read-only when the subscription has lapsed: the plan stays viewable
+    // but check-ins are disabled (reuses the tracker's readOnly mode).
+    const subState = (typeof Auth !== 'undefined' && Auth.getSubscriptionState) ? Auth.getSubscriptionState() : null;
+    const canWrite = (typeof SubscriptionService !== 'undefined' && SubscriptionService.canWrite)
+      ? SubscriptionService.canWrite(subState) : true;
+
     host.innerHTML = `
       <div style="max-width:520px;margin:0 auto;padding:6px 2px 8px">
+
+        ${ClientUtil.isOffline() ? ClientUtil.offlineNote() : ''}
 
         <!-- WHERE AM I? -->
         <div style="margin:4px 4px 18px">
           <div style="font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--nc-text-muted,#64748B)">Recovery Journey</div>
           <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-top:2px">
             <div style="font-size:22px;font-weight:800;letter-spacing:-.01em;color:var(--nc-text-primary,#F8FAFC)">${_esc(STAGES[idx])}</div>
-            <div style="font-size:12px;color:var(--nc-text-secondary,#94A3B8);white-space:nowrap">🔥 <b id="ct-streak" style="color:var(--nc-text-primary,#F8FAFC)">…</b></div>
+            <div aria-live="polite" style="font-size:12px;color:var(--nc-text-secondary,#94A3B8);white-space:nowrap">🔥 <b id="ct-streak" style="color:var(--nc-text-primary,#F8FAFC)">…</b></div>
           </div>
           ${_stepper(idx)}
           <div style="margin-top:8px;font-size:12px;color:var(--nc-text-muted,#64748B)">Stage ${idx + 1} of ${STAGES.length}</div>
@@ -145,7 +132,7 @@
         sessionEl.style.display = 'block';
         if (startLbl) startLbl.textContent = 'Hide session';
         if (!sessionMounted && window.DailyRoutine && DailyRoutine.mountTracker) {
-          DailyRoutine.mountTracker(sessionEl, { clientId });
+          DailyRoutine.mountTracker(sessionEl, { clientId, readOnly: !canWrite });
           sessionMounted = true;
         }
         sessionEl.scrollIntoView({ behavior: 'smooth', block: 'start' });

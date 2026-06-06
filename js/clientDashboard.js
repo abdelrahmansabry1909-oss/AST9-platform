@@ -26,38 +26,19 @@
 const ClientDashboard = (() => {
   'use strict';
 
-  const _esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) =>
-    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  // Shared helpers live in ClientUtil (S5); these delegate so call sites
+  // are unchanged and the logic stops drifting across the client screens.
+  const _esc          = (s) => ClientUtil.esc(s);
+  const _greeting     = () => ClientUtil.greeting();
+  const _journeyStage = (phase) => ClientUtil.stageName(phase);
+  const _recoveryBand = (s) => ClientUtil.band(s);
 
   // ── Navigation: prefer the mobile shell router, fall back to sections ──
-  const _SECTION_FOR = { train: 'daily-routine', progress: 'client-progress', coach: 'notifications' };
+  const _SECTION_FOR = { train: 'client-train', progress: 'client-progress', coach: 'client-coach' };
   function _go(tab) {
     if (window.ClientShell && ClientShell.go) { ClientShell.go(tab); return; }
     const id = _SECTION_FOR[tab];
     if (id && typeof Dashboard !== 'undefined') Dashboard.showSection(id);
-  }
-
-  function _greeting() {
-    const h = new Date().getHours();
-    return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
-  }
-
-  // ── Recovery Journey language (no clinical phase numbers on Today) ──
-  function _journeyStage(phase) {
-    const n = parseInt(String(phase || '').replace(/\D/g, ''), 10) || 1;
-    if (n <= 1) return 'Mobility Restoration';
-    if (n === 2) return 'Strength Rebuilding';
-    if (n === 3) return 'Return to Performance';
-    return 'Peak Performance';
-  }
-
-  // ── Recovery band: committed hue + calm, encouraging wording ──
-  function _recoveryBand(s) {
-    if (s >= 80) return { color: '#14B8A6', word: 'Strong',          message: 'You are recovering well. Keep your rhythm steady.' };
-    if (s >= 60) return { color: '#84CC16', word: 'Steady',          message: 'Solid progress. Stay consistent this week.' };
-    if (s >= 40) return { color: '#F59E0B', word: 'Building',        message: 'You are building momentum, one session at a time.' };
-    if (s >= 20) return { color: '#F97316', word: 'Early days',      message: 'Early in the journey. Small steps add up.' };
-    return            { color: '#67E8F9', word: 'Getting started',   message: 'Let us get your first sessions in.' };
   }
 
   // ── Subscription pill (header, compact) ──
@@ -104,11 +85,13 @@ const ClientDashboard = (() => {
     if (!root) return;
 
     const profile   = (typeof Auth !== 'undefined' && Auth.getProfile) ? Auth.getProfile() : null;
-    const firstName = (profile?.full_name || '').split(' ')[0] || 'there';
+    const firstName = ClientUtil.firstName(profile);
     const clientId  = profile?.id || null;
 
     root.innerHTML = `
       <div class="cd-today" style="max-width:520px;margin:0 auto;padding:6px 2px 8px">
+
+        ${ClientUtil.isOffline() ? ClientUtil.offlineNote() : ''}
 
         <!-- header -->
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:4px 4px 16px">
@@ -168,6 +151,11 @@ const ClientDashboard = (() => {
       <div style="margin-top:14px;font-size:13px;font-weight:700;letter-spacing:.04em;color:${band.color}">${_esc(band.word)}</div>
       <div style="margin-top:6px;font-size:14.5px;line-height:1.5;color:var(--nc-text-primary,#F8FAFC)">${_esc(band.message)}</div>
       <div style="margin-top:10px;font-size:12px;color:var(--nc-text-secondary,#94A3B8)">${_esc(stage)} <span style="opacity:.5">·</span> tap for details</div>`;
+
+    // Announce the loaded score to assistive tech via a meaningful label.
+    el.setAttribute('aria-label', hasScore
+      ? `Recovery ${score}, ${band.word}. Tap to view your progress.`
+      : 'Recovery score not available yet. Tap to view your progress.');
 
     // Animate the arc fill after paint.
     const arc = el.querySelector('#cd-dial-arc');

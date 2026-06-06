@@ -110,6 +110,11 @@
       'Your coach will run an assessment after your first session — your True Driver, reported symptoms, and coach\'s notes will appear here.';
     const notesFallback = opts.notesFallback ||
       'Your coach will write a brief here after your next session.';
+    // Section labels are overridable so a client surface can use
+    // recovery-focused wording; defaults keep the clinical coach terms.
+    const driverLabel   = opts.driverLabel   || 'True Driver';
+    const symptomsLabel = opts.symptomsLabel || 'Reported Symptoms';
+    const notesLabel    = opts.notesLabel    || "Coach's notes";
 
     if (!(objective || gait || subjective)) {
       hostEl.innerHTML = (typeof Dashboard !== 'undefined' && Dashboard.emptyState)
@@ -137,15 +142,15 @@
 
     hostEl.innerHTML = `
       <div class="cd-assessment-row">
-        <div class="cd-assessment-label">True Driver</div>
+        <div class="cd-assessment-label">${_esc(driverLabel)}</div>
         <div class="cd-assessment-value">${_esc(trueDriver)}</div>
       </div>
       <div class="cd-assessment-row">
-        <div class="cd-assessment-label">Reported Symptoms</div>
+        <div class="cd-assessment-label">${_esc(symptomsLabel)}</div>
         <div class="cd-assessment-value">${_esc(reported)}</div>
       </div>
       <div class="cd-assessment-row">
-        <div class="cd-assessment-label">Coach's notes</div>
+        <div class="cd-assessment-label">${_esc(notesLabel)}</div>
         <div class="cd-assessment-value cd-assessment-notes">${_esc(coachNotes)}</div>
       </div>`;
   }

@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="css/styles_holographic.css"/>
   <link rel="stylesheet" href="css/neucore-design-system.css"/>
   <link rel="stylesheet" href="css/mobile-shell.css"/>
+  <link rel="stylesheet" href="css/client-theme.css"/>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>"/>
 </head>
 <body>
@@ -256,12 +257,12 @@
        Role-gated (body.nc-client) and mobile-only via CSS; coaches,
        admins, and desktop keep the sidebar untouched. Drives the
        existing Dashboard.showSection router via js/clientShell.js. ── -->
-  <nav class="nc-tabbar" id="nc-tabbar" aria-label="Primary">
-    <button class="nc-tab" type="button" data-tab="today"    aria-selected="true"><span class="nc-tab-ico" aria-hidden="true">◉</span>Today</button>
-    <button class="nc-tab" type="button" data-tab="train"    aria-selected="false"><span class="nc-tab-ico" aria-hidden="true">◈</span>Train</button>
-    <button class="nc-tab" type="button" data-tab="progress" aria-selected="false"><span class="nc-tab-ico" aria-hidden="true">◮</span>Progress</button>
-    <button class="nc-tab" type="button" data-tab="coach"    aria-selected="false"><span class="nc-tab-ico" aria-hidden="true">✉</span>Coach</button>
-    <button class="nc-tab" type="button" data-tab="more"     aria-selected="false"><span class="nc-tab-ico" aria-hidden="true">⋯</span>More</button>
+  <nav class="nc-tabbar" id="nc-tabbar" role="tablist" aria-label="Primary">
+    <button class="nc-tab" type="button" role="tab" data-tab="today"    aria-selected="true"><span class="nc-tab-ico" aria-hidden="true">◉</span>Today</button>
+    <button class="nc-tab" type="button" role="tab" data-tab="train"    aria-selected="false"><span class="nc-tab-ico" aria-hidden="true">◈</span>Train</button>
+    <button class="nc-tab" type="button" role="tab" data-tab="progress" aria-selected="false"><span class="nc-tab-ico" aria-hidden="true">◮</span>Progress</button>
+    <button class="nc-tab" type="button" role="tab" data-tab="coach"    aria-selected="false"><span class="nc-tab-ico" aria-hidden="true">♥</span>Coach</button>
+    <button class="nc-tab" type="button" role="tab" data-tab="more"     aria-selected="false"><span class="nc-tab-ico" aria-hidden="true">⋯</span>More</button>
   </nav>
 
   <div class="nc-sheet" id="nc-more-sheet" role="dialog" aria-modal="true" aria-label="More">
@@ -2160,6 +2161,7 @@ setInterval(() => { if (!document.hidden) _refreshApprovalsBadge(); }, 60_000);
 <script src="js/communityUI.js"></script>
 <!-- Feature 7 — shared assessment→hologram loader (used by client dashboard + coach Recovery modal) -->
 <script src="js/assessmentSnapshot.js"></script>
+<script src="js/clientUtil.js"></script>
 <script src="js/clientDashboard.js"></script>
 <script src="js/clientTrain.js"></script>
 <script src="js/clientProgress.js"></script>

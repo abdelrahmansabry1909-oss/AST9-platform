@@ -29,60 +29,19 @@
 (() => {
   'use strict';
 
-  const _esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) =>
-    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-
-  // Recovery Journey language (consistent with Today / Train / Progress).
-  const STAGES = ['Mobility Restoration', 'Strength Rebuilding', 'Return to Performance', 'Peak Performance'];
-  function _stage(phase) {
-    const n = parseInt(String(phase || '').replace(/\D/g, ''), 10) || 1;
-    return STAGES[Math.max(0, Math.min(STAGES.length - 1, n - 1))];
-  }
-
-  function _firstName(profile) {
-    return (profile?.full_name || '').trim().split(/\s+/)[0] || 'there';
-  }
+  // Shared helpers (S5): delegate to ClientUtil so escaping, the stage
+  // map, the name helper, relative time, and the streak/consistency
+  // calculation stay identical across all four client screens.
+  const _esc            = (s) => ClientUtil.esc(s);
+  const _stage          = (phase) => ClientUtil.stageName(phase);
+  const _firstName      = (profile) => ClientUtil.firstName(profile);
+  const _ago            = (iso) => ClientUtil.ago(iso);
+  const _accountability = (clientId) => ClientUtil.accountability(clientId);
 
   function _initials(name) {
     const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
     if (!parts.length) return '';
     return (parts[0][0] + (parts[1]?.[0] || '')).toUpperCase();
-  }
-
-  // Soft relative time for guidance ("2 days ago"), no system "· type" suffix.
-  function _ago(iso) {
-    if (!iso) return '';
-    const sec = Math.round((Date.now() - Date.parse(iso)) / 1000);
-    if (sec < 90)            return 'just now';
-    const min = Math.round(sec / 60);
-    if (min < 60)            return `${min} min ago`;
-    const hr = Math.round(min / 60);
-    if (hr < 24)             return `${hr} hour${hr === 1 ? '' : 's'} ago`;
-    const d = Math.round(hr / 24);
-    if (d < 30)              return `${d} day${d === 1 ? '' : 's'} ago`;
-    return new Date(iso).toLocaleDateString(undefined, { month: 'long', day: 'numeric' });
-  }
-
-  // Streak + 7-day consistency from one DailyRoutine.historyFor read.
-  // Streak: consecutive most-recent days at >=60% (today not yet logged is
-  // forgiven, never breaks the streak). Consistency: days >=60% of last 7.
-  async function _accountability(clientId) {
-    const out = { streak: 0, consistency: 0 };
-    try {
-      if (!clientId || !(window.DailyRoutine && DailyRoutine.historyFor)) return out;
-      const hist = await DailyRoutine.historyFor(clientId, 30);  // ascending
-      const byDate = {};
-      (hist || []).forEach((h) => { byDate[h.log_date] = h.percent ?? 0; });
-      for (let i = 0; i < 30; i++) {
-        const d = new Date(Date.now() - i * 86400000).toISOString().slice(0, 10);
-        const p = byDate[d];
-        if (i < 7 && p != null && p >= 60) out.consistency++;
-        if (p != null && p >= 60) out.streak++;
-        else if (i === 0) continue;   // today not logged yet — keep the streak
-        else break;
-      }
-    } catch (_) { /* calm fallback to zeros */ }
-    return out;
   }
 
   function _encouragement({ streak, consistency }) {
@@ -201,6 +160,8 @@
     host.innerHTML = `
       <div style="max-width:520px;margin:0 auto;padding:6px 2px 8px">
 
+        ${ClientUtil.isOffline() ? ClientUtil.offlineNote() : ''}
+
         <div style="margin:4px 4px 16px">
           <div style="font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--nc-text-muted,#64748B)">Recovery Journey</div>
           <div style="font-size:20px;font-weight:800;letter-spacing:-.01em;color:var(--nc-text-primary,#F8FAFC)">Your Support</div>
@@ -209,10 +170,10 @@
         ${_presence(profile)}
 
         ${_sectionLabel('Latest guidance')}
-        <div id="cc-guidance"><div style="display:flex;justify-content:center;padding:16px 0"><span class="spinner"></span></div></div>
+        <div id="cc-guidance">${ClientUtil.skeleton(76)}</div>
 
         ${_sectionLabel('Your consistency')}
-        <div id="cc-accountability"><div style="display:flex;justify-content:center;padding:16px 0"><span class="spinner"></span></div></div>
+        <div id="cc-accountability">${ClientUtil.skeleton(110, 'var(--nc-r-xl,20px)')}</div>
 
         ${_sectionLabel('Reach out')}
         ${_contact(profile)}
