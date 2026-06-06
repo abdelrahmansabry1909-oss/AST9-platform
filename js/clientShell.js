@@ -5,12 +5,12 @@
    additive: it drives the EXISTING Dashboard.showSection() router, so
    no existing section, coach flow, or desktop layout is changed.
 
-   Tabs (S0 routing; later steps refine each destination's content):
-     Today    -> dashboard         client home
-     Train    -> daily-routine     guided journey lands here; Program merges in S2
-     Progress -> client-progress   analytics home; mounts existing panel in S0
-     Coach    -> notifications     inbox + nudges
-     More     -> bottom sheet      Advanced Insights, Nutrition, Settings, ...
+   Tabs (current routing):
+     Today    -> dashboard         client home (status-first, S1)
+     Train    -> client-train      guided recovery journey (S2)
+     Progress -> client-progress   recovery momentum home (S3)
+     Coach    -> client-coach      recovery support screen (S4)
+     More     -> bottom sheet      Recovery / Wellness / Resources / Account (S4)
 
    init() is called from UI._showApp() after Dashboard.initShell(). For
    non-clients it removes the body flag and does nothing else.
@@ -23,7 +23,7 @@
     today:    'dashboard',
     train:    'client-train',
     progress: 'client-progress',
-    coach:    'notifications',
+    coach:    'client-coach',
   };
 
   let _wired = false;
@@ -51,6 +51,8 @@
         const id = link.dataset.section;
         closeMore();
         if (id === '__logout') { (typeof UI !== 'undefined') && UI.handleLogout?.(); return; }
+        // Optional deep-link into a Progress disclosure (Recovery group).
+        if (link.dataset.open) window._cpOpen = link.dataset.open;
         if (typeof Dashboard !== 'undefined') Dashboard.showSection(id);
         setActive(null);           // More destinations are not a primary tab
       });

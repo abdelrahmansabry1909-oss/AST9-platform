@@ -209,6 +209,9 @@
       <div class="nav-item role-client-only" id="nav-client-progress" onclick="Dashboard.showSection('client-progress')" title="Progress">
         <span class="nav-item-icon">◮</span><span class="nav-label">Progress</span>
       </div>
+      <div class="nav-item role-client-only" id="nav-client-coach" onclick="Dashboard.showSection('client-coach')" title="Coach">
+        <span class="nav-item-icon">✦</span><span class="nav-label">Coach</span>
+      </div>
 
       <div class="nav-section">Community</div>
       <div class="nav-item" id="nav-community" onclick="Dashboard.showSection('community')" title="Community">
@@ -266,13 +269,23 @@
     <div class="nc-sheet-panel">
       <div class="nc-sheet-handle"></div>
       <div class="nc-sheet-title">More</div>
+
+      <div class="nc-sheet-group">Recovery</div>
       <button class="nc-sheet-link" type="button" data-section="my-graph"><span class="nc-sheet-ico" aria-hidden="true">↟</span>Advanced Insights</button>
-      <button class="nc-sheet-link" type="button" data-section="nutrition-plan"><span class="nc-sheet-ico" aria-hidden="true">◴</span>Nutrition Plan</button>
-      <button class="nc-sheet-link" type="button" data-section="services"><span class="nc-sheet-ico" aria-hidden="true">✦</span>Our Services</button>
+      <button class="nc-sheet-link" type="button" data-section="client-progress" data-open="history"><span class="nc-sheet-ico" aria-hidden="true">◷</span>Assessment History</button>
+      <button class="nc-sheet-link" type="button" data-section="client-progress" data-open="report"><span class="nc-sheet-ico" aria-hidden="true">◔</span>Recovery Reports</button>
+
+      <div class="nc-sheet-group">Wellness</div>
+      <button class="nc-sheet-link" type="button" data-section="nutrition-plan"><span class="nc-sheet-ico" aria-hidden="true">◴</span>Nutrition</button>
+
+      <div class="nc-sheet-group">Resources</div>
       <button class="nc-sheet-link" type="button" data-section="case-studies"><span class="nc-sheet-ico" aria-hidden="true">◧</span>Case Studies</button>
       <button class="nc-sheet-link" type="button" data-section="community"><span class="nc-sheet-ico" aria-hidden="true">◈</span>Community</button>
+      <button class="nc-sheet-link" type="button" data-section="services"><span class="nc-sheet-ico" aria-hidden="true">✦</span>Services</button>
+
+      <div class="nc-sheet-group">Account</div>
       <button class="nc-sheet-link" type="button" data-section="client-settings"><span class="nc-sheet-ico" aria-hidden="true">◎</span>Settings</button>
-      <button class="nc-sheet-link" type="button" data-section="__logout"><span class="nc-sheet-ico" aria-hidden="true">⏻</span>Sign out</button>
+      <button class="nc-sheet-link" type="button" data-section="__logout"><span class="nc-sheet-ico" aria-hidden="true">⏻</span>Sign Out</button>
     </div>
   </div>
 
@@ -305,6 +318,13 @@
          Program merged). Mounted by clientShell on the Train tab. ── -->
     <div class="section" id="section-client-train">
       <div id="client-train-root"></div>
+    </div>
+
+    <!-- ── CLIENT COACH (Recovery Journey · recovery support screen). Coach
+         Presence + Latest Guidance + Accountability + a single Contact CTA.
+         Not an inbox. Mounted by clientShell on the Coach tab. ── -->
+    <div class="section" id="section-client-coach">
+      <div id="client-coach-root"></div>
     </div>
 
     <!-- ── NUTRITION PLAN (Phase A stub — full implementation TBD) ── -->
@@ -2143,6 +2163,7 @@ setInterval(() => { if (!document.hidden) _refreshApprovalsBadge(); }, 60_000);
 <script src="js/clientDashboard.js"></script>
 <script src="js/clientTrain.js"></script>
 <script src="js/clientProgress.js"></script>
+<script src="js/clientCoach.js"></script>
 <script src="js/clientShell.js"></script>
 <script src="js/exerciseLibrary.js"></script>
 <script src="js/exerciseUI.js"></script>

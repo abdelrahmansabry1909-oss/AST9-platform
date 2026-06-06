@@ -108,7 +108,7 @@
     });
   }
 
-  async function render(container) {
+  async function render(container, opts) {
     const host = typeof container === 'string' ? document.querySelector(container) : container;
     if (!host) return;
 
@@ -154,6 +154,17 @@
     });
     _wireDisclosure(host, 'holo', (panel) => _renderHoloEntry(panel, snap));
     _wireDisclosure(host, 'adv',  (panel) => _renderAdvanced(panel, snap));
+
+    // Optional deep-link (More → Recovery → Assessment History / Recovery
+    // Reports): open the requested disclosure and bring it into view.
+    const open = opts && opts.open;
+    if (open) {
+      const btn = host.querySelector(`[data-disc="${open}"]`);
+      if (btn && btn.getAttribute('aria-expanded') !== 'true') {
+        btn.click();
+        btn.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
   }
 
   function _renderSummary(host, scores, pts) {

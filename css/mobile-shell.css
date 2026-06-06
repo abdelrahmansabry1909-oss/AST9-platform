@@ -15,6 +15,10 @@
   /* Client mobile: the desktop sidebar is replaced by a bottom tab bar. */
   body.nc-client #sidebar { display: none; }
 
+  /* The legacy mobile bottom nav is a duplicate path now superseded by the
+     Recovery Journey tab bar; hide it for clients (coaches keep theirs). */
+  body.nc-client .mobile-bottom-nav { display: none; }
+
   body.nc-client .nc-tabbar {
     display: flex;
     position: fixed;
@@ -65,6 +69,7 @@
   border-top-right-radius: var(--nc-r-xl, 24px);
   padding: 10px 12px calc(16px + env(safe-area-inset-bottom));
   box-shadow: var(--nc-shadow-lg, 0 20px 60px rgba(0,0,0,0.55));
+  max-height: 82vh; overflow-y: auto;
 }
 .nc-sheet-handle {
   width: 36px; height: 4px; border-radius: 99px;
@@ -75,6 +80,12 @@
   font: 700 11px/1 var(--nc-font-body, system-ui, sans-serif);
   letter-spacing: 0.08em; text-transform: uppercase;
   color: var(--nc-text-muted, #64748B); margin: 0 8px 8px;
+}
+.nc-sheet-group {
+  font: 700 10px/1 var(--nc-font-body, system-ui, sans-serif);
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--nc-text-muted, #64748B);
+  margin: 14px 8px 4px;
 }
 .nc-sheet-link {
   display: flex; align-items: center; gap: 12px;
