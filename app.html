@@ -1219,9 +1219,12 @@
           <p class="page-subtitle">Messages · Referrals · Case Sharing · Feed</p>
         </div>
       </div>
+      <!-- CX0: Messages + Referrals are coach-oriented (coach↔coach messaging,
+           coach→coach clinical referrals) → coach/admin only. Clients keep
+           Case Studies (read-only), Client Feed, Support Groups, Privacy. -->
       <div class="tab-row" id="community-tabs">
-        <button class="tab-btn active" data-tab="comm-messaging">Messages</button>
-        <button class="tab-btn" data-tab="comm-referrals">Referrals</button>
+        <button class="tab-btn active role-coach-admin" data-tab="comm-messaging">Messages</button>
+        <button class="tab-btn role-coach-admin" data-tab="comm-referrals">Referrals</button>
         <button class="tab-btn" data-tab="comm-case-shares">Case Studies</button>
         <button class="tab-btn" data-tab="comm-client-feed">Client Feed</button>
         <button class="tab-btn" data-tab="comm-support-groups">Support Groups</button>

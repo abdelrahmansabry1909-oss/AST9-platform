@@ -383,20 +383,24 @@ const CommunityUI = (() => {
 
     el.innerHTML = `<div class="comm-loading"><span class="spinner"></span></div>`;
     const shares = await Community.loadCaseShares();
+    // CX0: case studies are coach-generated content. Clients browse read-only;
+    // only coaches/admins see create actions.
+    const canAuthor = (typeof Auth !== 'undefined' && Auth.isAdminOrCoach && Auth.isAdminOrCoach());
 
     el.innerHTML = `
       <div class="comm-section-header">
         <h3 class="comm-section-title">Case Study Board</h3>
-        <button class="btn btn-primary btn-sm" onclick="CommunityUI.openCaseShareModal()">+ Share Case</button>
+        ${canAuthor ? `<button class="btn btn-primary btn-sm" onclick="CommunityUI.openCaseShareModal()">+ Share Case</button>` : ''}
       </div>
       <div class="case-share-grid">
         ${shares.length ? shares.map(s => _caseShareCard(s)).join('') : `
           <div class="empty-state" style="grid-column:1/-1;padding:48px">
             <span class="empty-icon">◈</span>
-            <div class="empty-title">No case studies shared yet</div>
-            <p class="empty-desc">Share an anonymized case to help fellow coaches learn.</p>
+            <div class="empty-title">No case studies yet</div>
+            <p class="empty-desc">${canAuthor ? 'Share an anonymized case to help fellow coaches learn.' : 'Approved case studies from coaches will appear here.'}</p>
           </div>`}
       </div>
+      ${canAuthor ? `
       <div class="modal-overlay hidden" id="modal-case-share">
         <div class="modal">
           <div class="modal-header"><h3>Share Case Study</h3><button class="btn-icon" onclick="CommunityUI.closeCaseShareModal()">✕</button></div>
@@ -414,7 +418,7 @@ const CommunityUI = (() => {
             <button class="btn btn-primary" onclick="CommunityUI.submitCaseShare()">Share Case</button>
           </div>
         </div>
-      </div>`;
+      </div>` : ''}`;
   }
 
   function _caseStatusBadge(status) {
@@ -453,6 +457,7 @@ const CommunityUI = (() => {
   }
 
   function openCaseShareModal() {
+    if (!(Auth.isAdminOrCoach && Auth.isAdminOrCoach())) return;  // CX0: clients cannot author
     document.getElementById('modal-case-share')?.classList.remove('hidden');
   }
 
@@ -461,6 +466,7 @@ const CommunityUI = (() => {
   }
 
   async function submitCaseShare() {
+    if (!(Auth.isAdminOrCoach && Auth.isAdminOrCoach())) { Dashboard.toast('Only coaches can share case studies', 'error'); return; }  // CX0
     const title = document.getElementById('cs-title')?.value?.trim();
     const desc  = document.getElementById('cs-desc')?.value?.trim();
     const tagRaw = document.getElementById('cs-tags')?.value || '';
