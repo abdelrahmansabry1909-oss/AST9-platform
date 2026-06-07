@@ -888,14 +888,29 @@ const CommunityUI = (() => {
   //  COMMUNITY SECTION LOADER (called from dashboard showSection)
   // ═══════════════════════════════════════════════════════════
 
+  // Called by the dashboard `community` loader every time the section opens.
+  // Activates the role-correct default sub-tab and renders ONLY that panel,
+  // so the first view is never blank and there is no duplicate render.
+  //   • client       → Community Feed (coach-oriented Messages/Referrals are
+  //                    hidden via role-coach-admin on their tab buttons — CX0)
+  //   • coach/admin  → Messages (unchanged default)
   async function initCommunitySection() {
-    const role = Auth.getRole();
+    const isCoach = !!(Auth.isAdminOrCoach && Auth.isAdminOrCoach());
+    const defaultTab = isCoach ? 'comm-messaging' : 'comm-client-feed';
 
-    // Show correct sub-tabs based on role
-    if (Auth.isAdminOrCoach()) {
-      renderMessaging();
-    }
-    renderClientFeed();
+    // Activate the default tab (button + panel) so something is visible at once.
+    if (typeof UI !== 'undefined' && UI.goTab) UI.goTab('community-tabs', defaultTab);
+
+    // Render that single default panel immediately.
+    const RENDERERS = {
+      'comm-messaging':      renderMessaging,
+      'comm-referrals':      renderReferrals,
+      'comm-case-shares':    renderCaseShares,
+      'comm-client-feed':    renderClientFeed,
+      'comm-support-groups': renderSupportGroups,
+      'comm-privacy':        renderPrivacySettings,
+    };
+    RENDERERS[defaultTab]?.();
   }
 
   return {

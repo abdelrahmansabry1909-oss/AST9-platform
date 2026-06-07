@@ -94,6 +94,9 @@ const Dashboard = (() => {
       'gait':             () => { /* placeholder — wired in future phase */ },
       'case-studies':     () => (typeof PlatformExtras !== 'undefined' && PlatformExtras.initCaseStudiesCarousel?.()),
       'analytics':        () => (typeof Charts !== 'undefined' && Charts.renderDashboardAnalytics?.()),
+      // ── Community (everyone) — role-aware sub-tabs; renders the correct
+      //    default panel on open so the first view is never blank (CX2). ──
+      'community':        () => (typeof CommunityUI !== 'undefined' && CommunityUI.initCommunitySection?.()),
       // ── Phase 3 — Reactive Graph ───────────────────────────
       // graph builder now lives as the tab-graph panel inside New Session
       'my-graph':         () => (typeof RPMGraphViewer  !== 'undefined' && RPMGraphViewer.init?.()),
