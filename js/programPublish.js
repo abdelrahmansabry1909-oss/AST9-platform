@@ -57,6 +57,108 @@
 
   function getProgram() { return _program; }
 
+  // ── Client side — shared program data resolver ─────────────
+  //   Loads + resolves the published program for one client:
+  //     • back-fills workouts[] / schedule[] for legacy single-workout programs
+  //     • applies Feature 6 substitutions as an in-memory overlay (the
+  //       published JSON is never mutated — scoped to this resolve pass)
+  //     • batch-resolves Feature 5 library metadata into libMap (one query)
+  //   Returns { ok:true, row, p, workouts, schedule, libMap }
+  //        or { ok:false, reason:'no-auth'|'no-db'|'load-error'|'empty', message? }
+  //   Single source of truth reused by renderClientProgram (legacy stacked
+  //   view) AND the day-based ClientProgram (CX1) — so the F5/F6 resolution
+  //   is never duplicated.
+  async function resolveClientProgram(clientId) {
+    if (!clientId) { try { clientId = Auth.getUser()?.id; } catch {} }
+    if (!clientId) return { ok: false, reason: 'no-auth' };
+    if (typeof sb === 'undefined' || !sb) return { ok: false, reason: 'no-db' };
+
+    let row = null;
+    try {
+      const { data, error } = await sb.from('client_programs')
+        .select('id, program, published, published_at').eq('client_id', clientId).maybeSingle();
+      if (error) throw error;
+      row = data;
+    } catch (e) {
+      return { ok: false, reason: 'load-error', message: e.message };
+    }
+    if (!row || !row.published || !row.program || (!row.program.structure && !row.program.workouts)) {
+      return { ok: false, reason: 'empty' };
+    }
+
+    const p = row.program;
+    // Back-fill workouts[] for legacy single-workout programs.
+    let workouts = Array.isArray(p.workouts) && p.workouts.length ? p.workouts : null;
+    if (!workouts) {
+      const s = p.structure || { warmup: [], main: [], cooldown: [] };
+      workouts = [{ id: 'A', label: 'Daily Workout',
+        warmup: s.warmup || [], main: s.main || [], cooldown: s.cooldown || [] }];
+    }
+    const schedule = Array.isArray(p.schedule) && p.schedule.length
+      ? p.schedule
+      : Array.from({ length: p.days_per_week || 1 }, (_, i) => workouts[i % workouts.length].id);
+
+    // ── Feature 6 — substitution overlay (most-recent per slot) ──
+    const subMap = new Map();   // "workoutKey|exerciseIndex" → row
+    try {
+      const { data: subRows } = await sb.from('exercise_alternative_requests')
+        .select('workout_key, exercise_index, substitute_exercise_id, coach_response, exercise_name, responded_at')
+        .eq('client_id', clientId)
+        .eq('status', 'addressed')
+        .not('substitute_exercise_id', 'is', null)
+        .order('responded_at', { ascending: false });
+      (subRows || []).forEach((r) => {
+        const k = r.workout_key + '|' + r.exercise_index;
+        if (!subMap.has(k)) subMap.set(k, r);   // keep most-recent (ordered DESC)
+      });
+    } catch (e) { console.warn('[program] substitution prefetch:', e?.message); }
+
+    if (subMap.size) {
+      workouts.forEach((wk) => {
+        ['warmup', 'main', 'cooldown'].forEach((k) => {
+          (wk[k] || []).forEach((ex, i) => {
+            if (!ex) return;
+            const sub = subMap.get(wk.id + '|' + i);
+            if (!sub) return;
+            ex._substitutedFrom    = ex.name || sub.exercise_name || 'Original exercise';
+            ex._substituteResponse = sub.coach_response || '';
+            ex.exercise_id         = sub.substitute_exercise_id;   // name filled after libMap
+          });
+        });
+      });
+    }
+
+    // ── Feature 5 — batch-resolve library metadata (id → exercises row) ──
+    const linkedIds = new Set();
+    workouts.forEach((wk) => {
+      ['warmup', 'main', 'cooldown'].forEach((k) => {
+        (wk[k] || []).forEach((ex) => { if (ex && ex.exercise_id) linkedIds.add(ex.exercise_id); });
+      });
+    });
+    let libMap = new Map();
+    if (linkedIds.size && typeof ExerciseLibrary !== 'undefined') {
+      try {
+        const all = await ExerciseLibrary.loadAll();
+        all.forEach((e) => { if (linkedIds.has(e.id)) libMap.set(e.id, e); });
+      } catch (e) { console.warn('[program] library prefetch:', e?.message); }
+    }
+    // Overwrite display name on substituted slots with the substitute's real name.
+    if (subMap.size && libMap.size) {
+      workouts.forEach((wk) => {
+        ['warmup', 'main', 'cooldown'].forEach((k) => {
+          (wk[k] || []).forEach((ex) => {
+            if (ex && ex._substitutedFrom && ex.exercise_id) {
+              const meta = libMap.get(ex.exercise_id);
+              if (meta && meta.name) ex.name = meta.name;
+            }
+          });
+        });
+      });
+    }
+
+    return { ok: true, row, p, workouts, schedule, libMap };
+  }
+
   // ── Draw ──────────────────────────────────────────────────
   function _draw() {
     const panel = document.getElementById(PANEL_ID);
@@ -465,124 +567,26 @@
 
     let clientId = null;
     try { clientId = Auth.getUser()?.id; } catch {}
-    if (!clientId) { host.innerHTML = `<div class="card"><p style="font-size:13px;color:var(--text-tertiary)">Sign in to view your program.</p></div>`; return; }
-    if (typeof sb === 'undefined' || !sb) { host.innerHTML = `<div class="card"><p style="font-size:13px;color:var(--text-tertiary)">Not connected to the database.</p></div>`; return; }
 
-    let row = null;
-    try {
-      const { data, error } = await sb.from('client_programs')
-        .select('id, program, published, published_at').eq('client_id', clientId).maybeSingle();
-      if (error) throw error;
-      row = data;
-    } catch (e) {
-      host.innerHTML = `<div class="card"><p style="color:#FCA5A5;font-size:13px">Could not load your program: ${esc(e.message)}</p></div>`;
-      return;
-    }
-    if (!row || !row.published || !row.program || (!row.program.structure && !row.program.workouts)) {
-      host.innerHTML = `<div class="card"><div class="empty-state">
+    // Resolve via the shared resolver (legacy back-fill + F6 subs + F5 libMap).
+    const res = await resolveClientProgram(clientId);
+    if (!res.ok) {
+      if (res.reason === 'empty') {
+        host.innerHTML = `<div class="card"><div class="empty-state">
         <span class="empty-icon">◈</span>
         <div class="empty-title">No program published yet</div>
         <p class="empty-desc">Your coach hasn't published a training program for you yet. Check back soon.</p>
       </div></div>`;
+      } else if (res.reason === 'load-error') {
+        host.innerHTML = `<div class="card"><p style="color:#FCA5A5;font-size:13px">Could not load your program: ${esc(res.message || '')}</p></div>`;
+      } else if (res.reason === 'no-db') {
+        host.innerHTML = `<div class="card"><p style="font-size:13px;color:var(--text-tertiary)">Not connected to the database.</p></div>`;
+      } else {
+        host.innerHTML = `<div class="card"><p style="font-size:13px;color:var(--text-tertiary)">Sign in to view your program.</p></div>`;
+      }
       return;
     }
-
-    const p = row.program;
-    // Back-fill workouts[] for legacy single-workout programs.
-    let workouts = Array.isArray(p.workouts) && p.workouts.length ? p.workouts : null;
-    if (!workouts) {
-      const s = p.structure || { warmup: [], main: [], cooldown: [] };
-      workouts = [{ id: 'A', label: 'Daily Workout',
-        warmup: s.warmup || [], main: s.main || [], cooldown: s.cooldown || [] }];
-    }
-    const schedule = Array.isArray(p.schedule) && p.schedule.length
-      ? p.schedule
-      : Array.from({ length: p.days_per_week || 1 }, (_, i) => workouts[i % workouts.length].id);
-
-    // ── Feature 6 — override layer for substitutions ───────────────
-    //    Pull active substitutions for this client (status=addressed AND
-    //    substitute_exercise_id IS NOT NULL). For each (workout_key,
-    //    exercise_index) slot, keep only the most recent. Then swap each
-    //    matching exercise in workouts[] BEFORE F5's linkedIds scan, so
-    //    substitute ids are also resolved against the library.
-    //
-    //    Published program JSON is never mutated — the swap is in-memory
-    //    only, scoped to this render pass.
-    const subMap = new Map();  // "workoutKey|exerciseIndex" → row
-    try {
-      const { data: subRows } = await sb.from('exercise_alternative_requests')
-        .select('workout_key, exercise_index, substitute_exercise_id, coach_response, exercise_name, responded_at')
-        .eq('client_id', clientId)
-        .eq('status', 'addressed')
-        .not('substitute_exercise_id', 'is', null)
-        .order('responded_at', { ascending: false });
-      (subRows || []).forEach((r) => {
-        const k = r.workout_key + '|' + r.exercise_index;
-        if (!subMap.has(k)) subMap.set(k, r);   // keep most-recent (ordered DESC)
-      });
-    } catch (e) { console.warn('[program] substitution prefetch:', e?.message); }
-
-    if (subMap.size) {
-      workouts.forEach((wk) => {
-        ['warmup','main','cooldown'].forEach((k) => {
-          const list = wk[k] || [];
-          list.forEach((ex, i) => {
-            if (!ex) return;
-            const key = wk.id + '|' + i;
-            const sub = subMap.get(key);
-            if (!sub) return;
-            // Replace by ID; the new name will be filled in once we resolve
-            // the library row below. Stash original for the tooltip.
-            ex._substitutedFrom    = ex.name || sub.exercise_name || 'Original exercise';
-            ex._substituteResponse = sub.coach_response || '';
-            ex.exercise_id         = sub.substitute_exercise_id;
-            // name is overwritten after libMap resolves (see below);
-            // fallback to substitute_exercise_id-only until then.
-          });
-        });
-      });
-    }
-
-    // ── Feature 5 — batch-resolve library metadata for every linked
-    //    exercise in every workout. One round-trip (cached 5min after).
-    //    Map: exercise_id → full exercises row.
-    //    Now (F6) also picks up substitute ids because the swap above
-    //    has rewritten ex.exercise_id in place.
-    const linkedIds = new Set();
-    workouts.forEach((wk) => {
-      ['warmup','main','cooldown'].forEach((k) => {
-        (wk[k] || []).forEach((ex) => {
-          if (ex && ex.exercise_id) linkedIds.add(ex.exercise_id);
-        });
-      });
-    });
-    let libMap = new Map();
-    if (linkedIds.size && typeof ExerciseLibrary !== 'undefined') {
-      try {
-        // Use the cached loadAll then filter — single query per render.
-        const all = await ExerciseLibrary.loadAll();
-        all.forEach((e) => { if (linkedIds.has(e.id)) libMap.set(e.id, e); });
-      } catch (e) { console.warn('[program] library prefetch:', e?.message); }
-    }
-
-    // ── Feature 6 — now that libMap is resolved, overwrite the
-    //    display name on substituted slots with the substitute's real
-    //    library name. (Q3: client sees ONLY the substitute name;
-    //    the original is exposed via the "🔄 Substituted" tooltip.)
-    if (subMap.size && libMap.size) {
-      workouts.forEach((wk) => {
-        ['warmup','main','cooldown'].forEach((k) => {
-          (wk[k] || []).forEach((ex) => {
-            if (ex && ex._substitutedFrom && ex.exercise_id) {
-              const meta = libMap.get(ex.exercise_id);
-              if (meta && meta.name) ex.name = meta.name;
-            }
-          });
-        });
-      });
-    }
-    // Stash on the host so the workout tracker can reuse it without
-    // re-fetching (passed via the programHost element below).
+    const { row, p, workouts, schedule, libMap } = res;
     const _exMeta = (ex) => (ex && ex.exercise_id) ? (libMap.get(ex.exercise_id) || null) : null;
 
     const roSection = (title, list, color) => {
@@ -784,5 +788,5 @@
     }
   }
 
-  window.ProgramPublish = { render, getProgram, renderClientProgram };
+  window.ProgramPublish = { render, getProgram, renderClientProgram, resolveClientProgram };
 })();

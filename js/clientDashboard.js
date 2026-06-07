@@ -193,12 +193,12 @@ const ClientDashboard = (() => {
     } catch (_) { /* non-blocking */ }
 
     el.innerHTML = done
-      ? _ctaButton({ label: 'Done for today', sub: 'Nice work. Review or train again.', tone: 'done', tab: 'train' })
-      : _ctaButton({ label: 'Start today’s session', sub: 'Continue your recovery journey', tone: 'primary', tab: 'train' });
+      ? _ctaButton({ label: 'Done for today', sub: 'Nice work. Review or train again.', tone: 'done', tab: 'train', openProgram: true })
+      : _ctaButton({ label: 'Start today’s session', sub: 'Continue your recovery journey', tone: 'primary', tab: 'train', openProgram: true });
     _wireCTA(el);
   }
 
-  function _ctaButton({ label, sub, tone, tab }) {
+  function _ctaButton({ label, sub, tone, tab, openProgram }) {
     const bg = tone === 'primary' ? 'var(--nc-teal,#14B8A6)'
              : tone === 'done'    ? 'rgba(20,184,166,.12)'
              : 'rgba(148,163,184,.10)';
@@ -207,7 +207,7 @@ const ClientDashboard = (() => {
     const subColor = tone === 'primary' ? 'rgba(5,46,43,.75)' : 'var(--nc-text-secondary,#94A3B8)';
     const icon = tone === 'done' ? '✓' : '→';
     return `
-      <button type="button" data-tab="${_esc(tab)}"
+      <button type="button" data-tab="${_esc(tab)}"${openProgram ? ' data-open-program="1"' : ''}
         style="width:100%;min-height:64px;border:${border};border-radius:var(--nc-r-lg,16px);background:${bg};color:${fg};
                display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 20px;cursor:pointer;
                box-shadow:${tone === 'primary' ? 'var(--nc-shadow-teal,0 0 40px rgba(20,184,166,.18))' : 'none'};
@@ -222,7 +222,11 @@ const ClientDashboard = (() => {
   function _wireCTA(el) {
     const btn = el.querySelector('button[data-tab]');
     if (!btn) return;
-    btn.addEventListener('click', () => _go(btn.dataset.tab));
+    btn.addEventListener('click', () => {
+      // CX1 express path: open the Train tab straight to today's day.
+      if (btn.dataset.openProgram) window._ncOpenProgram = true;
+      _go(btn.dataset.tab);
+    });
     btn.addEventListener('pointerdown', () => { btn.style.transform = 'scale(.985)'; });
     const reset = () => { btn.style.transform = ''; };
     btn.addEventListener('pointerup', reset);
