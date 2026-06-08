@@ -107,9 +107,6 @@ const Dashboard = (() => {
                           },
       // ── Daily Routine — role-aware (client tracker / coach dashboard) ──
       'daily-routine':    () => _mountDailyRoutineSection(),
-      // ── My Program — client's read-only published training program ──
-      'my-program':       () => (typeof ProgramPublish !== 'undefined'
-                                 && ProgramPublish.renderClientProgram('#my-program-host')),
       // ── Recovery Journey redesign — client Train + Progress (client-only).
       //    Shared by the mobile tab bar (clientShell) and the desktop client
       //    sidebar items. Coaches/admins never navigate to these sections.

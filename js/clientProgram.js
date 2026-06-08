@@ -51,7 +51,33 @@
     cooldown: { label: 'Cool Down',    color: '#5A9BD4' },
   };
 
-  let S = null;   // live mount state
+  let S = null;            // live mount state
+  let _justCompleted = false;   // one-shot: show a success banner after finishing
+
+  // 2-line/N-line clamp — keeps browse cards compact; full text is shown in
+  // the single-exercise execution step (progressive disclosure).
+  const _clampStyle = (lines) =>
+    `display:-webkit-box;-webkit-line-clamp:${lines};-webkit-box-orient:vertical;overflow:hidden`;
+
+  // Parse a rest string ("60s", "90", "2 min", "1:30") → seconds (0 = none).
+  function _restSeconds(rest) {
+    if (rest == null) return 0;
+    const s = String(rest).trim().toLowerCase();
+    if (!s) return 0;
+    const clk = s.match(/^(\d+):(\d{1,2})$/);              // m:ss
+    if (clk) return (+clk[1]) * 60 + (+clk[2]);
+    const mm = s.match(/(\d+)\s*m/);                        // "2 min"
+    const sm = s.match(/(\d+)\s*s/);                        // "30s"
+    let sec = sm ? +sm[1] : 0;
+    if (!mm && !sm) { const n = parseInt(s, 10); if (n > 0) sec = n; }  // bare number = seconds
+    return (mm ? (+mm[1]) * 60 : 0) + sec;
+  }
+  const _fmtClock = (t) => `${Math.floor(t / 60)}:${String(Math.max(0, t) % 60).padStart(2, '0')}`;
+
+  // Stop any running rest countdown (prevents intervals leaking across renders).
+  function _clearRest() {
+    if (S && S.exec && S.exec._restInt) { clearInterval(S.exec._restInt); S.exec._restInt = null; }
+  }
 
   // ── Small helpers ───────────────────────────────────────────────
   // Flatten a workout warm-up→main→cool-down (skips null slots). The array
@@ -176,10 +202,19 @@
 
   // ── Overview — day cards ────────────────────────────────────────
   function _renderOverview() {
+    _clearRest();
     S.view = 'overview';
+    const banner = _justCompleted ? `
+      <div role="status" style="margin:0 2px 12px;padding:12px 14px;border-radius:var(--nc-r-lg,16px);
+           background:rgba(20,184,166,.12);border:1px solid rgba(20,184,166,.35);display:flex;align-items:center;gap:10px">
+        <span style="font-size:18px" aria-hidden="true">✓</span>
+        <span style="font-size:13.5px;font-weight:600;color:var(--nc-text-primary,#F8FAFC)">Workout complete — great work. Rest up and recover.</span>
+      </div>` : '';
+    _justCompleted = false;
     const cards = S.schedule.map((id, i) => _dayCard(id, i)).join('');
     S.host.innerHTML = `
       <div style="max-width:520px;margin:0 auto">
+        ${banner}
         <div style="margin:2px 2px 14px">
           <div style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--nc-text-muted,#64748B)">Your plan</div>
           <div style="font-size:19px;font-weight:800;letter-spacing:-.01em;color:var(--nc-text-primary,#F8FAFC);margin-top:2px">${esc(S.p.phase || 'Training Program')}</div>
@@ -217,6 +252,7 @@
 
   // ── Day detail ──────────────────────────────────────────────────
   function _openDay(i) {
+    _clearRest();
     S.view = 'day';
     S.dayIndex = i;
     const id = S.schedule[i];
@@ -247,7 +283,7 @@
         <div style="margin-top:4px">
           <div style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--nc-text-muted,#64748B)">Day ${i + 1}</div>
           <div style="font-size:23px;font-weight:800;letter-spacing:-.01em;line-height:1.15;color:var(--nc-text-primary,#F8FAFC);margin-top:3px">${esc(wk.label || ('Workout ' + id))}</div>
-          <div style="font-size:13.5px;line-height:1.5;color:var(--nc-text-secondary,#94A3B8);margin-top:7px">${esc(wk.description || _synthDesc(wk))}</div>
+          <div style="font-size:13.5px;line-height:1.5;color:var(--nc-text-secondary,#94A3B8);margin-top:7px;${_clampStyle(3)}">${esc(wk.description || _synthDesc(wk))}</div>
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px;font-size:12.5px;color:var(--nc-text-secondary,#94A3B8)">
             <span>${total} exercise${total === 1 ? '' : 's'}</span><span style="opacity:.4">·</span>
             <span>${_estDuration(id, wk)}</span><span style="opacity:.4">·</span>${_statusBadge(_dayStatusKey(i))}
@@ -355,7 +391,7 @@
 
   function _detailsInner(ex, m) {
     return `
-      ${ex.notes ? `<div style="font-size:12.5px;line-height:1.55;color:var(--nc-text-secondary,#94A3B8);margin-bottom:8px">${esc(ex.notes)}</div>` : ''}
+      ${ex.notes ? `<div style="font-size:12.5px;line-height:1.55;color:var(--nc-text-secondary,#94A3B8);margin-bottom:8px;${_clampStyle(5)}">${esc(ex.notes)}</div>` : ''}
       ${ex.tempo ? `<div style="font-size:11.5px;color:var(--nc-text-muted,#64748B);margin-bottom:8px">Tempo ${esc(ex.tempo)}</div>` : ''}
       ${ex._substituteResponse ? `<div style="font-size:11.5px;color:var(--nc-teal,#14B8A6);margin-bottom:8px">Coach: ${esc(ex._substituteResponse)}</div>` : ''}
       ${_mediaBlock(m)}
@@ -448,6 +484,7 @@
   }
 
   function _renderStep() {
+    _clearRest();
     const e = S.exec;
     if (e.step >= e.flat.length) { _renderFinish(); return; }
 
@@ -486,6 +523,8 @@
 
         ${e.readOnly ? _readOnlyNote() : _setLogger(log)}
 
+        ${e.readOnly ? '' : _restControl(ex)}
+
         <div style="margin-top:12px">${_altButton()}</div>
 
         <div style="display:flex;gap:10px;margin-top:22px">
@@ -502,7 +541,7 @@
 
     _wireMedia(S.host, m);
     _wireAlt(S.host, ex, e.step, e.workoutId);
-    if (!e.readOnly) _wireSetLogger();
+    if (!e.readOnly) { _wireSetLogger(); _wireRest(); }
 
     S.host.querySelector('[data-cp2-exit]')?.addEventListener('click', () => { _persistStep(); _openDay(e.dayIndex); });
     S.host.querySelector('[data-cp2-prev]')?.addEventListener('click', () => {
@@ -518,6 +557,55 @@
   function _readOnlyNote() {
     return `<div style="margin-top:16px;border:1px dashed var(--nc-border,rgba(255,255,255,.12));border-radius:14px;padding:14px;
             font-size:12.5px;color:var(--nc-text-secondary,#94A3B8)">Your plan is read-only right now — renew with your coach to log sets again. You can still browse and watch every exercise.</div>`;
+  }
+
+  // ── Rest timer (lightweight · optional/manual · non-blocking) ────
+  // Seeded from the exercise's prescribed rest; tapping starts a countdown,
+  // tapping again skips it. Navigation (Prev/Next/exit) clears it.
+  function _restControl(ex) {
+    const secs = _restSeconds(ex.rest);
+    if (!secs) return '';
+    return `
+      <div style="margin-top:12px;display:flex;align-items:center;gap:10px;border:1px solid var(--nc-border,rgba(255,255,255,.08));
+           border-radius:var(--nc-r-lg,16px);background:rgba(255,255,255,.02);padding:10px 14px">
+        <span style="font-size:18px" aria-hidden="true">⏱</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:12.5px;font-weight:600;color:var(--nc-text-primary,#F8FAFC)">Rest timer</div>
+          <div data-cp2-rest-display style="font-size:12px;color:var(--nc-text-secondary,#94A3B8)" aria-live="polite">${_fmtClock(secs)} suggested</div>
+        </div>
+        <button type="button" data-cp2-rest-btn data-secs="${secs}"
+          style="flex:0 0 auto;min-height:40px;padding:8px 16px;border-radius:var(--nc-r-full,999px);border:1px solid rgba(20,184,166,.4);
+                 background:rgba(20,184,166,.12);color:var(--nc-teal,#14B8A6);font-size:13px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent">Start rest</button>
+      </div>`;
+  }
+  function _wireRest() {
+    const btn  = S.host.querySelector('[data-cp2-rest-btn]');
+    const disp = S.host.querySelector('[data-cp2-rest-display]');
+    if (!btn || !disp) return;
+    const total = parseInt(btn.dataset.secs, 10) || 0;
+    btn.addEventListener('click', () => {
+      if (S.exec && S.exec._restInt) {            // running → skip/stop
+        _clearRest();
+        disp.textContent = `${_fmtClock(total)} suggested`;
+        btn.textContent = 'Start rest';
+        return;
+      }
+      let left = total;                            // idle → start countdown
+      disp.textContent = `${_fmtClock(left)} left`;
+      btn.textContent = 'Skip';
+      _clearRest();
+      S.exec._restInt = setInterval(() => {
+        left -= 1;
+        if (left <= 0) {
+          _clearRest();
+          disp.textContent = 'Rest done — go!';
+          btn.textContent = 'Start rest';
+          _toast('Rest over — next set.', 'info');
+          return;
+        }
+        disp.textContent = `${_fmtClock(left)} left`;
+      }, 1000);
+    });
   }
 
   function _setLogger(log) {
@@ -538,22 +626,40 @@
       </div>`;
   }
   function _setRow(s, i) {
+    const done = !!s.done;
     return `
-      <div data-cp2-set-row style="display:grid;grid-template-columns:30px 1fr 1fr;gap:8px;align-items:center">
+      <div data-cp2-set-row style="display:grid;grid-template-columns:26px 1fr 1fr 34px;gap:8px;align-items:center;${done ? 'opacity:.6' : ''}">
         <span style="font-size:12px;color:var(--nc-text-muted,#64748B);font-weight:700;text-align:center">#${i + 1}</span>
         <input type="number" inputmode="numeric" min="0" step="1" placeholder="reps" data-cp2-reps
                value="${s.reps != null ? esc(s.reps) : ''}" class="form-input" style="padding:10px;font-size:13px">
         <input type="number" inputmode="decimal" min="0" step="0.5" placeholder="kg" data-cp2-weight
                value="${s.weight != null ? esc(s.weight) : ''}" class="form-input" style="padding:10px;font-size:13px">
+        <label style="display:flex;align-items:center;justify-content:center;cursor:pointer" title="Mark set done">
+          <input type="checkbox" data-cp2-setdone ${done ? 'checked' : ''} style="width:20px;height:20px;accent-color:var(--nc-teal,#14B8A6)"></label>
       </div>`;
   }
   function _wireSetLogger() {
+    // Per-set check-off: dim the row, and when every set is checked, auto-mark
+    // the exercise Done. Stored in the JSONB sets array — no schema change.
+    const sync = () => {
+      const rows = Array.from(S.host.querySelectorAll('[data-cp2-set-row]'));
+      let allDone = rows.length > 0;
+      rows.forEach((r) => {
+        const c = r.querySelector('[data-cp2-setdone]');
+        r.style.opacity = c && c.checked ? '.6' : '';
+        if (!c || !c.checked) allDone = false;
+      });
+      const exDone = S.host.querySelector('[data-cp2-done]');
+      if (allDone && exDone && !exDone.checked) exDone.checked = true;
+    };
+    S.host.querySelectorAll('[data-cp2-setdone]').forEach((c) => c.addEventListener('change', sync));
     S.host.querySelector('[data-cp2-add-set]')?.addEventListener('click', () => {
       const list = S.host.querySelector('[data-cp2-sets]');
       if (!list) return;
       const tmp = document.createElement('div');
       tmp.innerHTML = _setRow({}, list.querySelectorAll('[data-cp2-set-row]').length);
-      if (tmp.firstElementChild) list.appendChild(tmp.firstElementChild);
+      const rowEl = tmp.firstElementChild;
+      if (rowEl) { list.appendChild(rowEl); rowEl.querySelector('[data-cp2-setdone]')?.addEventListener('change', sync); }
     });
   }
 
@@ -566,8 +672,9 @@
     const sets = Array.from(S.host.querySelectorAll('[data-cp2-set-row]')).map((r, i) => {
       const reps = r.querySelector('[data-cp2-reps]').value;
       const weight = r.querySelector('[data-cp2-weight]').value;
-      if (reps === '' && weight === '') return null;
-      return { n: i + 1, reps: reps === '' ? null : Number(reps), weight: weight === '' ? null : Number(weight) };
+      const done = !!r.querySelector('[data-cp2-setdone]')?.checked;
+      if (reps === '' && weight === '' && !done) return null;
+      return { n: i + 1, reps: reps === '' ? null : Number(reps), weight: weight === '' ? null : Number(weight), done };
     }).filter(Boolean);
     const notes = S.host.querySelector('[data-cp2-notes]')?.value || null;
     const completed = !!S.host.querySelector('[data-cp2-done]')?.checked;
@@ -581,6 +688,7 @@
   }
 
   function _renderFinish() {
+    _clearRest();
     const e = S.exec;
     if (e.readOnly || !e.sessionId) {
       S.host.innerHTML = `
@@ -632,7 +740,8 @@
           sessionNotes: (S.host.querySelector('[data-cp2-fnotes]')?.value || '').trim() || null,
         });
         _toast('Workout saved. Nice work!', 'success');
-        render(S.host);   // refresh statuses/durations from fresh sessions
+        _justCompleted = true;
+        render(S.host);   // refresh statuses/durations + show completion banner
       } catch (err) {
         if (btn) { btn.disabled = false; btn.textContent = 'Finish & Save'; }
         if (err.message !== 'subscription_inactive') _toast(err.message, 'error');

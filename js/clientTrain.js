@@ -11,8 +11,8 @@
    Detailed content is kept behind progressive disclosure:
      - "Start session" reveals the existing daily-routine checklist
        (DailyRoutine.mountTracker) inline, lazily.
-     - "Your full plan" reveals the published program
-       (ProgramPublish.renderClientProgram) inline, lazily.
+     - "Your training plan" reveals the day-based program
+       (ClientProgram.render) inline, lazily.
 
    Presentation-layer only. Reuses DailyRoutine + ProgramPublish + the
    --nc-* tokens. No backend changes. Mounted by clientShell on the
