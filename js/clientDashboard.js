@@ -113,6 +113,9 @@ const ClientDashboard = (() => {
         <!-- WHAT SHOULD I DO NOW? — one dominant CTA -->
         <div id="cd-cta" style="margin-top:16px"></div>
 
+        <!-- RECOVERY PULSE (F8 · S2) — calm trajectory summary -->
+        <div id="cd-pulse" style="margin-top:12px"></div>
+
         <!-- WHAT NEEDS ATTENTION? — one optional card -->
         <div id="cd-attention" style="margin-top:12px"></div>
 
@@ -129,6 +132,7 @@ const ClientDashboard = (() => {
 
     _renderDial(row, profile);
     await _renderCTA(clientId);
+    await _renderPulse(clientId);
     await _renderAttention(clientId);
   }
 
@@ -231,6 +235,90 @@ const ClientDashboard = (() => {
     const reset = () => { btn.style.transform = ''; };
     btn.addEventListener('pointerup', reset);
     btn.addEventListener('pointerleave', reset);
+  }
+
+  // ── Recovery Pulse (F8 · S2) — one calm, client-friendly summary ──
+  // Reads v_client_pulse (RLS → self only). Raw status words are never
+  // shown; each maps to encouraging, non-clinical language. New clients
+  // get onboarding warmth, never a warning. Fails calmly (renders
+  // nothing) on error / no row so Today never breaks.
+  const PULSE = {
+    new:        { word: 'Getting started', color: 'var(--nc-cyan,#67E8F9)', action: { label: 'Begin your session',  tab: 'train', openProgram: true } },
+    on_track:   { word: 'On track',        color: 'var(--nc-teal,#14B8A6)', action: { label: 'Continue today',     tab: 'train', openProgram: true } },
+    slipping:   { word: 'Keep momentum',   color: 'var(--nc-gold,#D4AF37)', action: { label: 'Ease back in',       tab: 'train', openProgram: true } },
+    at_risk:    { word: 'Let’s reconnect', color: '#F59E0B',                action: { label: 'Start gently',       tab: 'train', openProgram: true } },
+    regressing: { word: 'Let’s check in',  color: '#5A9BD4',                action: { label: 'Message your coach', tab: 'coach' } },
+  };
+
+  function _momentumChip(m) {
+    const map = {
+      up:   { t: '↑ trending up', c: '#14B8A6', bg: 'rgba(20,184,166,.14)', bd: 'rgba(20,184,166,.30)' },
+      down: { t: '↓ easing',      c: '#F59E0B', bg: 'rgba(245,158,11,.14)', bd: 'rgba(245,158,11,.30)' },
+      flat: { t: 'steady',        c: '#94A3B8', bg: 'rgba(148,163,184,.10)', bd: 'rgba(148,163,184,.22)' },
+    };
+    const x = map[m] || map.flat;
+    return `<span style="display:inline-flex;align-items:center;padding:3px 9px;border-radius:999px;
+            font-size:10.5px;font-weight:700;background:${x.bg};color:${x.c};border:1px solid ${x.bd}">${x.t}</span>`;
+  }
+
+  // One plain-language reason — data-aware where it helps, never clinical.
+  function _pulseReason(status, pulse, canWrite) {
+    if (!canWrite)            return 'Your plan has paused — your coach can help you pick back up.';
+    if (status === 'new')     return 'Welcome — let’s build your first week. Small, steady steps add up.';
+    const dsa = pulse.days_since_activity;
+    if (dsa != null && dsa >= 7) return `It’s been ${dsa} days since your last session — an easy one today helps.`;
+    if (status === 'on_track')   return 'You’re moving steadily this week. Keep the rhythm going.';
+    if (status === 'slipping')   return 'A lighter week — a short session is a great way to ease back in.';
+    if (status === 'at_risk')    return 'A gentle session today helps you build momentum again.';
+    if (status === 'regressing') return 'Recovery ebbs and flows — your coach can help you adjust.';
+    return 'Keep going at your own pace.';
+  }
+
+  function _pulseCard(pulse, canWrite) {
+    const status = pulse.pulse_status || 'new';
+    const meta   = PULSE[status] || PULSE.new;
+    const isNew  = status === 'new';
+    const action = canWrite ? meta.action : { label: 'Reach out to your coach', tab: 'coach' };
+    const chip   = (!isNew && canWrite) ? _momentumChip(pulse.momentum) : '';
+    return `
+      <div style="border-radius:var(--nc-r-xl,20px);background:var(--nc-bg-card,rgba(15,23,42,.7));
+           border:1px solid var(--nc-border,rgba(255,255,255,.08));box-shadow:var(--nc-shadow-card,0 8px 32px rgba(0,0,0,.4));padding:18px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+          <div style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--nc-text-muted,#64748B)">Recovery Pulse</div>
+          ${chip}
+        </div>
+        <div style="font-size:18px;font-weight:800;letter-spacing:-.01em;color:${meta.color};margin-top:6px">${_esc(meta.word)}</div>
+        <div style="font-size:13.5px;line-height:1.5;color:var(--nc-text-secondary,#94A3B8);margin-top:4px">${_esc(_pulseReason(status, pulse, canWrite))}</div>
+        <button type="button" data-tab="${_esc(action.tab)}"${action.openProgram ? ' data-open-program="1"' : ''}
+          style="margin-top:12px;display:inline-flex;align-items:center;gap:7px;background:transparent;border:0;cursor:pointer;
+                 color:var(--nc-teal,#14B8A6);font-size:13.5px;font-weight:700;padding:6px 2px;min-height:40px;-webkit-tap-highlight-color:transparent">
+          ${_esc(action.label)} <span aria-hidden="true">→</span></button>
+      </div>`;
+  }
+
+  async function _renderPulse(clientId) {
+    const el = document.getElementById('cd-pulse');
+    if (!el) return;
+    if (!clientId) { el.innerHTML = ''; return; }
+
+    let pulse = null;
+    try {
+      const { data, error } = await sb.from('v_client_pulse')
+        .select('pulse_status, momentum, days_since_activity')
+        .eq('client_id', clientId).maybeSingle();
+      if (error) throw error;
+      pulse = data;
+    } catch (e) {
+      console.warn('[today] pulse read:', e?.message);
+      el.innerHTML = '';   // calm: Today still works without the card
+      return;
+    }
+    if (!pulse) { el.innerHTML = ''; return; }   // no row → no card, no error
+
+    const canWrite = (typeof SubscriptionService !== 'undefined' && SubscriptionService.canWrite)
+      ? SubscriptionService.canWrite(_getState()) : true;
+    el.innerHTML = _pulseCard(pulse, canWrite);
+    _wireCTA(el);   // reuse: data-tab + data-open-program (express path) + _go
   }
 
   async function _renderAttention(clientId) {
