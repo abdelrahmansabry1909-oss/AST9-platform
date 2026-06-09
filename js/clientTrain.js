@@ -11,8 +11,8 @@
    Detailed content is kept behind progressive disclosure:
      - "Start session" reveals the existing daily-routine checklist
        (DailyRoutine.mountTracker) inline, lazily.
-     - "Your full plan" reveals the published program
-       (ProgramPublish.renderClientProgram) inline, lazily.
+     - "Your training plan" reveals the day-based program
+       (ClientProgram.render) inline, lazily.
 
    Presentation-layer only. Reuses DailyRoutine + ProgramPublish + the
    --nc-* tokens. No backend changes. Mounted by clientShell on the
@@ -108,7 +108,7 @@
           style="margin-top:16px;width:100%;display:flex;align-items:center;justify-content:space-between;padding:14px 16px;cursor:pointer;
                  border:1px solid var(--nc-border,rgba(255,255,255,.08));border-radius:var(--nc-r-lg,16px);background:transparent;
                  color:var(--nc-text-primary,#F8FAFC);-webkit-tap-highlight-color:transparent">
-          <span style="font-size:14px;font-weight:600">Your full plan</span>
+          <span style="font-size:14px;font-weight:600">Your training plan</span>
           <span id="ct-plan-chev" style="font-size:14px;color:var(--nc-text-muted,#64748B);transition:transform 180ms cubic-bezier(0.16,1,0.3,1)">▾</span>
         </button>
         <div id="ct-plan" style="margin-top:10px;display:none"></div>
@@ -142,27 +142,38 @@
       }
     });
 
-    // Full plan: reveal the published program inline (lazy).
+    // Full plan: reveal the day-based program inline (lazy). CX1 — the old
+    // stacked render is replaced by ClientProgram (day cards → day detail →
+    // guided execution). The Today CTA deep-links here via _ncOpenProgram.
     const planToggle = host.querySelector('#ct-plan-toggle');
     const planEl     = host.querySelector('#ct-plan');
     const chev       = host.querySelector('#ct-plan-chev');
     let planMounted  = false;
-    planToggle?.addEventListener('click', () => {
-      const open = planEl.style.display !== 'none';
-      if (open) {
-        planEl.style.display = 'none';
-        planToggle.setAttribute('aria-expanded', 'false');
-        if (chev) chev.style.transform = '';
-      } else {
-        planEl.style.display = 'block';
-        planToggle.setAttribute('aria-expanded', 'true');
-        if (chev) chev.style.transform = 'rotate(180deg)';
-        if (!planMounted && window.ProgramPublish && ProgramPublish.renderClientProgram) {
-          ProgramPublish.renderClientProgram(planEl);
-          planMounted = true;
-        }
+    const openPlan = (openToday) => {
+      planEl.style.display = 'block';
+      planToggle.setAttribute('aria-expanded', 'true');
+      if (chev) chev.style.transform = 'rotate(180deg)';
+      if (!planMounted && window.ClientProgram && ClientProgram.render) {
+        ClientProgram.render(planEl, { openToday: !!openToday });
+        planMounted = true;
       }
+    };
+    const closePlan = () => {
+      planEl.style.display = 'none';
+      planToggle.setAttribute('aria-expanded', 'false');
+      if (chev) chev.style.transform = '';
+    };
+    planToggle?.addEventListener('click', () => {
+      if (planEl.style.display !== 'none') closePlan(); else openPlan(false);
     });
+
+    // Express path: arriving from Today's "Start today's session" opens the
+    // plan straight to today's day, so the client can start in two taps.
+    if (window._ncOpenProgram) {
+      window._ncOpenProgram = false;
+      openPlan(true);
+      requestAnimationFrame(() => { try { planEl.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (_) {} });
+    }
   }
 
   window.ClientTrain = { render };

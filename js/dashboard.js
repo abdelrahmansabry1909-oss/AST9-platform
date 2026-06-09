@@ -94,6 +94,9 @@ const Dashboard = (() => {
       'gait':             () => { /* placeholder — wired in future phase */ },
       'case-studies':     () => (typeof PlatformExtras !== 'undefined' && PlatformExtras.initCaseStudiesCarousel?.()),
       'analytics':        () => (typeof Charts !== 'undefined' && Charts.renderDashboardAnalytics?.()),
+      // ── Community (everyone) — role-aware sub-tabs; renders the correct
+      //    default panel on open so the first view is never blank (CX2). ──
+      'community':        () => (typeof CommunityUI !== 'undefined' && CommunityUI.initCommunitySection?.()),
       // ── Phase 3 — Reactive Graph ───────────────────────────
       // graph builder now lives as the tab-graph panel inside New Session
       'my-graph':         () => (typeof RPMGraphViewer  !== 'undefined' && RPMGraphViewer.init?.()),
@@ -104,9 +107,6 @@ const Dashboard = (() => {
                           },
       // ── Daily Routine — role-aware (client tracker / coach dashboard) ──
       'daily-routine':    () => _mountDailyRoutineSection(),
-      // ── My Program — client's read-only published training program ──
-      'my-program':       () => (typeof ProgramPublish !== 'undefined'
-                                 && ProgramPublish.renderClientProgram('#my-program-host')),
       // ── Recovery Journey redesign — client Train + Progress (client-only).
       //    Shared by the mobile tab bar (clientShell) and the desktop client
       //    sidebar items. Coaches/admins never navigate to these sections.

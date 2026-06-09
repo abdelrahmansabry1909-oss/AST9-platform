@@ -95,6 +95,23 @@ const Community = (() => {
     return count || 0;
   }
 
+  // Read-only: the most recent message in the thread with `partnerId`.
+  // Does NOT mark anything read — safe for previews on the support screen
+  // (loadMessages, by contrast, marks received messages as read).
+  async function loadLatestMessage(partnerId) {
+    const uid = Auth.getUser()?.id;
+    if (!uid || !partnerId) return null;
+    const { data, error } = await sb
+      .from('coach_messages')
+      .select('content, sender_id, created_at, read_at')
+      .or(`and(sender_id.eq.${uid},receiver_id.eq.${partnerId}),and(sender_id.eq.${partnerId},receiver_id.eq.${uid})`)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error) { console.warn('loadLatestMessage:', error.message); return null; }
+    return data || null;
+  }
+
   function subscribeToMessages(partnerId, callback) {
     if (_msgChannel) _msgChannel.unsubscribe();
     const uid = Auth.getUser()?.id;
@@ -483,7 +500,7 @@ const Community = (() => {
 
   return {
     // Messaging
-    loadConversations, loadMessages, sendMessage, getUnreadCount,
+    loadConversations, loadMessages, loadLatestMessage, sendMessage, getUnreadCount,
     subscribeToMessages, unsubscribeMessages,
     // Groups (coach)
     loadGroups, createGroup, joinGroup, leaveGroup,

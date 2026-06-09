@@ -207,13 +207,8 @@
       <div class="nav-item role-client-only" id="nav-my-graph" onclick="Dashboard.showSection('my-graph')" title="My Reactive Graph">
         <span class="nav-item-icon">↟</span><span class="nav-label">My Graph</span>
       </div>
-      <!-- My Program retired from client nav (folded into Train → "Your full
-           plan" in S2). Hidden in nav for everyone (it was client-only); the
-           #section-my-program section + renderClientProgram workflow are kept
-           intact for deep-link/fallback use. -->
-      <div class="nav-item" id="nav-my-program" onclick="Dashboard.showSection('my-program')" title="My Program" style="display:none">
-        <span class="nav-item-icon">◈</span><span class="nav-label">My Program</span>
-      </div>
+      <!-- My Program folded into Train → "Your training plan" (CX1 ClientProgram).
+           Legacy nav item + #section-my-program removed in the F-1 cleanup. -->
       <div class="nav-item role-client-only" id="nav-client-train" onclick="Dashboard.showSection('client-train')" title="Train">
         <span class="nav-item-icon">◈</span><span class="nav-label">Train</span>
       </div>
@@ -1219,9 +1214,12 @@
           <p class="page-subtitle">Messages · Referrals · Case Sharing · Feed</p>
         </div>
       </div>
+      <!-- CX0: Messages + Referrals are coach-oriented (coach↔coach messaging,
+           coach→coach clinical referrals) → coach/admin only. Clients keep
+           Case Studies (read-only), Client Feed, Support Groups, Privacy. -->
       <div class="tab-row" id="community-tabs">
-        <button class="tab-btn active" data-tab="comm-messaging">Messages</button>
-        <button class="tab-btn" data-tab="comm-referrals">Referrals</button>
+        <button class="tab-btn active role-coach-admin" data-tab="comm-messaging">Messages</button>
+        <button class="tab-btn role-coach-admin" data-tab="comm-referrals">Referrals</button>
         <button class="tab-btn" data-tab="comm-case-shares">Case Studies</button>
         <button class="tab-btn" data-tab="comm-client-feed">Client Feed</button>
         <button class="tab-btn" data-tab="comm-support-groups">Support Groups</button>
@@ -1490,18 +1488,6 @@
           <p class="empty-desc">Use the <b>✦ New Session</b> button in the sidebar to begin — gait results will populate here after Generate.</p>
         </div>
       </div>
-    </div>
-
-    <!-- ── MY PROGRAM ── (client: read-only published training program) -->
-    <div class="section" id="section-my-program">
-      <div class="page-header">
-        <div class="page-header-left">
-          <div class="nc-dashboard-eyebrow">NeuCore</div>
-          <h1 class="page-title">My <span class="accent" style="color:var(--nc-teal)">Program</span></h1>
-          <p class="page-subtitle">Your coach-published training plan</p>
-        </div>
-      </div>
-      <div id="my-program-host"></div>
     </div>
 
     <!-- ── DAILY ROUTINE ── (client: tracker · coach/admin: adherence dashboard) -->
@@ -2173,6 +2159,7 @@ setInterval(() => { if (!document.hidden) _refreshApprovalsBadge(); }, 60_000);
 <!-- Feature 7 — shared assessment→hologram loader (used by client dashboard + coach Recovery modal) -->
 <script src="js/assessmentSnapshot.js"></script>
 <script src="js/clientUtil.js"></script>
+<script src="js/clientProgram.js"></script>
 <script src="js/clientDashboard.js"></script>
 <script src="js/clientTrain.js"></script>
 <script src="js/clientProgress.js"></script>
