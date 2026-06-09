@@ -9,6 +9,7 @@ const Clients = (() => {
   // ── Clients ─────────────────────────────────────────────────
 
   async function loadAll() {
+    renderNeedsAttention();   // F8·S3 — coach triage panel above the table (self-guards)
     const tbody = document.getElementById('clients-tbody');
     if (!tbody) return;
     tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px"><span class="spinner spinner-lg"></span></td></tr>`;
@@ -465,11 +466,156 @@ const Clients = (() => {
     }
   }
 
+  // ═══════════════════════════════════════════════════════════════
+  //  Feature 8 · S3 — "Needs Attention" coach triage panel
+  //  Reads the read-only v_client_pulse view (RLS scopes it: coach →
+  //  assigned, admin → all, client → never reaches this section).
+  //  Ranks by severity, shows only rows that warrant action, in
+  //  friendly (non-clinical) wording. Clinical detail stays inside
+  //  the F7 recovery modal (View Recovery). No new tables, no cron,
+  //  no edge changes — reuses openRecovery + Community.sendMessage +
+  //  the verified reactivate_subscription() RPC.
+  // ═══════════════════════════════════════════════════════════════
+  const ATTN_LABEL = {
+    regressing: { label: 'Recovery dipping', cls: 'badge-expired' },
+    at_risk:    { label: 'Needs attention',  cls: 'badge-pending' },
+    slipping:   { label: 'Losing momentum',  cls: 'badge-phase2' },
+  };
+
+  function _attnReason(r) {
+    if (r.pulse_status === 'regressing') return 'Recovery trending down — worth a check-in.';
+    if (r.pulse_status === 'at_risk') {
+      if (r.days_since_activity != null && r.days_since_activity >= 14) return `No activity in ${r.days_since_activity} days.`;
+      if (r.adherence_7d != null && r.adherence_7d < 40)               return `Low adherence this week (${Math.round(r.adherence_7d)}%).`;
+      return 'Low engagement this week.';
+    }
+    if (r.pulse_status === 'slipping')   return 'Adherence easing off this week.';
+    if (r.effective_status === 'expired') return 'Plan expired — access may pause.';
+    if (r.effective_status === 'grace')   return `Plan ends in ${r.grace_days_left ?? 0} day${r.grace_days_left === 1 ? '' : 's'}.`;
+    return 'Worth a quick check-in.';
+  }
+
+  function _attnHead(r) {
+    if (r.severity >= 2 && ATTN_LABEL[r.pulse_status]) return ATTN_LABEL[r.pulse_status];
+    if (r.effective_status === 'expired') return { label: 'Subscription expired', cls: 'badge-expired' };
+    if (r.effective_status === 'grace')   return { label: 'Subscription ending',  cls: 'badge-pending' };
+    return { label: 'Check in', cls: 'badge-pending' };
+  }
+
+  function _attnRow(r, name) {
+    const head    = _attnHead(r);
+    const recency = (r.days_since_activity != null) ? `Last active ${r.days_since_activity}d ago` : 'No recent activity';
+    const lapsed  = (r.effective_status === 'grace' || r.effective_status === 'expired');
+    // Show a subscription chip alongside an engagement headline (avoid doubling
+    // up when the headline already IS the subscription).
+    const subChip = (r.severity >= 2 && lapsed)
+      ? `<span class="badge ${r.effective_status === 'expired' ? 'badge-expired' : 'badge-pending'}">${r.effective_status === 'expired' ? 'Expired' : 'Grace'}</span>` : '';
+    const nm = _esc(name);
+    return `
+      <div style="display:flex;align-items:center;gap:12px;padding:11px 12px;border:1px solid var(--border,rgba(255,255,255,.08));border-radius:12px;background:var(--surface-2,rgba(255,255,255,.02))">
+        <div class="avatar" style="flex:0 0 auto">${(name || '?')[0].toUpperCase()}</div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <span style="font-weight:600;font-size:13px;color:var(--text-primary)">${nm}</span>
+            <span class="badge ${head.cls}">${head.label}</span>${subChip}
+          </div>
+          <div style="font-size:12px;color:var(--text-secondary,#94A3B8);margin-top:2px">${_esc(_attnReason(r))}</div>
+          <div style="font-size:11px;color:var(--text-tertiary);margin-top:1px">${_esc(recency)}</div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;flex:0 0 auto">
+          <button class="btn btn-ghost btn-xs" onclick="Clients.openRecovery('${r.client_id}','${nm}')">◉ Recovery</button>
+          <button class="btn btn-ghost btn-xs" onclick="Clients.nudgeClient('${r.client_id}','${nm}')">✉ Nudge</button>
+          ${lapsed ? `<button class="btn btn-teal btn-xs" onclick="Clients.reactivateClient('${r.client_id}','${nm}')">↻ Reactivate</button>` : ''}
+        </div>
+      </div>`;
+  }
+
+  function _attnEmpty() {
+    return `<div class="card" style="padding:14px 16px;margin-bottom:14px;display:flex;align-items:center;gap:10px">
+      <span style="font-size:15px;color:var(--lime,#14B8A6)">✓</span>
+      <span style="font-size:13px;color:var(--text-secondary,#94A3B8)">All clients look on track — nothing needs attention right now.</span></div>`;
+  }
+
+  async function renderNeedsAttention() {
+    const el = document.getElementById('clients-needs-attention');
+    if (!el) return;
+    // Defense-in-depth: panel is coach/admin only (section is role-coach-admin).
+    if (typeof Auth !== 'undefined' && Auth.isAdminOrCoach && !Auth.isAdminOrCoach()) { el.innerHTML = ''; return; }
+
+    let rows = [];
+    try {
+      const { data, error } = await sb.from('v_client_pulse')
+        .select('client_id,pulse_status,severity,momentum,days_since_activity,adherence_7d,recovery,effective_status,grace_days_left,churn_risk')
+        .or('severity.gte.2,churn_risk.is.true,effective_status.in.(grace,expired)')
+        .order('severity', { ascending: false });
+      if (error) throw error;
+      rows = data || [];
+    } catch (e) {
+      console.warn('[needs-attention] pulse read:', e?.message);
+      el.innerHTML = '';   // calm: panel absent, clients table unaffected
+      return;
+    }
+
+    if (!rows.length) { el.innerHTML = _attnEmpty(); return; }
+
+    // Resolve display names (RLS-scoped read: coach=assigned, admin=all).
+    const nameMap = {};
+    try {
+      const { data: profs } = await sb.from('profiles').select('id,full_name,email').in('id', rows.map((r) => r.client_id));
+      (profs || []).forEach((p) => { nameMap[p.id] = p.full_name || p.email || '—'; });
+    } catch (_) { /* names optional — fall back to em dash */ }
+
+    el.innerHTML = `
+      <div class="card" style="padding:14px 16px;margin-bottom:14px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <span style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-tertiary)">Needs Attention</span>
+          <span class="badge badge-pending">${rows.length}</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          ${rows.map((r) => _attnRow(r, nameMap[r.client_id] || '—')).join('')}
+        </div>
+      </div>`;
+  }
+
+  // Send Nudge — reuses the existing assigned coach/client message path
+  // (Community.sendMessage → coach_messages). Pre-fills a supportive default.
+  async function nudgeClient(clientId, name) {
+    const first = (name || '').split(' ')[0] || 'there';
+    const draft = `Hi ${first}, just checking in — how are you feeling? Let's keep your recovery moving.`;
+    const msg = window.prompt(`Send a quick message to ${name}:`, draft);
+    if (msg == null) return;             // cancelled
+    const text = msg.trim();
+    if (!text) return;
+    try {
+      if (!(window.Community && Community.sendMessage)) throw new Error('Messaging unavailable');
+      await Community.sendMessage(clientId, text);
+      Dashboard.toast(`Message sent to ${name}`, 'success');
+    } catch (e) { Dashboard.toast(e.message || 'Could not send message', 'error'); }
+  }
+
+  // Reactivate — verified reactivate_subscription() RPC (it self-enforces
+  // admin-or-assigned-coach permission; the button only shows for lapsed subs).
+  async function reactivateClient(clientId, name) {
+    const input = window.prompt(`Reactivate ${name}'s subscription — how many months?`, '3');
+    if (input == null) return;
+    const months = parseInt(input, 10);
+    if (!Number.isFinite(months) || months < 1 || months > 24) {
+      Dashboard.toast('Enter a whole number of months (1–24)', 'error'); return;
+    }
+    try {
+      const { error } = await sb.rpc('reactivate_subscription', { p_client_id: clientId, p_months: months });
+      if (error) throw error;
+      Dashboard.toast(`${name} reactivated for ${months} month${months === 1 ? '' : 's'}`, 'success');
+      loadAll();   // refreshes the table + the Needs Attention panel
+    } catch (e) { Dashboard.toast(e.message || 'Reactivation failed', 'error'); }
+  }
+
   return {
     loadAll, submitAddClient, prepPhaseUpgrade,
     loadCoaches, submitAddCoach, removeCoach,
     loadExercises, submitAddExercise, deleteExercise,
     openRecovery, closeRecovery,
+    nudgeClient, reactivateClient,
   };
 
 })();
