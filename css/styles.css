@@ -5313,3 +5313,47 @@ tbody td:first-child { color: var(--text-primary); font-weight: 500; }
   outline: none;
   box-shadow: var(--nc-focus-ring, 0 0 0 2px #07111A, 0 0 0 4px #14B8A6);
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   PHASE E1 — HOLOGRAM UNBOXING (2026-06-10)
+   The skeleton stops being a widget in a monitor: no borders, no
+   solid fill, no scanlines. A borderless elliptical void keeps
+   hologram contrast on both themes; a soft floor shadow grounds it
+   in space. Scene background is transparent (bodyMap3D.v2.js).
+═══════════════════════════════════════════════════════════════ */
+.neucore-assess-layout { grid-template-columns: 1fr 320px; }
+
+#neucore-body-canvas,
+#bodymap-dashboard-container {
+  border: none;
+  border-radius: 0;
+  overflow: visible;
+  background:
+    radial-gradient(ellipse 62% 72% at 50% 42%,
+      rgba(7, 17, 26, 0.92) 0%,
+      rgba(7, 17, 26, 0.55) 48%,
+      rgba(20, 184, 166, 0.05) 66%,
+      transparent 78%);
+}
+#neucore-body-canvas { height: 560px; }
+
+/* scanlines = "screen" feeling → removed */
+#neucore-body-canvas::after,
+#bodymap-dashboard-container::after {
+  content: none;
+  animation: none;
+}
+
+/* spatial grounding: soft elliptical floor shadow under the figure */
+#neucore-body-canvas::before,
+#bodymap-dashboard-container::before {
+  content: '';
+  position: absolute;
+  left: 50%; bottom: 6%;
+  width: 56%; height: 26px;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse at center, rgba(20,184,166,0.16), transparent 70%);
+  filter: blur(6px);
+  pointer-events: none;
+  z-index: 0;
+}
