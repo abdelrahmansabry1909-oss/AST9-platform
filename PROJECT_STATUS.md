@@ -1,6 +1,6 @@
 # PROJECT_STATUS.md — NeuCore Platform
 
-**Last updated:** 2026-06-06
+**Last updated:** 2026-06-09
 **Branch:** `claude/interesting-buck-452459`
 **HEAD commit:** Client Mobile Redesign S6 just shipped (commit pending)
 **Worktree path:** `D:\ASThub\.claude\worktrees\interesting-buck-452459`
@@ -14,6 +14,35 @@
 ## 0 · One-line summary
 
 6 features shipped + 2 hardening passes + 1 reliability sweep + 1 stabilization pass + Feature 7 (Assessment / 3D Hologram) + the **Client Mobile Redesign (S0–S6)** + 10 migrations live + full end-to-end live verification. **Features 1–6 + Reliability Sweep frozen by user signoff; F7 live. The Client Mobile Redesign replaced the client desktop-sidebar experience with a mobile-first, dark, calm 5-tab app (Today · Train · Progress · Coach · More), built S0→S6 one commit per step, presentation-layer only, coach/admin desktop untouched, and audited production-ready in S6 (one Low defect found and fixed, no Critical/High/Medium). See `CLIENT_DASHBOARD_MOBILE_REDESIGN.md` §11–13. Next: Feature 8 (Recovery Pulse, designed in `FEATURE_8_PROPOSAL.md`) or address pre-existing audit item H-1 (client-side-only write-gate).**
+
+---
+
+## 0.1 · ⚠ DEFERRED SECURITY HARDENING — global coach `profiles` visibility (tracked tech debt — DO NOT FORGET)
+
+**Status:** OPEN · deferred to a separate, explicitly-approved RLS phase.
+**Reference:** full analysis in `FEATURE8_COACH_VISIBILITY_RLS_PLAN.md` (Option A).
+
+**The issue.** The `profiles` SELECT policy is global for staff — `is_admin_or_coach() OR id = auth.uid()`. So **any `coach` can read every client's full profile/PII** (`full_name, email, phone, age, goal, injury_history`) via `clients.js` (`loadAll` → `select('*').eq('role','client')`), the dashboard client lists/counts, and the client pickers. Every *other* per-client table (`workout_sessions`, `daily_routine_logs`, `progress_snapshots`, `subscriptions`, `client_programs`) is already assigned-coach scoped — `profiles` is the lone global-for-staff outlier.
+
+**Why deferred (not fixed now).** Latent today: production has **1 admin, 0 real coaches**, and the admin is legitimately allowed to see all. The Feature-8 symptom was contained surgically without the platform-wide blast radius (see below). The full fix touches ~10 read paths and can break community/messaging — it deserves its own phase + regression.
+
+**Already contained (Feature 8 only, 2026-06-09).** `v_client_pulse` is now explicitly scoped to `is_admin() OR client_id = auth.uid() OR assigned_coach = auth.uid()` (migration `20260609180000_feature8_v_client_pulse_scope.sql`; rollback paired). The coach Needs Attention panel is now assigned-scoped. **`profiles` was deliberately NOT touched.**
+
+**Trigger — do this BEFORE creating any real `coach` account.** Once a non-admin coach exists, the PII exposure is live in production.
+
+**Modules that depend on the current global `profiles` read (must keep working after a fix):**
+- `clients.js` Clients table (`loadAll`) — should become assigned-scoped for coaches.
+- `dashboard.js` client lists/counts (lines ~216/327/436/980/1002/1048).
+- client pickers: `workoutSession.js:614`, `dailyRoutine.js:429`, `rpm/graph-builder.js:112`.
+- **community / messaging (highest risk):** `communityUI.js:153` (client reads its *coach's* profile for the thread name), `community.js:490` `loadOtherCoaches` (coach reads other staff), `communityUI.js:330` referral select.
+
+**Flows that break if tightened incorrectly:** client community thread shows "Coach" instead of the real coach name; coach↔coach messaging / referral dropdowns go empty; coach client pickers/counts empty; `profiles`-policy **recursion** if the new policy self-selects `profiles`.
+
+**Recommended future direction (Option A):**
+1. Replace the single global SELECT policy with role-aware policies: **admin = all** · **coach = assigned clients + self + other staff (coach/admin)** · **client = self + own assigned coach**.
+2. Add a `SECURITY DEFINER` helper (e.g. `my_assigned_coach()`) so the policy reads the caller's `assigned_coach` without `profiles`-policy recursion.
+3. Scope `v_client_progression` the same way (its `progressionEngine.listAll()` consumer also enumerates all clients to a coach).
+4. Full community/messaging + pickers regression; paired rollback restoring the single original policy.
 
 ---
 
