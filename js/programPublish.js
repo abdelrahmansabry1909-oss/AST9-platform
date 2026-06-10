@@ -197,34 +197,74 @@
   }
 
   // ── Program structure editor (workout-split aware) ────────
+  // Day rail (Phase C): instead of stacking every workout editor in one
+  // scroll, an interactive rail focuses one workout at a time ("All days"
+  // restores the stacked overview). Switching only toggles visibility —
+  // never re-renders — so in-progress edits are preserved.
+  let _activeW = 0;
+
   function _drawProgram() {
     const host = document.getElementById('pp-program');
     const workouts = _program.workouts || [];
     const schedule = _program.schedule || [];
+    if (workouts.length < 2) _activeW = 'all';            // single workout → nothing to switch
+    if (_activeW !== 'all' && _activeW >= workouts.length) _activeW = 0;
     host.innerHTML = `
       <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--nc-teal);margin-bottom:6px">
         Training Program${_program.split_label ? ' — ' + esc(_program.split_label) : ''}
       </div>
-      ${_scheduleStrip(schedule)}
-      ${workouts.map((wk, wi) => _workoutEditor(wi, wk)).join('')}
+      ${_dayRail(workouts, schedule)}
+      ${workouts.map((wk, wi) => `
+        <div data-ppw="${wi}" style="${(_activeW === 'all' || _activeW === wi) ? '' : 'display:none'}">${_workoutEditor(wi, wk)}</div>`).join('')}
     `;
     workouts.forEach((wk, wi) => {
       ['warmup', 'main', 'cooldown'].forEach((key) => _wireSection(wi, key));
       const lbl = host.querySelector(`[data-wlabel="${wi}"]`);
       if (lbl) lbl.addEventListener('input', () => { _program.workouts[wi].label = lbl.value; });
     });
+    _wireDayRail(host, workouts.length);
   }
 
-  // Weekly schedule chips — Day 1 → A, Day 2 → B, …
-  function _scheduleStrip(schedule) {
-    if (!schedule.length) return '';
-    return `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">
-      ${schedule.map((id, i) => `
-        <span style="font-size:11px;padding:4px 11px;border-radius:20px;background:var(--bg-raised);
-                     border:1px solid var(--border-subtle);color:var(--text-secondary)">
-          Day ${i + 1} · <b style="color:var(--nc-teal)">Workout ${esc(id)}</b>
-        </span>`).join('')}
+  // Interactive rail — one chip per workout (showing which days use it) + All.
+  function _dayRail(workouts, schedule) {
+    if (workouts.length < 2) return '';
+    const daysFor = (id) => schedule
+      .map((sid, i) => (sid === id ? i + 1 : null)).filter(Boolean);
+    const chip = (label, val, active) => `
+      <button type="button" data-pp-rail="${val}"
+        style="font-size:11.5px;font-weight:600;padding:6px 13px;border-radius:20px;cursor:pointer;
+               transition:background var(--nc-dur-fast,180ms) var(--nc-ease,ease), color var(--nc-dur-fast,180ms) var(--nc-ease,ease);
+               background:${active ? 'rgba(20,184,166,.16)' : 'var(--bg-raised)'};
+               border:1px solid ${active ? 'rgba(20,184,166,.4)' : 'var(--border-subtle)'};
+               color:${active ? 'var(--nc-teal)' : 'var(--text-secondary)'}">${label}</button>`;
+    return `<div data-pp-dayrail style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">
+      ${workouts.map((wk, wi) => {
+        const days = daysFor(wk.id);
+        const dayLbl = days.length ? ` · Day ${days.join(', ')}` : '';
+        return chip(`${esc(wk.label || ('Workout ' + wk.id))}${dayLbl}`, wi, _activeW === wi);
+      }).join('')}
+      ${chip('All days', 'all', _activeW === 'all')}
     </div>`;
+  }
+
+  function _wireDayRail(host, count) {
+    host.querySelectorAll('[data-pp-rail]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const v = btn.dataset.ppRail;
+        _activeW = v === 'all' ? 'all' : parseInt(v, 10);
+        // Visibility toggle only — editors keep their unsaved input state.
+        host.querySelectorAll('[data-ppw]').forEach((w) => {
+          const wi = parseInt(w.dataset.ppw, 10);
+          w.style.display = (_activeW === 'all' || _activeW === wi) ? '' : 'none';
+        });
+        host.querySelectorAll('[data-pp-rail]').forEach((b) => {
+          const active = b.dataset.ppRail === String(_activeW);
+          b.style.background = active ? 'rgba(20,184,166,.16)' : 'var(--bg-raised)';
+          b.style.borderColor = active ? 'rgba(20,184,166,.4)' : 'var(--border-subtle)';
+          b.style.color = active ? 'var(--nc-teal)' : 'var(--text-secondary)';
+        });
+      });
+    });
   }
 
   function _workoutEditor(wi, wk) {
