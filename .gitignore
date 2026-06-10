@@ -26,3 +26,7 @@ Thumbs.db
 # Deno / Supabase CLI transients
 deno.lock
 supabase/.temp/
+
+# Local agent/skill tooling artifacts (AI_WORKFLOW_GUARDRAILS.md §6 — never commit)
+.agents/
+skills-lock.json
