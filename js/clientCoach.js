@@ -281,6 +281,7 @@
     // Load history (Community.loadMessages also marks received as read).
     let msgs = [];
     try { if (window.Community && Community.loadMessages) msgs = await Community.loadMessages(coachId); } catch (_) {}
+    window._refreshCommunityBadge?.();   // loadMessages marked incoming as read — re-sync the sidebar badge
     const cont = _host.querySelector('#cc-thread');
     if (cont) {
       cont.innerHTML = msgs.length

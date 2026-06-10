@@ -5264,3 +5264,52 @@ tbody td:first-child { color: var(--text-primary); font-weight: 500; }
 @media (prefers-reduced-motion: reduce) {
   .nc-dgraph-node.active .nc-dgraph-node-dot { animation: none; }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   PHASE D1 — DASHBOARD MOTION/DEPTH POLISH (2026-06-10)
+   Controlled modernization on the current dark theme. Token-driven
+   (uses --nc-* motion tokens from neucore-design-system.css).
+   The bright premium flip (body.nc-bright) is Phase D2 — it needs a
+   per-section audit of the ~50 hardcoded white rgba() literals in
+   this file before it can be applied safely.
+═══════════════════════════════════════════════════════════════ */
+
+/* Sidebar nav — springy active state, animated indicator */
+.nav-item {
+  transition:
+    background var(--nc-dur-fast, 180ms) var(--nc-ease, ease),
+    color      var(--nc-dur-fast, 180ms) var(--nc-ease, ease),
+    border-color var(--nc-dur-fast, 180ms) var(--nc-ease, ease),
+    transform  var(--nc-dur-base, 320ms) var(--nc-ease-bounce, ease);
+}
+.nav-item.active { transform: translateX(2px); }
+.nav-item.active::before {
+  animation: d1-indicator-in var(--nc-dur-base, 320ms) var(--nc-ease-bounce, ease) both;
+}
+@keyframes d1-indicator-in {
+  from { transform: translateY(-50%) scaleY(0); }
+  to   { transform: translateY(-50%) scaleY(1); }
+}
+
+/* Interactive cards — hover affordance parity with stat cards */
+.card-hover {
+  transition:
+    border-color var(--nc-dur-fast, 180ms) var(--nc-ease, ease),
+    transform    var(--nc-dur-base, 320ms) var(--nc-ease, ease),
+    box-shadow   var(--nc-dur-base, 320ms) var(--nc-ease, ease);
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Stat cards — depth joins the existing lift */
+.stat-card:hover { box-shadow: var(--shadow-md); }
+
+/* Focus visibility for the shell's interactive primitives (a11y rule) */
+.nav-item:focus-visible,
+.stat-card:focus-visible,
+.btn:focus-visible {
+  outline: none;
+  box-shadow: var(--nc-focus-ring, 0 0 0 2px #07111A, 0 0 0 4px #14B8A6);
+}

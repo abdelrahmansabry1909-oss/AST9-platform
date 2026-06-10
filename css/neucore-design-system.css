@@ -385,3 +385,106 @@ textarea {
   color: var(--nc-cyan);
 }
 .neu-sidebar-item-icon { width: 18px; text-align: center; opacity: 0.9; }
+
+/* ═══════════════════════════════════════════════════════════════
+   PHASE B — IDENTITY FOUNDATION (2026-06-10)
+   Additive token + utility layer for the brighter premium identity.
+   RULES:
+     · Nothing below restyles an existing selector — zero visual delta
+       until a surface opts in (Phase D applies body.nc-bright to the
+       coach/admin shell; Phase C/E consume the utilities).
+     · One token namespace only (--nc-*). Do not add new namespaces.
+     · Typography stays Space Grotesk (display) + Inter (body).
+   See UI_UX_IDENTITY_AND_STABILIZATION_PLAN.md §4.
+═══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Brand opacity scale — one fg/accent pair generates the neutral ramp
+     (color-mix pattern; replaces ad-hoc rgba() literals going forward) */
+  --nc-fg:        var(--nc-text-primary);
+  --nc-fg-05:     color-mix(in oklab, var(--nc-fg), transparent 95%);
+  --nc-fg-10:     color-mix(in oklab, var(--nc-fg), transparent 90%);
+  --nc-fg-20:     color-mix(in oklab, var(--nc-fg), transparent 80%);
+  --nc-fg-40:     color-mix(in oklab, var(--nc-fg), transparent 60%);
+  --nc-fg-60:     color-mix(in oklab, var(--nc-fg), transparent 40%);
+  --nc-fg-90:     color-mix(in oklab, var(--nc-fg), transparent 10%);
+  --nc-accent:    var(--nc-teal);
+  --nc-accent-10: color-mix(in oklab, var(--nc-accent), transparent 90%);
+  --nc-accent-20: color-mix(in oklab, var(--nc-accent), transparent 80%);
+  --nc-accent-40: color-mix(in oklab, var(--nc-accent), transparent 60%);
+
+  /* Elevation tiers (semantic aliases; flat = none) */
+  --nc-elev-raised:   var(--nc-shadow-md);
+  --nc-elev-floating: var(--nc-shadow-lg);
+
+  /* Glass recipe (floating tier surfaces: pulse, hologram panels, modals) */
+  --nc-glass-bg:     color-mix(in oklab, var(--nc-bg-elevated), transparent 35%);
+  --nc-glass-blur:   15px;
+  --nc-glass-border: var(--nc-fg-10);
+
+  /* Motion: springy active-state easing (tabs, day rails, pills) */
+  --nc-ease-bounce: cubic-bezier(0.5, 1.3, 0.7, 1.1);
+
+  /* Focus ring (a11y rule: every interactive element shows this on :focus-visible) */
+  --nc-focus-ring: 0 0 0 2px var(--nc-bg-primary), 0 0 0 4px var(--nc-accent);
+}
+
+/* ── BRIGHT PREMIUM THEME (defined, not yet applied anywhere) ──
+   Phase D opts the coach/admin shell in via <body class="nc-bright">.
+   The client mobile shell keeps its calm dark theme. */
+body.nc-bright {
+  --nc-bg-primary:    #F7F9FB;   /* porcelain canvas */
+  --nc-bg-secondary:  #EEF2F6;
+  --nc-bg-elevated:   #FFFFFF;
+  --nc-bg-card:       #FFFFFF;
+
+  --nc-text-primary:   #0E1726;  /* ink */
+  --nc-text-secondary: #4B5970;
+  --nc-text-muted:     #8494A6;
+
+  --nc-border:        rgba(14, 23, 38, 0.08);
+  --nc-border-strong: rgba(14, 23, 38, 0.16);
+
+  --nc-shadow-sm:   0 1px 3px rgba(14,23,38,0.06);
+  --nc-shadow-md:   0 6px 24px rgba(14,23,38,0.08);
+  --nc-shadow-lg:   0 16px 48px rgba(14,23,38,0.12);
+  --nc-shadow-card: 0 1px 2px rgba(14,23,38,0.04), 0 8px 28px rgba(14,23,38,0.07);
+
+  --nc-glass-bg:     rgba(255, 255, 255, 0.62);
+  --nc-glass-border: rgba(14, 23, 38, 0.10);
+}
+
+/* ── GLASS UTILITIES (floating tier) ───────────────────────────
+   .nc-glass            translucent blurred surface
+   .nc-glass--hairline  + gradient hairline edge (mask-composite) */
+.nc-glass {
+  background: var(--nc-glass-bg);
+  backdrop-filter: blur(var(--nc-glass-blur));
+  -webkit-backdrop-filter: blur(var(--nc-glass-blur));
+  border-radius: var(--nc-r-lg);
+  box-shadow: var(--nc-elev-floating);
+  position: relative;
+}
+.nc-glass--hairline { border: none; }
+.nc-glass--hairline::after {
+  content: "";
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  border: 1px solid transparent;
+  background: linear-gradient(160deg, var(--nc-fg-20), var(--nc-fg-05)) border-box;
+  mask: linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  -webkit-mask: linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  pointer-events: none;
+}
+
+/* ── REDUCED MOTION (a11y rule) ─────────────────────────────────
+   Token consumers collapse to near-instant; spinners keep turning. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --nc-dur-fast: 1ms;
+    --nc-dur-base: 1ms;
+    --nc-dur-slow: 1ms;
+  }
+}

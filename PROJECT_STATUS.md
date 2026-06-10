@@ -70,6 +70,7 @@
 
 ### 1.4 Two pre-existing schema oddities — be aware
 - **Migration registry drift.** Four migration files exist on disk but aren't in `supabase_migrations.schema_migrations`: `20260515_rpm_foundation`, `20260516_rpm_phase5`, `20260521_daily_routine`, `20260522_client_program_publish`. Their tables exist (rpm_graphs, daily_routine_logs, client_programs) — applied via the SQL editor, not the CLI. Not a blocker; just don't trust `list_migrations()` as a complete map.
+  - **⚠ Update (2026-06-10, Phase A/A3):** drift can also run the OTHER way — `20260516000000_rpm_phase5` was **registered but its DDL was never applied** (live DB had neither `rpm_phases.target_regions` nor `rpm_phase_messages`), which made the RPM Graph "Generate" button fail on every save. Contents applied 2026-06-10 (additive only); paired rollback at `supabase/rollbacks/20260516000000_rpm_phase5_down.sql`. Lesson: verify *objects*, not registry rows.
 - **`daily_routine_logs` shape differs from its disk migration.** Live has `(id, client_id, log_date, completed bool, battery_pct int, completed_at)`. Disk file defines `(percent, total_tasks, completed_tasks jsonb, completed_count, updated_at)`. The Feature 4 view `v_client_progression` was adapted live to derive `routine_pct = COALESCE(battery_pct, completed?100:0)`. The on-disk migration file matches the live-applied SQL — they're consistent now.
 
 ### 1.5 Foreign-key invariant

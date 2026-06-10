@@ -146,6 +146,7 @@ const CommunityUI = (() => {
     panel.innerHTML = `<div class="comm-loading"><span class="spinner"></span></div>`;
 
     const messages = await Community.loadMessages(partnerId);
+    window._refreshCommunityBadge?.();   // loadMessages marked incoming as read — re-sync the sidebar badge
 
     // Resolve partner name
     let partnerName = partnerOverride?.full_name || partnerOverride?.email || 'Coach';

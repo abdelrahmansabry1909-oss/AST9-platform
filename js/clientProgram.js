@@ -537,6 +537,14 @@
                    font-size:15px;font-weight:700;cursor:pointer;box-shadow:var(--nc-shadow-teal,0 0 30px rgba(20,184,166,.16))">
             ${last ? (e.readOnly ? 'Done ✓' : 'Finish ▸') : 'Next ›'}</button>
         </div>
+
+        ${(!e.readOnly && e.sessionId) ? `
+        <div style="text-align:center;margin-top:14px">
+          <button type="button" data-cp2-cancel
+            style="background:transparent;border:0;cursor:pointer;min-height:40px;padding:8px 14px;
+                   color:var(--nc-rose,#F5426C);font-size:12.5px;font-weight:600;opacity:.85;-webkit-tap-highlight-color:transparent">
+            Cancel workout</button>
+        </div>` : ''}
       </div>`;
 
     _wireMedia(S.host, m);
@@ -544,6 +552,22 @@
     if (!e.readOnly) { _wireSetLogger(); _wireRest(); }
 
     S.host.querySelector('[data-cp2-exit]')?.addEventListener('click', () => { _persistStep(); _openDay(e.dayIndex); });
+    // Cancel = explicit abandon (status transition via the F2 data layer; logged
+    // sets stay in history, the session just ends as 'abandoned'). Exit (‹ Day)
+    // remains the pause path — the session stays active for coming back.
+    S.host.querySelector('[data-cp2-cancel]')?.addEventListener('click', async () => {
+      if (!confirm('Cancel this workout? Anything you logged is kept — the session is just marked as not finished.')) return;
+      _persistStep();
+      try {
+        await WorkoutSession.abandon(e.sessionId);
+        _toast('Workout cancelled — see you next session.', 'info');
+      } catch (err) {
+        if (err?.message !== 'subscription_inactive') _toast(err?.message || 'Could not cancel the workout', 'error');
+        return;   // honest failure: stay in the session
+      }
+      S.exec = null;
+      _openDay(e.dayIndex);
+    });
     S.host.querySelector('[data-cp2-prev]')?.addEventListener('click', () => {
       if (e.step === 0) return;
       _persistStep(); e.step--; _renderStep(); _scrollTop();
