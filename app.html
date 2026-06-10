@@ -2334,6 +2334,9 @@ const UI = {
   _showApp() {
     document.getElementById('screen-login').classList.add('hidden');
     document.getElementById('screen-app').style.display = 'block';
+    // D2 — bright premium theme for the coach/admin shell only; the client
+    // mobile experience keeps its calm dark theme by design.
+    document.body.classList.toggle('nc-bright', !!(Auth.isAdminOrCoach && Auth.isAdminOrCoach()));
     Dashboard.initShell();
     if (typeof ClientShell !== 'undefined') ClientShell.init();
     Dashboard.showSection('dashboard');
