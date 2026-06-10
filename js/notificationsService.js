@@ -79,6 +79,7 @@
   async function list({ unreadOnly = false, limit = 50 } = {}) {
     const uid = _userId(); if (!uid) return [];
     let q = sb.from('notifications').select('*')
+      .eq('recipient_id', uid)   // RLS lets admins read ALL rows — the inbox must stay the caller's own
       .eq('archived', false)
       .order('created_at', { ascending: false })
       .limit(limit);
@@ -92,6 +93,7 @@
     const uid = _userId(); if (!uid) return 0;
     const { count } = await sb.from('notifications')
       .select('id', { count: 'exact', head: true })
+      .eq('recipient_id', uid)   // same boundary as list() — admins must not count others' unread
       .eq('archived', false).is('read_at', null);
     _unread = count || 0;
     _emit();
