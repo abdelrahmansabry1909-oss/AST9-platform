@@ -23,7 +23,7 @@
 -- Classifier is deterministic; thresholds are constants below.
 -- "new" clients are protected from every alert (severity 0).
 --
--- Rollback: supabase/rollbacks/20260609120000_feature8_v_client_pulse_down.sql
+-- Rollback: supabase/rollbacks/20260609125012_feature8_v_client_pulse_down.sql
 -- ═══════════════════════════════════════════════════════════════
 
 CREATE OR REPLACE VIEW public.v_client_pulse
