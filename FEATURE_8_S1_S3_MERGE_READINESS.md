@@ -54,7 +54,7 @@ Also carried (docs, additive): `c4b9a8c` workflow guardrails, `359ee76` Feature 
 ## 6. Deploy / rollback notes
 
 - Merging to `main` ships **only the front end** (S2/S3) via GitHub Pages. **S1's `v_client_pulse` view is already applied to the live Supabase DB** (additive, read-only) and is required by S2/S3 at runtime — it is in place.
-- **Rollback:** S2/S3 = revert-merge (front end degrades to no card/panel); S1 = `supabase/rollbacks/20260609120000_feature8_v_client_pulse_down.sql` (drops the view; inert since only S2/S3 read it).
+- **Rollback:** S2/S3 = revert-merge (front end degrades to no card/panel); S1 = `supabase/rollbacks/20260609125012_feature8_v_client_pulse_down.sql` (drops the view; inert since only S2/S3 read it).
 
 ## 7. Verdict
 

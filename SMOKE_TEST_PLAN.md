@@ -1,7 +1,7 @@
 # SMOKE_TEST_PLAN.md — Client Mobile Redesign
 
 **Purpose:** the manual, real-device/browser smoke test that gates the merge of the redesign branch into `main` (per `PRE_MERGE_ACTION_PLAN.md`, item M-3). A human executes this checklist and records Pass/Fail.
-**Branch:** `claude/interesting-buck-452459` · **HEAD:** `f453382`
+**Branch:** `claude/interesting-buck-452459` · **HEAD:** `f7031fe` (merged to `main` via PR #11; CX1 polish at `d079a9f` — see §G)
 **Type:** test plan only — no code, no commit, no deploy.
 
 ---
@@ -213,7 +213,7 @@
 | Field | Value |
 |---|---|
 | Tester | __________________ |
-| Date / build (commit) | __________ / `f453382` |
+| Date / build (commit) | __________ / `f7031fe` (merge) · `d079a9f` (CX1 polish) |
 | Environment | ☐ local preview ☐ live (post-merge) |
 | Devices used | iOS Safari ☐ · Android Chrome ☐ · Desktop ☐ |
 | Totals | Pass ___ · Fail ___ · Blocked ___ · N/A ___ |

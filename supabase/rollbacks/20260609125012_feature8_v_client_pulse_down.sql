@@ -1,5 +1,5 @@
 -- ═══════════════════════════════════════════════════════════════
--- ROLLBACK for: 20260609120000_feature8_v_client_pulse.sql
+-- ROLLBACK for: 20260609125012_feature8_v_client_pulse.sql
 -- Feature 8 · S1 — Recovery Pulse read-only view
 --
 -- This file lives OUTSIDE supabase/migrations/ on purpose so it is
