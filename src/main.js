@@ -16,6 +16,7 @@ import { painToColor }      from './neucore/core/MaterialFactory.js';
 import { LoadVisualizer }   from './neucore/client/LoadVisualizer.js';
 import { ZoneDirector }     from './neucore/story/ZoneDirector.js';
 import { ZoneStage }        from './neucore/story/ZoneStage.js';
+import { ZONES }            from './neucore/story/zones.js';
 import { deriveLoadProfile } from './neucore/client/loadMetrics.js';
 import * as ClientCharts    from './neucore/client/clientCharts.js';
 
@@ -34,6 +35,7 @@ THREE.Cache.enabled = true;
 window.LoadVisualizer    = LoadVisualizer;
 window.deriveLoadProfile = deriveLoadProfile;
 window.ClientCharts      = ClientCharts;
+window.NC_ZONES          = ZONES;   // E5 — client body-story replay (clientProgress.js)
 
 // ── State ────────────────────────────────────────────────────────
 let mainCanvas    = null;
