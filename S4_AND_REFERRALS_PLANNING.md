@@ -1,6 +1,6 @@
 # S4 Proactive Alerts + Referrals — Planning (Phase F)
 
-**Status:** PLANNING ONLY. No cron activated, no automation, no notifications sent, no code. Both tracks are approval-gated before any implementation.
+**Status (updated 2026-06-11):** **S4 IS LIVE.** All five activation gates passed: `fn_pulse_for_alerts()` + `pulse_alert_state`/`pulse_alert_log` (migration `20260611195947`, rollback paired) · edge fn `pulse-alerts` deployed (requireCron) · dry-run verified against the `@ast9.test` fixtures (4 would-send, zero writes) · cron `pulse-alerts-daily [0 5 * * *]` scheduled (migration `20260611201924`, rollback = unschedule) · live runs observed (5 alerts run 1 → 0 on immediate re-run [episode dedup] → exactly 1 escalation on a simulated at_risk→regressing transition). Implementation extends §1.2 with transition-based firing + per-episode dedup + severity-4 admin CC. **Referrals (Part 2) remain design-complete and parked.**
 **Date:** 2026-06-10 · Grounded in the live DB + deployed edge functions.
 
 ---
