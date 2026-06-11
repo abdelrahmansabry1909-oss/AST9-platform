@@ -17,10 +17,16 @@
 
 ---
 
-## 0.1 · ⚠ DEFERRED SECURITY HARDENING — global coach `profiles` visibility (tracked tech debt — DO NOT FORGET)
+## 0.1 · ✅ RESOLVED (2026-06-11) — global coach `profiles` visibility (Option A applied)
 
-**Status:** OPEN · deferred to a separate, explicitly-approved RLS phase.
+**Status:** CLOSED · migration `20260611063848_option_a_profiles_select_scoped.sql` live (rollback paired in `rollbacks/`).
 **Reference:** full analysis in `FEATURE8_COACH_VISIBILITY_RLS_PLAN.md` (Option A).
+
+**What shipped.** The global-for-staff SELECT policy was replaced with `profiles_select_scoped`: **everyone → own row · admin → all · coach → assigned clients + staff directory (role coach/admin)**. Clients keep exactly the prior visibility (own row only — the coach name was already resolved from the client's own denormalized `assigned_coach`/`coach_name` columns, so no client→coach policy branch was needed). No `SECURITY DEFINER` helper had to be added: the policy uses only direct columns plus the existing definer helpers `is_admin()`/`is_coach()`, so there is no `profiles` self-query and no recursion. All ~30 dependent policies on other tables were verified live to use only assigned-coach lookups or own-row role checks — both still satisfied. Verified by JWT-impersonation SQL (coach 10→8 rows, 0 unassigned clients; client 1 row; admin 10) plus a 9/9 authenticated production browser regression (coach clients/subscriptions/community + client Today), 0 console errors.
+
+**Residual accepted degradations (documented, graceful fallbacks in UI):** incoming referral cards show "Unknown client" until referrals implement assignment transfer (feature already deferred/broken); a coach browsing community posts of non-assigned clients sees "Member"/"User" as author names.
+
+<details><summary>Original analysis (historical)</summary>
 
 **The issue.** The `profiles` SELECT policy is global for staff — `is_admin_or_coach() OR id = auth.uid()`. So **any `coach` can read every client's full profile/PII** (`full_name, email, phone, age, goal, injury_history`) via `clients.js` (`loadAll` → `select('*').eq('role','client')`), the dashboard client lists/counts, and the client pickers. Every *other* per-client table (`workout_sessions`, `daily_routine_logs`, `progress_snapshots`, `subscriptions`, `client_programs`) is already assigned-coach scoped — `profiles` is the lone global-for-staff outlier.
 
@@ -43,6 +49,8 @@
 2. Add a `SECURITY DEFINER` helper (e.g. `my_assigned_coach()`) so the policy reads the caller's `assigned_coach` without `profiles`-policy recursion.
 3. Scope `v_client_progression` the same way (its `progressionEngine.listAll()` consumer also enumerates all clients to a coach).
 4. Full community/messaging + pickers regression; paired rollback restoring the single original policy.
+
+</details>
 
 ---
 
