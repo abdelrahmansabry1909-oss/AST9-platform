@@ -5592,3 +5592,59 @@ tbody td:first-child { color: var(--text-primary); font-weight: 500; }
   padding-top: 12px;
   border-top: 1px solid var(--border-light);
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   PHASE E4 — JOURNEY SUMMARY + MOTION POLISH (2026-06-11)
+   The sense of place: a quiet 7-dot journey line above the stages,
+   one reserved bounce for zone completion, and a soft fade-up when
+   a stage opens. All durations are tokens → reduced-motion collapses
+   everything to instant via the Phase B guard.
+═══════════════════════════════════════════════════════════════ */
+.zone-journey {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 2px 6px;
+}
+.zone-journey-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+.zone-journey-dots { display: inline-flex; gap: 5px; }
+.zone-journey-dots i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--border-light);
+  transition: background var(--nc-dur-base, 240ms) var(--nc-ease, ease),
+              transform  var(--nc-dur-base, 240ms) var(--nc-ease-bounce, ease);
+}
+.zone-journey-dots i.done {
+  background: #14B8A6;
+  transform: scale(1.25);
+}
+.zone-journey-count {
+  margin-left: auto;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-tertiary);
+}
+
+/* the single reserved bounce: a zone flipping to complete */
+@keyframes e4-done-pop {
+  0%   { transform: scale(1); }
+  55%  { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+.zone-stage.done .zone-stage-num,
+.zone-chip.done .zone-chip-num {
+  animation: e4-done-pop var(--nc-dur-base, 240ms) var(--nc-ease-bounce, ease) 1;
+}
+
+/* a stage opening breathes in (display:none → flex restarts the animation) */
+.zone-stage:not(.collapsed) .zone-stage-body {
+  animation: neu-fade-up var(--nc-dur-base, 240ms) var(--nc-ease, ease) both;
+}

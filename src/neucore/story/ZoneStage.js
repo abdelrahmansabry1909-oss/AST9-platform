@@ -41,6 +41,17 @@ export class ZoneStage {
   // ── restage ───────────────────────────────────────────────────────
   _build() {
     const frag = document.createDocumentFragment();
+
+    // E4 — journey summary: the coach's sense of place in the body.
+    this.journey = document.createElement('div');
+    this.journey.className = 'zone-journey';
+    this.journey.innerHTML = `
+      <span class="zone-journey-label">Objective assessment</span>
+      <span class="zone-journey-dots">${ZONES.map((z) =>
+        `<i data-zone-dot="${z.key}" title="${z.label}"></i>`).join('')}</span>
+      <span class="zone-journey-count"></span>`;
+    frag.appendChild(this.journey);
+
     ZONES.forEach((zone) => {
       const cards = [...this.grid.querySelectorAll(`.card[data-zone="${zone.key}"]`)];
       if (!cards.length) return;
@@ -148,6 +159,17 @@ export class ZoneStage {
         this._done[key] = done;
         if (this.director) this.director.setZoneDone(key, done);
       }
+    });
+    this._refreshJourney();
+  }
+
+  _refreshJourney() {
+    if (!this.journey) return;
+    const doneCount = Object.values(this._done).filter(Boolean).length;
+    this.journey.querySelector('.zone-journey-count').textContent =
+      `${doneCount} of ${this.stages.size} zones complete`;
+    this.journey.querySelectorAll('[data-zone-dot]').forEach((dot) => {
+      dot.classList.toggle('done', !!this._done[dot.dataset.zoneDot]);
     });
   }
 }

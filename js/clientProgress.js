@@ -122,6 +122,7 @@
         </div>
         ${_disclosure('history', 'Check-in history')}
         ${_disclosure('report',  'Your latest report')}
+        ${_disclosure('story',   'Your body story')}
         ${_disclosure('holo',    'Body load map (3D)')}
         ${_disclosure('adv',     'Advanced insights')}
       </div>`;
@@ -158,6 +159,7 @@
         });
       }
     });
+    _wireDisclosure(host, 'story', (panel) => _renderBodyStory(panel, snap));
     _wireDisclosure(host, 'holo', (panel) => _renderHoloEntry(panel, snap));
     _wireDisclosure(host, 'adv',  (panel) => _renderAdvanced(panel, snap));
 
@@ -217,6 +219,71 @@
         </div>`;
     }).join('');
     panel.innerHTML = `<div style="border:1px solid var(--nc-border,rgba(255,255,255,.08));border-radius:var(--nc-r-lg,16px);background:rgba(255,255,255,.02);padding:8px 12px">${rows}</div>`;
+  }
+
+  // ═══ E5 — Your body story ═══════════════════════════════════════
+  // Read-only replay of the coach's zone journey from the latest saved
+  // assessment. Zone order/labels/stories come from the shared ZONES
+  // config (window.NC_ZONES, exposed by src/main.js); the column lists
+  // mirror what dashboard.js actually persists to
+  // rehab_objective_assessments — zones whose fields are not persisted
+  // today (neck/arms) are omitted rather than shown forever-empty.
+  const STORY_COLS = {
+    foundation: ['toe_touch_score', 'ankle_df_left_cm', 'ankle_df_right_cm', 'ankle_pronation_left', 'ankle_pronation_right'],
+    knees:      ['tibia_ir_left', 'tibia_ir_right'],
+    hips:       ['hip_ir_left', 'hip_ir_right', 'hip_er_left', 'hip_er_right', 'hip_flexion_left', 'hip_flexion_right',
+                 'hip_extension_left', 'hip_extension_right', 'hip_abduction_left', 'hip_abduction_right'],
+    spine:      null,   // persisted as computed pain_flags, rendered specially
+    shoulders:  ['shoulder_flexion_left', 'shoulder_flexion_right', 'shoulder_ir_left', 'shoulder_ir_right',
+                 'shoulder_er_left', 'shoulder_er_right'],
+    integration: ['sl_squat_left_score', 'sl_squat_right_score', 'sl_rdl_left_score', 'sl_rdl_right_score', 'oh_squat_score',
+                  'sl_balance_eo_left', 'sl_balance_eo_right', 'sl_balance_ec_left', 'sl_balance_ec_right',
+                  'sl_reach_left', 'sl_reach_right'],
+  };
+
+  function _renderBodyStory(panel, snap) {
+    const zones = window.NC_ZONES;
+    const obj = snap && snap.objective;
+    if (!zones || !obj) {
+      panel.innerHTML = `<div style="padding:14px 4px;font-size:13px;color:var(--nc-text-secondary,#94A3B8)">
+        Your body story appears here after your coach completes an assessment.</div>`;
+      return;
+    }
+
+    const when = snap.assessment?.session_date || snap.assessment?.created_at;
+    const dateLine = when
+      ? `<div style="font-size:11.5px;color:var(--nc-text-muted,#64748B);padding:2px 4px 8px">From your assessment on ${_esc(new Date(when).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' }))}</div>`
+      : '';
+
+    const rows = zones
+      .filter((z) => z.key in STORY_COLS)
+      .map((z) => {
+        let detail;
+        if (z.key === 'spine') {
+          const flags = Array.isArray(obj.pain_flags) ? obj.pain_flags.length : 0;
+          detail = flags ? `${flags} pain note${flags === 1 ? '' : 's'}` : 'No pain flagged';
+        } else {
+          const n = STORY_COLS[z.key].filter((c) => obj[c] != null && obj[c] !== '').length;
+          detail = n ? `${n} observation${n === 1 ? '' : 's'}` : 'Not assessed';
+        }
+        const has = detail !== 'Not assessed';
+        return `
+          <div style="display:flex;align-items:center;gap:12px;padding:11px 4px">
+            <span style="flex:none;width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
+                         font-size:11px;font-weight:700;border:1px solid ${has ? 'rgba(45,212,191,.5)' : 'var(--nc-border,rgba(255,255,255,.1))'};
+                         color:${has ? '#2DD4BF' : 'var(--nc-text-muted,#64748B)'}">${z.ordinal}</span>
+            <span style="flex:1;min-width:0">
+              <span style="display:block;font-size:13.5px;font-weight:600;color:var(--nc-text-primary,#F8FAFC)">${_esc(z.label)}</span>
+              <span style="display:block;font-size:11.5px;color:var(--nc-text-secondary,#94A3B8)">${_esc(z.story || '')}</span>
+            </span>
+            <span style="flex:none;font-size:12px;color:${has ? 'var(--nc-text-primary,#F8FAFC)' : 'var(--nc-text-muted,#64748B)'}">${_esc(detail)}</span>
+          </div>`;
+      }).join('');
+
+    panel.innerHTML = `
+      <div style="border:1px solid var(--nc-border,rgba(255,255,255,.08));border-radius:var(--nc-r-lg,16px);background:rgba(255,255,255,.02);padding:10px 12px">
+        ${dateLine}${rows}
+      </div>`;
   }
 
   // The disclosure shows a calm prompt; the hologram itself runs fullscreen.
