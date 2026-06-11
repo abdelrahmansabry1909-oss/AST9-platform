@@ -894,11 +894,14 @@
         </div><!-- /assess-grid -->
 
         <!-- NeuCore 3D skeleton sidebar — updates in real-time as form is filled -->
-        <div>
+        <div class="assess-body-col">
           <div style="font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;
                      color:rgba(0,212,255,0.4);margin-bottom:8px;padding-left:2px">
             Live Body Map
           </div>
+          <!-- E2 — anatomy-zone rail. Populated by ZoneDirector after the
+               skeleton loads; stays empty (invisible) if the 3D layer is unavailable. -->
+          <div id="zone-rail" class="zone-rail"></div>
           <div id="neucore-body-canvas"></div>
         </div>
 

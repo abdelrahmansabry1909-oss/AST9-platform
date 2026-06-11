@@ -14,6 +14,7 @@ import { bus }              from './neucore/core/JointBus.js';
 import { JOINT_LABELS }     from './neucore/core/JointRegistry.js';
 import { painToColor }      from './neucore/core/MaterialFactory.js';
 import { LoadVisualizer }   from './neucore/client/LoadVisualizer.js';
+import { ZoneDirector }     from './neucore/story/ZoneDirector.js';
 import { deriveLoadProfile } from './neucore/client/loadMetrics.js';
 import * as ClientCharts    from './neucore/client/clientCharts.js';
 
@@ -165,6 +166,12 @@ function _initObjectiveSidebar() {
         new AssessmentPanel(sideWrap, sideSkel, assessStore);
         // Two-way bind the Objective form to this body map.
         if (objectiveSync) objectiveSync.setSkeleton(sideSkel);
+        // E2 — anatomy-zone navigation. Self-guards: no rail root in the
+        // markup (or a failed skeleton load, which never reaches here) means
+        // the Objective tab behaves exactly as before.
+        const zoneRail = document.getElementById('zone-rail');
+        // window handle = debug/console access, same convention as _ncReset.
+        if (zoneRail) window._zoneDirector = new ZoneDirector({ canvas: sideCanvas, skeleton: sideSkel, rail: zoneRail });
       })
       .catch((err) => {
         console.error('[NeuCore] objective skeleton load failed:', err);

@@ -207,7 +207,9 @@ export class BodyCanvas {
         this.controls.autoRotate = false;
       } else {
         this.renderer.domElement.style.cursor = '';
-        if (!this._activeKey) this.controls.autoRotate = true;
+        // holdAutoRotate: an external owner (ZoneDirector zone focus / reduced
+        // motion) is keeping the camera still — don't restart the idle spin.
+        if (!this._activeKey && !this.holdAutoRotate) this.controls.autoRotate = true;
       }
     }
   }
@@ -221,7 +223,7 @@ export class BodyCanvas {
         bus.emit('joint:deselect', { jointKey: this._activeKey });
         this._skeleton.resetAllOpacity();
         this._activeKey = null;
-        this.controls.autoRotate = true;
+        if (!this.holdAutoRotate) this.controls.autoRotate = true;
       }
       return;
     }

@@ -5357,3 +5357,90 @@ tbody td:first-child { color: var(--text-primary); font-weight: 500; }
   pointer-events: none;
   z-index: 0;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   PHASE E2 — ANATOMY-ZONE RAIL (2026-06-11)
+   Vertical zone navigation hugging the hologram. Chips are dark
+   glass anchored to the void (constant across both themes), so the
+   rail reads as part of the spatial scene, not the page chrome.
+   Populated by ZoneDirector; an empty rail renders nothing.
+═══════════════════════════════════════════════════════════════ */
+.assess-body-col { position: relative; }
+
+.zone-rail {
+  position: absolute;
+  left: -12px;
+  top: 96px;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.zone-rail:empty { display: none; }
+
+.zone-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px 6px 7px;
+  border: 1px solid rgba(240, 242, 247, 0.12);
+  border-radius: 999px;
+  background: rgba(7, 17, 26, 0.62);
+  backdrop-filter: blur(8px);
+  color: rgba(240, 242, 247, 0.72);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color var(--nc-dur-fast, 150ms) var(--nc-ease, ease),
+              color        var(--nc-dur-fast, 150ms) var(--nc-ease, ease),
+              transform    var(--nc-dur-fast, 150ms) var(--nc-ease, ease),
+              background   var(--nc-dur-fast, 150ms) var(--nc-ease, ease);
+}
+.zone-chip:hover {
+  border-color: rgba(20, 184, 166, 0.45);
+  color: #F0F2F7;
+  transform: translateX(2px);
+}
+.zone-chip:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #07111A, 0 0 0 4px #14B8A6;
+}
+.zone-chip.active {
+  border-color: rgba(20, 184, 166, 0.85);
+  background: rgba(13, 38, 44, 0.85);
+  color: #F0F2F7;
+  box-shadow: 0 0 14px rgba(20, 184, 166, 0.22);
+}
+
+.zone-chip-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid rgba(20, 184, 166, 0.5);
+  color: #2DD4BF;
+  font-size: 10px;
+  font-weight: 700;
+  flex: none;
+}
+.zone-chip.active .zone-chip-num {
+  background: #14B8A6;
+  border-color: #14B8A6;
+  color: #07111A;
+}
+
+/* narrow viewports: the side column stacks under the form (existing
+   1-column fallback) — the rail becomes horizontal chips above the canvas */
+@media (max-width: 1024px) {
+  .zone-rail {
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+  .zone-chip:hover { transform: none; }
+}
