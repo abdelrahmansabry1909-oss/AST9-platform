@@ -33,6 +33,7 @@ const Clients = (() => {
     const coachMap = {};
     (coaches || []).forEach(c => { coachMap[c.id] = c.full_name || c.email; });
 
+    const isAdmin = (typeof Auth !== 'undefined' && Auth.isAdmin && Auth.isAdmin());
     tbody.innerHTML = data.map(c => {
       const sub = subMap[c.id];
       const subBadge = sub
@@ -62,6 +63,9 @@ const Clients = (() => {
             <button class="btn btn-ghost btn-xs" onclick="Clients.openRecovery('${c.id}','${_esc(c.full_name||c.email)}')">◉ Recovery</button>
             <button class="btn btn-teal btn-xs"
               ${c.current_phase === 'Phase 3' ? 'disabled title="Already at top phase"' : `onclick="Clients.prepPhaseUpgrade('${c.id}','${_esc(c.full_name||c.email)}')"`}>⬆ Phase</button>
+            ${isAdmin ? `
+            <button class="btn btn-ghost btn-xs" onclick="Clients.openEditClient('${c.id}')" title="Edit profile">✎ Edit</button>
+            <button class="btn btn-rose btn-xs" onclick="Clients.removeClient('${c.id}','${_esc(c.full_name||c.email)}')" title="Delete account">🗑</button>` : ''}
           </div>
         </td>
       </tr>`;
@@ -297,6 +301,78 @@ const Clients = (() => {
       if (res.ok) { Dashboard.toast('Coach removed', 'info'); loadCoaches(); }
       else Dashboard.toast('Failed to remove coach', 'error');
     } catch(e) { Dashboard.toast(e.message, 'error'); }
+  }
+
+  // ── B4 — Edit / Delete client (admin-only; RLS + delete-user enforce server-side) ──
+  let _editClientId = null;
+
+  async function openEditClient(clientId) {
+    if (!(typeof Auth !== 'undefined' && Auth.isAdmin && Auth.isAdmin())) {
+      Dashboard.toast('Only admins can edit client profiles', 'error'); return;
+    }
+    const [{ data: c, error }, { data: coaches }] = await Promise.all([
+      sb.from('profiles').select('*').eq('id', clientId).single(),
+      sb.from('profiles').select('id,full_name,email').in('role', ['coach','admin']).order('full_name'),
+    ]);
+    if (error || !c) { Dashboard.toast('Could not load this profile', 'error'); return; }
+    _editClientId = clientId;
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v == null ? '' : v; };
+    set('ec-name', c.full_name); set('ec-email', c.email); set('ec-age', c.age);
+    set('ec-phone', c.phone); set('ec-goal', c.goal); set('ec-injury', c.injury_history);
+    const sel = document.getElementById('ec-coach');
+    if (sel) {
+      sel.innerHTML = `<option value="">— Unassigned —</option>` + (coaches || [])
+        .map((co) => `<option value="${co.id}" ${co.id === c.assigned_coach ? 'selected' : ''}>${_esc(co.full_name || co.email)}</option>`).join('');
+    }
+    document.getElementById('modal-edit-client')?.classList.remove('hidden');
+  }
+
+  async function submitEditClient() {
+    if (!_editClientId) return;
+    const gv = (id) => document.getElementById(id)?.value?.trim() ?? '';
+    const patch = {
+      full_name:      gv('ec-name') || null,
+      age:            gv('ec-age') ? parseInt(gv('ec-age'), 10) : null,
+      phone:          gv('ec-phone') || null,
+      goal:           gv('ec-goal') || null,
+      injury_history: gv('ec-injury') || null,
+      assigned_coach: gv('ec-coach') || null,
+    };
+    if (!patch.full_name) { Dashboard.toast('Name is required', 'error'); return; }
+    const btn = document.getElementById('ec-submit-btn');
+    _setBtnLoading(btn, 'Saving...');
+    try {
+      // .select() makes RLS outcomes honest: 0 rows back = no permission, never a silent no-op.
+      const { data, error } = await sb.from('profiles').update(patch).eq('id', _editClientId).select('id');
+      if (error) throw new Error(error.message);
+      if (!data || !data.length) throw new Error('No permission to edit this profile');
+      Dashboard.toast('Client updated', 'success');
+      Dashboard.closeModal('modal-edit-client');
+      _editClientId = null;
+      loadAll();
+    } catch (e) { Dashboard.toast(e.message || 'Update failed', 'error'); }
+    finally { _resetBtn(btn, 'Save Changes'); }
+  }
+
+  // Deletes the auth account (cascades the profile). delete-user is admin-gated
+  // server-side and refuses self/last-admin; we surface its verdict honestly.
+  async function removeClient(clientId, name) {
+    if (!(typeof Auth !== 'undefined' && Auth.isAdmin && Auth.isAdmin())) {
+      Dashboard.toast('Only admins can delete client accounts', 'error'); return;
+    }
+    if (!confirm(`Delete ${name}'s account?\n\nThis permanently removes their sign-in, profile, and access. Their training history stays in the database but will no longer be reachable from the app.\n\nThis cannot be undone.`)) return;
+    try {
+      const token = (await sb.auth.getSession()).data.session?.access_token;
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/delete-user`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ user_id: clientId }),
+      });
+      const out = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(out.error || 'Failed to delete the account');
+      Dashboard.toast(`${name}'s account deleted`, 'info');
+      loadAll();
+    } catch (e) { Dashboard.toast(e.message, 'error'); }
   }
 
   // ── Exercise Library ─────────────────────────────────────────
@@ -616,6 +692,7 @@ const Clients = (() => {
     loadExercises, submitAddExercise, deleteExercise,
     openRecovery, closeRecovery,
     nudgeClient, reactivateClient,
+    openEditClient, submitEditClient, removeClient,
   };
 
 })();

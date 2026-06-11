@@ -69,7 +69,9 @@ const BodyMap3D = (() => {
     const w = container.clientWidth || 400;
     const h = container.clientHeight || 520;
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x050510);
+    // E1 — transparent scene: the hologram floats over the page's void
+    // gradient instead of painting its own opaque "screen" rectangle.
+    scene.background = null;
     camera = new THREE.PerspectiveCamera(42, w / h, 0.01, 100);
     camera.position.set(0, 1.1, 3.2);
     renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });

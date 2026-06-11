@@ -1730,6 +1730,63 @@
   </div>
 </div>
 
+<!-- B4 — Edit Client (admin-only: profiles UPDATE RLS allows admin + self only) -->
+<div class="modal-overlay hidden" id="modal-edit-client">
+  <div class="modal">
+    <div class="modal-header"><h3>Edit Client</h3><button class="btn-icon" onclick="Dashboard.closeModal('modal-edit-client')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Full Name</label><input id="ec-name" class="form-input"/></div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input id="ec-email" class="form-input" disabled style="opacity:.6"/>
+        <div class="form-hint">Sign-in email can't be edited here — it's tied to the account's login.</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group"><label class="form-label">Age</label><input id="ec-age" type="number" min="10" max="100" class="form-input"/></div>
+        <div class="form-group"><label class="form-label">Phone</label><input id="ec-phone" class="form-input"/></div>
+      </div>
+      <div class="form-group"><label class="form-label">Assigned Coach</label><select id="ec-coach" class="form-input"></select></div>
+      <div class="form-group"><label class="form-label">Goal</label><input id="ec-goal" class="form-input"/></div>
+      <div class="form-group"><label class="form-label">Injury History</label><textarea id="ec-injury" class="form-input" rows="3"></textarea></div>
+      <div class="form-hint">Phase changes live in the <b>⬆ Phase</b> flow — they're validated and celebrated there.</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="Dashboard.closeModal('modal-edit-client')">Cancel</button>
+      <button class="btn btn-primary" id="ec-submit-btn" onclick="Clients.submitEditClient()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- B5 — Edit Subscription (admin-only: subscriptions writes are admin-gated by RLS) -->
+<div class="modal-overlay hidden" id="modal-edit-subscription">
+  <div class="modal">
+    <div class="modal-header"><h3>Edit Subscription</h3><button class="btn-icon" onclick="Dashboard.closeModal('modal-edit-subscription')">✕</button></div>
+    <div class="modal-body">
+      <div id="es-client" class="form-hint" style="margin-bottom:12px"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group"><label class="form-label">Plan (months)</label><input id="es-plan" type="number" min="1" max="36" class="form-input"/></div>
+        <div class="form-group"><label class="form-label">Grace days</label><input id="es-grace" type="number" min="0" max="60" class="form-input"/></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group"><label class="form-label">Start date</label><input id="es-start" type="date" class="form-input"/></div>
+        <div class="form-group"><label class="form-label">End date</label><input id="es-end" type="date" class="form-input"/></div>
+      </div>
+      <div class="form-group"><label class="form-label">Status</label>
+        <select id="es-status" class="form-input">
+          <option value="active">Active</option>
+          <option value="pending">Pending</option>
+          <option value="expired">Expired</option>
+        </select>
+        <div class="form-hint">Grace and expiring states are derived from the dates — prefer editing dates over forcing a status.</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="Dashboard.closeModal('modal-edit-subscription')">Cancel</button>
+      <button class="btn btn-primary" id="es-submit-btn" onclick="Subscriptions.submitEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
 <!-- Feature 7 — Client Recovery Snapshot (coach parity view of the client's hologram + assessment) -->
 <div class="modal-overlay hidden" id="modal-client-recovery">
   <div class="modal" style="max-width:640px;width:92vw">
@@ -2277,6 +2334,9 @@ const UI = {
   _showApp() {
     document.getElementById('screen-login').classList.add('hidden');
     document.getElementById('screen-app').style.display = 'block';
+    // D2 — bright premium theme for the coach/admin shell only; the client
+    // mobile experience keeps its calm dark theme by design.
+    document.body.classList.toggle('nc-bright', !!(Auth.isAdminOrCoach && Auth.isAdminOrCoach()));
     Dashboard.initShell();
     if (typeof ClientShell !== 'undefined') ClientShell.init();
     Dashboard.showSection('dashboard');

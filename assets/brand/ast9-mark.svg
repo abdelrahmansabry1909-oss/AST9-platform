@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" aria-label="AST9 mark — vertebral pulse">
+  <!--
+    AST9 identity mark (direction artifact, v0.1)
+    One continuous stroke: a stylized spine (three vertebral curves)
+    grounding into a recovery pulse (single calm ECG beat).
+    · stroke = currentColor → works in ink, white, or clinical teal
+    · single path → draw-on animatable via stroke-dashoffset
+    · geometry on a 4px grid; legible at 16px (favicon) and 1024px (app icon)
+  -->
+  <path d="M22 6
+           C 14 12, 28 18, 21 24
+           C 14 30, 28 36, 21 42
+           C 18 46, 20 51, 26 52
+           L 33 52
+           L 38 38
+           L 44 58
+           L 49 52
+           L 58 52"
+        stroke="currentColor" stroke-width="4.5"
+        stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

@@ -452,6 +452,63 @@ body.nc-bright {
 
   --nc-glass-bg:     rgba(255, 255, 255, 0.62);
   --nc-glass-border: rgba(14, 23, 38, 0.10);
+
+  /* ── Legacy-token bridge (D2) ─────────────────────────────────
+     styles.css components consume the legacy tokens; bridging them
+     here flips the whole coach/admin shell coherently. */
+  --bg-void:    #EDF1F5;
+  --bg-base:    #F7F9FB;
+  --bg-surface: #FFFFFF;
+  --bg-raised:  #F2F5F8;
+  --bg-overlay: #FFFFFF;
+  --bg-hover:   rgba(14, 23, 38, 0.035);
+
+  --border-subtle:  rgba(14, 23, 38, 0.07);
+  --border-default: rgba(14, 23, 38, 0.12);
+  --border-strong:  rgba(14, 23, 38, 0.20);
+
+  --text-primary:   #0E1726;
+  --text-secondary: #44536A;
+  --text-tertiary:  #7E8DA1;
+  --text-inverse:   #FFFFFF;
+
+  --shadow-sm:   0 1px 3px rgba(14,23,38,0.06);
+  --shadow-md:   0 6px 24px rgba(14,23,38,0.08);
+  --shadow-lg:   0 16px 48px rgba(14,23,38,0.12);
+  --shadow-xl:   0 24px 64px rgba(14,23,38,0.16);
+  --shadow-card: 0 1px 2px rgba(14,23,38,0.04), 0 8px 28px rgba(14,23,38,0.07);
+}
+
+/* ── D2: the sidebar stays a dark ink rail in bright mode ────────
+   (anchors the brand; FITXPERT-style figure/ground). Local variable
+   re-overrides keep every child component legible on the dark rail. */
+body.nc-bright .sidebar,
+body.nc-bright .sidebar-overlay + .sidebar {
+  background: linear-gradient(180deg, #0E1726 0%, #0B1220 100%);
+  --bg-surface: #121C2E;
+  --bg-raised:  #16213a;
+  --bg-hover:   rgba(255, 255, 255, 0.05);
+  --border-subtle:  rgba(255, 255, 255, 0.06);
+  --border-default: rgba(255, 255, 255, 0.10);
+  --border-strong:  rgba(255, 255, 255, 0.16);
+  --text-primary:   #F0F2F7;
+  --text-secondary: #93A1B7;
+  --text-tertiary:  #5B6B82;
+  --nc-fg: #F0F2F7;            /* fg-ramp consumers inside the rail stay light */
+}
+
+/* The dashboard hero keeps its dark cinematic surface in bright mode —
+   same local re-override so its text stays light. */
+body.nc-bright .nc-dashboard-hero {
+  --text-primary:      #F0F2F7;
+  --text-secondary:    #93A1B7;
+  --text-tertiary:     #6B7B92;
+  --nc-text-primary:   #F8FAFC;
+  --nc-text-secondary: #94A3B8;
+  --nc-text-muted:     #64748B;
+  --border-subtle:     rgba(255, 255, 255, 0.08);
+  --bg-hover:          rgba(255, 255, 255, 0.05);
+  --nc-fg: #F0F2F7;
 }
 
 /* ── GLASS UTILITIES (floating tier) ───────────────────────────

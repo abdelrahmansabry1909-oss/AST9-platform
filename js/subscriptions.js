@@ -100,6 +100,7 @@ const Subscriptions = (() => {
       const progressColor = (isExpired || isGrace) ? 'danger'
         : (daysLeft <= 7 && isActive) ? 'danger' : '';
 
+      const isAdmin = (typeof Auth !== 'undefined' && Auth.isAdmin && Auth.isAdmin());
       const reactivateBtn = (isExpired || isGrace)
         ? `<button class="btn btn-teal btn-xs" onclick="Subscriptions.reactivate('${_esc(s.client_id)}', ${parseInt(s.plan) || 3})">↺ Reactivate</button>`
         : '';
@@ -129,9 +130,12 @@ const Subscriptions = (() => {
         </td>
         <td>
           <div style="display:flex;gap:6px;flex-wrap:wrap">
-            ${isPending ? `<button class="btn btn-teal btn-xs" onclick="Subscriptions.activate('${_esc(s.id)}','${_esc(s.client_id)}','${_esc(s.plan)}','${_esc(s.start_date)}','${_esc(s.end_date)}')">Activate</button>` : ''}
+            ${(isPending && isAdmin) ? `<button class="btn btn-teal btn-xs" onclick="Subscriptions.activate('${_esc(s.id)}','${_esc(s.client_id)}','${_esc(s.plan)}','${_esc(s.start_date)}','${_esc(s.end_date)}')">Activate</button>` : ''}
             ${reactivateBtn}
-            <button class="btn btn-rose btn-xs" onclick="Subscriptions.remove('${s.id}')">✕</button>
+            ${isAdmin ? `
+            <button class="btn btn-ghost btn-xs" onclick="Subscriptions.openEdit('${s.id}')" title="Edit plan/dates/status">✎ Edit</button>
+            ${isActive ? `<button class="btn btn-ghost btn-xs" onclick="Subscriptions.expireNow('${s.id}')" title="End this subscription now">⏸ End</button>` : ''}
+            <button class="btn btn-rose btn-xs" onclick="Subscriptions.remove('${s.id}')" title="Delete record">✕</button>` : ''}
           </div>
         </td>
       </tr>`;
@@ -250,9 +254,68 @@ const Subscriptions = (() => {
   }
 
   async function remove(subId) {
-    if (!confirm('Delete this subscription? This cannot be undone.')) return;
-    await sb.from('subscriptions').delete().eq('id', subId);
+    if (!confirm('Delete this subscription record?\n\nThe client loses this billing period from their history. This cannot be undone.')) return;
+    // .select() makes the outcome honest: RLS silently deleting 0 rows must
+    // never produce a success toast (admin-only write per subscriptions_admin_write).
+    const { data, error } = await sb.from('subscriptions').delete().eq('id', subId).select('id');
+    if (error) { Dashboard.toast(error.message, 'error'); return; }
+    if (!data || !data.length) { Dashboard.toast('No permission to delete subscriptions', 'error'); return; }
     Dashboard.toast('Subscription deleted', 'info');
+    SubscriptionService?.clearCache?.();
+    loadAll();
+  }
+
+  // ── B5 — Edit subscription (admin-only; RLS enforces server-side) ──
+  let _editSubId = null;
+
+  function openEdit(subId) {
+    const s = _rows.find((r) => r.id === subId);
+    if (!s) { Dashboard.toast('Subscription not found — refresh and try again', 'error'); return; }
+    _editSubId = subId;
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v == null ? '' : v; };
+    const who = document.getElementById('es-client');
+    if (who) who.textContent = `Client: ${s.profiles?.full_name || s.profiles?.email || '—'}`;
+    set('es-plan', s.plan); set('es-grace', s.grace_days ?? 7);
+    set('es-start', s.start_date); set('es-end', s.end_date); set('es-status', s.status || 'active');
+    document.getElementById('modal-edit-subscription')?.classList.remove('hidden');
+  }
+
+  async function submitEdit() {
+    if (!_editSubId) return;
+    const gv = (id) => document.getElementById(id)?.value ?? '';
+    const plan  = parseInt(gv('es-plan'), 10);
+    const grace = parseInt(gv('es-grace'), 10);
+    const start = gv('es-start'), end = gv('es-end'), status = gv('es-status');
+    if (!Number.isFinite(plan) || plan < 1 || plan > 36) { Dashboard.toast('Plan must be 1–36 months', 'error'); return; }
+    if (!Number.isFinite(grace) || grace < 0 || grace > 60) { Dashboard.toast('Grace days must be 0–60', 'error'); return; }
+    if (!start || !end || end <= start) { Dashboard.toast('End date must be after the start date', 'error'); return; }
+    const btn = document.getElementById('es-submit-btn');
+    _setBtnLoading(btn);
+    try {
+      const { data, error } = await sb.from('subscriptions')
+        .update({ plan, grace_days: grace, start_date: start, end_date: end, status })
+        .eq('id', _editSubId).select('id');
+      if (error) throw new Error(error.message);
+      if (!data || !data.length) throw new Error('No permission to edit subscriptions');
+      Dashboard.toast('Subscription updated', 'success');
+      Dashboard.closeModal('modal-edit-subscription');
+      _editSubId = null;
+      SubscriptionService?.clearCache?.();
+      loadAll();
+    } catch (e) { Dashboard.toast(e.message || 'Update failed', 'error'); }
+    finally { _resetBtn(btn); }
+  }
+
+  // End an active subscription immediately (admin). Status flip only — the
+  // record and the client's history stay intact; the client drops to read-only
+  // via the existing write-gate on next state refresh.
+  async function expireNow(subId) {
+    if (!confirm('End this subscription now?\n\nThe client keeps read access but can no longer log workouts until reactivated.')) return;
+    const { data, error } = await sb.from('subscriptions')
+      .update({ status: 'expired' }).eq('id', subId).select('id');
+    if (error) { Dashboard.toast(error.message, 'error'); return; }
+    if (!data || !data.length) { Dashboard.toast('No permission to end subscriptions', 'error'); return; }
+    Dashboard.toast('Subscription ended', 'info');
     SubscriptionService?.clearCache?.();
     loadAll();
   }
@@ -302,7 +365,7 @@ const Subscriptions = (() => {
     document.addEventListener('DOMContentLoaded', _wireFilter);
   } else { _wireFilter(); }
 
-  return { loadAll, submit, activate, reactivate, remove, setFilter };
+  return { loadAll, submit, activate, reactivate, remove, setFilter, openEdit, submitEdit, expireNow };
 
 })();
 
