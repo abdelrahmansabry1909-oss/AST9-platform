@@ -15,6 +15,7 @@ import { JOINT_LABELS }     from './neucore/core/JointRegistry.js';
 import { painToColor }      from './neucore/core/MaterialFactory.js';
 import { LoadVisualizer }   from './neucore/client/LoadVisualizer.js';
 import { ZoneDirector }     from './neucore/story/ZoneDirector.js';
+import { ZoneStage }        from './neucore/story/ZoneStage.js';
 import { deriveLoadProfile } from './neucore/client/loadMetrics.js';
 import * as ClientCharts    from './neucore/client/clientCharts.js';
 
@@ -42,10 +43,16 @@ let assessPanel   = null;
 let assessStore   = {};   // jointKey → { pain_scale, rom fields, location[] }
 let gaitPage      = null;
 let objectiveSync = null; // two-way bind: Objective form ↔ 3D body map
+let zoneStage     = null; // E3 glass restage of the Objective form
 
 // ── Boot ─────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   objectiveSync = new ObjectiveSync(assessStore);
+  // E3 — restage the Objective wall into guided zone stages. Pure DOM moves
+  // (after ObjectiveSync bound its per-element listeners); independent of the
+  // 3D layer so the fields stay usable even if WebGL/the glb never loads.
+  const assessGrid = document.querySelector('#tab-objective .assess-grid');
+  if (assessGrid) zoneStage = new ZoneStage({ grid: assessGrid });
   _initMainSkeleton();
   _initObjectiveSidebar();
   _initGenerateButton();
@@ -171,7 +178,11 @@ function _initObjectiveSidebar() {
         // the Objective tab behaves exactly as before.
         const zoneRail = document.getElementById('zone-rail');
         // window handle = debug/console access, same convention as _ncReset.
-        if (zoneRail) window._zoneDirector = new ZoneDirector({ canvas: sideCanvas, skeleton: sideSkel, rail: zoneRail });
+        if (zoneRail) {
+          window._zoneDirector = new ZoneDirector({ canvas: sideCanvas, skeleton: sideSkel, rail: zoneRail });
+          // E3 — one state machine: stage ↔ rail ↔ camera.
+          if (zoneStage) zoneStage.connect(window._zoneDirector);
+        }
       })
       .catch((err) => {
         console.error('[NeuCore] objective skeleton load failed:', err);

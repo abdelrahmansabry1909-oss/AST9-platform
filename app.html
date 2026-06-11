@@ -562,7 +562,7 @@
         <div class="assess-grid">
 
           <!-- TOE TOUCH & FOOT/ANKLE -->
-          <div class="card">
+          <div class="card" data-zone="foundation">
             <div class="assess-section-head">🦶 Toe Touch & Foot / Ankle</div>
             <div class="form-group">
               <label class="form-label">Toe Touch Score</label>
@@ -629,7 +629,7 @@
           </div>
 
           <!-- TIBIA -->
-          <div class="card">
+          <div class="card" data-zone="knees">
             <div class="assess-section-head">🦴 Tibia</div>
             <div class="input-row">
               <div class="form-group">
@@ -645,7 +645,7 @@
           </div>
 
           <!-- HIP (full width) -->
-          <div class="card" style="grid-column:span 2">
+          <div class="card" data-zone="hips" style="grid-column:span 2">
             <div class="assess-section-head">🏋️ Hip — Enter degrees. Type "P" or -1 for pain.</div>
             <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;align-items:end">
               <div></div>
@@ -687,7 +687,7 @@
           </div>
 
           <!-- SPINE — pain checkboxes feed into scoring engine -->
-          <div class="card">
+          <div class="card" data-zone="spine">
             <div class="assess-section-head">🧠 Spine — Check box if movement is painful</div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
               <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px;background:var(--bg-raised);border-radius:8px;border:1px solid var(--border-subtle)">
@@ -722,7 +722,7 @@
           </div>
 
           <!-- SHOULDER -->
-          <div class="card">
+          <div class="card" data-zone="shoulders">
             <div class="assess-section-head">💪 Shoulder (degrees)</div>
             <div style="display:grid;grid-template-columns:auto 1fr 1fr;gap:8px;align-items:end;margin-bottom:4px">
               <div></div>
@@ -746,7 +746,7 @@
           <!-- ── NEUCORE ADDITIONS (Task 6) ─────────────────────── -->
 
           <!-- CERVICAL SPINE -->
-          <div class="card">
+          <div class="card" data-zone="neck-arms">
             <div class="assess-section-head">🫀 Cervical Spine</div>
             <div class="input-row">
               <div class="form-group"><label class="form-label">Flexion (P/NP)</label><input id="ns-cerv-flex" class="form-input" placeholder="P / NP"/></div>
@@ -759,7 +759,7 @@
           </div>
 
           <!-- ELBOW (bilateral) -->
-          <div class="card">
+          <div class="card" data-zone="neck-arms">
             <div class="assess-section-head">💪 Elbow (degrees)</div>
             <div style="display:grid;grid-template-columns:auto 1fr 1fr;gap:8px;align-items:end;margin-bottom:4px">
               <div></div>
@@ -775,7 +775,7 @@
           </div>
 
           <!-- WRIST (bilateral) -->
-          <div class="card">
+          <div class="card" data-zone="neck-arms">
             <div class="assess-section-head">🤲 Wrist (degrees)</div>
             <div style="display:grid;grid-template-columns:auto 1fr 1fr;gap:8px;align-items:end;margin-bottom:4px">
               <div></div>
@@ -791,7 +791,7 @@
           </div>
 
           <!-- LUMBAR / SACRUM -->
-          <div class="card">
+          <div class="card" data-zone="spine">
             <div class="assess-section-head">🦴 Lumbar / Sacrum</div>
             <div class="input-row">
               <div class="form-group"><label class="form-label">Flexion</label><input id="ns-lumb-flex" class="form-input" placeholder="40–60°"/></div>
@@ -808,7 +808,7 @@
           </div>
 
           <!-- LOAD TOLERANCE (full width, structured) -->
-          <div class="card" style="grid-column:span 2">
+          <div class="card" data-zone="integration" style="grid-column:span 2">
             <div class="assess-section-head">⚖️ Load Tolerance Tests — 0=Pain · 1=Severe comp · 2=Mild comp · 3=Clean</div>
             <div style="display:grid;grid-template-columns:2fr 1fr 1fr 2fr;gap:10px;align-items:end;margin-bottom:8px">
               <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-tertiary)">Test</div>
@@ -864,7 +864,7 @@
           </div>
 
           <!-- NEUROLOGY (full width) -->
-          <div class="card" style="grid-column:span 2">
+          <div class="card" data-zone="integration" style="grid-column:span 2">
             <div class="assess-section-head">🧬 Neurology / Balance</div>
             <div style="display:grid;grid-template-columns:2fr 1fr 1fr 2fr;gap:10px;align-items:end;margin-bottom:8px">
               <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-tertiary)">Test</div>

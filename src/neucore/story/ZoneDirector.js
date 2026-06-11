@@ -113,6 +113,7 @@ export class ZoneDirector {
     this._refreshHighlights();
     this.canvas.holdAutoRotate = true;
     this.canvas.controls.autoRotate = false;
+    bus.emit('zone:change', { key });   // E3 stage expands synchronously here
     this._flyTo(zone);
     this._scrollZoneFields(zone);
   }
@@ -123,6 +124,7 @@ export class ZoneDirector {
     this._refreshHighlights();
     this.canvas.holdAutoRotate = this._reduced;
     if (!this._reduced) this.canvas.controls.autoRotate = this._autoRotateDefault;
+    bus.emit('zone:change', { key: null });
     this._tweenCamera(this._overview.target, this._overview.pos);
   }
 
@@ -135,6 +137,17 @@ export class ZoneDirector {
     this.canvas.holdAutoRotate = true;   // the zone owns the camera until deselect
     this._syncRail();
     this._refreshHighlights();
+    bus.emit('zone:change', { key: zone.key });
+  }
+
+  // E3 — completion feedback on the rail: the ordinal becomes a quiet check.
+  setZoneDone(key, done) {
+    const chip = this.rail.querySelector(`.zone-chip[data-zone="${key}"]`);
+    if (!chip) return;
+    chip.classList.toggle('done', done);
+    const zone = ZONES.find((z) => z.key === key);
+    const num = chip.querySelector('.zone-chip-num');
+    if (num && zone) num.textContent = done ? '✓' : zone.ordinal;
   }
 
   _syncRail() {

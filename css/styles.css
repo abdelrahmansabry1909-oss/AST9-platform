@@ -5444,3 +5444,151 @@ tbody td:first-child { color: var(--text-primary); font-weight: 500; }
   }
   .zone-chip:hover { transform: none; }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   PHASE E3 — GLASS RESTAGE (2026-06-11)
+   The Objective wall becomes a guided journey: one glass stage per
+   anatomy zone (story header → movement groups → continue), only
+   the active zone expanded. Theme-adaptive via the D2 legacy-token
+   bridge; the classic 2-col wall is the untouched no-JS fallback.
+═══════════════════════════════════════════════════════════════ */
+.assess-grid.staged {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.zone-stage {
+  border: 1px solid var(--border-light);
+  border-radius: 16px;
+  background: var(--bg-card);
+  box-shadow: 0 1px 2px rgba(14, 23, 38, 0.04), 0 8px 24px rgba(14, 23, 38, 0.05);
+  overflow: hidden;
+  transition: border-color var(--nc-dur-base, 240ms) var(--nc-ease, ease),
+              box-shadow   var(--nc-dur-base, 240ms) var(--nc-ease, ease);
+}
+.zone-stage.done {
+  border-color: rgba(20, 184, 166, 0.45);
+  box-shadow: 0 1px 2px rgba(14, 23, 38, 0.04), 0 0 0 1px rgba(20, 184, 166, 0.12),
+              0 8px 24px rgba(20, 184, 166, 0.08);
+}
+
+/* ── stage header: ordinal · title + story · progress ── */
+.zone-stage-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 16px 18px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  color: var(--text-primary);
+}
+.zone-stage-head:focus-visible {
+  outline: none;
+  box-shadow: inset var(--nc-focus-ring, 0 0 0 2px #07111A, 0 0 0 4px #14B8A6);
+  border-radius: 16px;
+}
+
+.zone-stage-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid rgba(20, 184, 166, 0.45);
+  color: #0D9488;
+  font-size: 13px;
+  font-weight: 700;
+  flex: none;
+  transition: background var(--nc-dur-base, 240ms) var(--nc-ease, ease),
+              color      var(--nc-dur-base, 240ms) var(--nc-ease, ease);
+}
+.zone-stage.done .zone-stage-num {
+  background: #14B8A6;
+  border-color: #14B8A6;
+  color: #FFFFFF;
+  font-size: 0;                      /* hide the ordinal… */
+}
+.zone-stage.done .zone-stage-num::before {
+  content: '✓';
+  font-size: 13px;                   /* …show the quiet check instead */
+}
+
+.zone-stage-titles { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.zone-stage-label {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.zone-stage-story {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  font-weight: 400;
+}
+
+.zone-stage-meta { display: flex; align-items: center; gap: 10px; flex: none; }
+.zone-stage-count {
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-tertiary);
+}
+.zone-stage-bar {
+  width: 64px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--border-light);
+  overflow: hidden;
+}
+.zone-stage-bar i {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: 2px;
+  background: #14B8A6;
+  transition: width var(--nc-dur-base, 240ms) var(--nc-ease, ease);
+}
+.zone-stage-chev {
+  color: var(--text-tertiary);
+  font-size: 14px;
+  line-height: 1;
+  transition: transform var(--nc-dur-base, 240ms) var(--nc-ease, ease);
+}
+.zone-stage:not(.collapsed) .zone-stage-chev { transform: rotate(180deg); }
+
+/* ── stage body: movement groups breathe, no card-in-card chrome ── */
+.zone-stage-body {
+  padding: 2px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.zone-stage.collapsed .zone-stage-body { display: none; }
+
+.zone-stage .card {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 14px 0 4px;
+  margin: 0;
+}
+.zone-stage .card + .card { border-top: 1px solid var(--border-light); }
+.zone-stage .assess-section-head {
+  border-bottom: none;
+  padding-bottom: 6px;
+  margin-bottom: 8px;
+  color: var(--text-secondary);
+  letter-spacing: 1.6px;
+}
+
+.zone-stage-continue {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-light);
+}
