@@ -601,9 +601,41 @@ const Clients = (() => {
         <div style="display:flex;gap:6px;flex-wrap:wrap;flex:0 0 auto">
           <button class="btn btn-ghost btn-xs" onclick="Clients.openRecovery('${r.client_id}','${nm}')">◉ Recovery</button>
           <button class="btn btn-ghost btn-xs" onclick="Clients.nudgeClient('${r.client_id}','${nm}')">✉ Nudge</button>
+          <button class="btn btn-ghost btn-xs" onclick="window._wsPreselectClient='${r.client_id}'; Dashboard.showSection('workout-history')" title="Review their recent workouts">◐ Program</button>
           ${lapsed ? `<button class="btn btn-teal btn-xs" onclick="Clients.reactivateClient('${r.client_id}','${nm}')">↻ Reactivate</button>` : ''}
         </div>
       </div>`;
+  }
+
+  // ── S5 — priority ranking + triage summary ──────────────────────
+  // Composite priority from existing Pulse signals only (no new scoring
+  // engine): severity dominates, churn and long inactivity break ties so the
+  // coach sees "who needs me most" at the top. Higher = more urgent.
+  function _attnPriority(r) {
+    let p = (r.severity || 0) * 100;
+    if (r.churn_risk) p += 40;
+    if (r.effective_status === 'expired') p += 30;
+    else if (r.effective_status === 'grace') p += 15;
+    p += Math.min(20, r.days_since_activity || 0);
+    return p;
+  }
+
+  // One-glance triage strip: how many clients fall in each risk facet.
+  // Facets overlap by design (a client can be at-risk AND churning).
+  function _attnSummary(rows) {
+    const facets = [
+      { key: 'regressing', label: 'Regressing', color: '#F5426C', n: rows.filter((r) => r.pulse_status === 'regressing').length },
+      { key: 'at_risk',    label: 'At risk',    color: '#F59E0B', n: rows.filter((r) => r.pulse_status === 'at_risk').length },
+      { key: 'churn',      label: 'Churn risk', color: '#D4AF37', n: rows.filter((r) => r.churn_risk).length },
+      { key: 'lapsed',     label: 'Lapsed plan',color: '#94A3B8', n: rows.filter((r) => r.effective_status === 'grace' || r.effective_status === 'expired').length },
+    ].filter((f) => f.n > 0);
+    if (!facets.length) return '';
+    return `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">${
+      facets.map((f) => `<span style="display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border-radius:999px;
+        background:rgba(255,255,255,.03);border:1px solid var(--border,rgba(255,255,255,.08));font-size:11.5px;font-weight:600;color:var(--text-secondary,#94A3B8)">
+        <span style="width:8px;height:8px;border-radius:50%;background:${f.color}"></span>${f.label}
+        <b style="color:var(--text-primary)">${f.n}</b></span>`).join('')
+    }</div>`;
   }
 
   function _attnEmpty() {
@@ -634,6 +666,9 @@ const Clients = (() => {
 
     if (!rows.length) { el.innerHTML = _attnEmpty(); return; }
 
+    // S5 — rank by composite priority so the most urgent client is first.
+    rows.sort((a, b) => _attnPriority(b) - _attnPriority(a));
+
     // Resolve display names (RLS-scoped read: coach=assigned, admin=all).
     const nameMap = {};
     try {
@@ -641,12 +676,15 @@ const Clients = (() => {
       (profs || []).forEach((p) => { nameMap[p.id] = p.full_name || p.email || '—'; });
     } catch (_) { /* names optional — fall back to em dash */ }
 
+    const topName = nameMap[rows[0].client_id] || 'A client';
     el.innerHTML = `
-      <div class="card" style="padding:14px 16px;margin-bottom:14px">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+      <div class="card" style="padding:16px;margin-bottom:14px">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:4px">
           <span style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-tertiary)">Needs Attention</span>
-          <span class="badge badge-pending">${rows.length}</span>
+          <span class="badge badge-pending">${rows.length} client${rows.length === 1 ? '' : 's'}</span>
         </div>
+        <div style="font-size:13px;color:var(--text-secondary,#94A3B8);margin-bottom:12px">Start with <b style="color:var(--text-primary)">${_esc(topName)}</b> — highest priority today.</div>
+        ${_attnSummary(rows)}
         <div style="display:flex;flex-direction:column;gap:8px">
           ${rows.map((r) => _attnRow(r, nameMap[r.client_id] || '—')).join('')}
         </div>

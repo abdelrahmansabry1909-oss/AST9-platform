@@ -79,6 +79,38 @@
     return out;
   }
 
+  // ── Recovery Pulse → calm word + hue (CX4/CX5 shared) ──
+  // Lean presentational lookup. clientDashboard keeps its own richer PULSE
+  // map because it ALSO routes a CTA per status; this one is word+colour only,
+  // so the mission header and completion screen can name the pulse without a
+  // second query or a second vocabulary.
+  const PULSE_WORD = {
+    new:        { word: 'Getting started', color: 'var(--nc-cyan,#67E8F9)' },
+    on_track:   { word: 'On track',        color: 'var(--nc-teal,#14B8A6)' },
+    slipping:   { word: 'Keep momentum',   color: 'var(--nc-gold,#D4AF37)' },
+    at_risk:    { word: 'Reconnecting',    color: '#F59E0B' },
+    regressing: { word: 'Checking in',     color: '#5A9BD4' },
+  };
+  function pulseLabel(status) { return PULSE_WORD[status] || PULSE_WORD.new; }
+
+  // ── Progress ring (CX4 mission header + CX5 session header) ──
+  // One SVG arc, pct 0–100. Stroke is the teal accent; track is faint. Pure
+  // presentation, no animation cost beyond a CSS transition on the dash.
+  function progressRing(pct, size = 56, stroke = 5, color = 'var(--nc-teal,#14B8A6)') {
+    const p = Math.max(0, Math.min(100, Math.round(pct || 0)));
+    const r = (size - stroke) / 2;
+    const c = 2 * Math.PI * r;
+    const off = c * (1 - p / 100);
+    return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true" style="flex:none">
+      <circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="rgba(255,255,255,.10)" stroke-width="${stroke}"/>
+      <circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="${color}" stroke-width="${stroke}"
+        stroke-linecap="round" stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}"
+        transform="rotate(-90 ${size / 2} ${size / 2})" style="transition:stroke-dashoffset .35s cubic-bezier(0.16,1,0.3,1)"/>
+      <text x="50%" y="50%" dy="0.35em" text-anchor="middle" fill="var(--nc-text-primary,#F8FAFC)"
+        style="font-size:${Math.round(size * 0.26)}px;font-weight:800">${p}%</text>
+    </svg>`;
+  }
+
   // ── Calm state helpers ─────────────────────────────────────────
   function isOffline() {
     return (typeof navigator !== 'undefined') && navigator.onLine === false;
@@ -129,6 +161,7 @@
     esc, firstName, greeting,
     STAGES, stageIndex, stageName,
     band, ago, accountability,
+    pulseLabel, progressRing,
     isOffline, skeleton, offlineNote, errorState, trapTab,
   };
 })();
