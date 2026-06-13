@@ -52,7 +52,6 @@
   };
 
   let S = null;            // live mount state
-  let _justCompleted = false;   // one-shot: show a success banner after finishing
 
   // 2-line/N-line clamp — keeps browse cards compact; full text is shown in
   // the single-exercise execution step (progressive disclosure).
@@ -74,9 +73,17 @@
   }
   const _fmtClock = (t) => `${Math.floor(t / 60)}:${String(Math.max(0, t) % 60).padStart(2, '0')}`;
 
-  // Stop any running rest countdown (prevents intervals leaking across renders).
+  // Stop a running rest countdown only. Used by the rest button itself, which
+  // must NOT touch the session elapsed ticker.
   function _clearRest() {
     if (S && S.exec && S.exec._restInt) { clearInterval(S.exec._restInt); S.exec._restInt = null; }
+  }
+
+  // Stop every per-step interval (rest + elapsed). Called at the top of each
+  // render so nothing leaks across step re-renders.
+  function _clearStepTimers() {
+    _clearRest();
+    if (S && S.exec && S.exec._elapsedInt) { clearInterval(S.exec._elapsedInt); S.exec._elapsedInt = null; }
   }
 
   // ── Small helpers ───────────────────────────────────────────────
@@ -113,6 +120,26 @@
     return n ? `A guided ${n}-exercise session. Move through it at your own pace.` : 'Your coach will add exercises here soon.';
   }
 
+  // Client's own pulse status (RLS → self only). Calm null on any miss.
+  async function _loadPulse(clientId) {
+    if (!clientId || typeof sb === 'undefined') return null;
+    try {
+      const { data } = await sb.from('v_client_pulse')
+        .select('pulse_status').eq('client_id', clientId).maybeSingle();
+      return data?.pulse_status || null;
+    } catch (_) { return null; }
+  }
+
+  // A small recovery-pulse chip for the mission header (reuses the shared
+  // client pulse vocabulary; renders nothing when there is no row yet).
+  function _pulseChip() {
+    if (!S.pulseStatus) return '';
+    const p = ClientUtil.pulseLabel(S.pulseStatus);
+    return `<span style="display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:999px;
+            font-size:11px;font-weight:700;background:rgba(255,255,255,.04);border:1px solid var(--nc-border,rgba(255,255,255,.10));color:${p.color}">
+            <span style="width:7px;height:7px;border-radius:50%;background:${p.color}"></span>${esc(p.word)}</span>`;
+  }
+
   function _dayStatusKey(i) {
     const raw = S.statusByDay[i];
     if (raw === 'completed') return 'completed';
@@ -144,14 +171,25 @@
     const res = await ProgramPublish.resolveClientProgram(clientId);
     if (!res.ok) { _renderNonOk(host, res, () => render(host, opts)); return; }
 
-    // Session signals — one round-trip each (active + recent history).
-    let active = null, hist = [];
+    // Session signals — one round-trip each (active + recent history + pulse).
+    let active = null, hist = [], pulseStatus = null;
     try {
-      [active, hist] = await Promise.all([
+      [active, hist, pulseStatus] = await Promise.all([
         WorkoutSession.getActiveSession(clientId),
         WorkoutSession.history(clientId, { limit: 60 }),
+        _loadPulse(clientId),
       ]);
     } catch (_) { /* calm — statuses just fall back to upcoming/today */ }
+
+    // CX4 — live completion of the in-progress day (mission header + card).
+    // One extra read only when a session is actually open.
+    let activeCompleted = 0;
+    if (active && active.id) {
+      try {
+        const d = await WorkoutSession.detail(active.id);
+        activeCompleted = (d.logs || []).filter((l) => l.completed).length;
+      } catch (_) { /* header just omits the ratio */ }
+    }
 
     // Completed-this-week set + per-workout duration history.
     const weekAgo = Date.now() - 7 * 86400000;
@@ -176,7 +214,7 @@
     S = {
       host, clientId, programId: res.row.id || null,
       p: res.p, workouts: res.workouts, schedule: res.schedule, libMap: res.libMap,
-      active, durByKey, statusByDay, todayDay,
+      active, durByKey, statusByDay, todayDay, pulseStatus, activeCompleted,
       view: 'overview', dayIndex: todayDay, exec: null,
     };
 
@@ -202,19 +240,11 @@
 
   // ── Overview — day cards ────────────────────────────────────────
   function _renderOverview() {
-    _clearRest();
+    _clearStepTimers();
     S.view = 'overview';
-    const banner = _justCompleted ? `
-      <div role="status" style="margin:0 2px 12px;padding:12px 14px;border-radius:var(--nc-r-lg,16px);
-           background:rgba(20,184,166,.12);border:1px solid rgba(20,184,166,.35);display:flex;align-items:center;gap:10px">
-        <span style="font-size:18px" aria-hidden="true">✓</span>
-        <span style="font-size:13.5px;font-weight:600;color:var(--nc-text-primary,#F8FAFC)">Workout complete — great work. Rest up and recover.</span>
-      </div>` : '';
-    _justCompleted = false;
     const cards = S.schedule.map((id, i) => _dayCard(id, i)).join('');
     S.host.innerHTML = `
       <div style="max-width:520px;margin:0 auto">
-        ${banner}
         <div style="margin:2px 2px 14px">
           <div style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--nc-text-muted,#64748B)">Your plan</div>
           <div style="font-size:19px;font-weight:800;letter-spacing:-.01em;color:var(--nc-text-primary,#F8FAFC);margin-top:2px">${esc(S.p.phase || 'Training Program')}</div>
@@ -236,6 +266,14 @@
     const n = _flatten(wk).length;
     const key = _dayStatusKey(i);
     const isToday = key === 'today' || key === 'in_progress';
+    // CX4 — an in-progress day shows live progress instead of a flat count.
+    const progress = (key === 'in_progress' && n)
+      ? `<div style="margin-top:9px;display:flex;align-items:center;gap:9px">
+           <span style="flex:1;height:5px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden">
+             <span style="display:block;height:100%;width:${Math.round((S.activeCompleted / n) * 100)}%;background:var(--nc-teal,#14B8A6);border-radius:99px;transition:width .35s"></span></span>
+           <span style="font-size:11.5px;font-weight:700;color:var(--nc-teal,#14B8A6);white-space:nowrap">${S.activeCompleted}/${n} done</span>
+         </div>`
+      : '';
     return `
       <button type="button" data-cp2-day="${i}"
         style="width:100%;text-align:left;border:1px solid ${isToday ? 'rgba(20,184,166,.4)' : 'var(--nc-border,rgba(255,255,255,.08))'};
@@ -247,12 +285,13 @@
         </div>
         <div style="font-size:16px;font-weight:700;color:var(--nc-text-primary,#F8FAFC);margin-top:7px">${esc(wk.label || ('Workout ' + id))}</div>
         <div style="font-size:12.5px;color:var(--nc-text-secondary,#94A3B8);margin-top:3px">${n} exercise${n === 1 ? '' : 's'} <span style="opacity:.5">·</span> ${_estDuration(id, wk)}</div>
+        ${progress}
       </button>`;
   }
 
   // ── Day detail ──────────────────────────────────────────────────
   function _openDay(i) {
-    _clearRest();
+    _clearStepTimers();
     S.view = 'day';
     S.dayIndex = i;
     const id = S.schedule[i];
@@ -284,10 +323,7 @@
           <div style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--nc-text-muted,#64748B)">Day ${i + 1}</div>
           <div style="font-size:23px;font-weight:800;letter-spacing:-.01em;line-height:1.15;color:var(--nc-text-primary,#F8FAFC);margin-top:3px">${esc(wk.label || ('Workout ' + id))}</div>
           <div style="font-size:13.5px;line-height:1.5;color:var(--nc-text-secondary,#94A3B8);margin-top:7px;${_clampStyle(3)}">${esc(wk.description || _synthDesc(wk))}</div>
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px;font-size:12.5px;color:var(--nc-text-secondary,#94A3B8)">
-            <span>${total} exercise${total === 1 ? '' : 's'}</span><span style="opacity:.4">·</span>
-            <span>${_estDuration(id, wk)}</span><span style="opacity:.4">·</span>${_statusBadge(_dayStatusKey(i))}
-          </div>
+          ${_missionHeader(i, id, wk, total)}
           <button type="button" data-cp2-start ${total ? '' : 'disabled'}
             style="margin-top:16px;width:100%;min-height:60px;border:0;border-radius:var(--nc-r-lg,16px);
                    background:var(--nc-teal,#14B8A6);color:#052e2b;display:flex;align-items:center;justify-content:center;gap:10px;
@@ -337,6 +373,37 @@
     });
 
     _scrollTop();
+  }
+
+  // CX4 — the mission header: a premium stat strip beneath the day title.
+  // Completion ring (live for the in-progress day, 100% when done, "ready"
+  // otherwise) + exercise count + duration + status + recovery-pulse chip.
+  // Answers, at a glance: what today's goal is, where I am, what remains.
+  function _missionHeader(i, id, wk, total) {
+    const key = _dayStatusKey(i);
+    const done = key === 'in_progress' ? S.activeCompleted : key === 'completed' ? total : 0;
+    const pct  = total ? (done / total) * 100 : 0;
+    const caption = key === 'in_progress' ? `${done} of ${total} done`
+      : key === 'completed' ? 'Completed' : 'Ready to start';
+    const ring = (key === 'in_progress' || key === 'completed')
+      ? ClientUtil.progressRing(pct, 56)
+      : `<div style="width:56px;height:56px;border-radius:50%;border:2px dashed var(--nc-border,rgba(255,255,255,.16));
+           display:flex;align-items:center;justify-content:center;flex:none;font-size:18px;color:var(--nc-teal,#14B8A6)">▶</div>`;
+    return `
+      <div style="margin-top:14px;display:flex;align-items:center;gap:16px;border:1px solid var(--nc-border,rgba(255,255,255,.08));
+           border-radius:var(--nc-r-lg,16px);background:rgba(255,255,255,.02);padding:14px 16px">
+        ${ring}
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            ${_statusBadge(key)}${_pulseChip()}
+          </div>
+          <div style="font-size:12.5px;color:var(--nc-text-secondary,#94A3B8);margin-top:7px">
+            <b style="color:var(--nc-text-primary,#F8FAFC)">${total}</b> exercise${total === 1 ? '' : 's'}
+            <span style="opacity:.4">·</span> ${_estDuration(id, wk)}
+            <span style="opacity:.4">·</span> ${esc(caption)}
+          </div>
+        </div>
+      </div>`;
   }
 
   function _groupSection(g, count, rowsHTML, open) {
@@ -478,13 +545,17 @@
       }
     }
 
-    S.exec = { dayIndex: i, workoutId: id, workout: wk, flat, step: 0, sessionId, readOnly: !sessionId, logsByIdx };
+    // Session start anchor for the elapsed timer (CX5). Resuming an existing
+    // session keeps its original start; a fresh start uses now.
+    const startedAt = (S.active && S.active.id === sessionId && S.active.started_at)
+      ? Date.parse(S.active.started_at) : Date.now();
+    S.exec = { dayIndex: i, workoutId: id, workout: wk, flat, step: 0, sessionId, readOnly: !sessionId, logsByIdx, startedAt };
     S.view = 'exec';
     _renderStep();
   }
 
   function _renderStep() {
-    _clearRest();
+    _clearStepTimers();
     const e = S.exec;
     if (e.step >= e.flat.length) { _renderFinish(); return; }
 
@@ -495,15 +566,27 @@
     const gm = GROUP[group];
     const last = e.step === total - 1;
 
+    // CX5 — session header: completion ring (exercises marked done / total),
+    // Exercise N of M, and a live elapsed timer. The thin bar tracks position
+    // within the session; the ring tracks how much is actually finished.
+    const doneCount = Array.from(e.logsByIdx.values()).filter((l) => l && l.completed).length;
+    const sessionPct = total ? (doneCount / total) * 100 : 0;
+    const showTimer = !e.readOnly && e.startedAt;
     S.host.innerHTML = `
       <div style="max-width:520px;margin:0 auto">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+        <div style="display:flex;align-items:center;gap:14px">
           <button type="button" data-cp2-exit
             style="display:inline-flex;align-items:center;gap:6px;background:transparent;border:0;cursor:pointer;
-                   color:var(--nc-text-secondary,#94A3B8);font-size:13px;font-weight:600;padding:6px 2px;min-height:44px">‹ Day</button>
-          <span style="font-size:12px;font-weight:600;color:var(--nc-text-secondary,#94A3B8)">Exercise ${e.step + 1} of ${total}</span>
+                   color:var(--nc-text-secondary,#94A3B8);font-size:13px;font-weight:600;padding:6px 2px;min-height:44px;flex:none">‹ Day</button>
+          ${ClientUtil.progressRing(sessionPct, 48, 4)}
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:700;color:var(--nc-text-primary,#F8FAFC)">Exercise ${e.step + 1} of ${total}</div>
+            <div style="font-size:11.5px;color:var(--nc-text-muted,#64748B);margin-top:1px">
+              ${doneCount}/${total} complete${showTimer ? ` <span style="opacity:.4">·</span> <span data-cp2-elapsed>0:00</span> elapsed` : ''}
+            </div>
+          </div>
         </div>
-        <div style="height:6px;border-radius:99px;background:rgba(255,255,255,.08);margin-top:8px;overflow:hidden">
+        <div style="height:6px;border-radius:99px;background:rgba(255,255,255,.08);margin-top:12px;overflow:hidden">
           <div style="height:100%;width:${Math.round(((e.step + 1) / total) * 100)}%;background:var(--nc-teal,#14B8A6);border-radius:99px;transition:width .25s"></div>
         </div>
 
@@ -550,6 +633,7 @@
     _wireMedia(S.host, m);
     _wireAlt(S.host, ex, e.step, e.workoutId);
     if (!e.readOnly) { _wireSetLogger(); _wireRest(); }
+    _wireElapsed();
 
     S.host.querySelector('[data-cp2-exit]')?.addEventListener('click', () => { _persistStep(); _openDay(e.dayIndex); });
     // Cancel = explicit abandon (status transition via the F2 data layer; logged
@@ -576,6 +660,20 @@
       _persistStep(); e.step++; _renderStep(); _scrollTop();
     });
     _scrollTop();
+  }
+
+  // Live session-elapsed ticker (CX5). Re-bound each step; cleared by
+  // _clearRest at the top of every re-render so it never leaks.
+  function _wireElapsed() {
+    const el = S.host.querySelector('[data-cp2-elapsed]');
+    if (!el || !S.exec || !S.exec.startedAt) return;
+    const tick = () => {
+      const sec = Math.max(0, Math.floor((Date.now() - S.exec.startedAt) / 1000));
+      const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+      el.textContent = h ? `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}` : `${m}:${String(s).padStart(2, '0')}`;
+    };
+    tick();
+    S.exec._elapsedInt = setInterval(tick, 1000);
   }
 
   function _readOnlyNote() {
@@ -712,7 +810,7 @@
   }
 
   function _renderFinish() {
-    _clearRest();
+    _clearStepTimers();
     const e = S.exec;
     if (e.readOnly || !e.sessionId) {
       S.host.innerHTML = `
@@ -730,9 +828,11 @@
 
     S.host.innerHTML = `
       <div style="max-width:520px;margin:0 auto;text-align:center;padding-top:8px">
-        <div style="font-size:40px" aria-hidden="true">🎉</div>
-        <div style="font-size:22px;font-weight:800;color:var(--nc-text-primary,#F8FAFC);margin-top:8px">Great work!</div>
-        <div style="font-size:13.5px;color:var(--nc-text-secondary,#94A3B8);margin-top:6px">Save how this session felt.</div>
+        <div style="width:52px;height:52px;margin:0 auto;border-radius:50%;background:rgba(20,184,166,.12);
+             border:1px solid rgba(20,184,166,.4);display:flex;align-items:center;justify-content:center;
+             font-size:24px;color:var(--nc-teal,#14B8A6)" aria-hidden="true">✓</div>
+        <div style="font-size:22px;font-weight:800;color:var(--nc-text-primary,#F8FAFC);margin-top:12px">Final step</div>
+        <div style="font-size:13.5px;color:var(--nc-text-secondary,#94A3B8);margin-top:6px">Note how this session felt — it helps tune your recovery.</div>
         <div style="text-align:left;margin-top:20px;border:1px solid var(--nc-border,rgba(255,255,255,.08));border-radius:16px;padding:16px;background:rgba(255,255,255,.02)">
           <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--nc-text-secondary,#94A3B8)">
             Intensity — <span data-cp2-int-val>7</span>/10</label>
@@ -759,18 +859,63 @@
       const btn = S.host.querySelector('[data-cp2-finish]');
       if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
       try {
+        const elapsedSec = e.startedAt ? Math.floor((Date.now() - e.startedAt) / 1000) : 0;
         await WorkoutSession.finish(e.sessionId, {
           intensityRating: parseInt(range?.value || '7', 10),
           sessionNotes: (S.host.querySelector('[data-cp2-fnotes]')?.value || '').trim() || null,
         });
-        _toast('Workout saved. Nice work!', 'success');
-        _justCompleted = true;
-        render(S.host);   // refresh statuses/durations + show completion banner
+        _toast('Workout saved.', 'success');
+        _renderComplete({ label: e.workout.label || 'Session', total: e.flat.length, elapsedSec });
       } catch (err) {
         if (btn) { btn.disabled = false; btn.textContent = 'Finish & Save'; }
         if (err.message !== 'subscription_inactive') _toast(err.message, 'error');
       }
     });
+    _scrollTop();
+  }
+
+  // CX5 — the completion moment. Calm confidence, not confetti: a clean
+  // "Session complete", a one-line emotional connection to Recovery Pulse
+  // (reads the cached pulse status; never changes Pulse logic), and a quiet
+  // summary. The single Back action refreshes the plan with new statuses.
+  function _recoveryConnection() {
+    switch (S.pulseStatus) {
+      case 'on_track':   return 'You’ve reinforced your momentum today.';
+      case 'slipping':   return 'A strong step back into your rhythm.';
+      case 'at_risk':
+      case 'regressing': return 'Every session rebuilds momentum — this one counts.';
+      default:           return 'A strong start. Momentum builds from here.';
+    }
+  }
+
+  function _renderComplete(summary) {
+    _clearStepTimers();
+    S.exec = null;
+    const mins = Math.round((summary.elapsedSec || 0) / 60);
+    const timeLine = mins >= 1 ? `${mins} min` : 'a few minutes';
+    S.host.innerHTML = `
+      <div style="max-width:520px;margin:0 auto;text-align:center;padding-top:18px">
+        <div style="width:72px;height:72px;margin:0 auto;border-radius:50%;background:rgba(20,184,166,.12);
+             border:1px solid rgba(20,184,166,.45);display:flex;align-items:center;justify-content:center;
+             box-shadow:0 0 44px rgba(20,184,166,.22);font-size:32px;color:var(--nc-teal,#14B8A6)" aria-hidden="true">✓</div>
+        <div style="font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--nc-text-muted,#64748B);margin-top:20px">Session complete</div>
+        <div style="font-size:25px;font-weight:800;letter-spacing:-.01em;color:var(--nc-text-primary,#F8FAFC);margin-top:4px">${esc(summary.label)}</div>
+        <div style="font-size:14.5px;line-height:1.5;color:var(--nc-teal,#14B8A6);font-weight:600;margin-top:10px">${esc(_recoveryConnection())}</div>
+        <div style="display:flex;gap:10px;justify-content:center;margin-top:22px">
+          <div style="border:1px solid var(--nc-border,rgba(255,255,255,.08));border-radius:14px;padding:12px 18px;background:rgba(255,255,255,.02)">
+            <div style="font-size:20px;font-weight:800;color:var(--nc-text-primary,#F8FAFC)">${summary.total}</div>
+            <div style="font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--nc-text-muted,#64748B);margin-top:2px">Exercises</div>
+          </div>
+          <div style="border:1px solid var(--nc-border,rgba(255,255,255,.08));border-radius:14px;padding:12px 18px;background:rgba(255,255,255,.02)">
+            <div style="font-size:20px;font-weight:800;color:var(--nc-text-primary,#F8FAFC)">${esc(timeLine)}</div>
+            <div style="font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--nc-text-muted,#64748B);margin-top:2px">Duration</div>
+          </div>
+        </div>
+        <button type="button" data-cp2-complete-back style="margin-top:26px;width:100%;min-height:54px;border-radius:var(--nc-r-lg,16px);
+                border:0;background:var(--nc-teal,#14B8A6);color:#052e2b;font-size:15px;font-weight:700;cursor:pointer;
+                box-shadow:var(--nc-shadow-teal,0 0 30px rgba(20,184,166,.16))">Back to plan</button>
+      </div>`;
+    S.host.querySelector('[data-cp2-complete-back]')?.addEventListener('click', () => render(S.host));
     _scrollTop();
   }
 
