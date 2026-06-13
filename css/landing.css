@@ -8,11 +8,11 @@
 
 /* ── DESIGN TOKENS ──────────────────────────────────────────── */
 :root {
-  /* Core palette */
-  --nc-bg-primary:   #07111A;
-  --nc-bg-secondary: #0E1A24;
-  --nc-bg-elevated:  #122130;
-  --nc-bg-card:      rgba(15, 23, 42, 0.7);
+  /* Core palette — Royal Premium (royal-navy surfaces, parity with the app) */
+  --nc-bg-primary:   #0A1126;
+  --nc-bg-secondary: #0F1830;
+  --nc-bg-elevated:  #16213E;
+  --nc-bg-card:      rgba(20, 31, 58, 0.62);
 
   /* Brand accents */
   --nc-teal:         #14B8A6;
@@ -21,6 +21,7 @@
   --nc-cyan-glow:    rgba(103, 232, 249, 0.16);
   --nc-gold:         #D4AF37;
   --nc-gold-soft:    rgba(212, 175, 55, 0.12);
+  --nc-champagne:    #F6E27A;
 
   /* Text */
   --nc-text-primary:   #F8FAFC;
@@ -466,7 +467,7 @@ button { font: inherit; cursor: pointer; border: none; background: none; color: 
   background:
     radial-gradient(circle at 35% 30%, rgba(103,232,249,0.5), transparent 50%),
     radial-gradient(circle at 65% 70%, rgba(20,184,166,0.4), transparent 55%),
-    linear-gradient(135deg, #0E1A24 0%, #122130 100%);
+    linear-gradient(135deg, #0F1830 0%, #16213E 100%);
   box-shadow:
     0 0 100px rgba(20,184,166,0.4),
     inset 0 0 60px rgba(103,232,249,0.15),
@@ -807,7 +808,7 @@ button { font: inherit; cursor: pointer; border: none; background: none; color: 
   border-radius: var(--nc-r-2xl);
   overflow: hidden;
   border: 1px solid var(--nc-border);
-  background: linear-gradient(135deg, #0E1A24, #07111A);
+  background: linear-gradient(135deg, #0F1830, #0A1126);
   box-shadow: var(--nc-shadow-xl);
 }
 
@@ -1104,7 +1105,7 @@ button { font: inherit; cursor: pointer; border: none; background: none; color: 
   border-radius: var(--nc-r-2xl);
   background:
     radial-gradient(ellipse 80% 60% at 50% 0%, rgba(20,184,166,0.18), transparent 70%),
-    linear-gradient(160deg, #0E1A24, #07111A 90%);
+    linear-gradient(160deg, #0F1830, #0A1126 90%);
   border: 1px solid var(--nc-border);
   box-shadow: var(--nc-shadow-xl);
   text-align: center;
