@@ -11,7 +11,9 @@
   <link rel="stylesheet" href="css/neucore-design-system.css"/>
   <link rel="stylesheet" href="css/mobile-shell.css"/>
   <link rel="stylesheet" href="css/client-theme.css"/>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>"/>
+  <!-- Phase G — premium identity + executive dashboard (loaded last; wins on tokens) -->
+  <link rel="stylesheet" href="css/neucore-premium.css"/>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><defs><linearGradient id='g' x1='0' y1='0' x2='40' y2='40' gradientUnits='userSpaceOnUse'><stop stop-color='%2322D3C5'/><stop offset='.55' stop-color='%2314B8A6'/><stop offset='1' stop-color='%234F46E5'/></linearGradient></defs><rect x='2' y='2' width='36' height='36' rx='11' fill='url(%23g)'/><path d='M13 28V13l14 14V12' fill='none' stroke='%23fff' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/><circle cx='27' cy='12' r='2.7' fill='%23fff'/></svg>"/>
 </head>
 <body>
 
@@ -38,7 +40,18 @@
 
   <div class="nc-login-card">
     <div class="nc-login-brand">
-      <span class="nc-login-mark" aria-hidden="true"></span>
+      <span class="nc-login-mark nc-brandmark-glow" aria-hidden="true">
+        <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="NeuCore">
+          <defs><linearGradient id="ncMarkLg" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#22D3C5"/><stop offset=".55" stop-color="#14B8A6"/><stop offset="1" stop-color="#4F46E5"/>
+          </linearGradient></defs>
+          <rect x="1.5" y="1.5" width="37" height="37" rx="11" fill="url(#ncMarkLg)"/>
+          <rect x="1.5" y="1.5" width="37" height="37" rx="11" fill="none" stroke="rgba(255,255,255,.20)"/>
+          <path d="M13 28V13l14 14V12" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="27" cy="12" r="2.7" fill="#fff"/>
+          <circle cx="27" cy="12" r="5.2" fill="none" stroke="rgba(255,255,255,.45)" stroke-width="1.1"/>
+        </svg>
+      </span>
       <div>
         <div class="nc-login-wordmark">NEUCORE</div>
         <div class="nc-login-tagline">An AST9 Solution</div>
@@ -141,7 +154,18 @@
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
       <div class="sidebar-wordmark nc-sidebar-wordmark">
-        <span class="nc-sidebar-mark" aria-hidden="true"></span>
+        <span class="nc-sidebar-mark nc-brandmark-glow" aria-hidden="true">
+          <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="NeuCore">
+            <defs><linearGradient id="ncMarkSb" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#22D3C5"/><stop offset=".55" stop-color="#14B8A6"/><stop offset="1" stop-color="#4F46E5"/>
+            </linearGradient></defs>
+            <rect x="1.5" y="1.5" width="37" height="37" rx="11" fill="url(#ncMarkSb)"/>
+            <rect x="1.5" y="1.5" width="37" height="37" rx="11" fill="none" stroke="rgba(255,255,255,.20)"/>
+            <path d="M13 28V13l14 14V12" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="27" cy="12" r="2.7" fill="#fff"/>
+            <circle cx="27" cy="12" r="5.2" fill="none" stroke="rgba(255,255,255,.45)" stroke-width="1.1"/>
+          </svg>
+        </span>
         <span>NEUCORE</span>
       </div>
       <div class="sidebar-sub nc-sidebar-sub">An AST9 Solution</div>
@@ -353,69 +377,99 @@
     <!-- ── DASHBOARD ── -->
     <div class="section active" id="section-dashboard">
 
-      <!-- NeuCore hero banner (Task 4) -->
-      <div class="nc-dashboard-hero">
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px">
-          <div>
-            <div class="nc-dashboard-eyebrow">NeuCore Intelligence</div>
-            <h1 class="nc-dashboard-title" id="nc-dashboard-greeting">Welcome back</h1>
-            <p class="nc-dashboard-subtitle">Movement intelligence system — all systems operational</p>
-          </div>
-          <div style="display:flex;gap:10px;flex-shrink:0">
-            <button class="btn btn-ghost btn-sm" onclick="Dashboard.showSection('analytics')">◎ Analytics</button>
-            <button class="btn btn-nc-primary" onclick="Dashboard.showSection('new-session')">✦ New Session</button>
-          </div>
+      <!-- Phase G — executive welcome header (no in-hero action buttons;
+           the sidebar owns New Session / Analytics navigation). -->
+      <header class="nc-dash-welcome">
+        <div>
+          <div class="nc-dash-eyebrow"><span id="nc-dash-context">NeuCore Intelligence</span></div>
+          <h1 class="nc-dash-greeting" id="nc-dashboard-greeting">Welcome back</h1>
+          <p class="nc-dash-sub" id="nc-dash-summary">Your coaching command center — clients, recovery, and growth at a glance.</p>
+        </div>
+      </header>
+
+      <!-- KPI row -->
+      <div class="nc-kpi-grid">
+        <div class="nc-kpi nc-kpi--indigo">
+          <div class="nc-kpi-top"><span class="nc-kpi-icon">◉</span></div>
+          <div class="nc-kpi-value" id="stat-clients">–</div>
+          <div class="nc-kpi-label">Clients</div>
+          <div class="nc-kpi-sub">active on your roster</div>
+        </div>
+        <div class="nc-kpi nc-kpi--teal">
+          <div class="nc-kpi-top"><span class="nc-kpi-icon">◈</span></div>
+          <div class="nc-kpi-value" id="stat-programs">–</div>
+          <div class="nc-kpi-label">Active Programs</div>
+          <div class="nc-kpi-sub">published &amp; running</div>
+        </div>
+        <div class="nc-kpi nc-kpi--violet">
+          <div class="nc-kpi-top"><span class="nc-kpi-icon">◍</span></div>
+          <div class="nc-kpi-value" id="stat-assessments">–</div>
+          <div class="nc-kpi-label">Assessments</div>
+          <div class="nc-kpi-sub">movement evaluations</div>
+        </div>
+        <div class="nc-kpi nc-kpi--amber">
+          <div class="nc-kpi-top"><span class="nc-kpi-icon">◔</span></div>
+          <div class="nc-kpi-value" id="stat-alerts">–</div>
+          <div class="nc-kpi-label">Recovery Alerts</div>
+          <div class="nc-kpi-sub">clients needing attention</div>
         </div>
       </div>
 
-      <!-- Legacy .page-header dropped: the NeuCore hero above is now the only
-           dashboard heading, and the sidebar provides the only nav-level New
-           Session button. -->
+      <!-- Main grid: command center + intelligence rail -->
+      <div class="nc-dash-grid">
+        <div class="nc-dash-main">
 
-      <div class="grid-4 stagger" style="margin-bottom:var(--sp-5)">
-        <div class="stat-card" style="--stat-color:var(--lime);--stat-color-ghost:var(--lime-ghost);--stat-color-border:rgba(200,240,74,0.15)">
-          <div class="stat-card-bg"></div><div class="stat-icon">◉</div>
-          <div class="stat-label">Active Clients</div>
-          <div class="stat-value" id="stat-clients">–</div>
-          <div class="stat-sub">on platform</div>
-        </div>
-        <div class="stat-card" style="--stat-color:var(--teal);--stat-color-ghost:var(--teal-glow);--stat-color-border:rgba(61,245,193,0.15)">
-          <div class="stat-card-bg"></div><div class="stat-icon">◈</div>
-          <div class="stat-label">Sessions</div>
-          <div class="stat-value" id="stat-sessions">–</div>
-          <div class="stat-sub">generated</div>
-        </div>
-        <div class="stat-card" style="--stat-color:var(--amber);--stat-color-ghost:var(--amber-glow);--stat-color-border:rgba(245,200,66,0.15)">
-          <div class="stat-card-bg"></div><div class="stat-icon">◌</div>
-          <div class="stat-label">Subscriptions</div>
-          <div class="stat-value" id="stat-subs">–</div>
-          <div class="stat-sub">active plans</div>
-        </div>
-        <div class="stat-card" style="--stat-color:var(--rose);--stat-color-ghost:var(--rose-glow);--stat-color-border:rgba(245,66,108,0.15)">
-          <div class="stat-card-bg"></div><div class="stat-icon">⚠</div>
-          <div class="stat-label">Expiring Soon</div>
-          <div class="stat-value" id="stat-expiring">–</div>
-          <div class="stat-sub">within 7 days</div>
-        </div>
-      </div>
+          <section class="nc-panel">
+            <div class="nc-section-head">
+              <div>
+                <div class="nc-section-title"><span class="nc-section-dot" style="background:#F59E0B"></span>Recovery Command Center</div>
+                <div class="nc-section-sub">Who needs you most, ranked by Recovery Pulse.</div>
+              </div>
+              <button class="nc-section-link" onclick="Dashboard.showSection('clients')">Open ↗</button>
+            </div>
+            <div id="dash-recovery-center"></div>
+          </section>
 
-      <!-- (Body-map card removed — moved exclusively to the Objective tab inside New Session) -->
+          <section class="nc-panel">
+            <div class="nc-section-head">
+              <div class="nc-section-title"><span class="nc-section-dot"></span>Recent Activity</div>
+              <button class="nc-section-link" onclick="Dashboard.showSection('programs')">View all ↗</button>
+            </div>
+            <div id="recent-sessions-list"></div>
+          </section>
 
-      <div class="grid-2" style="gap:var(--sp-5)">
-        <div class="card card-accent-lime">
-          <div class="card-header">
-            <span class="card-title">Recent Sessions</span>
-            <button class="btn btn-ghost btn-xs" onclick="Dashboard.showSection('programs')">View all →</button>
-          </div>
-          <div id="recent-sessions-list"></div>
         </div>
-        <div class="card card-accent-teal role-coach-admin">
-          <div class="card-header">
-            <span class="card-title">Client Overview</span>
-            <button class="btn btn-ghost btn-xs" onclick="Dashboard.showSection('clients')">View all →</button>
-          </div>
-          <div id="dashboard-clients-list"></div>
-        </div>
+        <aside class="nc-dash-rail">
+
+          <section class="nc-panel">
+            <div class="nc-section-head">
+              <div class="nc-section-title"><span class="nc-section-dot" style="background:#5B6CFF"></span>Client Overview</div>
+              <button class="nc-section-link" onclick="Dashboard.showSection('clients')">All ↗</button>
+            </div>
+            <div id="dashboard-clients-list"></div>
+          </section>
+
+          <section class="nc-panel">
+            <div class="nc-section-head">
+              <div class="nc-section-title"><span class="nc-section-dot" style="background:#7C6CF0"></span>Business Growth</div>
+              <button class="nc-section-link" onclick="Dashboard.showSection('subscriptions')">Plans ↗</button>
+            </div>
+            <div id="dash-business"></div>
+          </section>
+
+          <section class="nc-panel">
+            <div class="nc-section-head">
+              <div class="nc-section-title"><span class="nc-section-dot" style="background:#14B8A6"></span>Quick Actions</div>
+            </div>
+            <div class="nc-quick-grid">
+              <button class="nc-quick-btn" onclick="Dashboard.showSection('new-session')"><span class="nc-quick-ico">✦</span>New Session</button>
+              <button class="nc-quick-btn" onclick="Dashboard.showSection('clients')"><span class="nc-quick-ico">◉</span>Clients</button>
+              <button class="nc-quick-btn" onclick="Dashboard.showSection('programs')"><span class="nc-quick-ico">◈</span>Programs</button>
+              <button class="nc-quick-btn" onclick="Dashboard.showSection('analytics')"><span class="nc-quick-ico">◎</span>Analytics</button>
+            </div>
+          </section>
+
+        </aside>
       </div>
     </div>
 

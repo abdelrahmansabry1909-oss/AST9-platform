@@ -23,12 +23,22 @@ const Dashboard = (() => {
     document.getElementById('sb-user-name').textContent = p?.full_name || p?.email || '–';
     document.getElementById('sb-user-role').textContent = _roleLabel(role);
 
-    // Dashboard greeting
-    const hour = new Date().getHours();
+    // Dashboard welcome header (Phase G) — "Welcome back, <name>" with an
+    // intelligent text reveal; the eyebrow carries the time-of-day + date.
+    const now = new Date();
+    const hour = now.getHours();
     const greet = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
     const firstName = (p?.full_name || '').split(' ')[0] || 'Coach';
-    const greetEl = document.getElementById('dashboard-greeting');
-    if (greetEl) greetEl.textContent = `${greet}, ${firstName} 👋`;
+    const greetEl = document.getElementById('nc-dashboard-greeting');
+    if (greetEl) {
+      greetEl.textContent = `Welcome back, ${firstName}`;
+      _revealText(greetEl);
+    }
+    const ctxEl = document.getElementById('nc-dash-context');
+    if (ctxEl) {
+      const dateStr = now.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
+      ctxEl.textContent = `${greet} · ${dateStr}`;
+    }
 
     // Role-based nav visibility
     document.querySelectorAll('.role-coach-admin').forEach(el => {
@@ -323,23 +333,29 @@ const Dashboard = (() => {
     const role = Auth.getRole();
 
     if (Auth.isAdminOrCoach()) {
-      // Client count
-      let q = sb.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'client');
-      if (Auth.isCoach()) q = q.eq('assigned_coach', Auth.getUser()?.id);
-      const { count: clientCount } = await q;
+      const me = Auth.getUser()?.id;
+      const coachScope = Auth.isCoach();
+
+      // KPI · Clients (coach = assigned roster, admin = all)
+      let cq = sb.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'client');
+      if (coachScope && me) cq = cq.eq('assigned_coach', me);
+      const { count: clientCount } = await cq;
       _setStat('stat-clients', clientCount ?? 0);
 
-      // Active subscriptions
-      const { data: subs } = await sb.from('subscriptions').select('*').eq('status', 'active');
-      _setStat('stat-subs', subs?.length ?? 0);
+      // KPI · Active Programs (published; RLS scopes to the coach's clients)
+      const { count: programCount } = await sb.from('client_programs')
+        .select('*', { count: 'exact', head: true }).eq('published', true);
+      _setStat('stat-programs', programCount ?? 0);
 
-      // Expiring in 7 days
-      const in7 = new Date(); in7.setDate(in7.getDate() + 7);
-      const expiring = (subs || []).filter(s => {
-        const end = new Date(s.end_date);
-        return end <= in7 && end >= new Date();
-      });
-      _setStat('stat-expiring', expiring.length);
+      // KPI · Assessments (movement evaluations; coach = mine, admin = all)
+      let aq = sb.from('assessments').select('*', { count: 'exact', head: true });
+      if (coachScope && me) aq = aq.eq('coach_id', me);
+      const { count: assessCount } = await aq;
+      _setStat('stat-assessments', assessCount ?? 0);
+
+      // Intelligence rail + KPI · Recovery Alerts (reuses the S5 pulse panel)
+      await _renderBusinessGrowth();
+      _renderRecoveryCenter();
     }
 
     // ── Reliability Sweep / Priority A ─────────────────────────────
@@ -449,6 +465,57 @@ const Dashboard = (() => {
         </div>
         <span class="badge ${_phaseBadge(c.current_phase)}">${c.current_phase||'P1'}</span>
       </div>`).join('');
+  }
+
+  // Intelligent text reveal (Phase G) — splits a line into word spans
+  // that ease in sequentially. Respects reduced-motion (instant render).
+  function _revealText(el) {
+    if (!el) return;
+    const text = (el.textContent || '').trim();
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce || !text) { el.textContent = text; return; }
+    const words = text.split(/\s+/);
+    el.textContent = '';
+    words.forEach((w, i) => {
+      const span = document.createElement('span');
+      span.className = 'nc-reveal-word';
+      span.textContent = w;
+      span.style.setProperty('--d', `${i * 90}ms`);
+      el.appendChild(span);
+      if (i < words.length - 1) el.appendChild(document.createTextNode(' '));
+    });
+  }
+
+  // Business Growth — subscriptions snapshot (active plans, expiring,
+  // committed months). Reuses the same subscriptions read the page relies on.
+  async function _renderBusinessGrowth() {
+    const el = document.getElementById('dash-business');
+    if (!el) return;
+    const { data: subs, error } = await sb.from('subscriptions').select('status, plan, end_date');
+    if (error) { el.innerHTML = _emptyState('◌', 'Plans unavailable', 'Could not load subscriptions.'); return; }
+    const active = (subs || []).filter(s => s.status === 'active');
+    const now = new Date();
+    const in7 = new Date(); in7.setDate(in7.getDate() + 7);
+    const expiring = active.filter(s => { const e = new Date(s.end_date); return e >= now && e <= in7; });
+    const months = active.reduce((sum, s) => sum + (parseInt(s.plan, 10) || 0), 0);
+    el.innerHTML =
+      `<div class="nc-biz-row"><span class="nc-biz-k">Active plans</span><span class="nc-biz-v">${active.length}</span></div>`
+    + `<div class="nc-biz-row"><span class="nc-biz-k">Expiring in 7 days</span><span class="nc-biz-v">${expiring.length}</span></div>`
+    + `<div class="nc-biz-row"><span class="nc-biz-k">Committed months</span><span class="nc-biz-v">${months}<small> mo</small></span></div>`;
+  }
+
+  // Recovery Command Center — reuses the S5 Needs-Attention renderer (the
+  // single source of the pulse ranking) into the dashboard host, capped to
+  // the top few; its row count drives the Recovery Alerts KPI.
+  function _renderRecoveryCenter() {
+    const host = document.getElementById('dash-recovery-center');
+    if (!host) return;
+    if (typeof Clients === 'undefined' || !Clients.renderNeedsAttention) { _setStat('stat-alerts', 0); return; }
+    Clients.renderNeedsAttention(host, {
+      limit: 4,
+      compact: true,
+      onCount: (n) => _setStat('stat-alerts', n || 0),
+    });
   }
 
   // ═══════════════════════════════════════════════════════════

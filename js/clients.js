@@ -644,11 +644,23 @@ const Clients = (() => {
       <span style="font-size:13px;color:var(--text-secondary,#94A3B8)">All clients look on track — nothing needs attention right now.</span></div>`;
   }
 
-  async function renderNeedsAttention() {
-    const el = document.getElementById('clients-needs-attention');
+  // Renders the pulse triage panel. Default (no args) targets the Clients
+  // page panel and keeps its original look. The dashboard reuses the same
+  // ranking via an optional host + options — single source of the S5 logic,
+  // no duplicated pulse query or priority formula.
+  //   hostArg  optional DOM element to render into
+  //   opts     { limit, compact, onCount(n) }
+  async function renderNeedsAttention(hostArg, opts) {
+    const el = (hostArg && hostArg.nodeType) ? hostArg : document.getElementById('clients-needs-attention');
     if (!el) return;
+    opts = opts || {};
+    const onCount = typeof opts.onCount === 'function' ? opts.onCount : null;
+    const limit   = opts.limit || null;
+    const compact = !!opts.compact;
     // Defense-in-depth: panel is coach/admin only (section is role-coach-admin).
-    if (typeof Auth !== 'undefined' && Auth.isAdminOrCoach && !Auth.isAdminOrCoach()) { el.innerHTML = ''; return; }
+    if (typeof Auth !== 'undefined' && Auth.isAdminOrCoach && !Auth.isAdminOrCoach()) {
+      el.innerHTML = ''; if (onCount) onCount(0); return;
+    }
 
     let rows = [];
     try {
@@ -660,11 +672,13 @@ const Clients = (() => {
       rows = data || [];
     } catch (e) {
       console.warn('[needs-attention] pulse read:', e?.message);
-      el.innerHTML = '';   // calm: panel absent, clients table unaffected
+      el.innerHTML = compact ? _attnEmpty() : '';   // calm: panel absent on the table page
+      if (onCount) onCount(0);
       return;
     }
 
-    if (!rows.length) { el.innerHTML = _attnEmpty(); return; }
+    if (!rows.length) { el.innerHTML = _attnEmpty(); if (onCount) onCount(0); return; }
+    if (onCount) onCount(rows.length);
 
     // S5 — rank by composite priority so the most urgent client is first.
     rows.sort((a, b) => _attnPriority(b) - _attnPriority(a));
@@ -677,18 +691,25 @@ const Clients = (() => {
     } catch (_) { /* names optional — fall back to em dash */ }
 
     const topName = nameMap[rows[0].client_id] || 'A client';
-    el.innerHTML = `
-      <div class="card" style="padding:16px;margin-bottom:14px">
-        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:4px">
+    const shown   = limit ? rows.slice(0, limit) : rows;
+    const moreN   = rows.length - shown.length;
+    const moreLink = moreN > 0
+      ? `<button class="nc-section-link" style="margin-top:10px" onclick="Dashboard.showSection('clients')">+${moreN} more — open command center ↗</button>`
+      : '';
+
+    const inner = `
+      ${compact ? '' : `<div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:4px">
           <span style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-tertiary)">Needs Attention</span>
           <span class="badge badge-pending">${rows.length} client${rows.length === 1 ? '' : 's'}</span>
-        </div>
+        </div>`}
         <div style="font-size:13px;color:var(--text-secondary,#94A3B8);margin-bottom:12px">Start with <b style="color:var(--text-primary)">${_esc(topName)}</b> — highest priority today.</div>
         ${_attnSummary(rows)}
         <div style="display:flex;flex-direction:column;gap:8px">
-          ${rows.map((r) => _attnRow(r, nameMap[r.client_id] || '—')).join('')}
+          ${shown.map((r) => _attnRow(r, nameMap[r.client_id] || '—')).join('')}
         </div>
-      </div>`;
+        ${moreLink}`;
+
+    el.innerHTML = compact ? inner : `<div class="card" style="padding:16px;margin-bottom:14px">${inner}</div>`;
   }
 
   // Send Nudge — reuses the existing assigned coach/client message path
@@ -731,6 +752,7 @@ const Clients = (() => {
     openRecovery, closeRecovery,
     nudgeClient, reactivateClient,
     openEditClient, submitEditClient, removeClient,
+    renderNeedsAttention,
   };
 
 })();
