@@ -435,3 +435,123 @@ body.nc-bright .nav-item.active {
   .nc-reveal-word { animation: none !important; }
   .nc-reveal-word { opacity: 1; filter: none; transform: none; }
 }
+
+/* ════════════════════════════════════════════════════════════════
+   PHASE G2 — EXECUTIVE PRODUCT POLISH
+   Deeper typography rhythm, Cards V2 depth (refined via tokens, not
+   per-component overrides), premium graph/assessment surfaces, and
+   Linear/Stripe-grade micro-interactions. Additive; same nc-bright scope.
+   ════════════════════════════════════════════════════════════════ */
+
+/* ── Cards V2 · tactile multi-layer depth (token refinement) ─────
+   Refining the shadow tokens lifts every card/panel/KPI/stat at once —
+   they all consume var(--nc-shadow-card). */
+body.nc-bright {
+  --nc-shadow-card:
+    0 1px 1px rgba(13,24,40,0.04),
+    0 4px 10px rgba(13,24,40,0.045),
+    0 16px 36px rgba(13,24,40,0.06);
+  --nc-shadow-lg:
+    0 2px 4px rgba(13,24,40,0.05),
+    0 12px 26px rgba(13,24,40,0.07),
+    0 30px 64px rgba(13,24,40,0.11);
+  --shadow-card: var(--nc-shadow-card);
+  --shadow-lg:   var(--nc-shadow-lg);
+}
+
+/* ── Typography rhythm · intentional, not developer-default ──────*/
+body.nc-bright .page-title {
+  font-size: clamp(22px, 2.4vw, 30px);
+  font-weight: 800; letter-spacing: -0.028em; line-height: 1.1;
+}
+body.nc-bright .page-subtitle { font-size: 14px; color: var(--nc-text-secondary); line-height: 1.6; }
+body.nc-bright .card-title { font-size: 15px; font-weight: 700; letter-spacing: -0.012em; }
+body.nc-bright .form-label, body.nc-bright .neu-label {
+  font-size: 11px; font-weight: 600; letter-spacing: 0.05em;
+  text-transform: uppercase; color: var(--nc-text-muted);
+}
+body.nc-bright .btn, body.nc-bright .neu-btn { letter-spacing: -0.005em; font-weight: 600; }
+body.nc-bright .nc-card-eyebrow, body.nc-bright .stat-label { letter-spacing: 0.12em; }
+
+/* ── Dashboard breathing room + rhythm ───────────────────────────*/
+.nc-kpi-grid   { gap: 18px; margin-bottom: 26px; }
+.nc-dash-grid  { gap: 22px; }
+.nc-dash-main, .nc-dash-rail { gap: 22px; }
+.nc-panel      { padding: 24px; border-radius: 22px; }
+.nc-dash-welcome { margin-bottom: 30px; }
+
+/* KPI refinement — larger value, calmer label, faint top wash */
+.nc-kpi { padding: 22px 22px 20px; }
+.nc-kpi-value { font-size: 42px; letter-spacing: -0.04em; }
+.nc-kpi-label { font-size: 12.5px; }
+.nc-kpi::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit;
+  background: linear-gradient(180deg, color-mix(in oklab, var(--kpi), transparent 95%), transparent 58%);
+  pointer-events: none;
+}
+
+/* ── Micro-interactions · Linear/Stripe restraint ────────────────*/
+body.nc-bright .btn:active:not([disabled]),
+body.nc-bright .neu-btn:active:not([disabled]),
+body.nc-bright .nc-quick-btn:active,
+body.nc-bright .nc-section-link:active {
+  transform: translateY(0) scale(0.985);
+  transition-duration: 90ms;
+}
+body.nc-bright .nav-label { display: inline-block; transition: transform var(--nc-dur-fast,180ms) var(--nc-ease, ease); }
+body.nc-bright .nav-item:hover .nav-label { transform: translateX(2px); }
+/* Section link — quiet animated underline */
+.nc-section-link::after {
+  content: ""; position: absolute; left: 6px; right: 6px; bottom: 1px; height: 1.5px;
+  background: currentColor; border-radius: 2px;
+  transform: scaleX(0); transform-origin: left;
+  transition: transform var(--nc-dur-base,320ms) var(--nc-ease, ease);
+}
+.nc-section-link:hover::after { transform: scaleX(1); }
+
+/* ── Graph · "AI Performance Intelligence" framing ───────────────*/
+.nc-ai-head {
+  display: flex; align-items: flex-start; gap: 14px;
+  padding: 18px 20px; margin-bottom: 16px;
+  border: 1px solid var(--nc-border, rgba(13,24,40,0.07));
+  border-radius: 18px;
+  background:
+    radial-gradient(120% 160% at 0% 0%, var(--nc-indigo-soft, rgba(91,108,255,0.10)) 0%, transparent 52%),
+    var(--nc-bg-card, #fff);
+  box-shadow: var(--nc-shadow-card);
+}
+.nc-ai-badge {
+  width: 46px; height: 46px; border-radius: 14px; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 21px; color: #fff;
+  background: linear-gradient(135deg, #22D3C5, #14B8A6 45%, #4F46E5);
+  box-shadow: 0 8px 22px rgba(20,184,166,0.30);
+}
+.nc-ai-title { font-family: var(--nc-font-display); font-size: 16px; font-weight: 800; letter-spacing: -0.02em; color: var(--nc-text-primary); }
+.nc-ai-sub { font-size: 12.5px; color: var(--nc-text-secondary); margin-top: 3px; line-height: 1.5; max-width: 60ch; }
+.nc-ai-chip {
+  display: inline-flex; align-items: center; gap: 7px; margin-top: 9px;
+  padding: 4px 11px; border-radius: 999px; font-size: 11px; font-weight: 600;
+  color: var(--nc-teal-ink, #0E9384); background: var(--nc-teal-tint, rgba(20,184,166,0.10));
+}
+.nc-ai-chip::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--nc-teal, #14B8A6); animation: nc-ai-blink 2.4s ease-in-out infinite; }
+@keyframes nc-ai-blink { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+/* Premium empty/loading surfaces on graph + queue (bright) */
+body.nc-bright .nc-rpm-empty,
+body.nc-bright .nc-app-empty {
+  border: 1px dashed var(--nc-border-strong);
+  border-radius: 18px; background: var(--nc-bg-secondary);
+  padding: 44px 24px; color: var(--nc-text-secondary);
+}
+
+/* ── Assessment luxury (bright) ──────────────────────────────────*/
+body.nc-bright .tab-row { gap: 4px; }
+body.nc-bright .tab-btn { padding: 10px 18px; border-radius: 10px 10px 0 0; font-weight: 600; }
+body.nc-bright .tab-btn.active { background: var(--nc-indigo-soft, rgba(91,108,255,0.10)); }
+body.nc-bright #section-new-session .card { border-radius: 18px; }
+body.nc-bright .assess-section-head { font-size: 13px; letter-spacing: 0.01em; }
+
+@media (prefers-reduced-motion: reduce) {
+  .nc-ai-chip::before { animation: none; }
+}
