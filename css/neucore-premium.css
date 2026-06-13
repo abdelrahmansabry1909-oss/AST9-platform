@@ -606,6 +606,85 @@ body.nc-bright .nc-rpm-client-chip {
 }
 body.nc-bright .nc-w-check:hover { border-color: var(--nc-border-strong); background: #fff; }
 
+/* ════════════════════════════════════════════════════════════════
+   ROYAL DARK — the client (and transition) expression of the system
+   The coach/admin shell is the porcelain (bright) expression; the
+   client app is the DARK expression of the SAME royal palette:
+   midnight-navy surfaces, champagne-gold + teal-jewel accents, the
+   premium card language, Plus Jakarta type, and refined depth. One
+   brand, two modes. The floating hologram keeps its dark stage.
+   Scoped to body.nc-client so coach/admin are untouched.
+   ════════════════════════════════════════════════════════════════ */
+body.nc-client {
+  /* Royal navy surfaces */
+  --nc-bg-primary:   #0A1126;
+  --nc-bg-secondary: #0F1830;
+  --nc-bg-elevated:  #16213E;
+  --nc-bg-card:      rgba(20, 31, 58, 0.62);
+
+  --nc-text-primary:   #F4F7FB;
+  --nc-text-secondary: #AEB9CE;
+  --nc-text-muted:     #7C89A4;
+
+  --nc-border:        rgba(255, 255, 255, 0.08);
+  --nc-border-strong: rgba(246, 226, 122, 0.22);   /* champagne hairline for emphasis */
+
+  --nc-shadow-sm:   0 2px 8px rgba(3,7,18,0.40);
+  --nc-shadow-md:   0 10px 30px rgba(3,7,18,0.50);
+  --nc-shadow-lg:   0 24px 60px rgba(3,7,18,0.62);
+  --nc-shadow-card: 0 1px 0 rgba(255,255,255,0.05) inset, 0 18px 44px rgba(3,7,18,0.55);
+
+  --nc-gold:      #D4AF37;
+  --nc-champagne: #F6E27A;
+
+  /* Legacy bridge — .card / .btn / .badge client surfaces go royal too */
+  --bg-void:    #070C1B;
+  --bg-base:    #0A1126;
+  --bg-surface: #111B33;
+  --bg-raised:  #16213E;
+  --bg-overlay: #18233F;
+  --bg-hover:   rgba(255, 255, 255, 0.04);
+  --border-subtle:  rgba(255, 255, 255, 0.06);
+  --border-default: rgba(255, 255, 255, 0.10);
+  --border-strong:  rgba(255, 255, 255, 0.16);
+  --text-primary:   #F4F7FB;
+  --text-secondary: #AEB9CE;
+  --text-tertiary:  #7C89A4;
+  --shadow-sm:   0 2px 8px rgba(3,7,18,0.40);
+  --shadow-md:   0 10px 30px rgba(3,7,18,0.50);
+  --shadow-lg:   0 24px 60px rgba(3,7,18,0.62);
+  --shadow-card: 0 1px 0 rgba(255,255,255,0.05) inset, 0 18px 44px rgba(3,7,18,0.55);
+}
+
+/* Royal navy canvas — whisper of gold + teal light, same composition as
+   the porcelain shell so the two modes feel like one product. */
+body.nc-client {
+  background:
+    radial-gradient(120% 80% at 100% -10%, rgba(212,175,55,0.06) 0%, transparent 55%),
+    radial-gradient(90% 60% at -10% 0%, rgba(45,212,191,0.06) 0%, transparent 50%),
+    linear-gradient(180deg, #0B1228 0%, #080D1E 100%);
+  background-attachment: fixed;
+}
+
+/* Premium client cards — refined radius + composed hover lift */
+body.nc-client .card,
+body.nc-client .dr-card {
+  border-radius: 20px;
+  box-shadow: var(--nc-shadow-card);
+  transition: transform var(--nc-dur-base,320ms) var(--nc-ease, ease),
+              box-shadow var(--nc-dur-base,320ms) var(--nc-ease, ease),
+              border-color var(--nc-dur-base,320ms) var(--nc-ease, ease);
+}
+body.nc-client .card-hover:hover,
+body.nc-client .dr-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--nc-shadow-lg);
+  border-color: var(--nc-border-strong);
+}
+
+/* Mobile tab bar → royal navy glass */
+body.nc-client .nc-tabbar { background: rgba(11, 18, 40, 0.92) !important; }
+
 /* Placeholders readable on the light fields */
 body.nc-bright .nc-w-input::placeholder,
 body.nc-bright .nc-w-textarea::placeholder,
