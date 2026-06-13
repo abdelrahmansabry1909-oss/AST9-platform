@@ -4,7 +4,7 @@
    Stack: vanilla HTML/CSS/JS (matches existing project)
 ═══════════════════════════════════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 /* ── DESIGN TOKENS ──────────────────────────────────────────── */
 :root {
@@ -32,8 +32,8 @@
   --nc-border-strong: rgba(255, 255, 255, 0.14);
   --nc-border-glow:   rgba(20, 184, 166, 0.3);
 
-  /* Typography */
-  --nc-font-display: 'Space Grotesk', 'Inter', sans-serif;
+  /* Typography — Phase G2 parity with the app (Plus Jakarta display) */
+  --nc-font-display: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
   --nc-font-body:    'Inter', system-ui, sans-serif;
 
   /* Spacing scale */
@@ -325,24 +325,17 @@ button { font: inherit; cursor: pointer; border: none; background: none; color: 
   color: var(--nc-text-primary);
 }
 
+/* Phase G2 — parity brandmark (inline SVG carried from the app) */
 .nc-logo-mark {
   width: 32px;
   height: 32px;
-  border-radius: 9px;
-  background:
-    radial-gradient(circle at 30% 30%, var(--nc-cyan), var(--nc-teal) 60%, #0a4a44 100%);
-  box-shadow: 0 0 24px var(--nc-teal-glow), 0 0 0 1px rgba(255,255,255,0.08) inset;
-  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  filter: drop-shadow(0 4px 14px rgba(20,184,166,0.30));
 }
-
-.nc-logo-mark::after {
-  content: '';
-  position: absolute;
-  inset: 8px;
-  border-radius: 4px;
-  background: rgba(7,17,26,0.8);
-  box-shadow: 0 0 8px var(--nc-cyan) inset;
-}
+.nc-logo-mark svg { width: 100%; height: 100%; display: block; }
 
 .nc-nav-links {
   display: flex;
