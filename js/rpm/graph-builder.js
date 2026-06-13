@@ -692,7 +692,7 @@
       ${(!state.subjective || !state.objective) ? `
         <div class="nc-rpm-section" style="border-color:rgba(212,175,55,0.45);background:rgba(212,175,55,0.06)">
           <h4 style="color:#D4AF37">◐ Partial assessment data</h4>
-          <div style="font-size:13px;color:#E8D9A8;line-height:1.55">
+          <div style="font-size:13px;color:var(--text-secondary);line-height:1.55">
             ${!state.subjective ? 'No <b>subjective</b> assessment on file — End Goal won&rsquo;t pre-fill from a dream outcome.<br/>' : ''}
             ${!state.objective  ? 'No <b>objective</b> assessment on file — Entry Point won&rsquo;t include movement scores or flags.' : ''}
           </div>
@@ -702,8 +702,8 @@
 
       ${state.lastError ? `
         <div class="nc-rpm-section" style="border-color:rgba(245,66,108,0.45);background:rgba(245,66,108,0.06)">
-          <h4 style="color:#FCA5A5">⚠ Heads up</h4>
-          <div style="font-size:13px;color:#FCA5A5;line-height:1.55">${escHtml(state.lastError)}</div>
+          <h4 style="color:#E11D6B">⚠ Heads up</h4>
+          <div style="font-size:13px;color:var(--text-secondary);line-height:1.55">${escHtml(state.lastError)}</div>
           <div class="nc-rpm-helper">You can keep editing — the row will be created when you click Save / Generate / Publish.</div>
         </div>
       ` : ''}
