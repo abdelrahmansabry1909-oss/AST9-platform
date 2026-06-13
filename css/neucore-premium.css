@@ -360,7 +360,7 @@ body.nc-bright .neu-card {
 .nc-sidebar-mark { width: 30px; height: 30px; }
 .nc-login-mark   { width: 44px; height: 44px; }
 .nc-sidebar-mark svg, .nc-login-mark svg { width: 100%; height: 100%; display: block; }
-.nc-brandmark-glow { filter: drop-shadow(0 4px 14px rgba(20,184,166,0.30)); }
+.nc-brandmark-glow { filter: drop-shadow(0 4px 14px rgba(212,175,55,0.30)); }
 
 /* ── 6 · MOTION — section reveal + intelligent text reveal ───────
    Elegant intensity (B), Strategist personality: composed easing, no

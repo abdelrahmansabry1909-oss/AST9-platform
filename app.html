@@ -13,14 +13,31 @@
   <link rel="stylesheet" href="css/client-theme.css"/>
   <!-- Phase G — premium identity + executive dashboard (loaded last; wins on tokens) -->
   <link rel="stylesheet" href="css/neucore-premium.css"/>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><defs><linearGradient id='g' x1='0' y1='0' x2='40' y2='40' gradientUnits='userSpaceOnUse'><stop stop-color='%2322D3C5'/><stop offset='.55' stop-color='%2314B8A6'/><stop offset='1' stop-color='%234F46E5'/></linearGradient></defs><rect x='2' y='2' width='36' height='36' rx='11' fill='url(%23g)'/><path d='M13 28V13l14 14V12' fill='none' stroke='%23fff' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/><circle cx='27' cy='12' r='2.7' fill='%23fff'/></svg>"/>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><defs><linearGradient id='b' x1='0' y1='0' x2='40' y2='40' gradientUnits='userSpaceOnUse'><stop stop-color='%231A2748'/><stop offset='1' stop-color='%230A1024'/></linearGradient><linearGradient id='g' x1='10' y1='9' x2='30' y2='31' gradientUnits='userSpaceOnUse'><stop stop-color='%23F6E27A'/><stop offset='.5' stop-color='%23D4AF37'/><stop offset='1' stop-color='%23B8860B'/></linearGradient></defs><rect x='2' y='2' width='36' height='36' rx='11' fill='url(%23b)'/><path d='M13 28V13l14 14V12' fill='none' stroke='url(%23g)' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/><circle cx='27' cy='12' r='2.7' fill='%232DD4BF'/></svg>"/>
 </head>
 <body>
 
-<!-- LOADING -->
+<!-- LOADING — Royal Premium transition screen -->
 <div id="loading-overlay">
-  <div class="loader-logo">NEUCORE</div>
-  <div style="font-size:10px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:#D4AF37;opacity:0.8;margin-top:6px">An AST9 Solution</div>
+  <div class="nc-loader-mark" aria-hidden="true">
+    <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="NeuCore">
+      <defs>
+        <linearGradient id="ncRoyalLd" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+          <stop stop-color="#1A2748"/><stop offset="1" stop-color="#0A1024"/>
+        </linearGradient>
+        <linearGradient id="ncRoyalLdG" x1="10" y1="9" x2="30" y2="31" gradientUnits="userSpaceOnUse">
+          <stop stop-color="#F6E27A"/><stop offset=".5" stop-color="#D4AF37"/><stop offset="1" stop-color="#B8860B"/>
+        </linearGradient>
+      </defs>
+      <rect x="1.5" y="1.5" width="37" height="37" rx="11" fill="url(#ncRoyalLd)"/>
+      <rect x="2.5" y="2.5" width="35" height="35" rx="10" fill="none" stroke="url(#ncRoyalLdG)" stroke-width="1" opacity=".75"/>
+      <path d="M13 28V13l14 14V12" fill="none" stroke="url(#ncRoyalLdG)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="27" cy="12" r="2.6" fill="#2DD4BF"/>
+      <circle cx="27" cy="12" r="5" fill="none" stroke="#2DD4BF" stroke-width="1" opacity=".5"/>
+    </svg>
+  </div>
+  <div class="nc-loader-word">NEU<span class="nc-loader-word-accent">CORE</span></div>
+  <div class="nc-loader-sub">An AST9 Solution</div>
   <div class="loader-bar"></div>
 </div>
 
@@ -42,14 +59,17 @@
     <div class="nc-login-brand">
       <span class="nc-login-mark nc-brandmark-glow" aria-hidden="true">
         <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="NeuCore">
-          <defs><linearGradient id="ncMarkLg" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
-            <stop stop-color="#22D3C5"/><stop offset=".55" stop-color="#14B8A6"/><stop offset="1" stop-color="#4F46E5"/>
-          </linearGradient></defs>
-          <rect x="1.5" y="1.5" width="37" height="37" rx="11" fill="url(#ncMarkLg)"/>
-          <rect x="1.5" y="1.5" width="37" height="37" rx="11" fill="none" stroke="rgba(255,255,255,.20)"/>
-          <path d="M13 28V13l14 14V12" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
-          <circle cx="27" cy="12" r="2.7" fill="#fff"/>
-          <circle cx="27" cy="12" r="5.2" fill="none" stroke="rgba(255,255,255,.45)" stroke-width="1.1"/>
+          <defs>
+            <linearGradient id="ncRoyalLg" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#1A2748"/><stop offset="1" stop-color="#0A1024"/></linearGradient>
+            <linearGradient id="ncRoyalLgG" x1="10" y1="9" x2="30" y2="31" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#F6E27A"/><stop offset=".5" stop-color="#D4AF37"/><stop offset="1" stop-color="#B8860B"/></linearGradient>
+          </defs>
+          <rect x="1.5" y="1.5" width="37" height="37" rx="11" fill="url(#ncRoyalLg)"/>
+          <rect x="2.5" y="2.5" width="35" height="35" rx="10" fill="none" stroke="url(#ncRoyalLgG)" stroke-width="1" opacity=".75"/>
+          <path d="M13 28V13l14 14V12" fill="none" stroke="url(#ncRoyalLgG)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="27" cy="12" r="2.6" fill="#2DD4BF"/>
+          <circle cx="27" cy="12" r="5" fill="none" stroke="#2DD4BF" stroke-width="1" opacity=".5"/>
         </svg>
       </span>
       <div>
@@ -156,14 +176,17 @@
       <div class="sidebar-wordmark nc-sidebar-wordmark">
         <span class="nc-sidebar-mark nc-brandmark-glow" aria-hidden="true">
           <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="NeuCore">
-            <defs><linearGradient id="ncMarkSb" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
-              <stop stop-color="#22D3C5"/><stop offset=".55" stop-color="#14B8A6"/><stop offset="1" stop-color="#4F46E5"/>
-            </linearGradient></defs>
-            <rect x="1.5" y="1.5" width="37" height="37" rx="11" fill="url(#ncMarkSb)"/>
-            <rect x="1.5" y="1.5" width="37" height="37" rx="11" fill="none" stroke="rgba(255,255,255,.20)"/>
-            <path d="M13 28V13l14 14V12" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
-            <circle cx="27" cy="12" r="2.7" fill="#fff"/>
-            <circle cx="27" cy="12" r="5.2" fill="none" stroke="rgba(255,255,255,.45)" stroke-width="1.1"/>
+            <defs>
+              <linearGradient id="ncRoyalSb" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#1A2748"/><stop offset="1" stop-color="#0A1024"/></linearGradient>
+              <linearGradient id="ncRoyalSbG" x1="10" y1="9" x2="30" y2="31" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#F6E27A"/><stop offset=".5" stop-color="#D4AF37"/><stop offset="1" stop-color="#B8860B"/></linearGradient>
+            </defs>
+            <rect x="1.5" y="1.5" width="37" height="37" rx="11" fill="url(#ncRoyalSb)"/>
+            <rect x="2.5" y="2.5" width="35" height="35" rx="10" fill="none" stroke="url(#ncRoyalSbG)" stroke-width="1" opacity=".75"/>
+            <path d="M13 28V13l14 14V12" fill="none" stroke="url(#ncRoyalSbG)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="27" cy="12" r="2.6" fill="#2DD4BF"/>
+            <circle cx="27" cy="12" r="5" fill="none" stroke="#2DD4BF" stroke-width="1" opacity=".5"/>
           </svg>
         </span>
         <span>NEUCORE</span>

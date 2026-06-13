@@ -181,43 +181,64 @@ body {
 /* ═══════════════════════════════════════════════════════════════
    LOADING SCREEN
 ═══════════════════════════════════════════════════════════════ */
+/* Royal Premium transition / boot screen — deep navy + champagne gold,
+   the brandmark floating above a refined wordmark + sweep. Shows pre-theme
+   (between landing and app), so colours are set explicitly here. */
 #loading-overlay {
   position: fixed; inset: 0; z-index: 9999;
-  background: var(--bg-void);
   display: flex; align-items: center; justify-content: center;
-  flex-direction: column; gap: var(--sp-5);
+  flex-direction: column; gap: 16px;
+  background:
+    radial-gradient(120% 90% at 50% 32%, #1A2748 0%, transparent 60%),
+    radial-gradient(90% 70% at 50% 116%, rgba(45,212,191,0.10) 0%, transparent 55%),
+    linear-gradient(180deg, #0E1730 0%, #070C1B 100%);
 }
+.nc-loader-mark {
+  width: 74px; height: 74px; margin-bottom: 4px;
+  filter: drop-shadow(0 12px 32px rgba(212,175,55,0.32));
+  animation: nc-loader-float 3s ease-in-out infinite;
+}
+.nc-loader-mark svg { width: 100%; height: 100%; display: block; }
+@keyframes nc-loader-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+.nc-loader-word {
+  font-family: var(--font-display);
+  font-size: 26px; font-weight: 800; letter-spacing: 0.16em;
+  color: #F4F7FB; padding-left: 0.16em;
+}
+.nc-loader-word-accent {
+  background: linear-gradient(135deg, #F6E27A 0%, #D4AF37 60%, #B8860B 100%);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+}
+.nc-loader-sub {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.34em; text-transform: uppercase;
+  color: #C9A24B; opacity: 0.9;
+}
+/* Legacy loader-logo kept as a graceful fallback if markup ever omits the mark */
 .loader-logo {
   font-family: var(--font-display);
-  font-size: 36px; font-weight: 800;
-  letter-spacing: -1px;
-  background: linear-gradient(135deg, var(--lime) 0%, var(--teal) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: loader-pulse 1.8s ease-in-out infinite;
-}
-@keyframes loader-pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.6; transform: scale(0.97); }
+  font-size: 30px; font-weight: 800; letter-spacing: 0.12em;
+  color: #F4F7FB;
 }
 .loader-bar {
-  width: 120px; height: 2px;
-  background: var(--border-default);
-  border-radius: 1px; overflow: hidden;
+  width: 140px; height: 2px; margin-top: 8px;
+  background: rgba(255,255,255,0.10);
+  border-radius: 2px; overflow: hidden;
 }
 .loader-bar::after {
   content: '';
   display: block; height: 100%;
-  background: linear-gradient(90deg, var(--lime), var(--teal));
-  border-radius: 1px;
+  background: linear-gradient(90deg, #D4AF37, #2DD4BF);
+  border-radius: 2px;
   animation: loader-sweep 1.4s ease-in-out infinite;
   transform-origin: left;
 }
 @keyframes loader-sweep {
   0% { width: 0; margin-left: 0; }
-  50% { width: 80px; margin-left: 20px; }
-  100% { width: 0; margin-left: 120px; }
+  50% { width: 90px; margin-left: 25px; }
+  100% { width: 0; margin-left: 140px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nc-loader-mark { animation: none; }
 }
 
 /* ═══════════════════════════════════════════════════════════════
