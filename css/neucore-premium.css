@@ -555,3 +555,67 @@ body.nc-bright .assess-section-head { font-size: 13px; letter-spacing: 0.01em; }
 @media (prefers-reduced-motion: reduce) {
   .nc-ai-chip::before { animation: none; }
 }
+
+/* ════════════════════════════════════════════════════════════════
+   PHASE G2.1 — bright-theme contrast repair
+   The Subjective wizard (.nc-wizard / .nc-w-*) and the Reactive Graph
+   builder controls (.nc-rpm-*) were authored for the dark theme with
+   hardcoded rgba(14,26,36,…) / rgba(18,33,48,…) glass fills. Under the
+   coach bright shell those became muddy dark bands with washed-out text.
+   Repaint just those surfaces to the porcelain card language; their text
+   already uses adaptive --text-* tokens. The graph VISUALIZATION canvas
+   (.nc-rpm-ladder / stage) intentionally stays dark and is untouched.
+   ════════════════════════════════════════════════════════════════ */
+
+/* Wizard + builder section shells → porcelain cards */
+body.nc-bright .nc-wizard,
+body.nc-bright .nc-rpm-section {
+  background: var(--nc-bg-card, #fff);
+  border-color: var(--nc-border);
+  box-shadow: var(--nc-shadow-card);
+}
+body.nc-bright .nc-subj-mode {
+  background: var(--nc-bg-secondary, #EEF2F6);
+  border-color: var(--nc-border);
+}
+
+/* Inputs / textareas / selects / chip wells → light fields with hairline */
+body.nc-bright .nc-w-input,
+body.nc-bright .nc-w-textarea,
+body.nc-bright .nc-w-select,
+body.nc-bright .nc-w-chips,
+body.nc-bright .nc-w-rrow input,
+body.nc-bright .nc-w-rrow select,
+body.nc-bright .nc-rpm-section select,
+body.nc-bright .nc-rpm-section textarea,
+body.nc-bright .nc-rpm-section input[type="text"],
+body.nc-bright .nc-rpm-section input[type="number"],
+body.nc-bright .nc-rpm-stepper {
+  background: var(--nc-bg-secondary, #F4F7FB);
+  border-color: var(--nc-border);
+  color: var(--nc-text-primary);
+}
+
+/* Checkbox rows, recap rows, empty states → light surfaces */
+body.nc-bright .nc-w-check,
+body.nc-bright .nc-w-recap-row,
+body.nc-bright .nc-subj-no-client,
+body.nc-bright .nc-rpm-client-chip {
+  background: var(--nc-bg-secondary, #F4F7FB);
+  border-color: var(--nc-border);
+}
+body.nc-bright .nc-w-check:hover { border-color: var(--nc-border-strong); background: #fff; }
+
+/* Placeholders readable on the light fields */
+body.nc-bright .nc-w-input::placeholder,
+body.nc-bright .nc-w-textarea::placeholder,
+body.nc-bright .nc-rpm-section textarea::placeholder,
+body.nc-bright .nc-rpm-section input::placeholder { color: var(--nc-text-muted); }
+
+/* Mode-toggle active pill reads on a light bar */
+body.nc-bright .nc-subj-mode-btn.active {
+  background: var(--nc-indigo-soft, rgba(91,108,255,0.10));
+  color: var(--nc-indigo-ink, #4F5BD5);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--nc-indigo, #5B6CFF), transparent 55%);
+}
+body.nc-bright .nc-wizard-step-num { color: var(--nc-indigo-ink, #4F5BD5); }
