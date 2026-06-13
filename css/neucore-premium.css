@@ -1,0 +1,437 @@
+/* ═══════════════════════════════════════════════════════════════
+   NEUCORE — PHASE G · PREMIUM IDENTITY & EXECUTIVE DASHBOARD
+   Loaded LAST in app.html, so it takes precedence on tokens and the
+   component bridge. Extends (never replaces) the existing systems:
+     · styles.css                 legacy --* tokens + components
+     · neucore-design-system.css  --nc-* tokens + body.nc-bright theme
+
+   Scope discipline:
+     · COLOR changes are scoped to body.nc-bright (coach/admin). The
+       client mobile shell + floating hologram keep their calm dark
+       theme untouched.
+     · Typography, card depth, focus, and motion are theme-neutral and
+       apply everywhere for one coherent product feel.
+     · One token namespace (--nc-*). No new engines, no markup rewrite
+       beyond the dashboard restage.
+
+   Direction: porcelain · soft graphite · premium navy · deep indigo ·
+   medical teal · soft lavender. Apple / Linear / Stripe restraint.
+═══════════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+/* ── 1 · TYPOGRAPHY (global) ─────────────────────────────────────
+   Plus Jakarta Sans for display (executive, premium, humanist) over
+   the previous Space Grotesk; Inter stays the body face. Numerals go
+   tabular so KPI values and stats align like a ledger. */
+:root {
+  --nc-font-display: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+  --font-display:    'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+}
+h1, h2, h3, h4, h5, h6,
+.page-title, .section-title, .card-title,
+.nc-dashboard-title, .stat-value,
+.nc-dash-greeting, .nc-kpi-value, .nc-section-head {
+  font-family: var(--nc-font-display);
+  letter-spacing: -0.018em;
+}
+.stat-value, .nc-kpi-value, .nc-stat-num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1, 'cv01' 1;
+}
+
+/* ── 2 · BRIGHT THEME — PREMIUM PALETTE (coach/admin) ────────────
+   Refines the porcelain surfaces, navy ink, hairline borders, and
+   soft layered shadows. Adds an indigo / violet / lavender accent
+   ramp so the dashboard reads enterprise, not gamer. */
+body.nc-bright {
+  --nc-bg-primary:    #F4F7FB;   /* porcelain canvas */
+  --nc-bg-secondary:  #E9EEF5;
+  --nc-bg-elevated:   #FFFFFF;
+  --nc-bg-card:       #FFFFFF;
+
+  --nc-text-primary:   #0D1828;  /* premium navy ink */
+  --nc-text-secondary: #566378;  /* soft graphite */
+  --nc-text-muted:     #8593A6;
+
+  --nc-border:        rgba(13, 24, 40, 0.07);
+  --nc-border-strong: rgba(13, 24, 40, 0.14);
+
+  /* Soft, layered, cool-tinted elevation (premium shadow language) */
+  --nc-shadow-sm:   0 1px 2px rgba(13,24,40,0.05);
+  --nc-shadow-md:   0 2px 6px rgba(13,24,40,0.05), 0 10px 26px rgba(13,24,40,0.06);
+  --nc-shadow-lg:   0 8px 18px rgba(13,24,40,0.06), 0 28px 60px rgba(13,24,40,0.10);
+  --nc-shadow-card: 0 1px 2px rgba(13,24,40,0.04), 0 8px 24px rgba(13,24,40,0.05);
+
+  --nc-glass-bg:     rgba(255, 255, 255, 0.68);
+  --nc-glass-border: rgba(13, 24, 40, 0.08);
+
+  /* Premium accent ramp (deep indigo + soft lavender + clinical violet) */
+  --nc-indigo:        #5B6CFF;
+  --nc-indigo-ink:    #4F5BD5;
+  --nc-indigo-soft:   rgba(91, 108, 255, 0.10);
+  --nc-violet:        #7C6CF0;
+  --nc-violet-soft:   rgba(124, 108, 240, 0.10);
+  --nc-lavender:      #EEF0FF;
+  --nc-amber-ink:     #B7791F;
+  --nc-amber-soft:    rgba(245, 158, 11, 0.12);
+  --nc-teal-ink:      #0E9384;
+  --nc-teal-tint:     rgba(20, 184, 166, 0.10);
+
+  /* Legacy-token bridge — refined so styles.css components inherit the
+     same porcelain/ink/shadow language coherently. */
+  --bg-void:    #E7ECF3;
+  --bg-base:    #F4F7FB;
+  --bg-surface: #FFFFFF;
+  --bg-raised:  #F4F7FB;
+  --bg-overlay: #FFFFFF;
+  --bg-hover:   rgba(13, 24, 40, 0.035);
+
+  --border-subtle:  rgba(13, 24, 40, 0.06);
+  --border-default: rgba(13, 24, 40, 0.11);
+  --border-strong:  rgba(13, 24, 40, 0.18);
+
+  --text-primary:   #0D1828;
+  --text-secondary: #4C5A70;
+  --text-tertiary:  #7E8DA1;
+
+  --shadow-sm:   0 1px 2px rgba(13,24,40,0.05);
+  --shadow-md:   0 2px 6px rgba(13,24,40,0.05), 0 10px 26px rgba(13,24,40,0.06);
+  --shadow-lg:   0 8px 18px rgba(13,24,40,0.06), 0 28px 60px rgba(13,24,40,0.10);
+  --shadow-xl:   0 18px 40px rgba(13,24,40,0.10), 0 40px 80px rgba(13,24,40,0.12);
+  --shadow-card: 0 1px 2px rgba(13,24,40,0.04), 0 8px 24px rgba(13,24,40,0.05);
+}
+
+/* The porcelain canvas reads cleaner with a whisper of cool light at
+   the top — replaces the flat fill without muddying it. */
+body.nc-bright {
+  background:
+    radial-gradient(120% 80% at 100% -10%, rgba(91,108,255,0.05) 0%, transparent 55%),
+    radial-gradient(90% 60% at -10% 0%, rgba(20,184,166,0.045) 0%, transparent 50%),
+    var(--nc-bg-primary);
+  background-attachment: fixed;
+}
+
+/* ── 3 · PREMIUM CARD LANGUAGE (theme-neutral) ──────────────────
+   One card system across Dashboard / Programs / Clients / Assessments
+   / Recovery / Graphs: hairline border, soft layered shadow, a barely
+   there top highlight, and an elegant hover lift. */
+body.nc-bright .card,
+body.nc-bright .stat-card,
+body.nc-bright .neu-card {
+  border: 1px solid var(--nc-border);
+  border-radius: 18px;
+  box-shadow: var(--nc-shadow-card);
+  background: var(--nc-bg-card);
+}
+body.nc-bright .card { backdrop-filter: none; }
+
+/* Soft inner top highlight — the "expensive glass edge" without weight */
+body.nc-bright .card::before,
+body.nc-bright .stat-card::before {
+  content: "";
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.9);
+  pointer-events: none;
+}
+body.nc-bright .card { position: relative; }
+
+/* Elegant hover (motion personality: Strategist — composed, not bouncy) */
+body.nc-bright .stat-card:hover,
+body.nc-bright .card-hover:hover,
+body.nc-bright .neu-card--interactive:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--nc-shadow-lg);
+  border-color: var(--nc-border-strong);
+}
+body.nc-bright .card,
+body.nc-bright .stat-card,
+body.nc-bright .neu-card {
+  transition: transform var(--nc-dur-base, 320ms) var(--nc-ease, cubic-bezier(0.16,1,0.3,1)),
+              box-shadow var(--nc-dur-base, 320ms) var(--nc-ease, cubic-bezier(0.16,1,0.3,1)),
+              border-color var(--nc-dur-base, 320ms) var(--nc-ease, cubic-bezier(0.16,1,0.3,1));
+}
+
+/* ── 4 · EXECUTIVE DASHBOARD ────────────────────────────────────
+   Welcome header → KPI row → command center + intelligence rail. */
+
+/* Welcome header — clean porcelain, no cinematic dark box. */
+.nc-dash-welcome {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin: 4px 0 26px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid var(--nc-border);
+  position: relative;
+}
+.nc-dash-eyebrow {
+  display: inline-flex; align-items: center; gap: 9px;
+  font-size: 11.5px; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--nc-teal-ink, #0E9384);
+  margin-bottom: 12px;
+}
+.nc-dash-eyebrow::before {
+  content: ""; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--nc-teal, #14B8A6);
+  box-shadow: 0 0 0 4px rgba(20,184,166,0.14);
+}
+.nc-dash-greeting {
+  font-size: clamp(28px, 3.4vw, 42px);
+  font-weight: 800;
+  line-height: 1.04;
+  letter-spacing: -0.03em;
+  color: var(--nc-text-primary);
+  margin: 0 0 8px;
+}
+.nc-dash-sub {
+  font-size: 15px;
+  color: var(--nc-text-secondary);
+  margin: 0;
+  max-width: 60ch;
+}
+
+/* KPI grid */
+.nc-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 22px;
+}
+.nc-kpi {
+  --kpi: var(--nc-indigo, #5B6CFF);
+  --kpi-soft: var(--nc-indigo-soft, rgba(91,108,255,0.10));
+  position: relative;
+  overflow: hidden;
+  padding: 20px 20px 18px;
+  border-radius: 18px;
+  border: 1px solid var(--nc-border);
+  background: var(--nc-bg-card);
+  box-shadow: var(--nc-shadow-card);
+  transition: transform var(--nc-dur-base, 320ms) var(--nc-ease, cubic-bezier(0.16,1,0.3,1)),
+              box-shadow var(--nc-dur-base, 320ms) var(--nc-ease, cubic-bezier(0.16,1,0.3,1)),
+              border-color var(--nc-dur-base, 320ms) var(--nc-ease, cubic-bezier(0.16,1,0.3,1));
+}
+.nc-kpi::after {
+  content: "";
+  position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+  background: var(--kpi);
+  opacity: 0.9;
+}
+.nc-kpi:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--nc-shadow-lg);
+  border-color: color-mix(in oklab, var(--kpi), transparent 60%);
+}
+.nc-kpi-top {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px;
+}
+.nc-kpi-icon {
+  width: 38px; height: 38px; border-radius: 11px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 17px; color: var(--kpi);
+  background: var(--kpi-soft);
+  border: 1px solid color-mix(in oklab, var(--kpi), transparent 78%);
+}
+.nc-kpi-delta {
+  font-size: 11px; font-weight: 600;
+  color: var(--nc-text-muted);
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.nc-kpi-value {
+  font-size: 40px; font-weight: 800; line-height: 1;
+  letter-spacing: -0.035em;
+  color: var(--nc-text-primary);
+}
+.nc-kpi-label {
+  font-size: 12px; font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--nc-text-secondary);
+  margin-top: 8px;
+}
+.nc-kpi-sub { font-size: 11.5px; color: var(--nc-text-muted); margin-top: 2px; }
+
+.nc-kpi--indigo { --kpi: var(--nc-indigo, #5B6CFF); --kpi-soft: var(--nc-indigo-soft, rgba(91,108,255,.10)); }
+.nc-kpi--teal   { --kpi: var(--nc-teal, #14B8A6);   --kpi-soft: var(--nc-teal-tint, rgba(20,184,166,.10)); }
+.nc-kpi--violet { --kpi: var(--nc-violet, #7C6CF0); --kpi-soft: var(--nc-violet-soft, rgba(124,108,240,.10)); }
+.nc-kpi--amber  { --kpi: #F59E0B; --kpi-soft: var(--nc-amber-soft, rgba(245,158,11,.12)); }
+
+/* Main grid: primary column + intelligence rail */
+.nc-dash-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+.nc-dash-main, .nc-dash-rail {
+  display: flex; flex-direction: column; gap: 18px; min-width: 0;
+}
+
+/* Panel — the dashboard surface for grouped intelligence */
+.nc-panel {
+  position: relative;
+  border: 1px solid var(--nc-border);
+  border-radius: 20px;
+  background: var(--nc-bg-card);
+  box-shadow: var(--nc-shadow-card);
+  padding: 20px 22px;
+}
+.nc-section-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; margin-bottom: 14px;
+}
+.nc-section-title {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 15px; font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--nc-text-primary);
+}
+.nc-section-title .nc-section-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--nc-teal, #14B8A6);
+}
+.nc-section-sub {
+  font-size: 12px; color: var(--nc-text-muted); font-weight: 500;
+  margin-top: 2px;
+}
+.nc-section-link {
+  font-size: 12.5px; font-weight: 600;
+  color: var(--nc-indigo-ink, #4F5BD5);
+  background: none; border: none; cursor: pointer;
+  padding: 4px 6px; border-radius: 8px;
+  transition: background var(--nc-dur-fast, 180ms) var(--nc-ease, ease);
+}
+.nc-section-link:hover { background: var(--nc-indigo-soft, rgba(91,108,255,0.10)); }
+
+/* Quick Actions */
+.nc-quick-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+}
+.nc-quick-btn {
+  display: flex; align-items: center; gap: 11px;
+  padding: 13px 14px; border-radius: 13px;
+  border: 1px solid var(--nc-border);
+  background: var(--nc-bg-card);
+  color: var(--nc-text-primary);
+  font-size: 13px; font-weight: 600; text-align: left;
+  cursor: pointer; width: 100%;
+  transition: transform var(--nc-dur-fast,180ms) var(--nc-ease,ease),
+              border-color var(--nc-dur-fast,180ms) var(--nc-ease,ease),
+              background var(--nc-dur-fast,180ms) var(--nc-ease,ease);
+}
+.nc-quick-btn:hover {
+  transform: translateY(-2px);
+  border-color: var(--nc-border-strong);
+  background: color-mix(in oklab, var(--nc-bg-card), var(--nc-indigo, #5B6CFF) 4%);
+}
+.nc-quick-ico {
+  width: 32px; height: 32px; border-radius: 9px; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 15px; color: var(--nc-indigo-ink, #4F5BD5);
+  background: var(--nc-indigo-soft, rgba(91,108,255,0.10));
+}
+
+/* Business Growth mini-stats */
+.nc-biz-row {
+  display: flex; align-items: baseline; justify-content: space-between;
+  padding: 11px 0; border-bottom: 1px solid var(--nc-border);
+}
+.nc-biz-row:last-child { border-bottom: none; }
+.nc-biz-k { font-size: 13px; color: var(--nc-text-secondary); font-weight: 500; }
+.nc-biz-v { font-size: 18px; font-weight: 700; color: var(--nc-text-primary); font-variant-numeric: tabular-nums; }
+.nc-biz-v small { font-size: 12px; font-weight: 500; color: var(--nc-text-muted); }
+
+/* ── 5 · BRANDMARK (theme-adaptive) ─────────────────────────────
+   The mark is an inline SVG badge (teal→indigo) carrying an "N" motion
+   stroke + a core pulse node. These rules only size/contain it. */
+.nc-sidebar-mark, .nc-login-mark {
+  display: inline-flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  background: none !important;       /* drop the old CSS gradient box */
+  box-shadow: none !important;
+  border-radius: 0 !important;
+}
+.nc-sidebar-mark::after, .nc-login-mark::after { content: none !important; }
+.nc-sidebar-mark { width: 30px; height: 30px; }
+.nc-login-mark   { width: 44px; height: 44px; }
+.nc-sidebar-mark svg, .nc-login-mark svg { width: 100%; height: 100%; display: block; }
+.nc-brandmark-glow { filter: drop-shadow(0 4px 14px rgba(20,184,166,0.30)); }
+
+/* ── 6 · MOTION — section reveal + intelligent text reveal ───────
+   Elegant intensity (B), Strategist personality: composed easing, no
+   bounce on entrances. */
+@keyframes nc-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: none; }
+}
+body.nc-bright #section-dashboard.active .nc-kpi,
+body.nc-bright #section-dashboard.active .nc-panel {
+  animation: nc-rise 520ms var(--nc-ease, cubic-bezier(0.16,1,0.3,1)) both;
+}
+body.nc-bright #section-dashboard.active .nc-kpi:nth-child(1) { animation-delay: 40ms; }
+body.nc-bright #section-dashboard.active .nc-kpi:nth-child(2) { animation-delay: 90ms; }
+body.nc-bright #section-dashboard.active .nc-kpi:nth-child(3) { animation-delay: 140ms; }
+body.nc-bright #section-dashboard.active .nc-kpi:nth-child(4) { animation-delay: 190ms; }
+body.nc-bright #section-dashboard.active .nc-dash-main .nc-panel { animation-delay: 220ms; }
+body.nc-bright #section-dashboard.active .nc-dash-rail .nc-panel:nth-child(1) { animation-delay: 260ms; }
+body.nc-bright #section-dashboard.active .nc-dash-rail .nc-panel:nth-child(2) { animation-delay: 300ms; }
+body.nc-bright #section-dashboard.active .nc-dash-rail .nc-panel:nth-child(3) { animation-delay: 340ms; }
+
+/* Intelligent text reveal — words ease in sequentially, like a
+   composed system writing a line. Driven by Dashboard._revealText(). */
+.nc-reveal-word {
+  display: inline-block;
+  opacity: 0;
+  filter: blur(6px);
+  transform: translateY(0.14em);
+  animation: nc-word-in 560ms var(--nc-ease, cubic-bezier(0.16,1,0.3,1)) forwards;
+  animation-delay: var(--d, 0ms);
+}
+@keyframes nc-word-in {
+  to { opacity: 1; filter: blur(0); transform: none; }
+}
+
+/* ── 7 · GRAPH + ASSESSMENT SURFACE POLISH (bright) ─────────────
+   Lift the controls and chart frame to the same premium card
+   language; the assessment hologram stays dark (client theme). */
+body.nc-bright .chart-card,
+body.nc-bright .graph-card,
+body.nc-bright #section-progress .card,
+body.nc-bright #section-analytics .card {
+  border-radius: 18px;
+  box-shadow: var(--nc-shadow-card);
+}
+body.nc-bright .tab-row { border-bottom-color: var(--nc-border); }
+body.nc-bright .tab-btn { color: var(--nc-text-secondary); }
+body.nc-bright .tab-btn.active { color: var(--nc-indigo-ink, #4F5BD5); }
+body.nc-bright .assess-section-head { color: var(--nc-indigo-ink, #4F5BD5); }
+
+/* Sidebar refinement — premium navy rail, tighter active pill */
+body.nc-bright .sidebar { box-shadow: 1px 0 0 rgba(13,24,40,0.04); }
+body.nc-bright .nav-item.active {
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05);
+  background: linear-gradient(135deg, rgba(20,184,166,0.16), rgba(91,108,255,0.10));
+}
+
+/* ── 8 · RESPONSIVE ─────────────────────────────────────────────*/
+@media (max-width: 1080px) {
+  .nc-dash-grid { grid-template-columns: 1fr; }
+  .nc-kpi-grid  { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 560px) {
+  .nc-kpi-grid  { grid-template-columns: 1fr; }
+  .nc-quick-grid { grid-template-columns: 1fr; }
+}
+
+/* ── 9 · REDUCED MOTION ─────────────────────────────────────────*/
+@media (prefers-reduced-motion: reduce) {
+  body.nc-bright #section-dashboard.active .nc-kpi,
+  body.nc-bright #section-dashboard.active .nc-panel,
+  .nc-reveal-word { animation: none !important; }
+  .nc-reveal-word { opacity: 1; filter: none; transform: none; }
+}
