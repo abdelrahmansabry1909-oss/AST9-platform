@@ -180,6 +180,7 @@
 
         <div style="display:flex;gap:10px;align-items:center;margin-top:20px;flex-wrap:wrap">
           <button class="btn btn-primary" id="pp-publish">📤 Publish to Client</button>
+          <button class="btn btn-ghost" id="pp-preview">👁 Preview client view</button>
           <button class="btn btn-ghost" id="pp-revert">↺ Revert edits</button>
           <span id="pp-status" style="font-size:12px;color:var(--text-tertiary)"></span>
         </div>
@@ -189,6 +190,7 @@
     _drawRoutine();
 
     panel.querySelector('#pp-publish').addEventListener('click', _publish);
+    panel.querySelector('#pp-preview').addEventListener('click', _preview);
     panel.querySelector('#pp-revert').addEventListener('click', () => {
       if (confirm('Revert all edits to the generated program?')) {
         _toast('Re-generate to reset — edits kept for now.', 'info');
@@ -210,19 +212,59 @@
     if (workouts.length < 2) _activeW = 'all';            // single workout → nothing to switch
     if (_activeW !== 'all' && _activeW >= workouts.length) _activeW = 0;
     host.innerHTML = `
-      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--nc-teal);margin-bottom:6px">
-        Training Program${_program.split_label ? ' — ' + esc(_program.split_label) : ''}
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px">
+        <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--nc-teal)">
+          Training Program${_program.split_label ? ' — ' + esc(_program.split_label) : ''}
+        </div>
+        <button class="btn btn-ghost btn-sm" data-pp-addday>+ Add day</button>
       </div>
       ${_dayRail(workouts, schedule)}
       ${workouts.map((wk, wi) => `
-        <div data-ppw="${wi}" style="${(_activeW === 'all' || _activeW === wi) ? '' : 'display:none'}">${_workoutEditor(wi, wk)}</div>`).join('')}
+        <div data-ppw="${wi}" style="${(_activeW === 'all' || _activeW === wi) ? '' : 'display:none'}">${_workoutEditor(wi, wk, workouts.length)}</div>`).join('')}
     `;
     workouts.forEach((wk, wi) => {
       ['warmup', 'main', 'cooldown'].forEach((key) => _wireSection(wi, key));
       const lbl = host.querySelector(`[data-wlabel="${wi}"]`);
       if (lbl) lbl.addEventListener('input', () => { _program.workouts[wi].label = lbl.value; });
+      host.querySelector(`[data-pp-rmday="${wi}"]`)?.addEventListener('click', () => _removeDay(wi));
     });
+    host.querySelector('[data-pp-addday]')?.addEventListener('click', _addDay);
     _wireDayRail(host, workouts.length);
+  }
+
+  // ── Manual builder — add / remove a training day (workout) ──────
+  function _addDay() {
+    const ws = _program.workouts;
+    const used = new Set(ws.map((w) => w.id));
+    let code = 65; while (used.has(String.fromCharCode(code))) code++;   // next free A,B,C…
+    const id = String.fromCharCode(code);
+    ws.push({ id, label: 'Day ' + (ws.length + 1), warmup: [], main: [], cooldown: [] });
+    _program.schedule = _program.schedule || [];
+    _program.schedule.push(id);
+    _program.days_per_week = _program.schedule.length;
+    _activeW = ws.length - 1;            // focus the new day
+    _drawProgram();
+  }
+
+  function _removeDay(wi) {
+    const ws = _program.workouts;
+    if (ws.length <= 1) { _toast('A program needs at least one day.', 'info'); return; }
+    if (!confirm(`Remove "${ws[wi].label || ('Workout ' + ws[wi].id)}" and its exercises?`)) return;
+    const removed = ws.splice(wi, 1)[0];
+    _program.schedule = (_program.schedule || []).filter((sid) => sid !== removed.id);
+    if (!_program.schedule.length) _program.schedule = ws.map((w) => w.id);
+    _program.days_per_week = _program.schedule.length;
+    _activeW = 'all';
+    _drawProgram();
+  }
+
+  // Reorder an exercise within its section.
+  function _moveEx(wi, key, i, dir) {
+    const arr = _program.workouts[wi][key];
+    const j = i + dir;
+    if (j < 0 || j >= arr.length) return;
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+    _drawProgram();
   }
 
   // Interactive rail — one chip per workout (showing which days use it) + All.
@@ -267,7 +309,7 @@
     });
   }
 
-  function _workoutEditor(wi, wk) {
+  function _workoutEditor(wi, wk, count) {
     return `
       <div style="margin-bottom:18px;border:1px solid var(--border-subtle);border-radius:10px;
                   padding:12px;background:rgba(255,255,255,.015)">
@@ -277,6 +319,8 @@
                        font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0">${esc(wk.id)}</span>
           <input data-wlabel="${wi}" value="${esc(wk.label || ('Workout ' + wk.id))}"
             class="form-input" style="max-width:240px;font-weight:600"/>
+          ${count > 1 ? `<button class="btn btn-ghost btn-sm" data-pp-rmday="${wi}" title="Remove this day"
+            style="color:var(--rose);margin-left:auto;white-space:nowrap">🗑 Remove day</button>` : ''}
         </div>
         ${_sectionEditor(wi, 'warmup',   'Warm-Up',                    wk.warmup)}
         ${_sectionEditor(wi, 'main',     'Conditioning / Correctives', wk.main)}
@@ -331,6 +375,10 @@
           ${f('tempo', ex.tempo, 'Tempo', 'width:70px')}
           ${f('rest',  ex.rest,  'Rest',  'width:56px')}
         </div>
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <button class="btn btn-ghost btn-sm" data-up="${wi}:${key}:${i}" title="Move up" style="padding:1px 8px;line-height:1.2">▲</button>
+          <button class="btn btn-ghost btn-sm" data-down="${wi}:${key}:${i}" title="Move down" style="padding:1px 8px;line-height:1.2">▼</button>
+        </div>
         <button class="btn btn-ghost btn-sm" data-rm="${wi}:${key}:${i}" title="Remove"
           style="color:var(--rose);padding:6px 9px">✕</button>
       </div>`;
@@ -374,6 +422,13 @@
         _program.workouts[wi][key].splice(i, 1);
         _drawProgram();
       });
+    });
+    // ── reorder (manual builder) ──────────────────────────────
+    panel.querySelectorAll(`[data-up^="${wi}:${key}:"]`).forEach((btn) => {
+      btn.addEventListener('click', () => _moveEx(wi, key, +btn.dataset.up.split(':')[2], -1));
+    });
+    panel.querySelectorAll(`[data-down^="${wi}:${key}:"]`).forEach((btn) => {
+      btn.addEventListener('click', () => _moveEx(wi, key, +btn.dataset.down.split(':')[2], +1));
     });
     // ── 📚 Library button (Feature 5) ─────────────────────────
     panel.querySelectorAll(`[data-pick^="${wi}:${key}:"]`).forEach((btn) => {
@@ -515,6 +570,61 @@
         _drawRoutine();
       });
     });
+  }
+
+  // ── Preview (client view) ─────────────────────────────────
+  // Honest read-only render of the IN-MEMORY program in the client's
+  // day-based shape. Nothing is published — this just shows what will be.
+  function _preview() {
+    const p = _program;
+    const workouts = p.workouts || [];
+    const schedule = (p.schedule && p.schedule.length) ? p.schedule : workouts.map((w) => w.id);
+    const byId = (id) => workouts.find((w) => w.id === id) || workouts[0];
+    const exLine = (ex) => {
+      if (!ex || !(ex.name || '').trim()) return '';
+      const meta = [ex.sets && `${esc(ex.sets)} sets`, ex.reps && `${esc(ex.reps)} reps`,
+        ex.tempo && `tempo ${esc(ex.tempo)}`, ex.rest && `rest ${esc(ex.rest)}`].filter(Boolean).join(' · ');
+      return `<div style="padding:7px 0;border-bottom:1px solid var(--border-subtle)">
+        <div style="font-weight:600;font-size:13px;color:var(--text-primary)">${esc(ex.name)}${ex.exercise_id ? ' <span style="color:var(--nc-teal,#14b8a6);font-size:10px">◈ library</span>' : ''}</div>
+        ${meta ? `<div style="font-size:11px;color:var(--text-tertiary)">${meta}</div>` : ''}
+        ${ex.notes ? `<div style="font-size:11px;color:var(--text-secondary);margin-top:2px">${esc(ex.notes)}</div>` : ''}
+      </div>`;
+    };
+    const section = (title, list) => {
+      const rows = (list || []).map(exLine).filter(Boolean).join('');
+      return rows ? `<div style="margin:10px 0 4px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--nc-teal)">${esc(title)}</div>${rows}` : '';
+    };
+    const daysHtml = schedule.map((sid, di) => {
+      const wk = byId(sid);
+      const body = section('Warm-up', wk.warmup) + section('Conditioning', wk.main) + section('Cool-down', wk.cooldown);
+      return `<div style="margin-bottom:16px">
+        <div style="font-weight:700;font-size:14px;color:var(--text-primary)">Day ${di + 1} — ${esc(wk.label || ('Workout ' + wk.id))}</div>
+        ${body || '<div style="font-size:12px;color:var(--text-tertiary);padding:6px 0">No exercises yet.</div>'}
+      </div>`;
+    }).join('');
+    const routine = (p.daily_routine_tasks || []).filter((t) => (t.label || '').trim());
+    const routineHtml = routine.length
+      ? `<div style="margin-top:6px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--nc-gold)">Daily Routine</div>` +
+        routine.map((t) => `<div style="padding:6px 0;border-bottom:1px solid var(--border-subtle);font-size:13px">${esc(t.emoji || '•')} ${esc(t.label)} <span style="color:var(--text-tertiary);font-size:11px">${esc(t.section || '')}${t.meta ? ' · ' + esc(t.meta) : ''}</span></div>`).join('')
+      : '';
+
+    let modal = document.getElementById('pp-preview-modal');
+    if (!modal) {
+      document.body.insertAdjacentHTML('beforeend', `
+        <div class="modal-overlay hidden" id="pp-preview-modal">
+          <div class="modal" style="max-width:560px;max-height:84vh;overflow:auto">
+            <div class="modal-header"><h3 id="pp-preview-title">Client preview</h3>
+              <button class="btn-icon" onclick="document.getElementById('pp-preview-modal').classList.add('hidden')">✕</button></div>
+            <div class="modal-body" id="pp-preview-body"></div>
+          </div>
+        </div>`);
+      modal = document.getElementById('pp-preview-modal');
+      modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.add('hidden'); });
+    }
+    modal.querySelector('#pp-preview-title').textContent = `Client preview — ${_clientName || 'client'}`;
+    modal.querySelector('#pp-preview-body').innerHTML =
+      `<div style="font-size:12px;color:var(--text-tertiary);margin-bottom:12px">How the program will appear to the client in Train. Nothing is published yet.</div>${daysHtml}${routineHtml}`;
+    modal.classList.remove('hidden');
   }
 
   // ── Publish ───────────────────────────────────────────────
