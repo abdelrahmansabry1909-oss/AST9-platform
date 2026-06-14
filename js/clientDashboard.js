@@ -71,7 +71,7 @@ const ClientDashboard = (() => {
     const off = c * (1 - pct / 100);
     return `
       <svg viewBox="0 0 200 200" width="100%" height="100%" style="display:block;transform:rotate(-90deg)">
-        <circle cx="100" cy="100" r="${r}" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="14"/>
+        <circle cx="100" cy="100" r="${r}" fill="none" stroke="var(--nc-track)" stroke-width="14"/>
         <circle id="cd-dial-arc" cx="100" cy="100" r="${r}" fill="none" stroke="${color}" stroke-width="14"
                 stroke-linecap="round" stroke-dasharray="${c.toFixed(2)}" stroke-dashoffset="${c.toFixed(2)}"
                 data-target="${off.toFixed(2)}"
@@ -359,7 +359,7 @@ const ClientDashboard = (() => {
       <button type="button" data-tab="${_esc(tab)}"
         style="width:100%;display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;text-align:left;
                border:1px solid var(--nc-border,rgba(255,255,255,.08));border-radius:var(--nc-r-lg,16px);
-               background:rgba(255,255,255,.02);-webkit-tap-highlight-color:transparent">
+               background:var(--nc-fill-1);-webkit-tap-highlight-color:transparent">
         <span style="font-size:18px;flex-shrink:0">${icon}</span>
         <span style="flex:1;min-width:0">
           <span style="display:block;font-size:14px;font-weight:600;color:var(--nc-text-primary,#F8FAFC)">${_esc(title)}</span>

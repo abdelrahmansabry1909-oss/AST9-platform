@@ -18,56 +18,56 @@
 body.nc-client .dr-wrap { font-family: var(--nc-font-body, system-ui, sans-serif); }
 body.nc-client .dr-card {
   background: var(--nc-bg-card, rgba(15,23,42,.7));
-  border: 1px solid var(--nc-border, rgba(255,255,255,.08));
+  border: 1px solid var(--nc-border, var(--nc-track));
   box-shadow: var(--nc-shadow-card, 0 8px 32px rgba(0,0,0,.4));
 }
 body.nc-client .dr-title { color: var(--nc-text-primary, #F8FAFC); font-family: var(--nc-font-display, inherit); }
 body.nc-client .dr-sub { color: var(--nc-text-muted, #64748B); }
 
-body.nc-client .dr-bartrack { background: rgba(255,255,255,.07); }
+body.nc-client .dr-bartrack { background: var(--nc-track); }
 body.nc-client .dr-count { color: var(--nc-text-muted, #64748B); }
 body.nc-client .dr-badge { background: rgba(20,184,166,.14); color: var(--nc-teal, #14B8A6); }
 
-body.nc-client .dr-meta-strip .dr-chip { background: rgba(255,255,255,.05); color: var(--nc-text-secondary, #94A3B8); }
+body.nc-client .dr-meta-strip .dr-chip { background: var(--nc-fill-1); color: var(--nc-text-secondary, #94A3B8); }
 body.nc-client .dr-chip b { color: var(--nc-text-primary, #F8FAFC); }
 
 body.nc-client .dr-sec-title { color: var(--nc-text-primary, #F8FAFC); }
-body.nc-client .dr-dur { background: rgba(255,255,255,.05); color: var(--nc-text-secondary, #94A3B8); }
+body.nc-client .dr-dur { background: var(--nc-fill-1); color: var(--nc-text-secondary, #94A3B8); }
 body.nc-client .dr-goal { color: var(--nc-text-muted, #64748B); }
 
 body.nc-client .dr-item {
-  background: rgba(255,255,255,.03);
-  border-color: var(--nc-border, rgba(255,255,255,.08));
+  background: var(--nc-fill-1);
+  border-color: var(--nc-border, var(--nc-track));
 }
 body.nc-client .dr-item.done { background: rgba(20,184,166,.10); border-color: rgba(20,184,166,.30); }
-body.nc-client .dr-item.open { border-color: var(--nc-border-strong, rgba(255,255,255,.14)); }
+body.nc-client .dr-item.open { border-color: var(--nc-border-strong, var(--nc-track)); }
 body.nc-client .dr-label { color: var(--nc-text-primary, #F8FAFC); }
 body.nc-client .dr-item.done .dr-label { color: var(--nc-text-muted, #64748B); }
 body.nc-client .dr-metatag { color: var(--nc-text-muted, #64748B); }
 body.nc-client .dr-chev { color: var(--nc-text-muted, #64748B); }
 
-body.nc-client .dr-check { border-color: var(--nc-border-strong, rgba(255,255,255,.2)); background: transparent; }
+body.nc-client .dr-check { border-color: var(--nc-border-strong, var(--nc-track)); background: transparent; }
 body.nc-client .dr-check.done { background: var(--nc-teal, #14B8A6); border-color: var(--nc-teal, #14B8A6); }
 
-body.nc-client .dr-detail { border-color: var(--nc-border, rgba(255,255,255,.08)); }
+body.nc-client .dr-detail { border-color: var(--nc-border, var(--nc-track)); }
 body.nc-client .dr-detail.done { border-color: rgba(20,184,166,.25); background: rgba(20,184,166,.06); }
-body.nc-client .dr-detail.todo { background: rgba(255,255,255,.03); }
+body.nc-client .dr-detail.todo { background: var(--nc-fill-1); }
 body.nc-client .dr-detail-line { color: var(--nc-text-secondary, #94A3B8); }
 body.nc-client .dr-detail-dot { color: var(--nc-cyan, #67E8F9); }
 body.nc-client .dr-endfeel { color: var(--nc-text-secondary, #94A3B8); }
 
-body.nc-client .dr-notes { background: rgba(255,255,255,.02); border-color: var(--nc-border, rgba(255,255,255,.08)); }
+body.nc-client .dr-notes { background: var(--nc-fill-1); border-color: var(--nc-border, var(--nc-track)); }
 body.nc-client .dr-notes-title { color: var(--nc-text-primary, #F8FAFC); }
 body.nc-client .dr-note { color: var(--nc-text-secondary, #94A3B8); }
 
 body.nc-client .dr-reset {
-  background: transparent; border-color: var(--nc-border, rgba(255,255,255,.08)); color: var(--nc-text-secondary, #94A3B8);
+  background: transparent; border-color: var(--nc-border, var(--nc-track)); color: var(--nc-text-secondary, #94A3B8);
 }
-body.nc-client .dr-reset:hover { background: rgba(255,255,255,.05); }
+body.nc-client .dr-reset:hover { background: var(--nc-fill-1); }
 
 /* The progress ring is inline SVG: the track circle uses a presentation
    attribute (CSS wins) and the % label uses an inline fill (needs !important). */
-body.nc-client .dr-card svg circle:first-of-type { stroke: rgba(255,255,255,.08); }
+body.nc-client .dr-card svg circle:first-of-type { stroke: var(--nc-track); }
 body.nc-client .dr-card svg text { fill: var(--nc-text-primary, #F8FAFC) !important; }
 
 /* Assessment report labels used an off-system cyan; calm them down. */
@@ -76,10 +76,10 @@ body.nc-client .cd-assessment-label { color: var(--nc-text-muted, #64748B); }
 /* ─────────────────────────────────────────────────────────────
    2. Loading skeleton (shared via ClientUtil.skeleton).
    ───────────────────────────────────────────────────────────── */
-.nc-skel { position: relative; overflow: hidden; background: rgba(255,255,255,.04); }
+.nc-skel { position: relative; overflow: hidden; background: var(--nc-fill-1); }
 .nc-skel::after {
   content: ""; position: absolute; inset: 0; transform: translateX(-100%);
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,.06), transparent);
+  background: linear-gradient(90deg, transparent, var(--nc-track), transparent);
   animation: nc-shimmer 1.3s ease-in-out infinite;
 }
 @keyframes nc-shimmer { 100% { transform: translateX(100%); } }

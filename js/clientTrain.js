@@ -40,7 +40,7 @@
   function _stepper(idx) {
     return `<div style="display:flex;gap:6px;margin-top:14px">${
       STAGES.map((s, i) => `<div title="${_esc(s)}" aria-hidden="true"
-        style="flex:1;height:6px;border-radius:99px;background:${i <= idx ? 'var(--nc-teal,#14B8A6)' : 'rgba(255,255,255,.10)'};
+        style="flex:1;height:6px;border-radius:99px;background:${i <= idx ? 'var(--nc-teal,#14B8A6)' : 'var(--nc-track)'};
                ${i === idx ? 'box-shadow:0 0 10px rgba(20,184,166,.5)' : ''}"></div>`).join('')
     }</div>`;
   }
@@ -95,7 +95,7 @@
         <div id="ct-session" style="margin-top:12px;display:none"></div>
 
         <!-- WHAT'S NEXT? -->
-        <div style="margin-top:16px;border:1px solid var(--nc-border,rgba(255,255,255,.08));border-radius:var(--nc-r-lg,16px);background:rgba(255,255,255,.02);padding:16px">
+        <div style="margin-top:16px;border:1px solid var(--nc-border,rgba(255,255,255,.08));border-radius:var(--nc-r-lg,16px);background:var(--nc-fill-1);padding:16px">
           <div style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--nc-text-muted,#64748B)">What's next</div>
           ${nextStage
             ? `<div style="font-size:16px;font-weight:700;color:var(--nc-text-primary,#F8FAFC);margin-top:2px">${_esc(nextStage)}</div>

@@ -102,7 +102,7 @@
     const c = 2 * Math.PI * r;
     const off = c * (1 - p / 100);
     return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true" style="flex:none">
-      <circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="rgba(255,255,255,.10)" stroke-width="${stroke}"/>
+      <circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="var(--nc-track)" stroke-width="${stroke}"/>
       <circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="${color}" stroke-width="${stroke}"
         stroke-linecap="round" stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}"
         transform="rotate(-90 ${size / 2} ${size / 2})" style="transition:stroke-dashoffset .35s cubic-bezier(0.16,1,0.3,1)"/>
@@ -146,7 +146,7 @@
     if (!host) return;
     host.innerHTML = `
       <div role="alert" style="border:1px solid var(--nc-border,rgba(255,255,255,.08));border-radius:var(--nc-r-lg,16px);
-           background:rgba(255,255,255,.02);padding:18px;text-align:center">
+           background:var(--nc-fill-1);padding:18px;text-align:center">
         <div style="font-size:22px;line-height:1" aria-hidden="true">⚠</div>
         <div style="font-size:14px;font-weight:600;color:var(--nc-text-primary,#F8FAFC);margin-top:8px">${esc(message || 'Something went wrong')}</div>
         <button type="button" data-nc-retry style="margin-top:12px;min-height:44px;padding:10px 20px;border:1px solid var(--nc-border,rgba(255,255,255,.12));
