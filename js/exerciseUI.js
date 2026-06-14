@@ -247,8 +247,26 @@ const ExerciseUI = (() => {
                   </select>
                 </div>
               </div>
-              <div class="form-group"><label class="form-label">YouTube URL</label><input id="ex-form-video" class="form-input" placeholder="https://youtube.com/watch?v=…"/></div>
-              <div class="form-group"><label class="form-label">Coaching Cues</label><textarea id="ex-form-cues" class="form-input" style="min-height:72px" placeholder="Setup, execution, breathing cues…"></textarea></div>
+              <div class="input-row">
+                <div class="form-group">
+                  <label class="form-label">Difficulty</label>
+                  <select id="ex-form-difficulty" class="form-input">
+                    <option value="">—</option><option>Beginner</option><option>Intermediate</option><option>Advanced</option>
+                  </select>
+                </div>
+                <div class="form-group"><label class="form-label">Equipment</label><input id="ex-form-equipment" class="form-input" placeholder="e.g. Band, Dumbbell, None"/></div>
+              </div>
+              <div class="form-group"><label class="form-label">Target Area</label><input id="ex-form-target" class="form-input" placeholder="e.g. Hip, Shoulder, Lower back"/></div>
+              <div class="input-row">
+                <div class="form-group"><label class="form-label">Video URL</label><input id="ex-form-video" class="form-input" placeholder="https://…"/></div>
+                <div class="form-group"><label class="form-label">YouTube URL</label><input id="ex-form-youtube" class="form-input" placeholder="https://youtube.com/watch?v=…"/></div>
+              </div>
+              <div class="input-row">
+                <div class="form-group"><label class="form-label">Channel name</label><input id="ex-form-channel-name" class="form-input" placeholder="e.g. NeuCore PT"/></div>
+                <div class="form-group"><label class="form-label">Channel URL</label><input id="ex-form-channel-url" class="form-input" placeholder="https://youtube.com/@…"/></div>
+              </div>
+              <div class="form-group"><label class="form-label">Coaching Cues / Instructions</label><textarea id="ex-form-cues" class="form-input" style="min-height:72px" placeholder="Setup, execution, breathing cues…"></textarea></div>
+              <div class="form-group"><label class="form-label">Notes</label><input id="ex-form-notes" class="form-input" placeholder="Private notes (coach-only)"/></div>
               <div class="form-group"><label class="form-label">Common Errors</label><input id="ex-form-errors" class="form-input" placeholder="e.g. Lumbar extension, hip hike…"/></div>
               <div class="form-group"><label class="form-label">Tags (comma-separated)</label><input id="ex-form-tags" class="form-input" placeholder="e.g. hip, pails, mobility"/></div>
               <div class="form-group"><label class="form-label">Target Joints (comma-separated)</label><input id="ex-form-joints" class="form-input" placeholder="e.g. hip_ir, ankle_df"/></div>
@@ -269,8 +287,15 @@ const ExerciseUI = (() => {
     document.getElementById('ex-form-name').value        = ex?.name || '';
     document.getElementById('ex-form-category').value    = ex?.category || 'Rehab';
     document.getElementById('ex-form-phase').value       = ex?.phase || 'Phase 1';
-    document.getElementById('ex-form-video').value       = ex?.video_url || '';
+    document.getElementById('ex-form-difficulty').value   = ex?.difficulty || '';
+    document.getElementById('ex-form-equipment').value    = ex?.equipment || '';
+    document.getElementById('ex-form-target').value       = ex?.target_area || '';
+    document.getElementById('ex-form-video').value        = ex?.video_url || '';
+    document.getElementById('ex-form-youtube').value      = ex?.youtube_url || '';
+    document.getElementById('ex-form-channel-name').value = ex?.channel_name || '';
+    document.getElementById('ex-form-channel-url').value  = ex?.channel_url || '';
     document.getElementById('ex-form-cues').value        = ex?.cues || '';
+    document.getElementById('ex-form-notes').value       = ex?.notes || '';
     document.getElementById('ex-form-errors').value      = ex?.common_errors || '';
     document.getElementById('ex-form-tags').value        = (ex?.tags || []).join(', ');
     document.getElementById('ex-form-joints').value      = (ex?.target_joints || []).join(', ');
@@ -283,23 +308,45 @@ const ExerciseUI = (() => {
   }
 
   async function submitExForm() {
+    const g        = (id) => document.getElementById(id)?.value?.trim() || '';
     const id       = document.getElementById('ex-form-id')?.value;
-    const name     = document.getElementById('ex-form-name')?.value?.trim();
+    const name     = g('ex-form-name');
     const category = document.getElementById('ex-form-category')?.value;
     const phase    = document.getElementById('ex-form-phase')?.value;
-    const videoUrl = document.getElementById('ex-form-video')?.value?.trim();
-    const cues     = document.getElementById('ex-form-cues')?.value?.trim();
-    const errors   = document.getElementById('ex-form-errors')?.value?.trim();
+    const difficulty = document.getElementById('ex-form-difficulty')?.value || '';
+    const equipment  = g('ex-form-equipment');
+    const targetArea = g('ex-form-target');
+    const videoUrl   = g('ex-form-video');
+    const youtubeUrl = g('ex-form-youtube');
+    const channelName = g('ex-form-channel-name');
+    const channelUrl  = g('ex-form-channel-url');
+    const cues     = g('ex-form-cues');
+    const notes    = g('ex-form-notes');
+    const errors   = g('ex-form-errors');
     const tagsRaw  = document.getElementById('ex-form-tags')?.value || '';
     const jointsRaw = document.getElementById('ex-form-joints')?.value || '';
 
     if (!name) { Dashboard.toast('Exercise name required', 'error'); return; }
+    // Validate any supplied links are real http(s) URLs (no unsafe schemes).
+    for (const [label, url] of [['Video', videoUrl], ['YouTube', youtubeUrl], ['Channel', channelUrl]]) {
+      if (url && !ExerciseLibrary.isValidUrl(url)) {
+        Dashboard.toast(`${label} URL must be a valid http(s) link`, 'error'); return;
+      }
+    }
 
+    const ytForThumb = youtubeUrl || videoUrl;
     const fields = {
       name, category, phase,
+      difficulty:    difficulty || null,
+      equipment:     equipment || null,
+      target_area:   targetArea || null,
       video_url:     videoUrl || null,
-      thumbnail_url: videoUrl ? ExerciseLibrary.getThumbnailUrl(videoUrl) : null,
+      youtube_url:   youtubeUrl || null,
+      channel_name:  channelName || null,
+      channel_url:   channelUrl || null,
+      thumbnail_url: ytForThumb ? ExerciseLibrary.getThumbnailUrl(ytForThumb) : null,
       cues:          cues || null,
+      notes:         notes || null,
       common_errors: errors || null,
       tags:          tagsRaw.split(',').map(t => t.trim()).filter(Boolean),
       target_joints: jointsRaw.split(',').map(t => t.trim()).filter(Boolean),
