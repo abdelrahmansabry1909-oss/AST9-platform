@@ -238,9 +238,10 @@
       <div class="nav-item" id="nav-services" onclick="Dashboard.showSection('services')" title="Our Services">
         <span class="nav-item-icon">✦</span><span class="nav-label">Our Services</span>
       </div>
-      <div class="nav-item role-coach-admin" id="nav-gait" onclick="Dashboard.showSection('gait')" title="Gait Analysis">
-        <span class="nav-item-icon">⟳</span><span class="nav-label">Gait Analysis</span>
-      </div>
+      <!-- Gait Analysis removed from navigation (Phase 8). The engine stays
+           wired into the New Session generation pipeline (gait-panel /
+           _setLastGait / Reactive Graph); only the standalone sidebar entry
+           is hidden. Re-add this nav item to expose the section again. -->
       <div class="nav-item" id="nav-case-studies" onclick="Dashboard.showSection('case-studies')" title="Case Studies">
         <span class="nav-item-icon">◧</span><span class="nav-label">Case Studies</span>
       </div>

@@ -68,7 +68,28 @@ const Dashboard = (() => {
   //  NAVIGATION
   // ═══════════════════════════════════════════════════════════
 
+  // Role-routing safety (Phase 1). RLS already blocks the *data* a wrong
+  // role could request; these allow-lists stop the wrong *shell* from
+  // rendering at all — a client who manually calls showSection('clients')
+  // (stale deep-link, old nav path, console) is bounced home instead of
+  // landing on an empty/broken coach screen. Source of truth mirrors the
+  // nav role-classes in app.html. Coaches/admins are unaffected.
+  const CLIENT_SAFE_SECTIONS = new Set([
+    'dashboard', 'client-dashboard',
+    'client-train', 'client-progress', 'client-coach', 'client-settings',
+    'my-graph', 'nutrition-plan', 'case-studies', 'community', 'services',
+  ]);
+  const ADMIN_ONLY_SECTIONS = new Set(['coaches', 'settings']);
+
   function showSection(id) {
+    // Phase 1 guard — keep each role inside the sections it may use.
+    const _role = (typeof Auth !== 'undefined' && Auth.getRole) ? Auth.getRole() : 'client';
+    if (_role === 'client' && !CLIENT_SAFE_SECTIONS.has(id)) {
+      id = 'dashboard';                          // client → own home
+    } else if (_role !== 'admin' && ADMIN_ONLY_SECTIONS.has(id)) {
+      id = 'dashboard';                          // coach → coach home (admin-only blocked)
+    }
+
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
 
