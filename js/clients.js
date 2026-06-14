@@ -90,9 +90,11 @@ const Clients = (() => {
     if (fields.pass.length < 8) {
       Dashboard.toast('Password must be at least 8 characters', 'error'); return;
     }
-    // Tier-1 fix C — coach assignment is required so downstream alt-request,
-    // grace notifications, and workout coach_id stamping all work correctly.
-    if (!fields.coach) {
+    // BUG 4 — only an admin chooses the owning coach. A coach-created client is
+    // auto-assigned to the logged-in coach (pinned server-side in create-user),
+    // so coaches see no selector and we don't require one here.
+    const isAdmin = !!(typeof Auth !== 'undefined' && Auth.isAdmin && Auth.isAdmin());
+    if (isAdmin && !fields.coach) {
       Dashboard.toast('Please assign a coach before creating the client', 'error');
       const sel = document.getElementById('ac-coach');
       sel?.focus();
@@ -114,7 +116,9 @@ const Clients = (() => {
           email: fields.email, password: fields.pass,
           full_name: fields.name, role: 'client',
           age: fields.age, current_phase: fields.phase,
-          phone: fields.phone, assigned_coach: fields.coach || null,
+          // Coaches never send assigned_coach — create-user pins it to the
+          // calling coach. Only an admin's explicit choice is forwarded.
+          phone: fields.phone, assigned_coach: isAdmin ? (fields.coach || null) : null,
           goal: fields.goal
         })
       });
@@ -134,8 +138,13 @@ const Clients = (() => {
       ['ac-name','ac-email','ac-password','ac-age','ac-phone','ac-goal'].forEach(id => {
         const el = document.getElementById(id); if(el) el.value = '';
       });
-      loadAll();
-      Dashboard.refreshClientSelects();
+      // BUG 1 — refresh everything the new client affects so nothing shows
+      // stale until a manual reload: roster table + Needs-Attention panel,
+      // the client/coach <select>s, and (when visible) the dashboard KPI cards
+      // and Billing slot usage.
+      await loadAll();
+      Dashboard.refreshClientSelects?.();
+      Dashboard.refreshAfterRosterChange?.();
     } catch(e) {
       Dashboard.toast(e.message, 'error');
     } finally {
