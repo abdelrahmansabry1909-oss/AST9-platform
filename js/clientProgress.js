@@ -212,13 +212,13 @@
       return `
         <div style="display:flex;align-items:center;gap:12px;padding:10px 4px">
           <span style="width:120px;font-size:12.5px;color:var(--nc-text-secondary,#94A3B8)">${_esc(d)}</span>
-          <span style="flex:1;height:6px;border-radius:99px;background:rgba(255,255,255,.07);overflow:hidden">
+          <span style="flex:1;height:6px;border-radius:99px;background:var(--nc-track);overflow:hidden">
             <span style="display:block;height:100%;width:${pct}%;background:${band.color}"></span>
           </span>
           <span style="width:30px;text-align:right;font-size:13px;font-weight:700;color:var(--nc-text-primary,#F8FAFC)">${Math.round(p.score)}</span>
         </div>`;
     }).join('');
-    panel.innerHTML = `<div style="border:1px solid var(--nc-border,rgba(255,255,255,.08));border-radius:var(--nc-r-lg,16px);background:rgba(255,255,255,.02);padding:8px 12px">${rows}</div>`;
+    panel.innerHTML = `<div style="border:1px solid var(--nc-border,rgba(255,255,255,.08));border-radius:var(--nc-r-lg,16px);background:var(--nc-fill-1);padding:8px 12px">${rows}</div>`;
   }
 
   // ═══ E5 — Your body story ═══════════════════════════════════════
@@ -281,7 +281,7 @@
       }).join('');
 
     panel.innerHTML = `
-      <div style="border:1px solid var(--nc-border,rgba(255,255,255,.08));border-radius:var(--nc-r-lg,16px);background:rgba(255,255,255,.02);padding:10px 12px">
+      <div style="border:1px solid var(--nc-border,rgba(255,255,255,.08));border-radius:var(--nc-r-lg,16px);background:var(--nc-fill-1);padding:10px 12px">
         ${dateLine}${rows}
       </div>`;
   }
@@ -289,7 +289,7 @@
   // The disclosure shows a calm prompt; the hologram itself runs fullscreen.
   function _renderHoloEntry(panel, snap) {
     panel.innerHTML = `
-      <div style="border:1px solid var(--nc-border,rgba(255,255,255,.08));border-radius:var(--nc-r-lg,16px);background:rgba(255,255,255,.02);padding:18px;text-align:center">
+      <div style="border:1px solid var(--nc-border,rgba(255,255,255,.08));border-radius:var(--nc-r-lg,16px);background:var(--nc-fill-1);padding:18px;text-align:center">
         <div style="font-size:13px;color:var(--nc-text-secondary,#94A3B8);line-height:1.5">A 3D view of where your body carries load now, and where your plan is taking it.</div>
         <button id="cp-holo-open" type="button"
           style="margin-top:14px;min-height:48px;padding:12px 22px;border:0;border-radius:var(--nc-r-full,999px);

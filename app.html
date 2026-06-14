@@ -2422,9 +2422,11 @@ const UI = {
   _showApp() {
     document.getElementById('screen-login').classList.add('hidden');
     document.getElementById('screen-app').style.display = 'block';
-    // D2 — bright premium theme for the coach/admin shell only; the client
-    // mobile experience keeps its calm dark theme by design.
-    document.body.classList.toggle('nc-bright', !!(Auth.isAdminOrCoach && Auth.isAdminOrCoach()));
+    // Royal Premium — every authenticated user gets the porcelain bright
+    // theme (coach, admin, and client). nc-client is still applied for
+    // client structure (mobile tab bar); the dark transition/login screen
+    // and the floating hologram own their colours explicitly.
+    document.body.classList.add('nc-bright');
     Dashboard.initShell();
     if (typeof ClientShell !== 'undefined') ClientShell.init();
     Dashboard.showSection('dashboard');

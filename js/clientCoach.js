@@ -88,7 +88,7 @@
     const body  = row.body ? `<div style="font-size:13px;line-height:1.55;color:var(--nc-text-secondary,#94A3B8);margin-top:4px">${_esc(row.body)}</div>` : '';
     return `
       <div style="border:1px solid var(--nc-border,rgba(255,255,255,.08));border-radius:var(--nc-r-lg,16px);
-           background:rgba(255,255,255,.02);padding:16px;margin-top:10px">
+           background:var(--nc-fill-1);padding:16px;margin-top:10px">
         <div style="display:flex;align-items:flex-start;gap:10px">
           <span aria-hidden="true" style="flex:0 0 auto;font-size:15px;color:var(--nc-teal,#14B8A6);line-height:1.4">“</span>
           <div style="min-width:0">
@@ -103,7 +103,7 @@
   function _guidanceEmpty() {
     return `
       <div style="border:1px dashed var(--nc-border,rgba(255,255,255,.10));border-radius:var(--nc-r-lg,16px);
-           background:rgba(255,255,255,.015);padding:18px;margin-top:10px;text-align:center">
+           background:var(--nc-fill-1);padding:18px;margin-top:10px;text-align:center">
         <div style="font-size:22px;line-height:1" aria-hidden="true">🌿</div>
         <div style="font-size:14px;font-weight:600;color:var(--nc-text-primary,#F8FAFC);margin-top:8px">No new guidance right now</div>
         <div style="font-size:13px;line-height:1.5;color:var(--nc-text-secondary,#94A3B8);margin-top:4px">Keep following your plan. Your coach is watching your progress and will reach out when it matters.</div>
@@ -169,7 +169,7 @@
   function _hubNoCoach() {
     return `
       <div style="border:1px dashed var(--nc-border,rgba(255,255,255,.10));border-radius:var(--nc-r-xl,20px);
-           background:rgba(255,255,255,.015);padding:20px;text-align:center">
+           background:var(--nc-fill-1);padding:20px;text-align:center">
         <div style="font-size:24px;line-height:1" aria-hidden="true">🤝</div>
         <div style="font-size:15px;font-weight:700;color:var(--nc-text-primary,#F8FAFC);margin-top:10px">You don't currently have a coach assigned.</div>
         <div style="font-size:13px;line-height:1.5;color:var(--nc-text-secondary,#94A3B8);margin-top:6px">Once your coach is assigned you'll be able to message them right here.</div>
@@ -257,7 +257,7 @@
         </div>
 
         <div class="thread-messages" id="cc-thread"
-          style="background:rgba(255,255,255,.02);border:1px solid var(--nc-border,rgba(255,255,255,.08));border-radius:var(--nc-r-lg,16px);
+          style="background:var(--nc-fill-1);border:1px solid var(--nc-border,rgba(255,255,255,.08));border-radius:var(--nc-r-lg,16px);
                  min-height:46vh;max-height:62vh;padding:14px">
           <div class="comm-loading" style="padding:24px;text-align:center"><span class="spinner"></span></div>
         </div>
@@ -265,7 +265,7 @@
         <div style="display:flex;gap:8px;margin-top:12px">
           <textarea id="cc-input" rows="2" placeholder="Write a message…"
             style="flex:1;resize:none;padding:12px;font-size:14px;border-radius:var(--nc-r-lg,16px);
-                   border:1px solid var(--nc-border,rgba(255,255,255,.12));background:rgba(255,255,255,.03);color:var(--nc-text-primary,#F8FAFC)"></textarea>
+                   border:1px solid var(--nc-border,rgba(255,255,255,.12));background:var(--nc-fill-1);color:var(--nc-text-primary,#F8FAFC)"></textarea>
           <button type="button" data-cc-send
             style="flex:0 0 auto;align-self:stretch;min-width:64px;border:0;border-radius:var(--nc-r-lg,16px);background:var(--nc-teal,#14B8A6);
                    color:#052e2b;font-size:14px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent">Send</button>

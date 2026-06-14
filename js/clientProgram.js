@@ -136,7 +136,7 @@
     if (!S.pulseStatus) return '';
     const p = ClientUtil.pulseLabel(S.pulseStatus);
     return `<span style="display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:999px;
-            font-size:11px;font-weight:700;background:rgba(255,255,255,.04);border:1px solid var(--nc-border,rgba(255,255,255,.10));color:${p.color}">
+            font-size:11px;font-weight:700;background:var(--nc-fill-1);border:1px solid var(--nc-border,rgba(255,255,255,.10));color:${p.color}">
             <span style="width:7px;height:7px;border-radius:50%;background:${p.color}"></span>${esc(p.word)}</span>`;
   }
 
@@ -228,14 +228,14 @@
     if (res.reason === 'no-db')   { host.innerHTML = _calm('Not connected. Check your connection and try again.'); return; }
     // empty
     host.innerHTML = `<div style="max-width:520px;margin:0 auto"><div style="border:1px solid var(--nc-border,rgba(255,255,255,.08));
-      border-radius:var(--nc-r-lg,16px);background:rgba(255,255,255,.02);padding:26px 18px;text-align:center">
+      border-radius:var(--nc-r-lg,16px);background:var(--nc-fill-1);padding:26px 18px;text-align:center">
       <div style="font-size:26px;line-height:1" aria-hidden="true">◈</div>
       <div style="font-size:15px;font-weight:700;color:var(--nc-text-primary,#F8FAFC);margin-top:10px">No plan yet</div>
       <p style="font-size:13px;color:var(--nc-text-secondary,#94A3B8);margin-top:6px;line-height:1.5">Your coach hasn't published your training plan yet. It will show up here as soon as it's ready.</p>
     </div></div>`;
   }
   const _calm = (msg) => `<div style="max-width:520px;margin:0 auto"><div style="border:1px solid var(--nc-border,rgba(255,255,255,.08));
-    border-radius:var(--nc-r-lg,16px);background:rgba(255,255,255,.02);padding:22px 18px;text-align:center;
+    border-radius:var(--nc-r-lg,16px);background:var(--nc-fill-1);padding:22px 18px;text-align:center;
     font-size:13px;color:var(--nc-text-secondary,#94A3B8)">${esc(msg)}</div></div>`;
 
   // ── Overview — day cards ────────────────────────────────────────
@@ -269,7 +269,7 @@
     // CX4 — an in-progress day shows live progress instead of a flat count.
     const progress = (key === 'in_progress' && n)
       ? `<div style="margin-top:9px;display:flex;align-items:center;gap:9px">
-           <span style="flex:1;height:5px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden">
+           <span style="flex:1;height:5px;border-radius:99px;background:var(--nc-track);overflow:hidden">
              <span style="display:block;height:100%;width:${Math.round((S.activeCompleted / n) * 100)}%;background:var(--nc-teal,#14B8A6);border-radius:99px;transition:width .35s"></span></span>
            <span style="font-size:11.5px;font-weight:700;color:var(--nc-teal,#14B8A6);white-space:nowrap">${S.activeCompleted}/${n} done</span>
          </div>`
@@ -277,7 +277,7 @@
     return `
       <button type="button" data-cp2-day="${i}"
         style="width:100%;text-align:left;border:1px solid ${isToday ? 'rgba(20,184,166,.4)' : 'var(--nc-border,rgba(255,255,255,.08))'};
-               border-radius:var(--nc-r-lg,16px);background:${isToday ? 'rgba(20,184,166,.06)' : 'rgba(255,255,255,.02)'};
+               border-radius:var(--nc-r-lg,16px);background:${isToday ? 'rgba(20,184,166,.06)' : 'var(--nc-fill-1)'};
                padding:14px 16px;cursor:pointer;-webkit-tap-highlight-color:transparent;min-height:64px">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
           <span style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--nc-text-muted,#64748B)">Day ${i + 1}</span>
@@ -391,7 +391,7 @@
            display:flex;align-items:center;justify-content:center;flex:none;font-size:18px;color:var(--nc-teal,#14B8A6)">▶</div>`;
     return `
       <div style="margin-top:14px;display:flex;align-items:center;gap:16px;border:1px solid var(--nc-border,rgba(255,255,255,.08));
-           border-radius:var(--nc-r-lg,16px);background:rgba(255,255,255,.02);padding:14px 16px">
+           border-radius:var(--nc-r-lg,16px);background:var(--nc-fill-1);padding:14px 16px">
         ${ring}
         <div style="flex:1;min-width:0">
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
@@ -432,7 +432,7 @@
     const hasDetails = !!(ex.notes || ex.tempo || ex._substituteResponse || hasMedia || typeof AltExercise !== 'undefined');
     return `
       <div class="cp2-card" data-cp2-idx="${idx}"
-           style="border:1px solid var(--nc-border,rgba(255,255,255,.08));border-radius:14px;background:rgba(255,255,255,.02);padding:12px 14px">
+           style="border:1px solid var(--nc-border,rgba(255,255,255,.08));border-radius:14px;background:var(--nc-fill-1);padding:12px 14px">
         <div style="display:flex;gap:12px;align-items:flex-start">
           <span style="width:24px;height:24px;border-radius:50%;background:rgba(20,184,166,.12);border:1px solid rgba(20,184,166,.3);
                        color:var(--nc-teal,#14B8A6);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;
@@ -586,7 +586,7 @@
             </div>
           </div>
         </div>
-        <div style="height:6px;border-radius:99px;background:rgba(255,255,255,.08);margin-top:12px;overflow:hidden">
+        <div style="height:6px;border-radius:99px;background:var(--nc-track);margin-top:12px;overflow:hidden">
           <div style="height:100%;width:${Math.round(((e.step + 1) / total) * 100)}%;background:var(--nc-teal,#14B8A6);border-radius:99px;transition:width .25s"></div>
         </div>
 
@@ -602,7 +602,7 @@
         <div style="margin-top:14px">${_mediaBlock(m)}</div>
 
         ${ex.notes ? `<div style="margin-top:10px;font-size:13px;line-height:1.55;color:var(--nc-text-secondary,#94A3B8);
-            background:rgba(255,255,255,.02);border:1px solid var(--nc-border,rgba(255,255,255,.08));border-radius:12px;padding:12px 14px">${esc(ex.notes)}</div>` : ''}
+            background:var(--nc-fill-1);border:1px solid var(--nc-border,rgba(255,255,255,.08));border-radius:12px;padding:12px 14px">${esc(ex.notes)}</div>` : ''}
 
         ${e.readOnly ? _readOnlyNote() : _setLogger(log)}
 
@@ -689,7 +689,7 @@
     if (!secs) return '';
     return `
       <div style="margin-top:12px;display:flex;align-items:center;gap:10px;border:1px solid var(--nc-border,rgba(255,255,255,.08));
-           border-radius:var(--nc-r-lg,16px);background:rgba(255,255,255,.02);padding:10px 14px">
+           border-radius:var(--nc-r-lg,16px);background:var(--nc-fill-1);padding:10px 14px">
         <span style="font-size:18px" aria-hidden="true">⏱</span>
         <div style="flex:1;min-width:0">
           <div style="font-size:12.5px;font-weight:600;color:var(--nc-text-primary,#F8FAFC)">Rest timer</div>
@@ -833,7 +833,7 @@
              font-size:24px;color:var(--nc-teal,#14B8A6)" aria-hidden="true">✓</div>
         <div style="font-size:22px;font-weight:800;color:var(--nc-text-primary,#F8FAFC);margin-top:12px">Final step</div>
         <div style="font-size:13.5px;color:var(--nc-text-secondary,#94A3B8);margin-top:6px">Note how this session felt — it helps tune your recovery.</div>
-        <div style="text-align:left;margin-top:20px;border:1px solid var(--nc-border,rgba(255,255,255,.08));border-radius:16px;padding:16px;background:rgba(255,255,255,.02)">
+        <div style="text-align:left;margin-top:20px;border:1px solid var(--nc-border,rgba(255,255,255,.08));border-radius:16px;padding:16px;background:var(--nc-fill-1)">
           <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--nc-text-secondary,#94A3B8)">
             Intensity — <span data-cp2-int-val>7</span>/10</label>
           <input type="range" data-cp2-intensity min="1" max="10" step="1" value="7" style="width:100%;margin-top:8px">
@@ -902,11 +902,11 @@
         <div style="font-size:25px;font-weight:800;letter-spacing:-.01em;color:var(--nc-text-primary,#F8FAFC);margin-top:4px">${esc(summary.label)}</div>
         <div style="font-size:14.5px;line-height:1.5;color:var(--nc-teal,#14B8A6);font-weight:600;margin-top:10px">${esc(_recoveryConnection())}</div>
         <div style="display:flex;gap:10px;justify-content:center;margin-top:22px">
-          <div style="border:1px solid var(--nc-border,rgba(255,255,255,.08));border-radius:14px;padding:12px 18px;background:rgba(255,255,255,.02)">
+          <div style="border:1px solid var(--nc-border,rgba(255,255,255,.08));border-radius:14px;padding:12px 18px;background:var(--nc-fill-1)">
             <div style="font-size:20px;font-weight:800;color:var(--nc-text-primary,#F8FAFC)">${summary.total}</div>
             <div style="font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--nc-text-muted,#64748B);margin-top:2px">Exercises</div>
           </div>
-          <div style="border:1px solid var(--nc-border,rgba(255,255,255,.08));border-radius:14px;padding:12px 18px;background:rgba(255,255,255,.02)">
+          <div style="border:1px solid var(--nc-border,rgba(255,255,255,.08));border-radius:14px;padding:12px 18px;background:var(--nc-fill-1)">
             <div style="font-size:20px;font-weight:800;color:var(--nc-text-primary,#F8FAFC)">${esc(timeLine)}</div>
             <div style="font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--nc-text-muted,#64748B);margin-top:2px">Duration</div>
           </div>
