@@ -107,6 +107,7 @@ const Dashboard = (() => {
     const loaders = {
       'clients':          () => Clients.loadAll(),
       'subscriptions':    () => Subscriptions.loadAll(),
+      'billing':          () => (typeof Billing !== 'undefined' && Billing.render?.()),
       'coaches':          () => Clients.loadCoaches(),
       'dashboard':        () => {
                             // Clients land on the new Client Dashboard;
