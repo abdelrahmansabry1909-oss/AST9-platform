@@ -43,6 +43,24 @@ const ExerciseLibrary = (() => {
     return data || null;
   }
 
+  // ── URL safety ───────────────────────────────────────────────
+  // Coach-supplied links are stored as URLs only (never as embed/HTML),
+  // and must be http(s). Anything else (javascript:, data:, garbage)
+  // becomes null so it can never be turned into an unsafe embed/href.
+  function sanitizeUrl(u) {
+    if (!u) return null;
+    const s = String(u).trim();
+    if (!s) return null;
+    try {
+      const url = new URL(s);
+      return (url.protocol === 'http:' || url.protocol === 'https:') ? url.href : null;
+    } catch { return null; }
+  }
+  // For form validation: empty is OK; non-empty must be a valid http(s) URL.
+  function isValidUrl(u) { return !u || !String(u).trim() || sanitizeUrl(u) !== null; }
+
+  const _URL_FIELDS = ['video_url', 'youtube_url', 'thumbnail_url', 'channel_url'];
+
   async function create(fields) {
     const uid = Auth.getUser()?.id;
     if (!fields.name?.trim()) throw new Error('Exercise name required');
@@ -51,9 +69,16 @@ const ExerciseLibrary = (() => {
       name:          fields.name.trim(),
       category:      fields.category || 'Rehab',
       phase:         fields.phase || 'Phase 1',
-      video_url:     fields.video_url || null,
-      thumbnail_url: fields.thumbnail_url || null,
+      target_area:   fields.target_area || null,
+      difficulty:    fields.difficulty || null,
+      equipment:     fields.equipment || null,
+      video_url:     sanitizeUrl(fields.video_url),
+      youtube_url:   sanitizeUrl(fields.youtube_url),
+      thumbnail_url: sanitizeUrl(fields.thumbnail_url),
+      channel_url:   sanitizeUrl(fields.channel_url),
+      channel_name:  fields.channel_name || null,
       cues:          fields.cues || null,
+      notes:         fields.notes || null,
       common_errors: fields.common_errors || null,
       progressions:  fields.progressions || null,
       regressions:   fields.regressions || null,
@@ -68,7 +93,9 @@ const ExerciseLibrary = (() => {
   }
 
   async function update(id, fields) {
-    const { data, error } = await sb.from('exercises').update(fields).eq('id', id).select().single();
+    const clean = { ...fields };
+    _URL_FIELDS.forEach((k) => { if (k in clean) clean[k] = sanitizeUrl(clean[k]); });
+    const { data, error } = await sb.from('exercises').update(clean).eq('id', id).select().single();
     if (error) throw new Error(error.message);
     _invalidateCache();
     return data;
@@ -272,6 +299,7 @@ const ExerciseLibrary = (() => {
   return {
     loadAll, getById, create, update, remove,
     lookup, lookupByJoint, lookupByPhase,
+    sanitizeUrl, isValidUrl,
     getEmbedUrl, getThumbnailUrl,
     fetchPlaylistItems, importFromPlaylist,
     loadPlaylists, savePlaylist, syncPlaylist,

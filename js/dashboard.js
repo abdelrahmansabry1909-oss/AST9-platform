@@ -614,6 +614,34 @@ Keep output clean, structured, and clinically precise.`;
     };
   }
 
+  // Phase 5 — open the manual program builder for the active client. Reuses
+  // the ProgramPublish editor with a blank scaffold (the same jsonb shape
+  // the client Train view + publish path already understand), so manual and
+  // generated programs publish + render identically.
+  function buildManualProgram() {
+    const { id: activeClientId, name: activeClientName } = _activeSessionClient();
+    if (!activeClientId) {
+      toast('Please start a client session first.', 'error');
+      _refreshActiveSessionChip();
+      return;
+    }
+    if (typeof ProgramPublish === 'undefined') { toast('Builder not loaded.', 'error'); return; }
+    const program = {
+      phase:               _gv('ns-phase') || 'Phase 1',
+      days_per_week:       1,
+      split_label:         'Manual program',
+      workouts:            [{ id: 'A', label: 'Day 1', warmup: [], main: [], cooldown: [] }],
+      schedule:            ['A'],
+      daily_routine_tasks: [],
+      manual:              true,
+    };
+    document.getElementById('program-panel')?.classList.add('hidden');
+    document.getElementById('daily-routine-panel')?.classList.add('hidden');
+    ProgramPublish.render({ program, clientId: activeClientId, clientName: activeClientName });
+    document.getElementById('program-review-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    toast('Manual builder ready — add days and exercises, then publish.', 'info');
+  }
+
   async function generateProgram() {
     // Read client from the active session (Client Info tab) — Generate no
     // longer has its own client picker.
@@ -1341,7 +1369,7 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
   return {
     initShell, showSection, initTabs,
     loadDashboardStats,
-    generateProgram, previewWeb, renderProgramsList,
+    generateProgram, buildManualProgram, previewWeb, renderProgramsList,
     exportProfessionalPDF,
     fillClientFromSelect,
     openClientInfoTab,

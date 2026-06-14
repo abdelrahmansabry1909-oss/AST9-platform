@@ -1162,8 +1162,11 @@
           <button class="btn btn-primary btn-xl" id="generate-btn" onclick="Dashboard.generateProgram()">
             ⚡ Generate Program
           </button>
+          <button class="btn btn-ghost btn-xl" id="build-manual-btn" onclick="Dashboard.buildManualProgram()" style="margin-left:10px">
+            ✎ Build Manually
+          </button>
           <div style="font-size:12px;color:var(--text-tertiary);margin-top:8px">
-            Runs local scoring engines first, then AI narrative
+            Generate runs the AI engines · Build Manually opens a blank program builder
           </div>
         </div>
 
@@ -2381,7 +2384,7 @@ setInterval(() => { if (!document.hidden) _refreshApprovalsBadge(); }, 60_000);
 <script src="js/pdfExport.js"></script>
 <script src="js/subscriptionService.js?v=20260530a"></script>
 <script src="js/auth.js?v=20260614p4"></script>
-<script src="js/dashboard.js"></script>
+<script src="js/dashboard.js?v=20260614p5"></script>
 <script src="js/clients.js"></script>
 <script src="js/subscriptions.js"></script>
 <script src="js/packages.js"></script>
@@ -2397,7 +2400,7 @@ setInterval(() => { if (!document.hidden) _refreshApprovalsBadge(); }, 60_000);
 <script src="js/notificationsService.js?v=20260601a"></script>
 <script src="js/altExerciseRequest.js?v=20260601a"></script>
 <script src="js/progressionEngine.js?v=20260602a"></script>
-<script src="js/programPublish.js?v=20260605a"></script>
+<script src="js/programPublish.js?v=20260614p5"></script>
 <script src="js/bodyMap3D.v2.js"></script>
 <!-- Phase 3 modules -->
 <script src="js/community.js"></script>
@@ -2411,8 +2414,8 @@ setInterval(() => { if (!document.hidden) _refreshApprovalsBadge(); }, 60_000);
 <script src="js/clientProgress.js"></script>
 <script src="js/clientCoach.js"></script>
 <script src="js/clientShell.js"></script>
-<script src="js/exerciseLibrary.js"></script>
-<script src="js/exerciseUI.js"></script>
+<script src="js/exerciseLibrary.js?v=20260614p5"></script>
+<script src="js/exerciseUI.js?v=20260614p5"></script>
 <script src="js/charts.js"></script>
 <script src="js/progressReport.js"></script>
 <script src="js/platformExtras.js"></script>
