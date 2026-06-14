@@ -10,6 +10,7 @@ const Community = (() => {
   // ── Real-time subscription handles ──────────────────────────
   let _msgChannel = null;
   let _postChannel = null;
+  let _commentChannel = null;   // live comments for the currently-open post thread
 
   // ═══════════════════════════════════════════════════════════
   //  COACH MESSAGING
@@ -408,6 +409,26 @@ const Community = (() => {
     if (_postChannel) { _postChannel.unsubscribe(); _postChannel = null; }
   }
 
+  // Live comments for a single open post thread. One channel at a time —
+  // subscribing to a new post drops the previous channel (no duplicates).
+  function subscribeToComments(postId, callback) {
+    if (_commentChannel) { _commentChannel.unsubscribe(); _commentChannel = null; }
+    if (!postId) return;
+    _commentChannel = sb
+      .channel(`comments_${postId}`)
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'client_comments',
+        filter: `post_id=eq.${postId}`,
+      }, payload => callback(payload.new))
+      .subscribe();
+  }
+
+  function unsubscribeComments() {
+    if (_commentChannel) { _commentChannel.unsubscribe(); _commentChannel = null; }
+  }
+
   // ═══════════════════════════════════════════════════════════
   //  SUPPORT GROUPS
   // ═══════════════════════════════════════════════════════════
@@ -513,6 +534,7 @@ const Community = (() => {
     loadClientPosts, createPost, deletePost,
     loadComments, addComment,
     subscribeToClientPosts, unsubscribePosts,
+    subscribeToComments, unsubscribeComments,
     // Support groups (client)
     loadClientGroups, createClientGroup, joinClientGroup, leaveClientGroup,
     // Privacy

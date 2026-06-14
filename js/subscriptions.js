@@ -185,6 +185,13 @@ const Subscriptions = (() => {
   }
 
   async function submit() {
+    // BUG 5 — creating a subscription is admin-only (subscriptions_admin_write).
+    // The "+ New Subscription" button is hidden from coaches; this is the honest
+    // backstop if it's ever reached — fail clearly, never fake success.
+    if (!(typeof Auth !== 'undefined' && Auth.isAdmin && Auth.isAdmin())) {
+      Dashboard.toast('Only admins can create subscriptions', 'error');
+      return;
+    }
     const clientId = document.getElementById('sub-client')?.value;
     const plan     = document.getElementById('sub-plan')?.value;
     const start    = document.getElementById('sub-start')?.value;

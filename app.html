@@ -1256,7 +1256,8 @@
           <p class="page-subtitle">Manually manage all client plans</p>
         </div>
         <div class="page-actions">
-          <button class="btn btn-primary" onclick="Dashboard.openModal('modal-add-subscription')">+ New Subscription</button>
+          <!-- BUG 5 — creating subscriptions is admin-only; hidden from coaches. -->
+          <button class="btn btn-primary role-admin-only" onclick="Dashboard.openModal('modal-add-subscription')">+ New Subscription</button>
         </div>
       </div>
       <div class="grid-4 stagger" style="margin-bottom:var(--sp-5)">
@@ -1881,10 +1882,14 @@
         </div>
       </div>
       <div class="form-group"><label class="form-label">Phone (optional)</label><input id="ac-phone" class="form-input" placeholder="+20 100 000 0000"/></div>
-      <div class="form-group">
+      <!-- Admin-only: choose the owning coach. Coaches see #ac-coach-note instead (BUG 4). -->
+      <div class="form-group" id="ac-coach-group">
         <label class="form-label">Assign to Coach <span style="color:#f43f5e">*</span></label>
         <select id="ac-coach" class="form-input" required><option value="">— Select Coach —</option></select>
         <div class="form-hint">Required — drives the alt-exercise inbox, grace notifications, and workout attribution.</div>
+      </div>
+      <div class="form-group" id="ac-coach-note" style="display:none">
+        <div class="form-hint" style="padding:10px 12px;border-radius:9px;background:rgba(20,184,166,.10);border:1px solid rgba(20,184,166,.30);color:var(--text-secondary)">This client will be assigned to you.</div>
       </div>
       <div class="form-group"><label class="form-label">Goal</label><input id="ac-goal" class="form-input" placeholder="e.g. Reduce back pain, improve mobility"/></div>
     </div>
@@ -2384,9 +2389,9 @@ setInterval(() => { if (!document.hidden) _refreshApprovalsBadge(); }, 60_000);
 <script src="js/pdfExport.js"></script>
 <script src="js/subscriptionService.js?v=20260530a"></script>
 <script src="js/auth.js?v=20260614p4"></script>
-<script src="js/dashboard.js?v=20260614p5"></script>
-<script src="js/clients.js"></script>
-<script src="js/subscriptions.js"></script>
+<script src="js/dashboard.js?v=20260614p6"></script>
+<script src="js/clients.js?v=20260614p6"></script>
+<script src="js/subscriptions.js?v=20260614p6"></script>
 <script src="js/packages.js"></script>
 <script src="js/billing.js"></script>
 <script src="js/tour.js"></script>
@@ -2403,8 +2408,8 @@ setInterval(() => { if (!document.hidden) _refreshApprovalsBadge(); }, 60_000);
 <script src="js/programPublish.js?v=20260614p5"></script>
 <script src="js/bodyMap3D.v2.js"></script>
 <!-- Phase 3 modules -->
-<script src="js/community.js"></script>
-<script src="js/communityUI.js"></script>
+<script src="js/community.js?v=20260614p6"></script>
+<script src="js/communityUI.js?v=20260614p6"></script>
 <!-- Feature 7 — shared assessment→hologram loader (used by client dashboard + coach Recovery modal) -->
 <script src="js/assessmentSnapshot.js"></script>
 <script src="js/clientUtil.js"></script>

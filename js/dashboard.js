@@ -82,6 +82,9 @@ const Dashboard = (() => {
   const ADMIN_ONLY_SECTIONS = new Set(['coaches', 'settings']);
 
   function showSection(id) {
+    // BUG 3 — capture the section we're leaving so we can tear down its
+    // Community realtime subscriptions (below) instead of letting them linger.
+    const _leavingSection = document.querySelector('.section.active')?.id || null;
     // Phase 1 guard — keep each role inside the sections it may use.
     const _role = (typeof Auth !== 'undefined' && Auth.getRole) ? Auth.getRole() : 'client';
     if (_role === 'client' && !CLIENT_SAFE_SECTIONS.has(id)) {
@@ -188,6 +191,12 @@ const Dashboard = (() => {
                             }
                           },
     };
+    // BUG 3 — leaving Community: drop its realtime channels so they don't
+    // linger or double-deliver if the section is re-opened.
+    if (_leavingSection === 'section-community' && id !== 'community'
+        && typeof CommunityUI !== 'undefined') {
+      CommunityUI.teardown?.();
+    }
     loaders[id]?.();
   }
 
@@ -1115,17 +1124,46 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
       });
     });
 
-    // Coach dropdown for Add Client
-    const { data: coaches } = await sb.from('profiles')
-      .select('id, full_name, email').in('role',['coach','admin']);
-    const coachSel = document.getElementById('ac-coach');
-    if (coachSel && coaches) {
-      coaches.forEach(c => {
-        const opt = document.createElement('option');
-        opt.value = c.id;
-        opt.textContent = c.full_name || c.email;
-        coachSel.appendChild(opt);
-      });
+    // Coach dropdown for Add Client — admin-only (BUG 4). A coach never picks
+    // the owning coach (their new clients auto-assign to them), so we hide the
+    // selector and show a short note instead.
+    const coachSel   = document.getElementById('ac-coach');
+    const coachGroup = document.getElementById('ac-coach-group');
+    const coachNote  = document.getElementById('ac-coach-note');
+    if (Auth.isAdmin && Auth.isAdmin()) {
+      if (coachGroup) coachGroup.style.display = '';
+      if (coachNote)  coachNote.style.display  = 'none';
+      const { data: coaches } = await sb.from('profiles')
+        .select('id, full_name, email').in('role',['coach','admin']);
+      if (coachSel && coaches) {
+        // Reset to the placeholder before repopulating so repeated refreshes
+        // (e.g. after creating a client) never duplicate the options.
+        const placeholder = coachSel.options[0];
+        coachSel.innerHTML = '';
+        if (placeholder) coachSel.appendChild(placeholder);
+        coaches.forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c.id;
+          opt.textContent = c.full_name || c.email;
+          coachSel.appendChild(opt);
+        });
+      }
+    } else {
+      if (coachGroup) coachGroup.style.display = 'none';
+      if (coachNote)  coachNote.style.display  = '';
+    }
+  }
+
+  // BUG 1 — after the client roster changes (e.g. a new client is created),
+  // refresh the KPI cards and Billing slot usage *if* the user is looking at
+  // them. The roster table and <select>s are refreshed by their own callers.
+  function refreshAfterRosterChange() {
+    const isActive = (id) => document.getElementById('section-' + id)?.classList.contains('active');
+    if (isActive('dashboard') && Auth.isAdminOrCoach && Auth.isAdminOrCoach()) {
+      loadDashboardStats();
+    }
+    if (isActive('billing') && typeof Billing !== 'undefined') {
+      Billing.render?.();
     }
   }
 
@@ -1369,6 +1407,8 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
   return {
     initShell, showSection, initTabs,
     loadDashboardStats,
+    refreshClientSelects: _populateClientSelects,
+    refreshAfterRosterChange,
     generateProgram, buildManualProgram, previewWeb, renderProgramsList,
     exportProfessionalPDF,
     fillClientFromSelect,

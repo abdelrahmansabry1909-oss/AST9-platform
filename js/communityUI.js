@@ -646,7 +646,7 @@ const CommunityUI = (() => {
         <div class="post-content">${_esc(p.content)}</div>
         <div class="post-actions">
           <button class="btn btn-ghost btn-xs" onclick="CommunityUI.toggleComments('${p.id}')">
-            ◈ ${commentCount} comment${commentCount !== 1 ? 's' : ''}
+            ◈ <span class="cc-count" data-post="${p.id}" data-n="${commentCount}">${commentCount} comment${commentCount !== 1 ? 's' : ''}</span>
           </button>
         </div>
         <div class="post-comments hidden" id="comments-${p.id}"></div>
@@ -677,12 +677,54 @@ const CommunityUI = (() => {
     }
   }
 
+  // Single comment row — shared by the initial render, the author's instant
+  // local echo, and live (realtime) inserts. data-cid lets us dedupe.
+  function _commentItem({ id, name, role, content, time }) {
+    return `
+      <div class="comment-item" data-cid="${_esc(id || '')}">
+        ${_avatar(name, role === 'coach' ? 'var(--teal)' : 'var(--lime)')}
+        <div class="comment-body">
+          <div class="comment-author">${_esc(name || 'User')} <span class="badge" style="font-size:9px">${_esc(role || '')}</span></div>
+          <div class="comment-text">${_esc(content)}</div>
+          <div class="comment-time">${_esc(time || 'just now')}</div>
+        </div>
+      </div>`;
+  }
+
+  // Keep the post's "N comments" label in sync as comments arrive.
+  function _bumpCommentCount(postId, delta) {
+    const el = document.querySelector(`.cc-count[data-post="${postId}"]`);
+    if (!el) return;
+    const n = Math.max(0, (parseInt(el.dataset.n, 10) || 0) + delta);
+    el.dataset.n = n;
+    el.textContent = `${n} comment${n !== 1 ? 's' : ''}`;
+  }
+
+  // Realtime insert handler — append a comment from another session, skipping
+  // our own echo (already shown) and any duplicate delivery.
+  async function _onLiveComment(postId, row) {
+    const list = document.querySelector(`#comments-${postId} .comments-list`);
+    if (!list || !row?.id) return;
+    if (list.querySelector(`[data-cid="${row.id}"]`)) return;        // already shown
+    let name = 'Member';
+    try {
+      const { data } = await sb.from('profiles').select('full_name,email').eq('id', row.author_id).maybeSingle();
+      name = data?.full_name || data?.email || 'Member';
+    } catch (_) { /* name is best-effort */ }
+    if (list.querySelector(`[data-cid="${row.id}"]`)) return;        // re-check after await
+    list.insertAdjacentHTML('beforeend', _commentItem({
+      id: row.id, name, role: row.author_role, content: row.content, time: _timeAgo(row.created_at),
+    }));
+    _bumpCommentCount(postId, +1);
+  }
+
   async function toggleComments(postId) {
     const el = document.getElementById(`comments-${postId}`);
     if (!el) return;
 
     if (!el.classList.contains('hidden')) {
       el.classList.add('hidden');
+      Community.unsubscribeComments?.();          // stop live updates for this thread
       return;
     }
 
@@ -692,21 +734,19 @@ const CommunityUI = (() => {
     const comments = await Community.loadComments(postId);
     el.innerHTML = `
       <div class="comments-list">
-        ${comments.map(c => `
-          <div class="comment-item">
-            ${_avatar(c.author?.full_name, c.author_role === 'coach' ? 'var(--teal)' : 'var(--lime)')}
-            <div class="comment-body">
-              <div class="comment-author">${_esc(c.author?.full_name || c.author?.email || 'User')} <span class="badge" style="font-size:9px">${c.author_role}</span></div>
-              <div class="comment-text">${_esc(c.content)}</div>
-              <div class="comment-time">${_timeAgo(c.created_at)}</div>
-            </div>
-          </div>`).join('')}
+        ${comments.map(c => _commentItem({
+          id: c.id, name: c.author?.full_name || c.author?.email, role: c.author_role,
+          content: c.content, time: _timeAgo(c.created_at),
+        })).join('')}
       </div>
       <div class="comment-input-row">
         <input class="form-input" id="comment-input-${postId}" placeholder="Add a comment…" style="flex:1"
           onkeydown="if(event.key==='Enter'){CommunityUI.submitComment('${postId}')}"/>
         <button class="btn btn-primary btn-sm" onclick="CommunityUI.submitComment('${postId}')">Reply</button>
       </div>`;
+
+    // Live updates for this thread (RLS-scoped — only comments the viewer may see).
+    Community.subscribeToComments?.(postId, row => _onLiveComment(postId, row));
   }
 
   async function submitComment(postId) {
@@ -718,22 +758,26 @@ const CommunityUI = (() => {
       const comment = await Community.addComment(postId, content);
       input.value = '';
       const list = document.querySelector(`#comments-${postId} .comments-list`);
-      if (list) {
+      // Instant local echo (tagged with the real id so the realtime echo is deduped).
+      if (list && comment?.id && !list.querySelector(`[data-cid="${comment.id}"]`)) {
         const profile = Auth.getProfile();
-        list.insertAdjacentHTML('beforeend', `
-          <div class="comment-item">
-            ${_avatar(profile?.full_name)}
-            <div class="comment-body">
-              <div class="comment-author">${_esc(profile?.full_name || 'You')} <span class="badge" style="font-size:9px">${Auth.getRole()}</span></div>
-              <div class="comment-text">${_esc(content)}</div>
-              <div class="comment-time">just now</div>
-            </div>
-          </div>`);
+        list.insertAdjacentHTML('beforeend', _commentItem({
+          id: comment.id, name: profile?.full_name || 'You', role: Auth.getRole(), content, time: 'just now',
+        }));
+        _bumpCommentCount(postId, +1);
       }
       Dashboard.toast('Comment added', 'success');
     } catch(e) {
       Dashboard.toast(e.message, 'error');
     }
+  }
+
+  // BUG 3 — called when leaving the Community section: drop all realtime
+  // channels so they don't linger or double-deliver on re-entry.
+  function teardown() {
+    Community.unsubscribeMessages?.();
+    Community.unsubscribePosts?.();
+    Community.unsubscribeComments?.();
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -930,8 +974,8 @@ const CommunityUI = (() => {
     renderSupportGroups, openGroupCreateModal, closeGroupCreateModal, submitGroupCreate, joinGroup,
     // Privacy
     renderPrivacySettings, savePrivacy,
-    // Init
-    initCommunitySection,
+    // Init / lifecycle
+    initCommunitySection, teardown,
   };
 
 })();
