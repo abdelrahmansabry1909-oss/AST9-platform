@@ -221,6 +221,9 @@
       <div class="nav-item role-coach-admin" id="nav-subscriptions" onclick="Dashboard.showSection('subscriptions')" title="Subscriptions">
         <span class="nav-item-icon">◌</span><span class="nav-label">Subscriptions</span>
       </div>
+      <div class="nav-item role-coach-admin" id="nav-billing" onclick="Dashboard.showSection('billing')" title="Billing">
+        <span class="nav-item-icon">◇</span><span class="nav-label">Billing</span>
+      </div>
       <div class="nav-item role-coach-admin" id="nav-exercise-library" onclick="Dashboard.showSection('exercise-library')" title="Exercise Library">
         <span class="nav-item-icon">▶</span><span class="nav-label">Exercise Library</span>
       </div>
@@ -238,9 +241,10 @@
       <div class="nav-item" id="nav-services" onclick="Dashboard.showSection('services')" title="Our Services">
         <span class="nav-item-icon">✦</span><span class="nav-label">Our Services</span>
       </div>
-      <div class="nav-item role-coach-admin" id="nav-gait" onclick="Dashboard.showSection('gait')" title="Gait Analysis">
-        <span class="nav-item-icon">⟳</span><span class="nav-label">Gait Analysis</span>
-      </div>
+      <!-- Gait Analysis removed from navigation (Phase 8). The engine stays
+           wired into the New Session generation pipeline (gait-panel /
+           _setLastGait / Reactive Graph); only the standalone sidebar entry
+           is hidden. Re-add this nav item to expose the section again. -->
       <div class="nav-item" id="nav-case-studies" onclick="Dashboard.showSection('case-studies')" title="Case Studies">
         <span class="nav-item-icon">◧</span><span class="nav-label">Case Studies</span>
       </div>
@@ -1212,6 +1216,17 @@
           </table>
         </div>
       </div>
+    </div>
+
+    <!-- ── BILLING (coach/admin) — coach package + client-slot usage ── -->
+    <div class="section" id="section-billing">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1 class="page-title">Bil<span class="accent">ling</span></h1>
+          <p class="page-subtitle">Your plan, client-slot usage, and upgrade options</p>
+        </div>
+      </div>
+      <div id="billing-root"></div>
     </div>
 
     <!-- ── EXERCISE LIBRARY ── -->
@@ -2290,6 +2305,8 @@ setInterval(() => { if (!document.hidden) _refreshApprovalsBadge(); }, 60_000);
 <script src="js/dashboard.js"></script>
 <script src="js/clients.js"></script>
 <script src="js/subscriptions.js"></script>
+<script src="js/packages.js"></script>
+<script src="js/billing.js"></script>
 <script src="js/scoring.js"></script>
 <script src="js/gaitEngine.js"></script>
 <script src="js/programGenerator.js"></script>
