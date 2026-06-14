@@ -101,10 +101,52 @@
       <button id="login-btn" class="nc-login-submit" onclick="UI.handleLogin()">Sign In</button>
 
       <div class="nc-login-meta">
-        No account? <span class="nc-link" onclick="UI.handleDemoLogin()">Continue as Demo →</span>
+        New coach? <span class="nc-link" onclick="UI.switchLoginTab('signup')">Create your account →</span>
       </div>
       <div class="nc-login-meta" style="margin-top:6px">
         Forgot password? <span class="nc-link" onclick="UI.switchLoginTab('reset')">Reset it</span>
+      </div>
+    </div>
+
+    <!-- CREATE COACH ACCOUNT -->
+    <div id="login-form-signup" class="hidden">
+      <div class="nc-login-field">
+        <label class="nc-login-label" for="su-name">Full name</label>
+        <input id="su-name" type="text" class="nc-login-input" placeholder="Jane Coach" autocomplete="name"/>
+      </div>
+      <div class="nc-login-field">
+        <label class="nc-login-label" for="su-email">Email address</label>
+        <input id="su-email" type="email" class="nc-login-input" placeholder="you@clinic.com" autocomplete="email"/>
+      </div>
+      <div class="nc-login-field">
+        <label class="nc-login-label" for="su-email2">Confirm email</label>
+        <input id="su-email2" type="email" class="nc-login-input" placeholder="you@clinic.com"/>
+      </div>
+      <div class="nc-login-field">
+        <label class="nc-login-label" for="su-phone">Mobile number</label>
+        <input id="su-phone" type="tel" class="nc-login-input" placeholder="+1 555 123 4567" autocomplete="tel"/>
+      </div>
+      <div class="nc-login-field">
+        <label class="nc-login-label" for="su-country">Country</label>
+        <select id="su-country" class="nc-login-input"><option value="">Select your country…</option></select>
+      </div>
+      <div class="nc-login-field">
+        <label class="nc-login-label" for="su-password">Password</label>
+        <input id="su-password" type="password" class="nc-login-input" placeholder="••••••••" autocomplete="new-password" oninput="UI._suStrength()"/>
+        <div style="margin-top:8px">
+          <div style="height:6px;border-radius:99px;background:rgba(255,255,255,0.12);overflow:hidden">
+            <div id="su-strength-bar" style="height:100%;width:0;background:#f43f5e;transition:width .3s ease,background .3s ease"></div>
+          </div>
+          <div id="su-strength-label" style="font-size:11px;color:rgba(255,255,255,0.55);margin-top:5px">Use 8+ characters with upper, lower, number &amp; symbol.</div>
+        </div>
+      </div>
+      <div class="nc-login-field">
+        <label class="nc-login-label" for="su-password2">Confirm password</label>
+        <input id="su-password2" type="password" class="nc-login-input" placeholder="••••••••" autocomplete="new-password"/>
+      </div>
+      <button id="su-btn" class="nc-login-submit" onclick="UI.handleCoachSignup()">Create coach account</button>
+      <div class="nc-login-meta">
+        Already have an account? <span class="nc-link" onclick="UI.switchLoginTab('signin')">← Back to Sign In</span>
       </div>
     </div>
 
@@ -160,6 +202,43 @@
     </a>
     <div class="nc-login-meta" style="margin-top:6px">
       <span class="nc-link" id="sub-inactive-signout">← Sign out</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ VERIFY EMAIL ═══════════════════════ -->
+<!-- Shown after coach signup and when an unverified coach attempts to sign
+     in (Auth throws EMAIL_NOT_CONFIRMED). Real Supabase verification —
+     the app shell is never reached until the email is confirmed. -->
+<div id="screen-verify-email" class="hidden nc-login" style="background:#05080F">
+  <div class="nc-login-glow nc-login-glow--teal"></div>
+  <div class="nc-login-glow nc-login-glow--cyan"></div>
+  <div class="nc-login-card" style="max-width:480px;text-align:center">
+    <div class="nc-login-brand" style="justify-content:center">
+      <span class="nc-login-mark nc-brandmark-glow" aria-hidden="true">
+        <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="NeuCore">
+          <rect x="1.5" y="1.5" width="37" height="37" rx="11" fill="#12203B"/>
+          <path d="M13 28V13l14 14V12" fill="none" stroke="#D4AF37" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="27" cy="12" r="2.6" fill="#2DD4BF"/>
+        </svg>
+      </span>
+      <div>
+        <div class="nc-login-wordmark">NEUCORE</div>
+        <div class="nc-login-tagline">Verify your email</div>
+      </div>
+    </div>
+    <div style="font-size:46px;margin:22px 0 6px;line-height:1">✉</div>
+    <h1 class="nc-login-headline" style="font-size:22px">Check your inbox.</h1>
+    <p class="nc-login-headline-sub" style="margin-bottom:8px">
+      We sent a verification link to <b id="ve-email">your email</b>. Click it to activate your
+      coach account, then come back and sign in.
+    </p>
+    <div id="ve-msg" class="hidden" style="font-size:12px;margin:8px 0 0"></div>
+    <button id="ve-resend" class="nc-login-submit" onclick="UI.handleResendVerification()" style="margin-top:16px">
+      Resend verification email
+    </button>
+    <div class="nc-login-meta" style="margin-top:10px">
+      <span class="nc-link" onclick="UI._backToSignIn()">← Back to Sign In</span>
     </div>
   </div>
 </div>
@@ -2301,12 +2380,13 @@ setInterval(() => { if (!document.hidden) _refreshApprovalsBadge(); }, 60_000);
 <script src="js/lib/jspdf.umd.min.js"></script>
 <script src="js/pdfExport.js"></script>
 <script src="js/subscriptionService.js?v=20260530a"></script>
-<script src="js/auth.js?v=20260530a"></script>
+<script src="js/auth.js?v=20260614p4"></script>
 <script src="js/dashboard.js"></script>
 <script src="js/clients.js"></script>
 <script src="js/subscriptions.js"></script>
 <script src="js/packages.js"></script>
 <script src="js/billing.js"></script>
+<script src="js/tour.js"></script>
 <script src="js/scoring.js"></script>
 <script src="js/gaitEngine.js"></script>
 <script src="js/programGenerator.js"></script>
@@ -2356,7 +2436,9 @@ const UI = {
     });
     document.getElementById('login-form-signin').classList.toggle('hidden', tab !== 'signin');
     document.getElementById('login-form-reset').classList.toggle('hidden', tab !== 'reset');
+    document.getElementById('login-form-signup')?.classList.toggle('hidden', tab !== 'signup');
     document.getElementById('login-error').classList.add('hidden');
+    if (tab === 'signup') UI._populateCountries();
 
     // Headline mode swap
     const head = document.getElementById('nc-login-headline');
@@ -2365,11 +2447,124 @@ const UI = {
       if (tab === 'reset') {
         head.textContent = 'Reset password.';
         sub.textContent  = 'We’ll email you a secure reset link.';
+      } else if (tab === 'signup') {
+        head.textContent = 'Create your coach account.';
+        sub.textContent  = 'Start free — verify your email to begin.';
       } else {
         head.textContent = 'Welcome back.';
         sub.textContent  = 'Sign in to your NeuCore intelligence platform.';
       }
     }
+  },
+
+  // ── Phase 4 — coach signup ──────────────────────────────────
+  _COUNTRIES: ['United States','United Kingdom','Canada','Australia','Ireland','New Zealand',
+    'Egypt','United Arab Emirates','Saudi Arabia','Qatar','Kuwait','Bahrain','Oman','Jordan',
+    'Lebanon','Germany','France','Spain','Italy','Netherlands','Belgium','Switzerland','Austria',
+    'Sweden','Norway','Denmark','Finland','Portugal','Poland','Greece','Turkey','India','Pakistan',
+    'Bangladesh','Singapore','Malaysia','Indonesia','Philippines','Japan','South Korea','China',
+    'Hong Kong','South Africa','Nigeria','Kenya','Morocco','Brazil','Mexico','Argentina','Chile',
+    'Colombia','Other'],
+
+  _populateCountries() {
+    const sel = document.getElementById('su-country');
+    if (!sel || sel.dataset.filled) return;
+    sel.insertAdjacentHTML('beforeend', UI._COUNTRIES.map(c => `<option value="${c}">${c}</option>`).join(''));
+    sel.dataset.filled = '1';
+  },
+
+  _pwScore(pw) {
+    let s = 0;
+    if (pw.length >= 8)  s++;
+    if (pw.length >= 12) s++;
+    if (/[a-z]/.test(pw) && /[A-Z]/.test(pw)) s++;
+    if (/\d/.test(pw)) s++;
+    if (/[^A-Za-z0-9]/.test(pw)) s++;
+    return Math.min(s, 4);
+  },
+  _pwStrong(pw) {
+    return pw.length >= 8 && /[a-z]/.test(pw) && /[A-Z]/.test(pw) && /\d/.test(pw) && /[^A-Za-z0-9]/.test(pw);
+  },
+  _suStrength() {
+    const pw    = document.getElementById('su-password')?.value || '';
+    const bar   = document.getElementById('su-strength-bar');
+    const label = document.getElementById('su-strength-label');
+    if (!bar || !label) return;
+    const score  = UI._pwScore(pw);
+    const pct    = [6, 30, 55, 80, 100][score];
+    const colors = ['#f43f5e','#f43f5e','#f59e0b','#eab308','#3df5c1'];
+    const words  = ['Too weak','Weak','Fair','Good','Strong'];
+    bar.style.width = pct + '%';
+    bar.style.background = colors[score];
+    label.textContent = !pw
+      ? 'Use 8+ characters with upper, lower, number & symbol.'
+      : (words[score] + (UI._pwStrong(pw) ? '' : ' — add upper, lower, number & symbol (8+).'));
+  },
+
+  async handleCoachSignup() {
+    const v = (id) => (document.getElementById(id)?.value || '').trim();
+    const name = v('su-name'), email = v('su-email'), email2 = v('su-email2');
+    const phone = v('su-phone'), country = v('su-country');
+    const pw  = document.getElementById('su-password').value;
+    const pw2 = document.getElementById('su-password2').value;
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const phoneRe = /^\+?[0-9][0-9\s().-]{6,16}$/;
+
+    if (!name)                 return UI._loginErr('Please enter your full name.');
+    if (!emailRe.test(email))  return UI._loginErr('Please enter a valid email address.');
+    if (email !== email2)      return UI._loginErr('Email addresses do not match.');
+    if (!phoneRe.test(phone))  return UI._loginErr('Please enter a valid mobile number.');
+    if (!country)              return UI._loginErr('Please select your country.');
+    if (!UI._pwStrong(pw))     return UI._loginErr('Password must be 8+ characters with upper, lower, number & symbol.');
+    if (pw !== pw2)            return UI._loginErr('Passwords do not match.');
+
+    const btn = document.getElementById('su-btn');
+    btn.innerHTML = '<span class="spinner"></span> Creating…'; btn.disabled = true;
+    document.getElementById('login-error').classList.add('hidden');
+    try {
+      await Auth.signUpCoach({ email, password: pw, full_name: name, phone, country });
+      UI._showVerifyEmail(email);
+    } catch (e) {
+      UI._loginErr(e.message || 'Could not create your account.');
+    } finally {
+      btn.innerHTML = 'Create coach account'; btn.disabled = false;
+    }
+  },
+
+  _showVerifyEmail(email) {
+    UI._pendingEmail = email || UI._pendingEmail || '';
+    const elEmail = document.getElementById('ve-email');
+    if (elEmail) elEmail.textContent = UI._pendingEmail || 'your email';
+    document.getElementById('ve-msg')?.classList.add('hidden');
+    document.getElementById('screen-login')?.classList.add('hidden');
+    const app = document.getElementById('screen-app'); if (app) app.style.display = 'none';
+    document.getElementById('screen-subscription-inactive')?.classList.add('hidden');
+    document.getElementById('screen-verify-email')?.classList.remove('hidden');
+  },
+
+  async handleResendVerification() {
+    if (!UI._pendingEmail) { UI._veMsg('Enter your email on the sign-in screen first.', false); return; }
+    const btn = document.getElementById('ve-resend');
+    btn.innerHTML = '<span class="spinner"></span> Sending…'; btn.disabled = true;
+    try {
+      await Auth.resendVerification(UI._pendingEmail);
+      UI._veMsg('✓ Verification email re-sent. Check your inbox.', true);
+    } catch (e) {
+      UI._veMsg(e.message || 'Could not resend right now — please try again shortly.', false);
+    } finally {
+      btn.innerHTML = 'Resend verification email'; btn.disabled = false;
+    }
+  },
+  _veMsg(text, ok) {
+    const msg = document.getElementById('ve-msg'); if (!msg) return;
+    msg.textContent = text;
+    msg.style.color = ok ? 'var(--teal,#3df5c1)' : '#f87171';
+    msg.classList.remove('hidden');
+  },
+  _backToSignIn() {
+    document.getElementById('screen-verify-email')?.classList.add('hidden');
+    document.getElementById('screen-login')?.classList.remove('hidden');
+    UI.switchLoginTab('signin');
   },
 
   async handleLogin() {
@@ -2389,6 +2584,10 @@ const UI = {
       btn.innerHTML = 'Sign In'; btn.disabled = false;
       if (e?.code === 'SUBSCRIPTION_INACTIVE') {
         UI._showSubscriptionInactive(e.state);
+        return;
+      }
+      if (e?.code === 'EMAIL_NOT_CONFIRMED') {
+        UI._showVerifyEmail(e.email);
         return;
       }
       UI._loginErr(e.message);
@@ -2463,6 +2662,17 @@ const UI = {
     }, 800);
     // Task 7: deep-link from landing.html (#start-assessment)
     UI._handleLandingHash();
+
+    // Phase 4 — first-login onboarding tour for new self-signup coaches.
+    setTimeout(() => {
+      try {
+        const p = Auth.getProfile?.();
+        if (typeof Tour !== 'undefined' && Auth.getRole?.() === 'coach'
+            && p && !p.onboarding_completed_at) {
+          Tour.start();
+        }
+      } catch (_) { /* tour is non-critical */ }
+    }, 1200);
   },
 
   _handleLandingHash() {
@@ -2628,6 +2838,10 @@ if (typeof Auth !== 'undefined') {
       // Dedicated screen, not a bounce to landing — the user is a valid
       // client whose subscription lapsed past the grace window.
       UI._showSubscriptionInactive(e.state);
+      return;
+    }
+    if (e?.code === 'EMAIL_NOT_CONFIRMED') {
+      UI._showVerifyEmail(e.email);
       return;
     }
     console.error('NeuCore boot error:', e);
