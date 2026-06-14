@@ -105,8 +105,21 @@ const Auth = (() => {
         }
       }
       const { data, error } = result;
-      if (error) throw new Error(error.message);
+      if (error) {
+        // Phase 4 — unverified coach (mailer_autoconfirm=false). Surface a
+        // coded error so the UI shows the verification-required screen.
+        if (/email not confirmed|not confirmed|confirm your email/i.test(error.message || '')) {
+          const ne = new Error('Please verify your email before signing in.');
+          ne.code = 'EMAIL_NOT_CONFIRMED'; ne.email = email;
+          throw ne;
+        }
+        throw new Error(error.message);
+      }
       await loadProfile(data.user);
+      // Phase 4 — promote a verified self-signup coach BEFORE the client gate
+      // (a new coach is briefly role=client and would otherwise be blocked as
+      // an inactive client).
+      await _maybeClaimCoach(data.user);
       // Subscription gate for clients (active + grace pass through).
       if (_profile.role === 'client') {
         const state = await _refreshSubscriptionState(data.user.id);
@@ -119,6 +132,7 @@ const Auth = (() => {
       return _profile;
     } catch(e) {
       if (e?.code === 'SUBSCRIPTION_INACTIVE') throw e;
+      if (e?.code === 'EMAIL_NOT_CONFIRMED') throw e;
       if (e.message.includes('timed out')) {
         throw new Error('Unable to connect to authentication server. The server may be waking up from pause - please wait a moment and try again.');
       }
@@ -156,6 +170,8 @@ const Auth = (() => {
       const { data: { session } } = await Promise.race([sb.auth.getSession(), timeout]);
       if (session?.user) {
         await loadProfile(session.user);
+        // Phase 4 — promote a verified self-signup coach before the client gate.
+        await _maybeClaimCoach(session.user);
         // Recheck subscription on page reload for clients
         if (_profile.role === 'client') {
           const state = await _refreshSubscriptionState(session.user.id);
@@ -220,12 +236,61 @@ const Auth = (() => {
     throw err;
   }
 
+  // ── Phase 4 — public coach signup ───────────────────────────
+  // Uses Supabase's real email verification (mailer_autoconfirm=false →
+  // signUp sends a confirmation email and returns NO session). role is
+  // requested via metadata only; handle_new_user still forces 'client' and
+  // promotion happens server-side in claim-coach after verification.
+  async function signUpCoach({ email, password, full_name, phone, country }) {
+    const redirect = `${window.location.origin}${window.location.pathname}?login=1`;
+    const { data, error } = await sb.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { full_name, role_request: 'coach', phone, country },
+        emailRedirectTo: redirect,
+      },
+    });
+    if (error) throw new Error(error.message);
+    return data;                       // data.session is null until verified
+  }
+
+  async function resendVerification(email) {
+    const { error } = await sb.auth.resend({ type: 'signup', email });
+    if (error) throw new Error(error.message);
+  }
+
+  // Promote a freshly-verified self-signup coach (role_request metadata)
+  // from client → coach via the claim-coach edge (service-role, fully
+  // re-validated server-side). Best-effort + idempotent; on failure the
+  // user simply stays a client (fail-closed).
+  async function _maybeClaimCoach(user) {
+    try {
+      if (_profile?.role !== 'client') return;
+      if (user?.user_metadata?.role_request !== 'coach') return;
+      const token = (await sb.auth.getSession()).data.session?.access_token;
+      if (!token) return;
+      const base = (typeof SUPABASE_URL !== 'undefined') ? SUPABASE_URL : window.SUPABASE_URL;
+      const res = await fetch(`${base}/functions/v1/claim-coach`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      });
+      if (!res.ok) return;
+      const j = await res.json();
+      if (j?.role === 'coach') await loadProfile(user);   // reload → role now coach
+    } catch (e) {
+      console.warn('[auth] coach claim skipped:', e.message);
+    }
+  }
+
   return {
     getUser, getProfile, getRole, isAdmin, isCoach, isAdminOrCoach,
     login, logout, sendPasswordReset, updatePassword, init, listen,
     loadProfile,
     // Subscription:
     getSubscriptionState, canWrite,
+    // Phase 4 — public coach signup:
+    signUpCoach, resendVerification,
     // Demo:
     loginAsGuest,
     // Error type (UI compares e.code === 'SUBSCRIPTION_INACTIVE'):
