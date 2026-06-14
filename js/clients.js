@@ -103,6 +103,7 @@ const Clients = (() => {
 
     const btn = document.getElementById('ac-submit-btn');
     _setBtnLoading(btn, 'Creating...');
+    _clearSlotLimit();                         // drop any prior slot-limit banner
 
     try {
       const token = (await sb.auth.getSession()).data.session?.access_token;
@@ -118,7 +119,15 @@ const Clients = (() => {
         })
       });
       const result = await res.json();
-      if (!res.ok) throw new Error(result.error || 'Failed to create client');
+      if (!res.ok) {
+        // Phase 3 — server-side slot limit: show a specific, actionable
+        // message (with a Billing link) instead of a generic failure toast.
+        if (res.status === 403 && result.code === 'SLOT_LIMIT_REACHED') {
+          _showSlotLimit(result);
+          return;
+        }
+        throw new Error(result.error || 'Failed to create client');
+      }
 
       Dashboard.toast(`Client "${fields.name}" created!`, 'success');
       Dashboard.closeModal('modal-add-client');
@@ -132,6 +141,41 @@ const Clients = (() => {
     } finally {
       _resetBtn(btn, 'Create Account');
     }
+  }
+
+  // Phase 3 — premium, specific message when create-user returns the
+  // server-side slot-limit error. Renders a banner in the add-client modal
+  // with used/max/package + a button to open Billing.
+  function _showSlotLimit(result) {
+    const used = result.used_slots, max = result.max_slots;
+    const pkg  = result.package_name
+      ? (typeof Packages !== 'undefined' ? Packages.label(result.package_name) : result.package_name)
+      : null;
+    const modal = document.getElementById('modal-add-client');
+    const body  = modal ? (modal.querySelector('.modal-body') || modal) : null;
+    if (body) {
+      let banner = body.querySelector('[data-slot-limit]');
+      if (!banner) {
+        banner = document.createElement('div');
+        banner.setAttribute('data-slot-limit', '1');
+        body.prepend(banner);
+      }
+      banner.style.cssText = 'margin:0 0 14px;padding:13px 15px;border-radius:11px;background:rgba(245,158,11,.10);border:1px solid rgba(245,158,11,.38);font-size:12.5px;color:#b9770b;line-height:1.55';
+      const slots = (used != null && max != null)
+        ? `You've used <b>${used} of ${max}</b> client slots`
+        : `You've used all client slots`;
+      banner.innerHTML =
+        `<b>Client slot limit reached.</b> ${slots}${pkg ? ` on the <b>${_esc(pkg)}</b> plan` : ''}. `
+        + `Upgrade your Billing plan to add more clients.`
+        + `<div style="margin-top:10px"><button class="btn btn-teal btn-xs" type="button" `
+        + `onclick="Dashboard.closeModal('modal-add-client'); Dashboard.showSection('billing')">Open Billing →</button></div>`;
+    }
+    Dashboard.toast('Client slot limit reached — upgrade to add more clients.', 'error');
+  }
+
+  function _clearSlotLimit() {
+    const b = document.querySelector('#modal-add-client [data-slot-limit]');
+    if (b) b.remove();
   }
 
   // Reliability Sweep / Priority D — async-ified so we can fetch the

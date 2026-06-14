@@ -26,7 +26,7 @@ serve(async (req) => {
     if (req.method !== 'POST') throw new HttpError(405, 'Method not allowed')
 
     // AuthZ: only staff. Anon key / clients are rejected inside requireRole.
-    const { user, role: callerRole } = await requireRole(req, ['admin', 'coach'])
+    const { user, role: callerRole, userClient } = await requireRole(req, ['admin', 'coach'])
 
     let body: Record<string, unknown>
     try { body = await req.json() } catch { throw new HttpError(400, 'Invalid JSON') }
@@ -52,6 +52,32 @@ serve(async (req) => {
       // admin
       if (role !== 'client' && role !== 'coach') {
         throw new HttpError(400, 'role must be "client" or "coach"')
+      }
+    }
+
+    // ── Phase 3 · Client-slot enforcement (server-side) ──────────
+    // A coach may not create more clients than their package allows.
+    // Admins bypass (unlimited). The check runs BEFORE any write, so an
+    // over-limit attempt creates neither an auth user nor a profile.
+    // Source of truth = coach_slot_status() RPC (the same value the
+    // Billing UI shows), executed as the CALLER so it returns the coach's
+    // own row. No frontend trust: this is the authoritative gate.
+    if (callerRole === 'coach' && role === 'client') {
+      const { data: slot, error: slotErr } = await userClient.rpc('coach_slot_status')
+      if (slotErr) {
+        console.error('[create-user] coach_slot_status failed:', slotErr.message)
+        throw new HttpError(403, 'Could not verify your client-slot allowance')
+      }
+      const unlimited = (slot as Record<string, unknown> | null)?.unlimited === true
+      const remaining = (slot as Record<string, number | null> | null)?.remaining ?? null
+      if (!unlimited && (remaining === null || remaining <= 0)) {
+        return json(req, 403, {
+          error: 'Client slot limit reached. Upgrade your package to add more clients.',
+          code: 'SLOT_LIMIT_REACHED',
+          used_slots:   (slot as Record<string, unknown> | null)?.used ?? null,
+          max_slots:    (slot as Record<string, unknown> | null)?.client_limit ?? null,
+          package_name: (slot as Record<string, unknown> | null)?.package_key ?? null,
+        })
       }
     }
 
