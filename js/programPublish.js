@@ -21,6 +21,13 @@
   let _program = null;     // the live, edited program object
   let _clientId = null;
   let _clientName = '';
+  // Phase 6 — current published-program metadata for this client (mode +
+  // revision + last-updated), loaded async so the coach sees live state.
+  let _meta = { loaded: false, exists: false, mode: 'one_time', revision: 0, updatedAt: null, published: false };
+  // Coach's selections for the NEXT publish — kept off the program jsonb so
+  // the stored plan never carries mode/note (those are dedicated columns).
+  let _selectedMode = null;
+  let _changeNote   = '';
 
   const PANEL_ID = 'program-review-panel';
 
@@ -34,6 +41,8 @@
     _program    = opts.program || null;
     _clientId   = opts.clientId || null;
     _clientName = opts.clientName || '';
+    _selectedMode = null;   // resolved from this client's existing program in _loadMeta
+    _changeNote   = '';
     const panel = document.getElementById(PANEL_ID);
     if (!panel) return;
     if (!_program || (!_program.structure && !_program.workouts)) { panel.classList.add('hidden'); return; }
@@ -53,6 +62,7 @@
     }
     panel.classList.remove('hidden');
     _draw();
+    _loadMeta(_clientId);          // Phase 6 — resolve current mode/revision
   }
 
   function getProgram() { return _program; }
@@ -175,21 +185,26 @@
           <b>My Program</b> and the routine in their <b>Daily Routine</b> tracker.
         </div>
 
+        <div id="pp-mode"></div>
         <div id="pp-program"></div>
         <div id="pp-routine" style="margin-top:18px"></div>
 
         <div style="display:flex;gap:10px;align-items:center;margin-top:20px;flex-wrap:wrap">
           <button class="btn btn-primary" id="pp-publish">📤 Publish to Client</button>
+          <button class="btn btn-ghost" id="pp-copy">📋 Load from another client</button>
           <button class="btn btn-ghost" id="pp-preview">👁 Preview client view</button>
           <button class="btn btn-ghost" id="pp-revert">↺ Revert edits</button>
           <span id="pp-status" style="font-size:12px;color:var(--text-tertiary)"></span>
         </div>
       </div>`;
 
+    _drawMode();
     _drawProgram();
     _drawRoutine();
+    _syncPublishUi();
 
     panel.querySelector('#pp-publish').addEventListener('click', _publish);
+    panel.querySelector('#pp-copy').addEventListener('click', _openCopyFrom);
     panel.querySelector('#pp-preview').addEventListener('click', _preview);
     panel.querySelector('#pp-revert').addEventListener('click', () => {
       if (confirm('Revert all edits to the generated program?')) {
@@ -627,6 +642,172 @@
     modal.classList.remove('hidden');
   }
 
+  // ── Phase 6 — Program mode + revision controls ────────────
+  function _modeLabel(m) {
+    return m === 'ongoing_manual' ? 'Ongoing manual program'
+         : m === 'ongoing_auto'  ? 'Automated (coming soon)'
+         : 'One-time program';
+  }
+  function _currentMode() {
+    const m = _selectedMode || _meta.mode || 'one_time';
+    return (m === 'one_time' || m === 'ongoing_manual' || m === 'ongoing_auto') ? m : 'one_time';
+  }
+  function _fmtWhen(iso) {
+    if (!iso) return '—';
+    try { return new Date(iso).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }); }
+    catch { return String(iso).slice(0, 16).replace('T', ' '); }
+  }
+
+  // Program-type selector + change-note. Re-renders only the #pp-mode block
+  // (program/routine editors keep their unsaved state).
+  function _drawMode() {
+    const host = document.getElementById('pp-mode');
+    if (!host) return;
+    const mode = _currentMode();
+    _selectedMode = mode;
+    const chip = (val, label, sub, disabled) => {
+      const active = mode === val;
+      return `<button type="button" data-pp-mode="${val}" ${disabled ? 'disabled' : ''}
+        style="flex:1;min-width:150px;text-align:left;padding:10px 12px;border-radius:10px;cursor:${disabled ? 'not-allowed' : 'pointer'};
+               background:${active ? 'rgba(20,184,166,.12)' : 'var(--bg-raised)'};
+               border:1px solid ${active ? 'rgba(20,184,166,.45)' : 'var(--border-subtle)'};opacity:${disabled ? '.55' : '1'}">
+        <div style="font-weight:700;font-size:13px;color:${active ? 'var(--nc-teal)' : 'var(--text-primary)'}">${esc(label)}</div>
+        <div style="font-size:11px;color:var(--text-tertiary);margin-top:2px">${esc(sub)}</div>
+      </button>`;
+    };
+    host.innerHTML = `
+      <div style="margin-bottom:16px">
+        <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-secondary);margin-bottom:7px">Program type</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          ${chip('one_time', 'One-time program', 'Fixed published snapshot — warns before replacing.')}
+          ${chip('ongoing_manual', 'Ongoing manual program', 'Live plan — saved edits reach the client immediately.')}
+          ${chip('ongoing_auto', 'Automated', 'Coach-approved AI updates — coming soon.', true)}
+        </div>
+        <div id="pp-mode-meta" style="margin-top:9px;font-size:12px;color:var(--text-tertiary)"></div>
+        <input id="pp-change-note" class="form-input" placeholder="Change note (optional) — what changed in this update?"
+          value="${esc(_changeNote || '')}" style="margin-top:10px;font-size:12px"/>
+      </div>`;
+    host.querySelectorAll('[data-pp-mode]').forEach((b) => {
+      if (b.disabled) return;
+      b.addEventListener('click', () => {
+        _selectedMode = b.dataset.ppMode;
+        _drawMode();
+        _syncPublishUi();
+      });
+    });
+    const note = host.querySelector('#pp-change-note');
+    if (note) note.addEventListener('input', () => { _changeNote = note.value; });
+    _renderModeMeta();
+  }
+
+  function _renderModeMeta() {
+    const el = document.getElementById('pp-mode-meta');
+    if (!el) return;
+    if (!_meta.loaded) { el.textContent = ''; return; }
+    if (!_meta.exists) { el.innerHTML = '<span>No program published to this client yet.</span>'; return; }
+    const live  = _currentMode() === 'ongoing_manual';
+    const badge = live
+      ? '<span class="badge" style="background:rgba(20,184,166,.14);color:var(--nc-teal);border:1px solid rgba(20,184,166,.3)">● Live program</span>'
+      : '<span class="badge" style="background:rgba(245,200,66,.14);color:var(--nc-gold);border:1px solid rgba(245,200,66,.3)">Published snapshot</span>';
+    el.innerHTML = `${badge} <span style="margin-left:6px">Current: <b>${esc(_modeLabel(_meta.mode))}</b> · revision ${_meta.revision} · last updated ${esc(_fmtWhen(_meta.updatedAt))}</span>`;
+  }
+
+  // Publish button copy follows the selected mode — never ambiguous.
+  function _syncPublishUi() {
+    const btn = document.getElementById('pp-publish');
+    if (!btn || btn.disabled) return;
+    btn.innerHTML = _currentMode() === 'ongoing_manual' ? '💾 Save live update' : '📤 Publish snapshot';
+  }
+
+  // Load this client's current program metadata (mode/revision/updated_at)
+  // so the coach sees live state and the right mode is pre-selected.
+  async function _loadMeta(clientId) {
+    _meta = { loaded: false, exists: false, mode: 'one_time', revision: 0, updatedAt: null, published: false };
+    if (clientId && typeof sb !== 'undefined' && sb) {
+      try {
+        const { data } = await sb.from('client_programs')
+          .select('program_mode, revision, updated_at, published')
+          .eq('client_id', clientId).maybeSingle();
+        if (data) {
+          _meta = { loaded: true, exists: true, mode: data.program_mode || 'one_time',
+                    revision: data.revision || 1, updatedAt: data.updated_at, published: !!data.published };
+          _selectedMode = _meta.mode;   // adopt the existing mode at load
+        } else {
+          _meta.loaded = true;
+        }
+      } catch (e) { console.warn('[publish] meta load:', e?.message); _meta.loaded = true; }
+    } else {
+      _meta.loaded = true;
+    }
+    _drawMode();
+    _syncPublishUi();
+  }
+
+  // ── Phase 6 — Copy a program from another client (draft, never publishes) ──
+  //   RLS scopes the list: a coach sees only their assigned clients' programs;
+  //   an admin sees all; a client never reaches this editor. The chosen program
+  //   is cloned into the CURRENT client's builder for editing before publishing.
+  async function _openCopyFrom() {
+    if (!_clientId) { _toast('Pick a target client first.', 'error'); return; }
+    if (typeof sb === 'undefined' || !sb) { _toast('Not connected to the database.', 'error'); return; }
+    let rows = [];
+    try {
+      const { data, error } = await sb.from('client_programs')
+        .select('client_id, program, updated_at, profiles!client_programs_client_id_fkey(full_name,email)')
+        .eq('published', true)
+        .order('updated_at', { ascending: false });
+      if (error) throw error;
+      rows = (data || []).filter((r) => r.client_id !== _clientId
+        && r.program && (Array.isArray(r.program.workouts) || r.program.structure));
+    } catch (e) { _toast('Could not load programs: ' + (e.message || e), 'error'); return; }
+    if (!rows.length) { _toast('No other client programs available to copy.', 'info'); return; }
+
+    let modal = document.getElementById('pp-copy-modal');
+    if (!modal) {
+      document.body.insertAdjacentHTML('beforeend', `
+        <div class="modal-overlay hidden" id="pp-copy-modal">
+          <div class="modal" style="max-width:480px;max-height:80vh;overflow:auto">
+            <div class="modal-header"><h3>Load program from another client</h3>
+              <button class="btn-icon" onclick="document.getElementById('pp-copy-modal').classList.add('hidden')">✕</button></div>
+            <div class="modal-body" id="pp-copy-body"></div>
+          </div>
+        </div>`);
+      modal = document.getElementById('pp-copy-modal');
+      modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.add('hidden'); });
+    }
+    const body = modal.querySelector('#pp-copy-body');
+    body.innerHTML = `
+      <div class="form-hint" style="margin-bottom:12px">Pick a source program. It loads into ${esc(_clientName || 'this client')}'s builder as an editable draft — nothing publishes until you do.</div>
+      ${rows.map((r) => {
+        const nm = r.profiles?.full_name || r.profiles?.email || 'Client';
+        const days = Array.isArray(r.program.workouts) ? r.program.workouts.length : 1;
+        return `<div style="display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--border-subtle);border-radius:9px;background:var(--bg-raised);margin-bottom:8px">
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:600;font-size:13px;color:var(--text-primary)">${esc(nm)}</div>
+            <div style="font-size:11px;color:var(--text-tertiary)">${esc(r.program.phase || 'Program')} · ${days} day${days === 1 ? '' : 's'} · updated ${esc(_fmtWhen(r.updated_at))}</div>
+          </div>
+          <button class="btn btn-teal btn-sm" data-copy-src="${esc(r.client_id)}">Use</button>
+        </div>`;
+      }).join('')}`;
+    body.querySelectorAll('[data-copy-src]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const src = rows.find((r) => r.client_id === btn.dataset.copySrc);
+        if (!src) return;
+        if (!confirm(`Replace the current builder content with this program?\n\nYou can edit it before publishing to ${_clientName || 'the client'}.`)) return;
+        let clone;
+        try { clone = JSON.parse(JSON.stringify(src.program)); }
+        catch { _toast('Could not copy this program.', 'error'); return; }
+        // Defensive: never carry mode/note inside the program jsonb (older
+        // rows may have them; they belong in dedicated columns).
+        delete clone.program_mode; delete clone.change_note;
+        modal.classList.add('hidden');
+        render({ program: clone, clientId: _clientId, clientName: _clientName });
+        _toast('Program loaded as a draft — edit, then publish.', 'success');
+      });
+    });
+    modal.classList.remove('hidden');
+  }
+
   // ── Publish ───────────────────────────────────────────────
   async function _publish() {
     const btn = document.getElementById('pp-publish');
@@ -639,6 +820,19 @@
       _toast('Not connected to the database.', 'error');
       return;
     }
+
+    // Phase 6 — resolve mode + change note for this publish (kept off the
+    // program jsonb; persisted to dedicated columns by the upsert below).
+    const mode = _currentMode();
+    const changeNote = ((document.getElementById('pp-change-note')?.value ?? _changeNote) || '').trim() || null;
+    // One-time replace guard — replacing a published snapshot changes what the
+    // client sees. Completed workout history is preserved (it lives in the logs).
+    if (mode === 'one_time' && _meta.exists && _meta.published) {
+      if (!confirm(`This replaces ${_clientName || 'the client'}'s current published program (revision ${_meta.revision}).\n\nThe new plan becomes what they see now. Completed workout history is preserved. Continue?`)) {
+        return;
+      }
+    }
+
     // Re-id the routine tasks 0..N so the client tracker keys stay stable.
     _program.daily_routine_tasks.forEach((t, i) => { t.id = i; });
 
@@ -655,6 +849,7 @@
       const progRes = await sb.from('client_programs').upsert({
         client_id: _clientId, coach_id: coachId,
         program: _program, published: true, published_at: now, updated_at: now,
+        program_mode: mode, change_note: changeNote,   // Phase 6 — trigger versions it
       }, { onConflict: 'client_id' });
       if (progRes.error) throw progRes.error;
 
@@ -694,8 +889,11 @@
         console.warn('[publish] substitution sweep threw:', sweepEx?.message);
       }
 
-      if (status) { status.textContent = `✓ Published to ${_clientName || 'client'} — they can see it now.`; status.style.color = 'var(--lime, #16a34a)'; }
-      _toast('Program & daily routine published to the client ✓', 'success');
+      const okMsg = mode === 'ongoing_manual'
+        ? `Live program updated — ${_clientName || 'the client'} sees it now`
+        : `Program published to ${_clientName || 'the client'}`;
+      if (status) { status.textContent = '✓ ' + okMsg; status.style.color = 'var(--lime, #16a34a)'; }
+      _toast(okMsg + ' ✓', 'success');
     } catch (e) {
       console.error('[publish] failed:', e);
       const msg = e.message || e.code || 'unknown error';
@@ -705,6 +903,7 @@
       btn.disabled = false;
       btn.innerHTML = origHTML;
     }
+    _loadMeta(_clientId);   // refresh the mode/revision badge with the new state
   }
 
   // ── Client side ───────────────────────────────────────────
