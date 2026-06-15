@@ -124,6 +124,11 @@ const Dashboard = (() => {
       'nutrition-plan':   () => { /* Phase A stub — static HTML only */ },
       'programs':         () => renderProgramsList(),
       'exercise-library': () => Clients.loadExercises?.(),
+      // ── Appointments (coach/admin) — internal scheduling V1 ──
+      'appointments':     () => {
+                            if (typeof Appointments === 'undefined') return;
+                            Appointments.mountCoachView(document.getElementById('appointments-root'));
+                          },
       // ── NeuCore Intelligence (Task 5 + Phase B) ───────────
       'services':         () => { /* static content */ },
       'gait':             () => { /* placeholder — wired in future phase */ },

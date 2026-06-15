@@ -297,6 +297,9 @@
       <div class="nav-item role-coach-admin" id="nav-clients" onclick="Dashboard.showSection('clients')" title="Clients">
         <span class="nav-item-icon">◉</span><span class="nav-label">Clients</span>
       </div>
+      <div class="nav-item role-coach-admin" id="nav-appointments" onclick="Dashboard.showSection('appointments')" title="Appointments">
+        <span class="nav-item-icon">🗓</span><span class="nav-label">Appointments</span>
+      </div>
       <div class="nav-item role-coach-admin" id="nav-subscriptions" onclick="Dashboard.showSection('subscriptions')" title="Subscriptions">
         <span class="nav-item-icon">◌</span><span class="nav-label">Subscriptions</span>
       </div>
@@ -1312,6 +1315,17 @@
       <div id="billing-root"></div>
     </div>
 
+    <!-- ── APPOINTMENTS (coach/admin) — internal scheduling, manual links ── -->
+    <div class="section" id="section-appointments">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1 class="page-title">Appoint<span class="accent">ments</span></h1>
+          <p class="page-subtitle">Schedule sessions and calls with your clients</p>
+        </div>
+      </div>
+      <div id="appointments-root"></div>
+    </div>
+
     <!-- ── EXERCISE LIBRARY ── -->
     <div class="section" id="section-exercise-library">
       <div class="page-header">
@@ -1859,6 +1873,47 @@
 <!-- ═══════════════════════ MODALS ═══════════════════════ -->
 
 <!-- Add Client -->
+<!-- ── APPOINTMENT (coach/admin) — create / edit. Manual meeting links only. ── -->
+<div class="modal-overlay hidden" id="modal-appointment">
+  <div class="modal">
+    <div class="modal-header"><h3 id="ap-modal-title">New Appointment</h3><button class="btn-icon" onclick="Dashboard.closeModal('modal-appointment')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="ap-id"/>
+      <div class="form-group">
+        <label class="form-label">Client</label>
+        <select id="ap-client" class="form-input"><option value="">— Select client —</option></select>
+      </div>
+      <div class="input-row">
+        <div class="form-group">
+          <label class="form-label">Type</label>
+          <select id="ap-type" class="form-input">
+            <option value="assessment">Assessment</option>
+            <option value="check_in" selected>Check-in</option>
+            <option value="follow_up">Follow-up</option>
+            <option value="program_review">Program review</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Title (optional)</label><input id="ap-title" class="form-input" placeholder="e.g. Mid-program review"/></div>
+      </div>
+      <div class="input-row">
+        <div class="form-group"><label class="form-label">Starts</label><input id="ap-start" type="datetime-local" class="form-input"/></div>
+        <div class="form-group"><label class="form-label">Ends (optional)</label><input id="ap-end" type="datetime-local" class="form-input"/></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Meeting link (optional)</label>
+        <input id="ap-url" class="form-input" placeholder="https://meet.google.com/… or Zoom / Calendly link"/>
+        <div class="form-hint">Paste any https meeting link. NeuCore does not generate or sync meeting links.</div>
+      </div>
+      <div class="form-group"><label class="form-label">Notes (optional)</label><textarea id="ap-notes" class="form-input" rows="2" placeholder="Anything the client should know"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="Dashboard.closeModal('modal-appointment')">Cancel</button>
+      <button class="btn btn-primary" id="ap-save-btn" onclick="Appointments.submit()">Save</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay hidden" id="modal-add-client">
   <div class="modal">
     <div class="modal-header"><h3>Add New Client</h3><button class="btn-icon" onclick="Dashboard.closeModal('modal-add-client')">✕</button></div>
@@ -2389,7 +2444,7 @@ setInterval(() => { if (!document.hidden) _refreshApprovalsBadge(); }, 60_000);
 <script src="js/pdfExport.js"></script>
 <script src="js/subscriptionService.js?v=20260530a"></script>
 <script src="js/auth.js?v=20260614p4"></script>
-<script src="js/dashboard.js?v=20260614p6"></script>
+<script src="js/dashboard.js?v=20260616a"></script>
 <script src="js/clients.js?v=20260614p6"></script>
 <script src="js/subscriptions.js?v=20260614p6"></script>
 <script src="js/packages.js"></script>
@@ -2402,7 +2457,7 @@ setInterval(() => { if (!document.hidden) _refreshApprovalsBadge(); }, 60_000);
 <script src="js/exerciseInstructions.js?v=20260605a"></script>
 <script src="js/exercisePicker.js?v=20260605a"></script>
 <script src="js/workoutSession.js?v=20260605a"></script>
-<script src="js/notificationsService.js?v=20260601a"></script>
+<script src="js/notificationsService.js?v=20260616a"></script>
 <script src="js/altExerciseRequest.js?v=20260601a"></script>
 <script src="js/progressionEngine.js?v=20260602a"></script>
 <script src="js/programPublish.js?v=20260615a"></script>
@@ -2421,6 +2476,7 @@ setInterval(() => { if (!document.hidden) _refreshApprovalsBadge(); }, 60_000);
 <script src="js/clientShell.js"></script>
 <script src="js/exerciseLibrary.js?v=20260614p5"></script>
 <script src="js/exerciseUI.js?v=20260614p5"></script>
+<script src="js/appointments.js?v=20260616a"></script>
 <script src="js/charts.js"></script>
 <script src="js/progressReport.js"></script>
 <script src="js/platformExtras.js"></script>

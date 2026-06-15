@@ -345,6 +345,9 @@
 
         ${_presence(profile)}
 
+        ${_sectionLabel('Upcoming session')}
+        <div id="cc-appointments">${ClientUtil.skeleton(120, 'var(--nc-r-xl,20px)')}</div>
+
         ${_sectionLabel('Messages')}
         <div id="cc-messages">${ClientUtil.skeleton(140, 'var(--nc-r-xl,20px)')}</div>
 
@@ -355,6 +358,13 @@
         <div id="cc-accountability">${ClientUtil.skeleton(110, 'var(--nc-r-xl,20px)')}</div>
 
       </div>`;
+
+    // Upcoming appointment (Phase 7) — calm next-session card; calm empty
+    // state when nothing is booked. Read-only; clients cannot edit.
+    const apptEl = _host.querySelector('#cc-appointments');
+    if (apptEl && window.Appointments && Appointments.renderClientUpcoming) {
+      Appointments.renderClientUpcoming(apptEl);
+    }
 
     // Assigned-coach messaging hub (direct thread, no picker).
     _fillMessageHub();
