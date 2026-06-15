@@ -68,6 +68,9 @@
     subscription_expiring:  '⏳',
     subscription_grace:     '⚠',
     subscription_expired:   '⏸',
+    appointment_scheduled:  '🗓',
+    appointment_updated:    '🗓',
+    appointment_cancelled:  '✕',
   };
   const SEV_COLOR = {
     info:     'rgba(20,184,166,.9)',
