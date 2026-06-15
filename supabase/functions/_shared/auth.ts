@@ -70,7 +70,10 @@ export function corsHeaders(req: Request): Record<string, string> {
   return {
     'Access-Control-Allow-Origin': allowOrigin,
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'authorization, content-type, apikey, x-cron-secret',
+    // supabase-js attaches x-client-info (and, in recent versions,
+    // x-supabase-api-version) to every functions.invoke() call; both must be
+    // allow-listed or the browser preflight fails for ALL browser callers.
+    'Access-Control-Allow-Headers': 'authorization, content-type, apikey, x-client-info, x-supabase-api-version, x-cron-secret',
     'Vary': 'Origin',
   }
 }
