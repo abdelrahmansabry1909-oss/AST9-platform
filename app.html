@@ -691,6 +691,14 @@
 
         <!-- Mode A — NeuCore 13-Step Wizard -->
         <div class="nc-subj-pane active" data-mode="osullivan">
+          <!-- Phase 8 — Transcript assistant entry point -->
+          <div class="ta-cta">
+            <div class="ta-cta-text">
+              <div class="ta-cta-title">Import from transcript</div>
+              <div class="ta-cta-sub">Paste an assessment-call transcript to draft the subjective fields. You review every suggestion before anything is applied.</div>
+            </div>
+            <button class="btn btn-sm btn-primary" onclick="TranscriptAssistant.open()">📝 Import from transcript</button>
+          </div>
           <div id="nc-wizard-root">
             <div class="nc-subj-no-client">
               <span class="nc-w-empty-icon">◈</span>
@@ -1914,6 +1922,68 @@
   </div>
 </div>
 
+<!-- Phase 8 — Subjective Assessment Transcript Assistant -->
+<style id="ta-styles">
+  .ta-cta{display:flex;align-items:center;justify-content:space-between;gap:16px;
+    padding:14px 16px;margin-bottom:16px;border:1px solid var(--border-default);
+    border-radius:14px;background:var(--nc-fill-1);box-shadow:var(--shadow-sm)}
+  .ta-cta-title{font-weight:700;color:var(--text-primary);font-size:14px}
+  .ta-cta-sub{font-size:12px;color:var(--text-tertiary);line-height:1.5;margin-top:2px;max-width:60ch}
+  #modal-transcript .modal{max-width:680px}
+  .ta-results{margin-top:14px}
+  .ta-loading{padding:16px;color:var(--text-tertiary);font-size:13px}
+  .ta-error{padding:12px 14px;border-radius:10px;background:rgba(244,63,94,.08);
+    color:#b42318;font-size:13px;border:1px solid rgba(244,63,94,.18)}
+  .ta-banner{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    padding:10px 12px;border-radius:10px;margin-bottom:10px;
+    background:var(--nc-fill-1);border:1px solid var(--border-subtle)}
+  .ta-badge{font-weight:700;font-size:12px;color:var(--text-primary)}
+  .ta-banner.ta-ai .ta-badge{color:var(--nc-teal-ink)}
+  .ta-warn{font-size:12px;color:var(--text-secondary)}
+  .ta-summary{font-size:13px;color:var(--text-secondary);line-height:1.6;
+    padding:8px 0;border-bottom:1px solid var(--border-subtle);margin-bottom:10px}
+  .ta-caution{font-size:12.5px;line-height:1.55;padding:10px 12px;border-radius:10px;
+    background:var(--nc-amber-soft);color:var(--nc-amber-ink);
+    border:1px solid rgba(245,158,11,.22);margin-bottom:12px}
+  .ta-apply-all{display:flex;justify-content:flex-end;margin-bottom:10px}
+  .ta-list{display:flex;flex-direction:column;gap:10px}
+  .ta-item{border:1px solid var(--border-default);border-radius:12px;padding:12px;background:var(--bg-surface)}
+  .ta-item.ta-applied{opacity:.62}
+  .ta-item-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
+  .ta-item-label{font-weight:600;font-size:13px;color:var(--text-primary)}
+  .ta-item-step{font-size:11px;color:var(--text-tertiary);white-space:nowrap}
+  .ta-item-val{font-size:13px;color:var(--text-secondary);line-height:1.55;
+    white-space:pre-wrap;word-break:break-word;margin-bottom:8px}
+  .ta-empty{padding:14px;color:var(--text-tertiary);font-size:13px}
+</style>
+<div class="modal-overlay hidden" id="modal-transcript">
+  <div class="modal">
+    <div class="modal-header"><h3>Import from transcript</h3><button class="btn-icon" onclick="Dashboard.closeModal('modal-transcript')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Transcript language</label>
+        <select id="ta-lang" class="form-input">
+          <option value="mixed" selected>Mixed Arabic / English</option>
+          <option value="ar">Arabic</option>
+          <option value="en">English</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Paste transcript</label>
+        <textarea id="ta-text" class="form-input" rows="7" placeholder="Paste the assessment-call transcript here…"></textarea>
+        <div class="form-hint">Processed only to draft your fields — never stored, recorded, or shared. Review every suggestion before applying.</div>
+      </div>
+      <div style="display:flex;justify-content:flex-end">
+        <button class="btn btn-primary" id="ta-analyze" onclick="TranscriptAssistant.analyze()">Analyze transcript</button>
+      </div>
+      <div class="ta-results" id="ta-results"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="Dashboard.closeModal('modal-transcript')">Close</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay hidden" id="modal-add-client">
   <div class="modal">
     <div class="modal-header"><h3>Add New Client</h3><button class="btn-icon" onclick="Dashboard.closeModal('modal-add-client')">✕</button></div>
@@ -2481,6 +2551,7 @@ setInterval(() => { if (!document.hidden) _refreshApprovalsBadge(); }, 60_000);
 <script src="js/progressReport.js"></script>
 <script src="js/platformExtras.js"></script>
 <script src="js/rpm/subjective.js"></script>
+<script src="js/transcriptAssistant.js"></script>
 <script src="js/rpm/graph.js"></script>
 <script src="js/rpm/chat.js"></script>
 <script src="js/rpm/feedback.js"></script>

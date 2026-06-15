@@ -737,6 +737,23 @@
   }
 
   // ───────────────────────────────────────────────────────────
+  // Public: applyDraft — merge externally-suggested field values
+  // (Phase 8 transcript assistant) into the current draft. Reuses the
+  // existing debounced save; never finalizes. UI-only keys (leading _)
+  // are ignored. Re-renders the active pane so applied values show.
+  // ───────────────────────────────────────────────────────────
+  function applyDraft(partial) {
+    if (!partial || typeof partial !== 'object') return;
+    Object.keys(partial).forEach((k) => {
+      if (k.startsWith('_')) return;
+      state.record[k] = partial[k];
+    });
+    _scheduleSave();
+    if (state.mode === 'osullivan') _render();
+    else _renderFreeForm();
+  }
+
+  // ───────────────────────────────────────────────────────────
   // Wire mode toggle on first DOMContentLoaded (idempotent)
   // ───────────────────────────────────────────────────────────
   function _wireModeToggle() {
@@ -756,6 +773,7 @@
     init,
     setMode,
     savePartial,
+    applyDraft,
     finalize,
     // Read-only state for debugging
     _state: () => ({ ...state }),
