@@ -79,7 +79,7 @@ const Dashboard = (() => {
     'client-train', 'client-progress', 'client-coach', 'client-settings',
     'my-graph', 'nutrition-plan', 'case-studies', 'community', 'services',
   ]);
-  const ADMIN_ONLY_SECTIONS = new Set(['coaches', 'settings']);
+  const ADMIN_ONLY_SECTIONS = new Set(['coaches', 'admin-business', 'settings']);
 
   function showSection(id) {
     // BUG 3 — capture the section we're leaving so we can tear down its
@@ -112,6 +112,7 @@ const Dashboard = (() => {
       'subscriptions':    () => Subscriptions.loadAll(),
       'billing':          () => (typeof Billing !== 'undefined' && Billing.render?.()),
       'coaches':          () => Clients.loadCoaches(),
+      'admin-business':   () => (typeof AdminBusiness !== 'undefined' && AdminBusiness.load()),
       'dashboard':        () => {
                             // Clients land on the new Client Dashboard;
                             // coaches/admins keep the existing stats page.

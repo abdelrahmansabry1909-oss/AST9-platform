@@ -369,6 +369,9 @@
       <div class="nav-item role-admin-only" id="nav-coaches" onclick="Dashboard.showSection('coaches')" title="Coaches">
         <span class="nav-item-icon">◈</span><span class="nav-label">Coaches</span>
       </div>
+      <div class="nav-item role-admin-only" id="nav-admin-business" onclick="Dashboard.showSection('admin-business')" title="Business">
+        <span class="nav-item-icon">📊</span><span class="nav-label">Business</span>
+      </div>
       <div class="nav-item role-admin-only" id="nav-settings" onclick="Dashboard.showSection('settings')" title="Settings">
         <span class="nav-item-icon">◎</span><span class="nav-label">Settings</span>
       </div>
@@ -1377,6 +1380,39 @@
       </div>
     </div>
 
+    <!-- ── ADMIN BUSINESS TRACKING (Phase 9) ── -->
+    <style id="abz-styles">
+      .abz-loading,.abz-empty{padding:32px;color:var(--text-tertiary);font-size:13px}
+      .abz-error{padding:14px 16px;border-radius:10px;background:rgba(244,63,94,.08);color:#b42318;font-size:13px;border:1px solid rgba(244,63,94,.18)}
+      .abz-summary{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:14px}
+      .abz-stat{flex:1;min-width:140px;border:1px solid var(--border-default);border-radius:14px;padding:14px 16px;background:var(--nc-fill-1);box-shadow:var(--shadow-sm)}
+      .abz-stat-n{font-family:var(--font-display);font-size:22px;color:var(--text-primary);line-height:1.1}
+      .abz-stat-l{font-size:12px;color:var(--text-tertiary);margin-top:4px}
+      .abz-toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+      .abz-note{font-size:12px;color:var(--text-tertiary);line-height:1.5;margin-bottom:12px}
+      .abz-table-wrap{overflow-x:auto;border:1px solid var(--border-subtle);border-radius:14px;background:var(--bg-surface)}
+      .abz-table{width:100%;border-collapse:collapse;font-size:12.5px;white-space:nowrap}
+      .abz-table th{text-align:left;padding:10px 12px;color:var(--text-tertiary);font-weight:600;border-bottom:1px solid var(--border-default);position:sticky;top:0;background:var(--bg-surface)}
+      .abz-table td{padding:10px 12px;border-bottom:1px solid var(--border-subtle);color:var(--text-secondary)}
+      .abz-table tr:last-child td{border-bottom:none}
+      .abz-ok{color:var(--nc-teal-ink);font-weight:600}
+      .abz-muted{color:var(--text-tertiary)}
+      .abz-actions{display:flex;gap:6px}
+    </style>
+    <div class="section" id="section-admin-business">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1 class="page-title">Busi<span class="accent">ness</span></h1>
+          <p class="page-subtitle">Coach packages, slots, revenue estimates &amp; client reach — admin only</p>
+        </div>
+      </div>
+      <div class="card">
+        <div id="abz-root">
+          <div class="abz-loading"><span class="spinner"></span> Loading business overview…</div>
+        </div>
+      </div>
+    </div>
+
     <!-- ── SETTINGS ── -->
     <div class="section" id="section-settings">
       <div class="page-header">
@@ -2045,6 +2081,37 @@
   </div>
 </div>
 
+<!-- Manage Coach Package (Phase 9 — admin-only; reuses admin_set_coach_package) -->
+<div class="modal-overlay hidden" id="modal-coach-package">
+  <div class="modal">
+    <div class="modal-header"><h3>Manage coach package</h3><button class="btn-icon" onclick="Dashboard.closeModal('modal-coach-package')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Coach</label>
+        <select id="abz-pkg-coach" class="form-input"></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Package</label>
+        <select id="abz-pkg-tier" class="form-input"></select>
+      </div>
+      <div class="form-group" id="abz-pkg-qty-wrap" style="display:none">
+        <label class="form-label">Custom client limit</label>
+        <input id="abz-pkg-qty" type="number" min="60" class="form-input" placeholder="60+"/>
+        <div class="form-hint">Custom packages start at 60 clients.</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Note</label>
+        <input id="abz-pkg-notes" class="form-input" placeholder="Admin-assigned package"/>
+      </div>
+      <div class="form-hint">Admin-assigned package — <strong>no payment is processed</strong>. Prices shown elsewhere are reference only.</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="Dashboard.closeModal('modal-coach-package')">Cancel</button>
+      <button class="btn btn-primary" id="abz-pkg-save" onclick="AdminBusiness.savePackage()">Save package</button>
+    </div>
+  </div>
+</div>
+
 <!-- B4 — Edit Client (admin-only: profiles UPDATE RLS allows admin + self only) -->
 <div class="modal-overlay hidden" id="modal-edit-client">
   <div class="modal">
@@ -2514,7 +2581,7 @@ setInterval(() => { if (!document.hidden) _refreshApprovalsBadge(); }, 60_000);
 <script src="js/pdfExport.js"></script>
 <script src="js/subscriptionService.js?v=20260530a"></script>
 <script src="js/auth.js?v=20260614p4"></script>
-<script src="js/dashboard.js?v=20260616a"></script>
+<script src="js/dashboard.js?v=20260616b"></script>
 <script src="js/clients.js?v=20260614p6"></script>
 <script src="js/subscriptions.js?v=20260614p6"></script>
 <script src="js/packages.js"></script>
@@ -2547,6 +2614,7 @@ setInterval(() => { if (!document.hidden) _refreshApprovalsBadge(); }, 60_000);
 <script src="js/exerciseLibrary.js?v=20260614p5"></script>
 <script src="js/exerciseUI.js?v=20260614p5"></script>
 <script src="js/appointments.js?v=20260616a"></script>
+<script src="js/adminBusiness.js"></script>
 <script src="js/charts.js"></script>
 <script src="js/progressReport.js"></script>
 <script src="js/platformExtras.js"></script>
