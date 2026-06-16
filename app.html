@@ -2600,8 +2600,8 @@ setInterval(() => { if (!document.hidden) _refreshApprovalsBadge(); }, 60_000);
 <script src="js/programPublish.js?v=20260615a"></script>
 <script src="js/bodyMap3D.v2.js"></script>
 <!-- Phase 3 modules -->
-<script src="js/community.js?v=20260614p6"></script>
-<script src="js/communityUI.js?v=20260614p6"></script>
+<script src="js/community.js?v=20260616d"></script>
+<script src="js/communityUI.js?v=20260616d"></script>
 <!-- Feature 7 — shared assessment→hologram loader (used by client dashboard + coach Recovery modal) -->
 <script src="js/assessmentSnapshot.js"></script>
 <script src="js/clientUtil.js"></script>
@@ -2854,6 +2854,14 @@ const UI = {
       _refreshCommunityBadge();
       _refreshApprovalsBadge();
       Dashboard.populateProgressClientSelect?.();
+      // Keep the messages badge + client support-hub preview live for incoming
+      // messages without a manual refresh (app-level inbox channel, idempotent).
+      if (typeof Community !== 'undefined' && Community.subscribeInbox) {
+        Community.subscribeInbox(() => {
+          _refreshCommunityBadge();
+          window.ClientCoach?.refreshHub?.();
+        });
+      }
       // Feature 3 — wire the notifications bell + run idempotent
       // subscription-notification check for the current client.
       if (typeof Notifications !== 'undefined') {
