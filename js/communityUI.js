@@ -175,10 +175,13 @@ const CommunityUI = (() => {
 
     _scrollThread();
 
-    // Real-time subscription
-    Community.subscribeToMessages(partnerId, msg => {
+    // Real-time subscription. The thread is open and on screen, so mark each
+    // arrival read and re-sync the sidebar badge (no phantom unread).
+    Community.subscribeToMessages(partnerId, async msg => {
       const el = document.getElementById('thread-messages');
       if (el) { el.insertAdjacentHTML('beforeend', _msgBubble(msg)); _scrollThread(); }
+      try { await Community.markMessageRead?.(msg.id); } catch (_) { /* badge re-syncs on next event */ }
+      window._refreshCommunityBadge?.();
     });
   }
 

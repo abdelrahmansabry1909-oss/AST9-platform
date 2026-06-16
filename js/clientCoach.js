@@ -290,11 +290,15 @@
       cont.scrollTop = cont.scrollHeight;
     }
 
-    // Realtime — append incoming messages from the coach.
+    // Realtime — append incoming messages from the coach. Because the thread
+    // is open and on screen, mark each arrival read and re-sync the sidebar
+    // badge so it never shows a phantom unread for a message being read.
     if (window.Community && Community.subscribeToMessages) {
-      Community.subscribeToMessages(coachId, (m) => {
+      Community.subscribeToMessages(coachId, async (m) => {
         const c = _host?.querySelector('#cc-thread');
         if (c) { c.insertAdjacentHTML('beforeend', _bubble(m)); c.scrollTop = c.scrollHeight; }
+        try { await Community.markMessageRead?.(m.id); } catch (_) { /* badge re-syncs on next event */ }
+        window._refreshCommunityBadge?.();
       });
     }
   }
@@ -393,5 +397,14 @@
     });
   }
 
-  window.ClientCoach = { render };
+  // Live refresh for the support-hub message card (preview + unread badge).
+  // Driven by the app-level inbox channel. No-ops unless the support landing
+  // is mounted — when a thread is open #cc-messages is absent, so this is a
+  // safe call from anywhere.
+  function refreshHub() {
+    if (!_host || !_host.querySelector('#cc-messages')) return;
+    _fillMessageHub();
+  }
+
+  window.ClientCoach = { render, refreshHub };
 })();

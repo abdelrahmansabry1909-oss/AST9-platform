@@ -8,7 +8,9 @@
 const Community = (() => {
 
   // ── Real-time subscription handles ──────────────────────────
-  let _msgChannel = null;
+  let _msgChannel = null;       // the currently-open conversation thread
+  let _inboxChannel = null;     // app-level: every incoming message (live badge/preview)
+  let _activePartner = null;    // partnerId of the open thread, so the inbox channel can skip it
   let _postChannel = null;
   let _commentChannel = null;   // live comments for the currently-open post thread
 
@@ -116,6 +118,7 @@ const Community = (() => {
   function subscribeToMessages(partnerId, callback) {
     if (_msgChannel) _msgChannel.unsubscribe();
     const uid = Auth.getUser()?.id;
+    _activePartner = partnerId;
     _msgChannel = sb
       .channel(`messages_${uid}_${partnerId}`)
       .on('postgres_changes', {
@@ -123,12 +126,54 @@ const Community = (() => {
         schema: 'public',
         table: 'coach_messages',
         filter: `receiver_id=eq.${uid}`,
-      }, payload => callback(payload.new))
+      }, payload => {
+        // The filter is receiver-scoped, so this also fires for messages from
+        // OTHER partners — only surface ones belonging to the open thread.
+        if (payload.new.sender_id === partnerId) callback(payload.new);
+      })
       .subscribe();
   }
 
   function unsubscribeMessages() {
     if (_msgChannel) { _msgChannel.unsubscribe(); _msgChannel = null; }
+    _activePartner = null;
+  }
+
+  // App-level inbox channel — keeps the sidebar unread badge and the client
+  // support-hub preview live for EVERY incoming message, whether or not a
+  // thread is open. Idempotent: a second call is a no-op while subscribed.
+  // Started once at login; the full-page navigation on logout tears it down.
+  function subscribeInbox(callback) {
+    if (_inboxChannel) return;
+    const uid = Auth.getUser()?.id;
+    if (!uid) return;
+    _inboxChannel = sb
+      .channel(`messages_inbox_${uid}`)
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'coach_messages',
+        filter: `receiver_id=eq.${uid}`,
+      }, payload => {
+        // When the matching thread is open, its own channel appends the bubble
+        // and marks it read — skip here so the badge isn't double-counted.
+        if (_activePartner && payload.new.sender_id === _activePartner) return;
+        callback(payload.new);
+      })
+      .subscribe();
+  }
+
+  // Mark a single received message read (used when it arrives in an open
+  // thread). Scoped to the caller as receiver; the null-guard avoids a
+  // redundant write when it is already read.
+  async function markMessageRead(id) {
+    const uid = Auth.getUser()?.id;
+    if (!uid || !id) return;
+    await sb.from('coach_messages')
+      .update({ read_at: new Date().toISOString() })
+      .eq('id', id)
+      .eq('receiver_id', uid)
+      .is('read_at', null);
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -523,6 +568,7 @@ const Community = (() => {
     // Messaging
     loadConversations, loadMessages, loadLatestMessage, sendMessage, getUnreadCount,
     subscribeToMessages, unsubscribeMessages,
+    subscribeInbox, markMessageRead,
     // Groups (coach)
     loadGroups, createGroup, joinGroup, leaveGroup,
     // Referrals
