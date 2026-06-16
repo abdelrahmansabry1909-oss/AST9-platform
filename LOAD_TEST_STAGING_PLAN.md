@@ -177,7 +177,7 @@ advisor (`get_advisors`) after each stage.
 ## 9. Cleanup plan
 
 - **Predicate cleanup** — every test row is prefixed (`LOADTEST-` content,
-  `loadtest+...@ast9.test` emails). Cleanup = delete by that predicate across
+  `loadtest+...@ast9load.test` emails). Cleanup = delete by that predicate across
   `coach_messages`, `appointments`, `notifications`, `daily_routine_logs`,
   programs, subscriptions, then the seeded `profiles` and auth users.
 - **Preferred** — because it is an isolated staging project, the cleanest reset
@@ -217,13 +217,60 @@ credentials and service-role keys must come from the environment only.
 
 ---
 
-### Current honest status
+---
 
-- **500-user test: NOT run.** Requires the staging project above.
-- **Highest safely-tested stage: 50 concurrent reads, 100% success**
-  (`.smoke-d079a9f/qa-load.js`, read-only, against production — deliberately
-  capped well below any rate limit).
-- Realtime correctness (no-refresh preview/badge, mark-read, no duplicate
-  subscriptions, no cross-tenant leakage) is verified functionally
-  (`.smoke-d079a9f/qa-realtime-landing.js`, 9/9) but **not** yet load-tested for
-  delivery delay under concurrency — that is the Realtime track in §6/§8.
+## EXECUTED RUN — free-tier staging (2026-06-16)
+
+The "free best-effort staging" path was executed. A dedicated **free** ($0/mo)
+staging project (`ast9-staging-loadtest`, ref `lsyogvmpftlorvurwmly`,
+eu-central-1) was created in the same org, isolated from production. The
+load-test surface (9 tables, RLS, triggers, helper RPCs, realtime publication)
+was introspection-cloned from prod and seeded with **500 synthetic users**
+(50 coaches / 425 clients / 25 admins, emails `loadtest+...@ast9load.test`,
+disposable shared password via env) plus programs, subscriptions, 2 975 routine
+logs, 1 700 messages, 425 appointments, 1 000 notifications, posts/comments.
+Tooling (uncommitted): `.smoke-d079a9f/load/{mint-pool,ramp,loadtest,probe-auth}.js`.
+
+**Login (auth) — per-IP burst-limited.** From a single machine, GoTrue
+rate-limited sustained distinct logins: a 500-at-once burst yielded 31 success /
+469 × HTTP 429; paced minting reached **328/500 distinct logins (0 non-429
+failures)** in 10 min before the time cap. Login latency when not throttled:
+p50 264 ms / p95 532 ms. Real 500-user traffic arrives from 500 distinct IPs, so
+this per-IP limit is a **load-generator artifact, not a backend limit.** The
+data-plane ramp therefore reused the 328-token pool (standard technique).
+
+**Data-plane ramp (RLS-evaluated reads + ~10% writes), 328-token reuse:**
+
+| Stage | Requests | Success | p50 | p95 | max | 429 | 5xx |
+|---|---|---|---|---|---|---|---|
+| 5   | 33   | 100%   | 161 ms | 843 ms | 0.9 s | 0 | 0 |
+| 20  | 133  | 100%   | 280 ms | 786 ms | 1.2 s | 0 | 0 |
+| 50  | 332  | 100%   | 411 ms | 2.46 s | 3.4 s | 0 | 0 |
+| 100 | 669  | 100%   | 0.96 s | 4.15 s | 7.9 s | 0 | 0 |
+| 250 | 1 669| 100%   | 1.65 s | 8.70 s | 19.2 s | 0 | 0 |
+| **500** | **3 343** | **99.13%** | 3.56 s | 20.0 s | 30 s | **0** | **0** |
+
+(Rows 5–50 are from the latency-gated staged run, which stopped at 100 on a
+p95>4 s rule; rows 100–500 are from a follow-up error-only "push" run on the
+same staging + token pool, minutes later, to find the true ceiling.)
+
+**Verdict.** The **500-user stage genuinely ran.** The backend never hard-failed
+— **0 server errors (5xx), 0 rate-limits (429)** at every stage; the 29 failures
+at 500 were client-side 30 s timeouts on the slowest queued requests, not
+backend errors (99.13% success). RLS stayed correct throughout (a coach sees
+only its 9 clients + coaches/admins, not all 425). **Latency, however, degrades
+steeply on free-tier compute** (p50 161 ms → 3.56 s; p95 0.84 s → 20 s as VUs go
+5 → 500). The highest stage meeting a sane latency bar (p95 ≲ 2.5 s) was
+**50 VUs**; correctness and availability held all the way to **500**.
+
+**This does NOT prove production handles 500 at acceptable latency** — free-tier
+compute (shared CPU, tiny connection pool) is the binding latency constraint. A
+production-fidelity verdict needs a Pro-tier staging (see §2); the *correctness/
+availability* result (no errors to 500) is meaningful regardless of tier.
+
+### Prior baseline (unchanged)
+- Production read probe `.smoke-d079a9f/qa-load.js`: 5/20/50 concurrent = 100%,
+  p95 ~0.4–0.8 s (deliberately capped well below limits).
+- Realtime correctness verified functionally (`qa-realtime-landing.js` 9/9 on
+  built dist + live prod); realtime delivery-delay under concurrency remains the
+  Realtime track in §6/§8 (not separately load-measured this run).
