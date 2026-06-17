@@ -289,6 +289,70 @@ const Charts = (() => {
   }
 
   // ═══════════════════════════════════════════════════════════
+  //  WORKOUT WEEKLY — coach progress insights (render-only)
+  //  Caller (WorkoutSession) computes the real weekly series from
+  //  workout_sessions; this just draws sessions (bars) + avg
+  //  intensity (line). No data access here.
+  // ═══════════════════════════════════════════════════════════
+
+  function renderWorkoutWeekly(series, canvasId = 'ws-weekly-chart') {
+    if (!Array.isArray(series) || !series.length) return;
+    _ensureChartJs(() => {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return;
+
+      // The module's defaults target the dark theme (white ticks); this view
+      // renders on the bright coach theme, so resolve the active text token so
+      // axis + legend labels stay legible on either theme. Palette-faithful.
+      const ink = (getComputedStyle(document.body).getPropertyValue('--text-secondary') || '').trim() || C.tick;
+
+      _destroy(canvasId);
+      _instances[canvasId] = new Chart(canvas, {
+        data: {
+          labels: series.map(w => w.label),
+          datasets: [
+            {
+              type: 'bar', label: 'Sessions', yAxisID: 'y',
+              data: series.map(w => w.sessions),
+              backgroundColor: C.teal + '55', borderColor: C.teal,
+              borderWidth: 1, borderRadius: 4,
+            },
+            {
+              type: 'line', label: 'Avg intensity', yAxisID: 'y1',
+              data: series.map(w => w.avgIntensity),
+              borderColor: C.amber, backgroundColor: 'transparent',
+              borderWidth: 2, pointRadius: 3, pointHoverRadius: 5,
+              tension: 0.4, spanGaps: true,
+            },
+          ],
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { display: true, position: 'bottom',
+              labels: { usePointStyle: true, pointStyleWidth: 8, padding: 14, color: ink } },
+            tooltip: {
+              callbacks: {
+                label: ctx => ctx.dataset.label === 'Avg intensity'
+                  ? ` Intensity: ${ctx.parsed.y == null ? '—' : ctx.parsed.y + '/10'}`
+                  : ` Sessions: ${ctx.parsed.y}`,
+              },
+            },
+          },
+          scales: {
+            x:  { grid: { color: C.gridLine }, ticks: { maxRotation: 0, color: ink } },
+            y:  { position: 'left', beginAtZero: true, grid: { color: C.gridLine },
+                  ticks: { stepSize: 1, precision: 0, color: ink } },
+            y1: { position: 'right', min: 0, max: 10, grid: { drawOnChartArea: false },
+                  ticks: { stepSize: 2, color: ink } },
+          },
+        },
+      });
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════════
   //  PROGRESS SNAPSHOT — save snapshot after each session
   // ═══════════════════════════════════════════════════════════
 
@@ -371,7 +435,7 @@ const Charts = (() => {
 
   return {
     renderScoreHistory, renderRadar, renderGaitTimeline, renderSparkline,
-    saveSnapshot, renderClientProgressPage,
+    renderWorkoutWeekly, saveSnapshot, renderClientProgressPage,
   };
 
 })();
