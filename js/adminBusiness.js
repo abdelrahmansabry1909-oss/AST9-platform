@@ -90,8 +90,12 @@
           <td>${esc(r.coach_name || '—')}</td>
           <td><span class="mono" style="font-size:12px">${esc(r.coach_email || '—')}</span></td>
           <td>${esc(r.phone || '—')}</td>
+          <td>${esc(r.country || '—')}</td>
+          <td>${esc(r.business_name || '—')}</td>
+          <td>${esc(r.professional_title || '—')}</td>
           <td style="text-align:center">${verified}</td>
           <td>${esc(_pkgLabel(r.package_key))}</td>
+          <td style="text-align:center;text-transform:capitalize">${esc(r.billing_interval || 'monthly')}</td>
           <td style="text-align:center">${r.client_count ?? 0}</td>
           <td style="text-align:center">${limit}</td>
           <td style="text-align:center">${r.remaining_slots ?? '—'}</td>
@@ -118,11 +122,12 @@
         <button class="btn btn-sm btn-ghost" onclick="AdminBusiness.exportBusinessCsv()">⬇ Export business CSV</button>
         <button class="btn btn-sm btn-ghost" onclick="AdminBusiness.exportClientEmailsCsv()">⬇ Export client emails CSV</button>
       </div>
-      <div class="abz-note">Revenue is <strong>estimated</strong> from package pricing — billing interval is not stored and no payment is processed. Passwords are never shown or exported.</div>
+      <div class="abz-note">Revenue is <strong>estimated</strong> from package pricing (MRR = monthly, ARR = annual); each coach's stored billing interval is shown in the <strong>Interval</strong> column. No payment is processed. Passwords are never shown or exported.</div>
       <div class="abz-table-wrap">
         <table class="abz-table">
           <thead><tr>
-            <th>Coach</th><th>Email</th><th>Mobile</th><th>Verified</th><th>Package</th>
+            <th>Coach</th><th>Email</th><th>Mobile</th><th>Country</th><th>Business</th><th>Title</th>
+            <th>Verified</th><th>Package</th><th>Interval</th>
             <th>Clients</th><th>Limit</th><th>Remaining</th><th>Est. MRR</th><th>Est. ARR</th>
             <th>Signup</th><th>Status</th><th>Package status</th><th>Actions</th>
           </tr></thead>
@@ -145,6 +150,8 @@
       tierSel.innerHTML = Packages.CATALOG.map(p => `<option value="${p.key}">${esc(p.label)} (${p.limit == null ? p.blurb : p.limit + ' clients'})</option>`).join('');
       if (row) tierSel.value = row.package_key;
     }
+    const interval = $('abz-pkg-interval');
+    if (interval) interval.value = (row && row.billing_interval) || 'monthly';
     const qty = $('abz-pkg-qty');
     if (qty) qty.value = (row && row.custom_qty) ? row.custom_qty : '';
     const notes = $('abz-pkg-notes');
@@ -163,6 +170,7 @@
   async function savePackage() {
     const coachId = $('abz-pkg-coach')?.value;
     const tier = $('abz-pkg-tier')?.value;
+    const interval = ($('abz-pkg-interval')?.value === 'annual') ? 'annual' : 'monthly';
     const notes = ($('abz-pkg-notes')?.value || '').trim() || 'Admin-assigned package';
     if (!coachId || !tier) { _toast('Select a coach and a package.', 'error'); return; }
 
@@ -181,6 +189,7 @@
       const { error } = await sb.rpc('admin_set_coach_package', {
         p_coach_id: coachId, p_package_key: tier,
         p_custom_qty: customQty, p_notes: notes,
+        p_billing_interval: interval,
       });
       if (error) throw error;
       _toast('Package updated (admin-assigned).', 'success');
@@ -212,13 +221,15 @@
 
   function exportBusinessCsv() {
     if (!_rows.length) { _toast('Nothing to export.', 'error'); return; }
-    const header = ['Coach', 'Email', 'Mobile', 'Verified', 'Package', 'Clients', 'Limit',
-      'Remaining', 'Est Monthly USD', 'Est Annual USD', 'Package Status', 'Active', 'Signup', 'Onboarded'];
+    const header = ['Coach', 'Email', 'Mobile', 'Country', 'Business', 'Title', 'Verified',
+      'Package', 'Billing Interval', 'Clients', 'Limit', 'Remaining',
+      'Est Monthly USD', 'Est Annual USD', 'Package Status', 'Active', 'Signup', 'Onboarded'];
     const rows = [header].concat(_rows.map(r => {
       const rev = _revenue(r);
       return [
         r.coach_name || '', r.coach_email || '', r.phone || '',
-        r.email_verified ? 'yes' : 'no', _pkgLabel(r.package_key),
+        r.country || '', r.business_name || '', r.professional_title || '',
+        r.email_verified ? 'yes' : 'no', _pkgLabel(r.package_key), r.billing_interval || 'monthly',
         r.client_count ?? 0, r.client_limit == null ? 'unlimited' : r.client_limit,
         r.remaining_slots ?? '', rev.m, rev.a, r.package_status || '',
         (r.is_active === false) ? 'inactive' : 'active',

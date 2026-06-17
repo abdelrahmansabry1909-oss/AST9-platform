@@ -111,6 +111,7 @@ const Dashboard = (() => {
       'clients':          () => Clients.loadAll(),
       'subscriptions':    () => Subscriptions.loadAll(),
       'billing':          () => (typeof Billing !== 'undefined' && Billing.render?.()),
+      'coach-profile':    () => (typeof CoachProfile !== 'undefined' && CoachProfile.render?.()),
       'coaches':          () => Clients.loadCoaches(),
       'admin-business':   () => (typeof AdminBusiness !== 'undefined' && AdminBusiness.load()),
       'dashboard':        () => {
