@@ -5388,70 +5388,101 @@ tbody td:first-child { color: var(--text-primary); font-weight: 500; }
 ═══════════════════════════════════════════════════════════════ */
 .assess-body-col { position: relative; }
 
+/* The rail hugs the figure and sits centred against it, not pinned to the
+   top — a balanced anatomical index floating over the void. */
 .zone-rail {
   position: absolute;
   left: -12px;
-  top: 96px;
+  top: 50%;
+  transform: translateY(-50%);
   z-index: 5;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 7px;
 }
 .zone-rail:empty { display: none; }
 
 .zone-chip {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 12px 6px 7px;
+  justify-content: center;       /* label centred — no leading badge */
+  text-align: center;
+  padding: 8px 16px;
   border: 1px solid rgba(240, 242, 247, 0.12);
   border-radius: 999px;
   background: rgba(7, 17, 26, 0.62);
+  -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
-  color: rgba(240, 242, 247, 0.72);
+  color: rgba(240, 242, 247, 0.66);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.02em;
   cursor: pointer;
   white-space: nowrap;
-  transition: border-color var(--nc-dur-fast, 150ms) var(--nc-ease, ease),
-              color        var(--nc-dur-fast, 150ms) var(--nc-ease, ease),
-              transform    var(--nc-dur-fast, 150ms) var(--nc-ease, ease),
-              background   var(--nc-dur-fast, 150ms) var(--nc-ease, ease);
+  /* entrance is an enhancement: resting state is fully visible, so the chip
+     never hides if the animation is skipped (reduced motion / no paint). */
+  animation: zone-chip-in var(--nc-dur-base, 320ms) var(--nc-ease, cubic-bezier(0.16,1,0.3,1)) backwards;
+  transition: border-color var(--nc-dur-fast, 180ms) var(--nc-ease, ease),
+              color        var(--nc-dur-fast, 180ms) var(--nc-ease, ease),
+              transform    var(--nc-dur-fast, 180ms) var(--nc-ease, ease),
+              background   var(--nc-dur-fast, 180ms) var(--nc-ease, ease),
+              box-shadow   var(--nc-dur-fast, 180ms) var(--nc-ease, ease);
 }
+@keyframes zone-chip-in {
+  from { opacity: 0; transform: translateX(-7px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+/* ground-up stagger: the rail assembles foot → head as it appears */
+.zone-chip:nth-child(1) { animation-delay: 40ms; }
+.zone-chip:nth-child(2) { animation-delay: 85ms; }
+.zone-chip:nth-child(3) { animation-delay: 130ms; }
+.zone-chip:nth-child(4) { animation-delay: 175ms; }
+.zone-chip:nth-child(5) { animation-delay: 220ms; }
+.zone-chip:nth-child(6) { animation-delay: 265ms; }
+.zone-chip:nth-child(7) { animation-delay: 310ms; }
+
 .zone-chip:hover {
-  border-color: rgba(20, 184, 166, 0.45);
+  border-color: rgba(20, 184, 166, 0.5);
   color: #F0F2F7;
-  transform: translateX(2px);
+  transform: translateX(3px);
+  box-shadow: 0 0 0 1px rgba(20, 184, 166, 0.12), 0 6px 18px rgba(7, 17, 26, 0.5);
 }
 .zone-chip:focus-visible {
   outline: none;
   box-shadow: 0 0 0 2px #07111A, 0 0 0 4px #14B8A6;
 }
-.zone-chip.active {
-  border-color: rgba(20, 184, 166, 0.85);
-  background: rgba(13, 38, 44, 0.85);
-  color: #F0F2F7;
-  box-shadow: 0 0 14px rgba(20, 184, 166, 0.22);
+
+/* a completed zone lights teal — no number, no glyph
+   (#2DD4BF is the same teal the rail's old ordinal badges used) */
+.zone-chip.done {
+  border-color: rgba(20, 184, 166, 0.4);
+  background: rgba(13, 38, 44, 0.66);
+  color: #2DD4BF;
 }
 
-.zone-chip-num {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  border: 1px solid rgba(20, 184, 166, 0.5);
-  color: #2DD4BF;
-  font-size: 10px;
-  font-weight: 700;
-  flex: none;
+/* the active zone fills brighter, with a soft living glow that breathes
+   while the camera is held on it */
+.zone-chip.active {
+  border-color: rgba(20, 184, 166, 0.9);
+  background: rgba(13, 38, 44, 0.9);
+  color: #F0F2F7;
+  transform: translateX(3px);
+  box-shadow: 0 0 0 1px rgba(20, 184, 166, 0.35), 0 0 18px rgba(20, 184, 166, 0.28);
 }
-.zone-chip.active .zone-chip-num {
-  background: #14B8A6;
-  border-color: #14B8A6;
-  color: #07111A;
+.zone-chip.active::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  box-shadow: 0 0 22px rgba(20, 184, 166, 0.3);
+  opacity: 0.2;
+  pointer-events: none;
+  animation: zone-chip-breathe 2.6s var(--nc-ease, ease) infinite;
+}
+@keyframes zone-chip-breathe {
+  0%, 100% { opacity: 0.16; }
+  50%      { opacity: 0.42; }
 }
 
 /* narrow viewports: the side column stacks under the form (existing
@@ -5459,11 +5490,19 @@ tbody td:first-child { color: var(--text-primary); font-weight: 500; }
 @media (max-width: 1024px) {
   .zone-rail {
     position: static;
+    transform: none;
     flex-direction: row;
     flex-wrap: wrap;
     margin-bottom: 10px;
   }
-  .zone-chip:hover { transform: none; }
+  .zone-chip:hover,
+  .zone-chip.active { transform: none; }
+}
+
+/* motion is enhancement only: resting state is visible, glow stays still */
+@media (prefers-reduced-motion: reduce) {
+  .zone-chip { animation: none; }
+  .zone-chip.active::after { animation: none; }
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -5660,8 +5699,7 @@ tbody td:first-child { color: var(--text-primary); font-weight: 500; }
   55%  { transform: scale(1.18); }
   100% { transform: scale(1); }
 }
-.zone-stage.done .zone-stage-num,
-.zone-chip.done .zone-chip-num {
+.zone-stage.done .zone-stage-num {
   animation: e4-done-pop var(--nc-dur-base, 240ms) var(--nc-ease-bounce, ease) 1;
 }
 
