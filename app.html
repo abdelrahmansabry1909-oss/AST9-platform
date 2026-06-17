@@ -306,6 +306,9 @@
       <div class="nav-item role-coach-admin" id="nav-billing" onclick="Dashboard.showSection('billing')" title="Billing">
         <span class="nav-item-icon">◇</span><span class="nav-label">Billing</span>
       </div>
+      <div class="nav-item role-coach-admin" id="nav-coach-profile" onclick="Dashboard.showSection('coach-profile')" title="My Profile">
+        <span class="nav-item-icon">◍</span><span class="nav-label">My Profile</span>
+      </div>
       <div class="nav-item role-coach-admin" id="nav-exercise-library" onclick="Dashboard.showSection('exercise-library')" title="Exercise Library">
         <span class="nav-item-icon">▶</span><span class="nav-label">Exercise Library</span>
       </div>
@@ -1453,6 +1456,17 @@
       </div>
     </div>
 
+    <!-- ── COACH PROFILE (Phase 10) — coach/admin business details ── -->
+    <div class="section" id="section-coach-profile">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1 class="page-title">My <span class="accent">Profile</span></h1>
+          <p class="page-subtitle">Your business details — visible to your admin for account management</p>
+        </div>
+      </div>
+      <div id="coach-profile-root"></div>
+    </div>
+
     <!-- ── COMMUNITY ── -->
     <div class="section" id="section-community">
       <!-- Populated by CommunityUI.initCommunitySection() when shown -->
@@ -2094,6 +2108,14 @@
         <label class="form-label">Package</label>
         <select id="abz-pkg-tier" class="form-input"></select>
       </div>
+      <div class="form-group">
+        <label class="form-label">Billing interval</label>
+        <select id="abz-pkg-interval" class="form-input">
+          <option value="monthly">Monthly</option>
+          <option value="annual">Annual</option>
+        </select>
+        <div class="form-hint">Stored for reporting only — no payment is processed.</div>
+      </div>
       <div class="form-group" id="abz-pkg-qty-wrap" style="display:none">
         <label class="form-label">Custom client limit</label>
         <input id="abz-pkg-qty" type="number" min="60" class="form-input" placeholder="60+"/>
@@ -2581,7 +2603,7 @@ setInterval(() => { if (!document.hidden) _refreshApprovalsBadge(); }, 60_000);
 <script src="js/pdfExport.js"></script>
 <script src="js/subscriptionService.js?v=20260530a"></script>
 <script src="js/auth.js?v=20260614p4"></script>
-<script src="js/dashboard.js?v=20260616b"></script>
+<script src="js/dashboard.js?v=20260617a"></script>
 <script src="js/clients.js?v=20260614p6"></script>
 <script src="js/subscriptions.js?v=20260614p6"></script>
 <script src="js/packages.js"></script>
@@ -2615,6 +2637,7 @@ setInterval(() => { if (!document.hidden) _refreshApprovalsBadge(); }, 60_000);
 <script src="js/exerciseUI.js?v=20260614p5"></script>
 <script src="js/appointments.js?v=20260616a"></script>
 <script src="js/adminBusiness.js"></script>
+<script src="js/coachProfile.js"></script>
 <script src="js/charts.js"></script>
 <script src="js/progressReport.js"></script>
 <script src="js/platformExtras.js"></script>

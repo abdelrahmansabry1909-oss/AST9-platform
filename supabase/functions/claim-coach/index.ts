@@ -55,9 +55,16 @@ serve(async (req) => {
     }
 
     // Promote (service role → bypasses the protected-columns trigger the
-    // same way create-user does). Target role is hard-coded 'coach'.
+    // same way create-user does). Target role is hard-coded 'coach'. Also
+    // persist the phone + country captured at signup (metadata), which the
+    // handle_new_user trigger does not copy — only set when present so an
+    // existing value is never nulled.
+    const meta = (full?.user_metadata as Record<string, unknown> | undefined) ?? {}
+    const patch: Record<string, unknown> = { role: 'coach' }
+    if (typeof meta.phone === 'string' && meta.phone.trim()) patch.phone = meta.phone.trim()
+    if (typeof meta.country === 'string' && meta.country.trim()) patch.country = meta.country.trim()
     const { error: upErr } = await admin.from('profiles')
-      .update({ role: 'coach' }).eq('id', user.id)
+      .update(patch).eq('id', user.id)
     if (upErr) throw new HttpError(400, upErr.message)
 
     // Assign the Free package (1 slot). Idempotent — leave any existing row.

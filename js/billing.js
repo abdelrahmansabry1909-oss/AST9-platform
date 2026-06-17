@@ -61,6 +61,7 @@
               <span style="font-size:26px;font-weight:800;letter-spacing:-.5px;color:var(--text-primary)">${esc(pkgLabel)}</span>
               <span style="font-size:11px;font-weight:600;padding:3px 10px;border-radius:999px;background:rgba(20,184,166,.14);color:${TEAL};border:1px solid rgba(20,184,166,.35)">${esc(s.status || 'active')}</span>
             </div>
+            <div style="font-size:12px;color:var(--text-tertiary);margin-top:5px">Billed ${s.billing_interval === 'annual' ? 'annually' : 'monthly'} · admin-assigned</div>
           </div>
         </div>
         <div style="margin-top:18px;font-size:13px;color:var(--text-secondary)">${slotsLine}</div>
@@ -147,8 +148,8 @@
 
   function _footerNote(isAdmin) {
     const msg = isAdmin
-      ? 'As admin you have unlimited access. Coach packages are assigned by admin; online billing arrives in a future update.'
-      : 'Billing interval is for preview only and is not stored yet. To change your plan, contact your admin — online self-serve billing is coming in a future update. No payment is collected here.';
+      ? 'As admin you have unlimited access. Coach packages and billing intervals are admin-assigned; online billing arrives in a future update.'
+      : 'Your plan and billing interval are assigned by your admin (shown above). The toggle below previews monthly vs annual pricing — it does not change your plan. To change your plan or interval, contact your admin. No payment is collected here and this is not a checkout.';
     return `<div style="font-size:12px;color:var(--text-tertiary);line-height:1.6">${esc(msg)}</div>`;
   }
 
@@ -185,6 +186,8 @@
       host.innerHTML = `<div class="card" style="padding:24px;color:var(--text-secondary)">Could not load your billing status. Please refresh.</div>`;
       return;
     }
+    // Reflect the admin-assigned stored interval; the toggle still previews both.
+    _interval = (_status.billing_interval === 'annual') ? 'annual' : 'monthly';
     _paint(host);
   }
 
