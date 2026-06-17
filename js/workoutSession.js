@@ -171,6 +171,98 @@
     return { session: session || null, logs: logs || [] };
   }
 
+  // ── ANALYTICS — coach progress insights (real data only) ────────
+  // Aggregates the client's own workout_sessions + workout_exercise_logs
+  // into headline metrics + an 8-week trend. No estimates or placeholders:
+  // every number is derived from logged rows; absent data reads as "—".
+  async function summary(clientId, { limit = 30 } = {}) {
+    const sessions = await history(clientId, { limit });
+    const insights = await _buildInsights(sessions);
+    return { sessions, insights };
+  }
+
+  async function _buildInsights(sessions) {
+    const ids = sessions.map((s) => s.id);
+    let logs = [];
+    if (ids.length) {
+      const { data, error } = await sb.from('workout_exercise_logs')
+        .select('session_id,sets,completed').in('session_id', ids);
+      if (error) console.warn('[workout] insights logs:', error.message);
+      logs = data || [];
+    }
+    return _computeInsights(sessions, logs);
+  }
+
+  // Monday-00:00 (local) of the week containing `ms`.
+  function _weekStart(ms) {
+    const d = new Date(ms);
+    d.setHours(0, 0, 0, 0);
+    d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+    return d.getTime();
+  }
+
+  // Last `weeks` Monday-anchored buckets, oldest→newest. `sessions` counts
+  // every started workout; `avgIntensity` averages only completed sessions
+  // that carry a finish-of-session rating (null when none that week).
+  function _weeklyBuckets(sessions, weeks = 8) {
+    const WEEK = 7 * 864e5;
+    const thisWeek = _weekStart(Date.now());
+    const buckets = [];
+    for (let i = weeks - 1; i >= 0; i--) {
+      const start = thisWeek - i * WEEK;
+      buckets.push({ start, sessions: 0, intSum: 0, intN: 0,
+        label: new Date(start).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) });
+    }
+    const idxByStart = new Map(buckets.map((b, i) => [b.start, i]));
+    sessions.forEach((s) => {
+      const i = idxByStart.get(_weekStart(Date.parse(s.started_at)));
+      if (i == null) return;
+      buckets[i].sessions++;
+      if (s.status === 'completed' && s.intensity_rating != null) {
+        buckets[i].intSum += s.intensity_rating; buckets[i].intN++;
+      }
+    });
+    return buckets.map((b) => ({ label: b.label, sessions: b.sessions,
+      avgIntensity: b.intN ? +(b.intSum / b.intN).toFixed(1) : null }));
+  }
+
+  function _computeInsights(sessions, logs) {
+    const completed = sessions.filter((s) => s.status === 'completed');
+    const started   = completed.length + sessions.filter((s) => s.status === 'abandoned').length;
+    const now       = Date.now();
+    const last30    = sessions.filter((s) => now - Date.parse(s.started_at) <= 30 * 864e5).length;
+    const intens    = completed.map((s) => s.intensity_rating).filter((v) => v != null);
+    const durs      = completed.map((s) => s.duration_seconds).filter((v) => v != null && v > 0);
+
+    // Real tonnage from logged sets only — a set contributes to volume
+    // solely when both reps and weight were entered.
+    let sets = 0, reps = 0, volume = 0;
+    logs.forEach((l) => (Array.isArray(l.sets) ? l.sets : []).forEach((st) => {
+      sets++;
+      if (st.reps != null) reps += Number(st.reps) || 0;
+      if (st.reps != null && st.weight != null) volume += (Number(st.reps) || 0) * (Number(st.weight) || 0);
+    }));
+
+    const weekly = _weeklyBuckets(sessions, 8);
+    const lastMs = sessions.length ? Math.max(...sessions.map((s) => Date.parse(s.started_at))) : null;
+    const avg    = (arr) => arr.reduce((a, b) => a + b, 0) / arr.length;
+
+    return {
+      totalSessions:  sessions.length,
+      completed:      completed.length,
+      last30,
+      completionRate: started ? Math.round((completed.length / started) * 100) : null,
+      activeWeeks:    weekly.filter((w) => w.sessions > 0).length,
+      avgIntensity:   intens.length ? +avg(intens).toFixed(1) : null,
+      avgDurationMin: durs.length ? Math.round(avg(durs) / 60) : null,
+      totalSets:      sets,
+      totalReps:      reps,
+      totalVolume:    volume > 0 ? Math.round(volume) : null,
+      lastActiveMs:   lastMs,
+      weekly,
+    };
+  }
+
   // ── 2. UI — CLIENT TRACKER (inside My Program) ──────────────────
 
   // Mounts a Start/Finish + per-exercise log UI into every
@@ -588,6 +680,52 @@
     };
   }
 
+  // ── Insights render (reuses the existing .stat-card design system) ──
+  function _agoLabel(ms) {
+    if (ms == null) return '—';
+    const days = Math.floor((Date.now() - ms) / 864e5);
+    if (days <= 0) return 'Today';
+    if (days === 1) return '1d ago';
+    if (days < 7) return days + 'd ago';
+    return Math.floor(days / 7) + 'w ago';
+  }
+
+  function _fmtKg(v) {
+    return v >= 1000 ? (v / 1000).toFixed(1) + 'k kg' : v + ' kg';
+  }
+
+  function _statTile(label, value, sub, colorVar) {
+    return `
+      <div class="stat-card" style="padding:16px;--stat-color:${colorVar}">
+        <div class="stat-card-bg"></div>
+        <div class="stat-label">${esc(label)}</div>
+        <div class="stat-value" style="font-size:30px">${esc(value)}</div>
+        <div class="stat-sub">${esc(sub)}</div>
+      </div>`;
+  }
+
+  function _insightsHTML(m) {
+    const tiles = [
+      _statTile('Sessions',        m.totalSessions,                                       `${m.completed} completed · ${m.last30} in 30d`, 'var(--lime)'),
+      _statTile('Completion',      m.completionRate == null ? '—' : m.completionRate + '%', 'of started workouts',                          'var(--teal)'),
+      _statTile('Active weeks',    m.activeWeeks + '/8',                                  'trained in last 8 wks',                         'var(--teal)'),
+      _statTile('Avg intensity',   m.avgIntensity == null ? '—' : m.avgIntensity + '/10', m.avgDurationMin ? `${m.avgDurationMin} min avg session` : 'completed sessions', 'var(--amber)'),
+      _statTile('Training volume', m.totalVolume == null ? '—' : _fmtKg(m.totalVolume),  `${m.totalSets} sets · ${m.totalReps} reps`,     'var(--lime)'),
+      _statTile('Last active',     _agoLabel(m.lastActiveMs),                            m.lastActiveMs ? new Date(m.lastActiveMs).toLocaleDateString() : 'no sessions', 'var(--rose)'),
+    ].join('');
+    const hasTrend = m.weekly.some((w) => w.sessions > 0);
+    return `
+      <div style="margin-bottom:18px">
+        <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-tertiary);margin-bottom:10px">Progress insights</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:12px">${tiles}</div>
+        ${hasTrend ? `
+          <div class="card" style="margin-top:14px">
+            <div class="card-header"><span class="card-title">Weekly training — last 8 weeks</span></div>
+            <div class="chart-container" style="height:200px"><canvas id="ws-weekly-chart"></canvas></div>
+          </div>` : ''}
+      </div>`;
+  }
+
   // ── 3. UI — COACH WORKOUT HISTORY VIEW ──────────────────────────
   async function mountCoachView(host, { preselectClientId = null } = {}) {
     if (!host) return;
@@ -637,13 +775,13 @@
       return;
     }
     list.innerHTML = `<div style="text-align:center;padding:24px"><span class="spinner"></span></div>`;
-    const rows = await history(clientId, { limit: 30 });
+    const { sessions: rows, insights } = await summary(clientId, { limit: 30 });
     if (!rows.length) {
       list.innerHTML = `<div class="empty-state" style="padding:24px"><span class="empty-icon">◌</span><div class="empty-title">No workouts logged yet</div><p class="empty-desc">Sessions show up here as the client starts and finishes workouts.</p></div>`;
       return;
     }
 
-    list.innerHTML = `
+    list.innerHTML = _insightsHTML(insights) + `
       <table style="width:100%;border-collapse:collapse;font-size:13px">
         <thead><tr style="text-align:left;color:var(--text-tertiary);font-size:11px;text-transform:uppercase;letter-spacing:1px">
           <th style="padding:8px 4px">When</th>
@@ -677,6 +815,12 @@
           }).join('')}
         </tbody>
       </table>`;
+
+    // Render the 8-week trend once the canvas is in the DOM (graceful skip
+    // if Chart.js / the Charts module isn't available).
+    if (typeof Charts !== 'undefined' && Charts.renderWorkoutWeekly) {
+      Charts.renderWorkoutWeekly(insights.weekly, 'ws-weekly-chart');
+    }
 
     list.querySelectorAll('[data-ws-open]').forEach((b) => {
       b.addEventListener('click', () => _renderDetail(host, b.dataset.wsOpen));
@@ -720,7 +864,7 @@
   window.WorkoutSession = {
     // Data layer
     start, finish, abandon, logExercise,
-    getActiveSession, history, detail,
+    getActiveSession, history, detail, summary,
     // UI mount points
     mountWorkouts, mountCoachView,
     // Helpers (exposed for tests / dashboards)
