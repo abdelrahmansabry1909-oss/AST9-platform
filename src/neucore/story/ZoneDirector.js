@@ -75,7 +75,9 @@ export class ZoneDirector {
       chip.setAttribute('role', 'tab');
       chip.setAttribute('aria-selected', 'false');
       chip.tabIndex = z.ordinal === 1 ? 0 : -1;
-      chip.innerHTML = `<span class="zone-chip-num">${z.ordinal}</span><span class="zone-chip-label">${z.label}</span>`;
+      // Label only — no ordinal badge. Completion reads as a teal-lit chip;
+      // the journey dots and stage headers carry the explicit count.
+      chip.innerHTML = `<span class="zone-chip-label">${z.label}</span>`;
       chip.addEventListener('click', () => this.toggle(z.key));
       chip.addEventListener('mouseenter', () => { this.hoverKey = z.key; this._refreshHighlights(); });
       chip.addEventListener('mouseleave', () => { this.hoverKey = null;  this._refreshHighlights(); });
@@ -140,14 +142,16 @@ export class ZoneDirector {
     bus.emit('zone:change', { key: zone.key });
   }
 
-  // E3 — completion feedback on the rail: the ordinal becomes a quiet check.
+  // E3 — completion feedback on the rail: a finished zone's chip lights teal.
   setZoneDone(key, done) {
     const chip = this.rail.querySelector(`.zone-chip[data-zone="${key}"]`);
     if (!chip) return;
     chip.classList.toggle('done', done);
     const zone = ZONES.find((z) => z.key === key);
-    const num = chip.querySelector('.zone-chip-num');
-    if (num && zone) num.textContent = done ? '✓' : zone.ordinal;
+    if (!zone) return;
+    // The teal tint is decorative; spell completion out for assistive tech.
+    if (done) chip.setAttribute('aria-label', `${zone.label} — complete`);
+    else chip.removeAttribute('aria-label');
   }
 
   _syncRail() {
