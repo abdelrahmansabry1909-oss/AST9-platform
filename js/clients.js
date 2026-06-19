@@ -429,28 +429,183 @@ const Clients = (() => {
   }
 
   // ── Exercise Library ─────────────────────────────────────────
+  // Browses the shared `exercises` table: the David Grey SYSTEM library
+  // (created_by NULL / is_global) that every coach reads, plus the coach's
+  // own private exercises. RLS already enforces the boundary; this is a
+  // read + filter + preview surface. Browse axes: body region (Upper / Core
+  // / Lower), a Lower-Body focus (Internal / External / Combined rotation),
+  // and source (System / Mine). All filtering is in-memory over one query.
+  let _exAll = [];
+  let _exSelectedId = null;
+  const _exFilter = { region: 'all', lowerSub: 'all', source: 'all', search: '' };
 
   async function loadExercises() {
     const el = document.getElementById('exercise-list');
     if (!el) return;
-    const { data } = await sb.from('exercises').select('*').order('name');
-    if (!data?.length) {
+    el.innerHTML = `<div class="empty-state"><span class="empty-icon">▶</span><div class="empty-title">Loading exercise library…</div></div>`;
+    const { data, error } = await sb.from('exercises').select('*').order('name');
+    if (error) {
+      el.innerHTML = `<div class="empty-state"><span class="empty-icon">▶</span><div class="empty-title">Couldn't load the library</div><p class="empty-desc">${_esc(error.message)}</p></div>`;
+      return;
+    }
+    _exAll = data || [];
+    _exSelectedId = null;
+    if (!_exAll.length) {
       el.innerHTML = `<div class="empty-state"><span class="empty-icon">▶</span><div class="empty-title">No exercises yet</div><p class="empty-desc">Add exercises to build your library.</p></div>`;
       return;
     }
-    el.innerHTML = `<div class="exercise-grid">${data.map(ex => `
-      <div class="exercise-card">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
-          <div style="font-weight:600;font-size:13px;color:var(--text-primary);line-height:1.3">${ex.name}</div>
-          <button class="btn-icon" onclick="Clients.deleteExercise('${ex.id}')" style="width:24px;height:24px;font-size:11px;flex-shrink:0">✕</button>
+    el.innerHTML = `
+      <div id="ex-lib-bar">${_exFilterBarHTML()}</div>
+      <div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;margin-top:14px">
+        <div style="flex:1 1 440px;min-width:280px">
+          <div id="ex-lib-meta"></div>
+          <div id="ex-lib-grid"></div>
         </div>
-        <div style="display:flex;gap:6px;margin-bottom:8px">
-          <span class="badge ${_catBadge(ex.category)}">${ex.category}</span>
-          <span class="badge ${_phaseBadge(ex.phase)}">${ex.phase}</span>
+        <aside id="ex-lib-preview" style="flex:1 1 300px;max-width:360px;position:sticky;top:12px;
+               border:1px solid var(--border-subtle);border-radius:12px;background:var(--bg-raised);padding:14px"></aside>
+      </div>`;
+    _paintExGrid();
+    _paintExPreview();
+  }
+
+  // Filter bar — search + source chips, region chips, and (for Lower Body)
+  // a focus sub-row. Chip styling reuses the shared .btn pattern so the
+  // library inherits the existing porcelain look (no new visual language).
+  function _exFilterBarHTML() {
+    const f = _exFilter;
+    const chip = (active, label, attr) =>
+      `<button type="button" class="btn btn-sm ${active ? 'btn-primary' : 'btn-ghost'}" ${attr}>${label}</button>`;
+    const region = (val, label) => chip(f.region === val, label, `onclick="Clients.exFilter('region','${val}')"`);
+    const sub    = (val, label) => chip(f.lowerSub === val, label, `onclick="Clients.exFilter('lowerSub','${val}')"`);
+    const src    = (val, label) => chip(f.source === val, label, `onclick="Clients.exFilter('source','${val}')"`);
+    const tagLbl = (t) => `<span style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-tertiary);align-self:center;margin-right:4px">${t}</span>`;
+    return `
+      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px">
+        <input id="ex-lib-search" class="form-input" placeholder="Search exercises…" value="${_esc(f.search)}"
+               oninput="Clients.exSearch(this.value)" style="flex:1;max-width:260px">
+        <div style="display:flex;gap:5px;flex-wrap:wrap">${src('all', 'All')}${src('system', 'System Library')}${src('mine', 'My Exercises')}</div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px">
+        ${tagLbl('Region')}${region('all', 'All')}${region('Upper Body', 'Upper Body')}${region('Core', 'Core')}${region('Lower Body', 'Lower Body')}
+      </div>
+      ${f.region === 'Lower Body' ? `
+      <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:4px">
+        ${tagLbl('Focus')}${sub('all', 'All')}${sub('Internal Rotation', 'Internal Rotation')}${sub('External Rotation', 'External Rotation')}${sub('IR/ER Combined', 'IR/ER Combined')}${sub('Other', 'Other')}
+      </div>` : ''}`;
+  }
+
+  // System rows live under created_by IS NULL / is_global; coach-private
+  // rows carry the coach's own id (RLS hides other coaches' privates).
+  function _exIsSystem(ex) { return ex.created_by == null || ex.is_global === true; }
+
+  function _exFiltered() {
+    const myId = (typeof Auth !== 'undefined' && Auth.getUser) ? (Auth.getUser()?.id || null) : null;
+    const f = _exFilter;
+    const q = f.search.trim().toLowerCase();
+    return _exAll.filter((ex) => {
+      if (f.region !== 'all' && ex.category !== f.region) return false;
+      if (f.region === 'Lower Body' && f.lowerSub !== 'all') {
+        const tags = Array.isArray(ex.tags) ? ex.tags : [];
+        if (ex.target_area !== f.lowerSub && !tags.includes(f.lowerSub)) return false;
+      }
+      if (f.source === 'system' && !_exIsSystem(ex)) return false;
+      if (f.source === 'mine'   && ex.created_by !== myId) return false;
+      if (q && !(ex.name || '').toLowerCase().includes(q)) return false;
+      return true;
+    });
+  }
+
+  function _paintExGrid() {
+    const grid = document.getElementById('ex-lib-grid');
+    const meta = document.getElementById('ex-lib-meta');
+    if (!grid) return;
+    const myId = (typeof Auth !== 'undefined' && Auth.getUser) ? (Auth.getUser()?.id || null) : null;
+    const rows = _exFiltered();
+    if (meta) meta.innerHTML = `<div style="font-size:12px;color:var(--text-tertiary);margin-bottom:8px">${rows.length} exercise${rows.length === 1 ? '' : 's'}</div>`;
+    if (!rows.length) {
+      grid.innerHTML = `<div class="empty-state" style="padding:30px"><span class="empty-icon">▶</span><div class="empty-title">No matches</div><p class="empty-desc">Try a different region, focus, or search.</p></div>`;
+      return;
+    }
+    grid.innerHTML = `<div class="exercise-grid">${rows.map((ex) => _exCardHTML(ex, myId)).join('')}</div>`;
+  }
+
+  function _exCardHTML(ex, myId) {
+    const own      = !!(myId && ex.created_by === myId);
+    const system   = _exIsSystem(ex);
+    const selected = ex.id === _exSelectedId;
+    const hasVideo = !!(window.ExerciseLibrary && ExerciseLibrary.getEmbedUrl(ex.video_url));
+    const cat      = ex.category || '—';
+    return `
+      <div class="exercise-card" data-ex-card="${_esc(ex.id)}" onclick="Clients.exSelect('${_esc(ex.id)}')"
+           style="cursor:pointer;${selected ? 'outline:2px solid var(--lime);outline-offset:-1px' : ''}">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;gap:8px">
+          <div style="font-weight:600;font-size:13px;color:var(--text-primary);line-height:1.3">${_esc(ex.name)}</div>
+          ${own ? `<button class="btn-icon" title="Delete" onclick="event.stopPropagation();Clients.deleteExercise('${_esc(ex.id)}')" style="width:24px;height:24px;font-size:11px;flex-shrink:0">✕</button>` : ''}
         </div>
-        ${ex.description ? `<p style="font-size:12px;color:var(--text-tertiary);line-height:1.5;margin-bottom:8px">${ex.description}</p>` : ''}
-        ${ex.video_url ? `<a href="${ex.video_url}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--lime);text-decoration:none;font-weight:500">▶ Watch demo</a>` : ''}
-      </div>`).join('')}</div>`;
+        <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap">
+          <span class="badge ${_catBadge(cat)}">${_esc(cat)}</span>
+          ${ex.phase ? `<span class="badge ${_phaseBadge(ex.phase)}">${_esc(ex.phase)}</span>` : ''}
+          ${system ? `<span class="badge" style="background:rgba(61,245,193,.12);color:var(--teal,#3df5c1);border:1px solid rgba(61,245,193,.3)">System</span>` : ''}
+        </div>
+        ${ex.description ? `<p style="font-size:12px;color:var(--text-tertiary);line-height:1.5;margin-bottom:8px">${_esc(ex.description)}</p>` : ''}
+        ${hasVideo ? `<span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--lime);font-weight:500">▶ Video</span>` : ''}
+      </div>`;
+  }
+
+  // Right-side preview: a safe YouTube embed (or a calm "no video" state)
+  // plus an open-on-YouTube link. Embed URL is YouTube-id derived; the link
+  // is YouTube-host verified (falls back to a sanitized http(s) link only
+  // for a coach's own non-YouTube demo).
+  function _paintExPreview() {
+    const host = document.getElementById('ex-lib-preview');
+    if (!host) return;
+    const ex = _exAll.find((e) => e.id === _exSelectedId);
+    if (!ex) {
+      host.innerHTML = `<div style="text-align:center;color:var(--text-tertiary);font-size:12px;padding:24px 6px">
+        <div style="font-size:26px;margin-bottom:6px">▶</div>Select an exercise to preview its demo video.</div>`;
+      return;
+    }
+    const EL    = window.ExerciseLibrary;
+    const embed = EL ? EL.getEmbedUrl(ex.video_url) : null;
+    const watch = EL ? (EL.safeYouTubeUrl(ex.video_url) || EL.sanitizeUrl(ex.video_url)) : null;
+    const meta  = [ex.category, ex.target_area, _exIsSystem(ex) ? 'System library' : 'My exercise'].filter(Boolean).join(' · ');
+    host.innerHTML = `
+      <div style="font-size:14px;font-weight:700;color:var(--text-primary);margin-bottom:10px;line-height:1.35">${_esc(ex.name)}</div>
+      ${embed
+        ? `<div style="position:relative;width:100%;padding-top:56.25%;border-radius:8px;overflow:hidden;background:#000">
+             <iframe src="${_esc(embed)}" title="${_esc(ex.name)} demonstration" allowfullscreen loading="lazy"
+                     referrerpolicy="strict-origin-when-cross-origin"
+                     style="position:absolute;inset:0;width:100%;height:100%;border:0"></iframe></div>`
+        : `<div style="border:1px dashed var(--border-subtle);border-radius:8px;padding:22px 12px;text-align:center;color:var(--text-tertiary);font-size:12px">No video attached</div>`}
+      ${watch ? `<a href="${_esc(watch)}" target="_blank" rel="noopener noreferrer"
+          style="display:inline-flex;align-items:center;gap:5px;margin-top:10px;font-size:12px;color:var(--lime);text-decoration:none;font-weight:600">▶ Open on YouTube ↗</a>` : ''}
+      <div style="margin-top:10px;font-size:11px;color:var(--text-tertiary)">${_esc(meta)}</div>`;
+  }
+
+  // Public filter handlers (inline-wired from the chips, matching the file's
+  // existing onclick style).
+  function exFilter(kind, value) {
+    if (kind === 'region') {
+      _exFilter.region = value;
+      if (value !== 'Lower Body') _exFilter.lowerSub = 'all';
+    } else if (kind === 'lowerSub') {
+      _exFilter.lowerSub = value;
+    } else if (kind === 'source') {
+      _exFilter.source = value;
+    }
+    const bar = document.getElementById('ex-lib-bar');
+    if (bar) bar.innerHTML = _exFilterBarHTML();
+    _paintExGrid();
+  }
+  function exSearch(value) { _exFilter.search = value || ''; _paintExGrid(); }
+  function exSelect(id) {
+    _exSelectedId = id;
+    document.querySelectorAll('[data-ex-card]').forEach((c) => {
+      const on = c.dataset.exCard === id;
+      c.style.outline = on ? '2px solid var(--lime)' : '';
+      if (on) c.style.outlineOffset = '-1px';
+    });
+    _paintExPreview();
   }
 
   async function submitAddExercise() {
@@ -802,6 +957,7 @@ const Clients = (() => {
     loadAll, submitAddClient, prepPhaseUpgrade,
     loadCoaches, submitAddCoach, removeCoach,
     loadExercises, submitAddExercise, deleteExercise,
+    exFilter, exSearch, exSelect,
     openRecovery, closeRecovery,
     nudgeClient, reactivateClient,
     openEditClient, submitEditClient, removeClient,

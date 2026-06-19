@@ -69,6 +69,13 @@
   };
   const orDash = (v) => clean(v) || '—';
 
+  // Phase 13 — a clickable exercise name needs a YouTube-host-verified link
+  // (reuses the shared allow-list; never trusts an arbitrary host). Returns a
+  // canonical watch URL or null → null rows render as plain text.
+  const safeVideo = (u) =>
+    (typeof ExerciseLibrary !== 'undefined' && ExerciseLibrary.safeYouTubeUrl)
+      ? ExerciseLibrary.safeYouTubeUrl(u) : null;
+
   // ── Header band — drawn on every page ─────────────────────
   function drawHeader(title) {
     // dark band
@@ -351,11 +358,17 @@
       set.text(C.white);
       doc.text(String(i + 1), xs.num + 13, cursor + 16, { align: 'center' });
 
-      // name + notes
+      // name + notes — a YouTube-verified video makes the name a clickable
+      // link (teal); rows without a safe video stay plain ink text.
       font('bold', 9);
-      set.text(C.ink);
+      const vurl = safeVideo(ex.video_url);
+      set.text(vurl ? C.teal : C.ink);
       let ny = cursor + 14;
-      nameLines.forEach((ln) => { doc.text(ln, xs.name + 6, ny); ny += 11; });
+      nameLines.forEach((ln) => {
+        if (vurl) doc.textWithLink(ln, xs.name + 6, ny, { url: vurl });
+        else      doc.text(ln, xs.name + 6, ny);
+        ny += 11;
+      });
       if (noteLines.length) {
         font('normal', 7.7);
         set.text(C.sub);
@@ -570,6 +583,14 @@
     sectionTitle('Weekly Schedule');
     paragraph(schedule.map((id, i) => `Day ${i + 1}: Workout ${id}`).join('     '),
       { size: 10, style: 'bold', color: C.teal });
+
+    // Caption only when at least one exercise carries a clickable video.
+    const anyVideo = workouts.some((wk) =>
+      ['warmup', 'main', 'cooldown'].some((g) => (wk[g] || []).some((ex) => ex && safeVideo(ex.video_url))));
+    if (anyVideo) {
+      paragraph('Exercise names shown in teal link to a video demonstration.',
+        { size: 8.5, style: 'italic', color: C.sub });
+    }
 
     // Each distinct workout
     workouts.forEach((wk) => {

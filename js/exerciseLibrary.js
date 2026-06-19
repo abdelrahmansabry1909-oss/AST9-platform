@@ -160,6 +160,32 @@ const ExerciseLibrary = (() => {
     return id ? `https://img.youtube.com/vi/${id}/mqdefault.jpg` : null;
   }
 
+  // ── YouTube-only allow-list (hardened) ───────────────────────
+  // Unlike sanitizeUrl (any http/https) this verifies the *host* is a
+  // real YouTube domain before trusting the id, so a stray "?v=…" on an
+  // unknown host can never be promoted to a YouTube link/embed. Returns a
+  // canonical watch URL or null. Used wherever we render a clickable video
+  // link or embed for system/library exercises (preview, PDF, client Train).
+  const _YT_HOSTS = new Set(['youtube.com', 'www.youtube.com', 'm.youtube.com', 'youtu.be', 'www.youtu.be']);
+  function safeYouTubeUrl(u) {
+    if (!u) return null;
+    let url;
+    try { url = new URL(String(u).trim()); } catch { return null; }
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') return null;
+    const host = url.hostname.toLowerCase();
+    if (!_YT_HOSTS.has(host)) return null;
+    let id = null;
+    if (host === 'youtu.be' || host === 'www.youtu.be') {
+      id = url.pathname.slice(1).split('/')[0];
+    } else if (url.pathname === '/watch') {
+      id = url.searchParams.get('v');
+    } else {
+      const m = url.pathname.match(/^\/(?:embed|shorts|v|live)\/([A-Za-z0-9_-]+)/);
+      if (m) id = m[1];
+    }
+    return (id && /^[A-Za-z0-9_-]{6,}$/.test(id)) ? `https://www.youtube.com/watch?v=${id}` : null;
+  }
+
   async function fetchPlaylistItems(playlistId) {
     if (!YT_API_KEY) {
       console.warn('YouTube API key not configured (window.YOUTUBE_API_KEY)');
@@ -299,7 +325,7 @@ const ExerciseLibrary = (() => {
   return {
     loadAll, getById, create, update, remove,
     lookup, lookupByJoint, lookupByPhase,
-    sanitizeUrl, isValidUrl,
+    sanitizeUrl, isValidUrl, safeYouTubeUrl,
     getEmbedUrl, getThumbnailUrl,
     fetchPlaylistItems, importFromPlaylist,
     loadPlaylists, savePlaylist, syncPlaylist,
