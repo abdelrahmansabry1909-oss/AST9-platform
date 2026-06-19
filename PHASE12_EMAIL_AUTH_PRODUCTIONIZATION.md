@@ -79,21 +79,24 @@ Resend, so reusing it keeps one verified domain and one provider.
 - **Cost:** Resend has a free tier that comfortably covers low Auth volume (signup +
   reset), with paid tiers for higher volume. Confirm current limits/prices at
   <https://resend.com/pricing> before committing — pricing changes over time.
-- **Setup (owner):**
-  1. Resend → **Domains** → add your sending domain (e.g. `mail.ast9.app` or your real
-     domain) → add the **exact** DNS records Resend's domain page lists:
+- **Setup (owner) — exact values:**
+  1. Resend → **Domains** → add the sending domain **`mail.ast9.com`** (use your real
+     domain if `ast9.com` isn't yours; adapt the sender below accordingly) → add the
+     **exact** DNS records Resend's domain page lists, in your DNS provider:
      - **SPF** (TXT) and **DKIM** records — copy them verbatim from Resend (do not
        hand-write them; the values are account/domain-specific).
-     - **DMARC** (recommended): a `_dmarc` TXT record, e.g. `v=DMARC1; p=none; rua=mailto:you@domain`.
+     - **DMARC** (recommended): a `_dmarc` TXT record, e.g. `v=DMARC1; p=none; rua=mailto:you@ast9.com`.
      - Wait for Resend to show the domain **Verified**.
   2. Resend → **API Keys** → create a key scoped to sending (or reuse the existing one).
-  3. Supabase → **Authentication → Emails → SMTP Settings** → enable **Custom SMTP**
-     using the SMTP host/port/username/password from Resend's **SMTP** docs page
-     (<https://resend.com/docs>) — the password is the Resend API key. Set:
-     - Sender email = an address **on the verified domain** (e.g. `no-reply@mail.ast9.app`)
-     - Sender name = `AST9`
-  4. Also set the edge `FROM_EMAIL` secret to the same verified address so app
-     (Resend) emails and Auth emails share one identity.
+  3. Supabase → **Authentication → Emails → SMTP Settings** → enable **Custom SMTP**:
+     - Host: `smtp.resend.com`
+     - Port: `587`
+     - Username: `resend`
+     - Password: your **Resend API key** (paste the key string — not stored in this repo)
+     - Sender name: `AST9`
+     - Sender email: `no-reply@mail.ast9.com` (must be an address on the verified domain)
+  4. Also set the edge `FROM_EMAIL` secret to `no-reply@mail.ast9.com` so the app's
+     Resend emails and Supabase Auth emails share one verified identity.
 - **Do NOT** put SMTP credentials or the Resend API key in repo/front-end code — they
   live only in the Supabase dashboard / edge secrets.
 
@@ -125,11 +128,15 @@ code above for email links to resolve.
 
 ## Part D — Email templates (AST9-branded) **[OWNER to paste]**
 
-Paste into **Supabase → Authentication → Emails**. Palette matches the existing
+Paste into **Supabase → Authentication → Emails**. The **Subject** is a separate field
+above the HTML body — set it to the value given per template. Palette matches the existing
 `send-email` brand (dark `#0b0d12`, lime `#c8f04a`, teal `#3df5c1`). `{{ .ConfirmationURL }}`
-is Supabase's link variable — keep it verbatim.
+is Supabase's link variable — keep it verbatim, never hardcode a URL. The body uses a
+centered max-width container so it reads cleanly on mobile.
 
 ### "Confirm signup" (coach verification)
+
+**Subject:** `Confirm your AST9 coach account`
 
 ```html
 <div style="font-family:sans-serif;max-width:600px;margin:0 auto;background:#0b0d12;color:#f0f2f7;padding:40px;border-radius:12px">
@@ -141,11 +148,13 @@ is Supabase's link variable — keep it verbatim.
   </p>
   <p style="font-size:13px;color:#7a8399;line-height:1.6">This link expires in 24 hours and can be used once. If you didn’t create an AST9 account, you can ignore this email.</p>
   <p style="font-size:12px;color:#7a8399;word-break:break-all">Or paste this link into your browser:<br>{{ .ConfirmationURL }}</p>
-  <p style="color:#7a8399;font-size:13px;margin-top:28px">— AST9 Elite Coaching</p>
+  <p style="color:#7a8399;font-size:13px;margin-top:28px">— AST9 · NeuCore</p>
 </div>
 ```
 
 ### "Reset password"
+
+**Subject:** `Reset your AST9 password`
 
 ```html
 <div style="font-family:sans-serif;max-width:600px;margin:0 auto;background:#0b0d12;color:#f0f2f7;padding:40px;border-radius:12px">
@@ -157,7 +166,7 @@ is Supabase's link variable — keep it verbatim.
   </p>
   <p style="font-size:13px;color:#7a8399;line-height:1.6">This link expires in 1 hour and can be used once. If you didn’t request a reset, ignore this email — your password stays unchanged.</p>
   <p style="font-size:12px;color:#7a8399;word-break:break-all">Or paste this link into your browser:<br>{{ .ConfirmationURL }}</p>
-  <p style="color:#7a8399;font-size:13px;margin-top:28px">— AST9 Elite Coaching</p>
+  <p style="color:#7a8399;font-size:13px;margin-top:28px">— AST9 · NeuCore</p>
 </div>
 ```
 
