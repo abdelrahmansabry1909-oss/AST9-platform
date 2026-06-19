@@ -563,7 +563,15 @@ body.nc-bright #section-new-session .card { border-radius: 18px; }
 body.nc-bright .assess-section-head { font-size: 13px; letter-spacing: 0.01em; }
 
 @media (prefers-reduced-motion: reduce) {
-  .nc-ai-chip::before { animation: none; }
+  .nc-ai-chip::before,
+  body.nc-bright .modal-overlay,
+  body.nc-bright .modal,
+  body.nc-bright .toast,
+  body.nc-bright .section.active,
+  body.nc-bright .tab-panel.active {
+    animation: none !important;
+    transition: none !important;
+  }
 }
 
 /* ════════════════════════════════════════════════════════════════
@@ -664,3 +672,597 @@ body.nc-bright .nc-subj-mode-btn.active {
   box-shadow: 0 0 0 1px color-mix(in oklab, var(--nc-indigo, #5B6CFF), transparent 55%);
 }
 body.nc-bright .nc-wizard-step-num { color: var(--nc-indigo-ink, #4F5BD5); }
+
+/* ════════════════════════════════════════════════════════════════
+   PHASE A — GLOBAL FRONTEND SURFACE POLISH
+   Scope: Unify cards, buttons, inputs, selects, textareas, modals,
+   tables, tabs, chips, badges, hover/focus/loading/empty states,
+   subtle transitions, border radii, shadows and spacing.
+   Theme-neutral and additive, scoped safely under body.nc-bright
+   for coach/admin and standard classes where appropriate.
+   ════════════════════════════════════════════════════════════════ */
+
+/* ── 1. CARDS ── */
+/* Ensure all card variants share the unified card language */
+body.nc-bright .card,
+body.nc-bright .stat-card,
+body.nc-bright .glass-card,
+body.nc-bright .neu-card,
+body.nc-bright .chart-card,
+body.nc-bright .graph-card,
+body.nc-bright .ws-tracker-live,
+body.nc-bright .ws-tracker-cta {
+  border: 1px solid var(--nc-border) !important;
+  border-radius: 18px !important;
+  box-shadow: var(--nc-shadow-card) !important;
+  background: var(--nc-bg-card) !important;
+  padding: var(--nc-sp-6, 24px) !important;
+  position: relative;
+  transition: transform var(--nc-dur-base, 320ms) var(--nc-ease, cubic-bezier(0.16,1,0.3,1)),
+              box-shadow var(--nc-dur-base, 320ms) var(--nc-ease, cubic-bezier(0.16,1,0.3,1)),
+              border-color var(--nc-dur-base, 320ms) var(--nc-ease, cubic-bezier(0.16,1,0.3,1)) !important;
+}
+
+/* Subtle top highlight inside all card types for expensive glass feel */
+body.nc-bright .card::before,
+body.nc-bright .stat-card::before,
+body.nc-bright .glass-card::before,
+body.nc-bright .neu-card::before,
+body.nc-bright .chart-card::before,
+body.nc-bright .graph-card::before {
+  content: "";
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Unified interactive card hover lift */
+body.nc-bright .stat-card:hover,
+body.nc-bright .card-hover:hover,
+body.nc-bright .neu-card--interactive:hover,
+body.nc-bright .ws-tracker-live:hover,
+body.nc-bright .ws-tracker-cta:hover {
+  transform: translateY(-3px) !important;
+  box-shadow: var(--nc-shadow-lg) !important;
+  border-color: var(--nc-border-strong) !important;
+}
+
+/* Unified Empty State inside Cards */
+body.nc-bright .empty-state,
+body.nc-bright .nc-rpm-empty,
+body.nc-bright .nc-app-empty {
+  border: 1px dashed var(--nc-border-strong) !important;
+  border-radius: 14px !important;
+  background: var(--nc-bg-secondary, #E9EEF5) !important;
+  padding: 40px 20px !important;
+  text-align: center;
+  color: var(--nc-text-secondary) !important;
+  box-shadow: none !important;
+}
+body.nc-bright .empty-icon {
+  font-size: 32px !important;
+  color: var(--nc-text-muted) !important;
+  opacity: 0.8 !important;
+  margin-bottom: 12px !important;
+  display: block;
+}
+body.nc-bright .empty-title {
+  font-family: var(--nc-font-display) !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  color: var(--nc-text-primary) !important;
+  margin-bottom: 6px !important;
+}
+body.nc-bright .empty-desc {
+  font-size: 13px !important;
+  color: var(--nc-text-secondary) !important;
+  line-height: 1.5 !important;
+  max-width: 340px;
+  margin: 0 auto !important;
+}
+
+/* ── 2. BUTTONS ── */
+/* Standardize buttons height, padding, interactive timing, and outline colors */
+body.nc-bright .btn,
+body.nc-bright .neu-btn {
+  height: 44px;
+  padding: 0 24px;
+  border-radius: var(--nc-r-full, 9999px) !important;
+  font-family: var(--nc-font-display) !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--nc-sp-2, 8px);
+  border: 1px solid transparent;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  transition: transform var(--nc-dur-fast, 180ms) var(--nc-ease, cubic-bezier(0.16,1,0.3,1)),
+              box-shadow var(--nc-dur-fast, 180ms) var(--nc-ease, cubic-bezier(0.16,1,0.3,1)),
+              background var(--nc-dur-fast, 180ms) var(--nc-ease, cubic-bezier(0.16,1,0.3,1)),
+              border-color var(--nc-dur-fast, 180ms) var(--nc-ease, cubic-bezier(0.16,1,0.3,1)) !important;
+}
+
+/* Small Button overrides */
+body.nc-bright .btn-sm,
+body.nc-bright .btn-xs,
+body.nc-bright .neu-btn--sm {
+  height: 34px !important;
+  padding: 0 16px !important;
+  font-size: 12.5px !important;
+}
+
+/* Large Button overrides */
+body.nc-bright .btn-lg,
+body.nc-bright .neu-btn--lg {
+  height: 52px !important;
+  padding: 0 32px !important;
+  font-size: 15.5px !important;
+}
+
+/* Primary Button high-contrast gradients and shadow */
+body.nc-bright .btn-primary,
+body.nc-bright .neu-btn--primary {
+  background: linear-gradient(135deg, var(--nc-teal) 0%, #0EA5E9 100%) !important;
+  color: #04141A !important;
+  box-shadow: 0 8px 24px rgba(20,184,166,0.22), inset 0 1px 0 rgba(255,255,255,0.2) !important;
+}
+body.nc-bright .btn-primary:hover:not([disabled]),
+body.nc-bright .neu-btn--primary:hover:not([disabled]) {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 14px 32px rgba(20,184,166,0.32), inset 0 1px 0 rgba(255,255,255,0.2) !important;
+}
+
+/* Secondary & Ghost Buttons contrast repair for Bright Porcelain canvas */
+body.nc-bright .btn-secondary,
+body.nc-bright .btn-ghost,
+body.nc-bright .neu-btn--ghost {
+  background: var(--nc-bg-secondary, #E9EEF5) !important;
+  border-color: var(--nc-border) !important;
+  color: var(--nc-text-primary) !important;
+  box-shadow: var(--nc-shadow-sm) !important;
+  backdrop-filter: none !important;
+}
+body.nc-bright .btn-secondary:hover:not([disabled]),
+body.nc-bright .btn-ghost:hover:not([disabled]),
+body.nc-bright .neu-btn--ghost:hover:not([disabled]) {
+  background: color-mix(in oklab, var(--nc-bg-secondary), var(--nc-text-primary) 4%) !important;
+  border-color: var(--nc-border-strong) !important;
+  transform: translateY(-2px) !important;
+}
+
+/* Danger Button */
+body.nc-bright .btn-danger,
+body.nc-bright .neu-btn--danger {
+  background: linear-gradient(135deg, #F5426C, #C92053) !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 8px 20px rgba(245,66,108,0.2) !important;
+}
+body.nc-bright .btn-danger:hover:not([disabled]),
+body.nc-bright .neu-btn--danger:hover:not([disabled]) {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 12px 28px rgba(245,66,108,0.3) !important;
+}
+
+/* Gold Button */
+body.nc-bright .neu-btn--gold {
+  background: linear-gradient(135deg, #F4D77A, #D4AF37) !important;
+  color: #2A1F00 !important;
+  box-shadow: 0 8px 20px rgba(212,175,55,0.12) !important;
+}
+body.nc-bright .neu-btn--gold:hover:not([disabled]) {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 12px 28px rgba(212,175,55,0.22) !important;
+}
+
+/* Icon Button */
+body.nc-bright .btn-icon {
+  width: 36px !important;
+  height: 36px !important;
+  padding: 0 !important;
+  border-radius: var(--nc-r-md, 12px) !important;
+  background: var(--nc-bg-secondary) !important;
+  border: 1px solid var(--nc-border) !important;
+  color: var(--nc-text-secondary) !important;
+}
+body.nc-bright .btn-icon:hover {
+  background: color-mix(in oklab, var(--nc-bg-secondary), var(--nc-text-primary) 5%) !important;
+  border-color: var(--nc-border-strong) !important;
+  color: var(--nc-text-primary) !important;
+}
+
+/* Disabled state */
+body.nc-bright .btn:disabled,
+body.nc-bright .btn[disabled],
+body.nc-bright .neu-btn:disabled,
+body.nc-bright .neu-btn[disabled] {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Focus outline for all interactive elements */
+body.nc-bright .btn:focus-visible,
+body.nc-bright .neu-btn:focus-visible,
+body.nc-bright input:focus-visible,
+body.nc-bright select:focus-visible,
+body.nc-bright textarea:focus-visible {
+  outline: none !important;
+  box-shadow: var(--nc-focus-ring) !important;
+}
+
+/* ── 3. FORMS ── */
+/* Unify form text fields, textareas, and dropdown controls */
+body.nc-bright .form-input,
+body.nc-bright .neu-input,
+body.nc-bright .neu-textarea,
+body.nc-bright .neu-select,
+body.nc-bright input[type='text'],
+body.nc-bright input[type='number'],
+body.nc-bright input[type='email'],
+body.nc-bright input[type='password'],
+body.nc-bright input[type='date'],
+body.nc-bright select,
+body.nc-bright textarea {
+  background: var(--nc-bg-secondary, #E9EEF5) !important;
+  border: 1px solid var(--nc-border) !important;
+  color: var(--nc-text-primary) !important;
+  padding: 10px 14px !important;
+  border-radius: 12px !important;
+  font-family: var(--nc-font-body) !important;
+  font-size: 13.5px !important;
+  width: 100%;
+  transition: border-color var(--nc-dur-fast, 180ms) var(--nc-ease, ease),
+              box-shadow var(--nc-dur-fast, 180ms) var(--nc-ease, ease) !important;
+}
+
+/* Select element layout alignment */
+body.nc-bright select.form-input,
+body.nc-bright select {
+  padding-right: 32px !important;
+  appearance: none !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%23566378'%3E%3Cpath fill-rule='evenodd' d='M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06z' clip-rule='evenodd'/%3E%3C/svg%3E") !important;
+  background-position: right 10px center !important;
+  background-repeat: no-repeat !important;
+  background-size: 18px !important;
+}
+
+/* Focus effect with indigo glow */
+body.nc-bright .form-input:focus,
+body.nc-bright .neu-input:focus,
+body.nc-bright .neu-textarea:focus,
+body.nc-bright .neu-select:focus,
+body.nc-bright input:focus,
+body.nc-bright select:focus,
+body.nc-bright textarea:focus {
+  outline: none !important;
+  border-color: var(--nc-indigo, #5B6CFF) !important;
+  box-shadow: 0 0 0 3px rgba(91, 108, 255, 0.16) !important;
+}
+
+/* Placeholders contrast */
+body.nc-bright input::placeholder,
+body.nc-bright textarea::placeholder {
+  color: var(--nc-text-muted, #8593A6) !important;
+  opacity: 0.95 !important;
+}
+
+/* Validation/Error States */
+body.nc-bright .neu-input--error,
+body.nc-bright .form-input--error,
+body.nc-bright input.neu-input--error,
+body.nc-bright select.neu-input--error,
+body.nc-bright textarea.neu-input--error {
+  border-color: var(--nc-rose) !important;
+  box-shadow: 0 0 0 3px rgba(245, 66, 108, 0.16) !important;
+}
+
+/* Form Helper Text and Errors */
+body.nc-bright .form-hint,
+body.nc-bright .neu-field-hint {
+  font-size: 12px !important;
+  color: var(--nc-text-secondary) !important;
+  margin-top: 5px !important;
+  line-height: 1.45 !important;
+}
+body.nc-bright .neu-field-error,
+body.nc-bright .form-error {
+  font-size: 12px !important;
+  color: var(--nc-rose) !important;
+  margin-top: 5px !important;
+  font-weight: 500 !important;
+}
+
+/* Form disabled controls */
+body.nc-bright input:disabled,
+body.nc-bright select:disabled,
+body.nc-bright textarea:disabled {
+  background: var(--nc-bg-primary) !important;
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
+}
+
+/* ── 4. TABLES ── */
+/* Unified table styles */
+body.nc-bright .table-wrap {
+  border: 1px solid var(--nc-border) !important;
+  border-radius: 14px !important;
+  overflow: hidden;
+  box-shadow: var(--nc-shadow-sm) !important;
+  background: var(--nc-bg-elevated) !important;
+  margin: 12px 0 20px !important;
+}
+body.nc-bright table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+}
+body.nc-bright thead th {
+  background: var(--nc-bg-secondary) !important;
+  color: var(--nc-text-muted) !important;
+  font-family: var(--nc-font-display) !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.05em !important;
+  padding: 12px 16px !important;
+  border-bottom: 1px solid var(--nc-border) !important;
+}
+body.nc-bright tbody tr {
+  border-bottom: 1px solid var(--nc-border) !important;
+  transition: background-color var(--nc-dur-fast) ease !important;
+}
+body.nc-bright tbody tr:hover {
+  background-color: color-mix(in oklab, var(--nc-bg-secondary), transparent 60%) !important;
+}
+body.nc-bright tbody td {
+  padding: 14px 16px !important;
+  color: var(--nc-text-secondary) !important;
+  font-size: 13.5px !important;
+}
+body.nc-bright tbody td:first-child {
+  color: var(--nc-text-primary) !important;
+  font-weight: 600 !important;
+}
+
+/* ── 5. TABS / CHIPS / BADGES ── */
+/* Unify chips and badges in the bright premium palette */
+body.nc-bright .badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px !important;
+  border-radius: var(--nc-r-full, 9999px) !important;
+  font-size: 10.5px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase !important;
+  box-shadow: none !important;
+}
+
+body.nc-bright .badge-admin {
+  background: var(--nc-teal-tint, rgba(20, 184, 166, 0.10)) !important;
+  color: var(--nc-teal-ink, #0E9384) !important;
+  border: 1px solid rgba(20, 184, 166, 0.25) !important;
+}
+body.nc-bright .badge-coach {
+  background: var(--nc-indigo-soft, rgba(91, 108, 255, 0.10)) !important;
+  color: var(--nc-indigo-ink, #4F5BD5) !important;
+  border: 1px solid rgba(91, 108, 255, 0.25) !important;
+}
+body.nc-bright .badge-client {
+  background: var(--nc-violet-soft, rgba(124, 108, 240, 0.10)) !important;
+  color: var(--nc-violet, #7C6CF0) !important;
+  border: 1px solid rgba(124, 108, 240, 0.25) !important;
+}
+body.nc-bright .badge-phase1 {
+  background: var(--nc-teal-tint, rgba(20, 184, 166, 0.10)) !important;
+  color: var(--nc-teal-ink, #0E9384) !important;
+  border: 1px solid rgba(20, 184, 166, 0.25) !important;
+}
+body.nc-bright .badge-phase2 {
+  background: var(--nc-amber-soft, rgba(245, 158, 11, 0.12)) !important;
+  color: var(--nc-amber-ink, #B7791F) !important;
+  border: 1px solid rgba(245, 158, 11, 0.25) !important;
+}
+body.nc-bright .badge-phase3 {
+  background: rgba(245, 66, 108, 0.08) !important;
+  color: var(--nc-rose) !important;
+  border: 1px solid rgba(245, 66, 108, 0.2) !important;
+}
+body.nc-bright .badge-active {
+  background: var(--nc-teal-tint, rgba(20, 184, 166, 0.10)) !important;
+  color: var(--nc-teal-ink, #0E9384) !important;
+  border: 1px solid rgba(20, 184, 166, 0.25) !important;
+}
+body.nc-bright .badge-expired {
+  background: rgba(245, 66, 108, 0.08) !important;
+  color: var(--nc-rose) !important;
+  border: 1px solid rgba(245, 66, 108, 0.2) !important;
+}
+body.nc-bright .badge-pending {
+  background: var(--nc-amber-soft, rgba(245, 158, 11, 0.12)) !important;
+  color: var(--nc-amber-ink, #B7791F) !important;
+  border: 1px solid rgba(245, 158, 11, 0.25) !important;
+}
+
+/* Subscription filter buttons as chips */
+body.nc-bright .subs-filter-btn {
+  border-radius: var(--nc-r-full, 9999px) !important;
+  font-family: var(--nc-font-display) !important;
+  font-size: 12.5px !important;
+  height: 32px !important;
+  padding: 0 16px !important;
+  border: 1px solid var(--nc-border) !important;
+  background: var(--nc-bg-elevated) !important;
+  color: var(--nc-text-secondary) !important;
+  box-shadow: none !important;
+}
+body.nc-bright .subs-filter-btn:hover {
+  background: var(--nc-bg-secondary) !important;
+  color: var(--nc-text-primary) !important;
+}
+body.nc-bright .subs-filter-btn.active {
+  background: var(--nc-indigo-soft, rgba(91, 108, 255, 0.10)) !important;
+  color: var(--nc-indigo-ink, #4F5BD5) !important;
+  border-color: rgba(91, 108, 255, 0.4) !important;
+  font-weight: 700 !important;
+}
+
+/* ── 6. MODALS / TOASTS ── */
+/* Modal visual style & entrance keyframe override */
+body.nc-bright .modal-overlay {
+  background: rgba(13, 24, 40, 0.48) !important;
+  backdrop-filter: blur(12px) saturate(1.2) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(1.2) !important;
+  animation: nc-modal-fade-in var(--nc-dur-fast) ease-out both;
+}
+@keyframes nc-modal-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+body.nc-bright .modal {
+  background: var(--nc-bg-elevated) !important;
+  border: 1px solid var(--nc-border) !important;
+  border-radius: 20px !important;
+  box-shadow: 0 24px 60px rgba(13, 24, 40, 0.16) !important;
+  animation: nc-modal-scale-in var(--nc-dur-base) var(--nc-ease-spring) both;
+  overflow: hidden !important;
+}
+body.nc-bright .modal::before {
+  background: linear-gradient(90deg, var(--nc-indigo) 0%, var(--nc-teal) 100%) !important;
+  height: 3px !important;
+}
+@keyframes nc-modal-scale-in {
+  from { opacity: 0; transform: scale(0.96) translateY(12px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+body.nc-bright .modal-header {
+  padding: 20px 24px !important;
+  border-bottom: 1px solid var(--nc-border) !important;
+}
+body.nc-bright .modal-header h3 {
+  font-family: var(--nc-font-display) !important;
+  font-size: 17.5px !important;
+  font-weight: 700 !important;
+  color: var(--nc-text-primary) !important;
+  letter-spacing: -0.015em !important;
+}
+body.nc-bright .modal-body {
+  padding: 24px !important;
+}
+body.nc-bright .modal-footer {
+  padding: 16px 24px !important;
+  border-top: 1px solid var(--nc-border) !important;
+  gap: 12px !important;
+}
+
+/* Premium Toast overrides */
+body.nc-bright .toast {
+  background: var(--nc-bg-elevated) !important;
+  border: 1px solid var(--nc-border) !important;
+  box-shadow: var(--nc-shadow-lg) !important;
+  border-radius: 12px !important;
+  padding: 14px 18px !important;
+  color: var(--nc-text-primary) !important;
+  animation: nc-toast-in var(--nc-dur-base) var(--nc-ease-spring) both;
+}
+@keyframes nc-toast-in {
+  from { opacity: 0; transform: translateY(12px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+body.nc-bright .toast.success {
+  border-color: rgba(20, 184, 166, 0.25) !important;
+  background: rgba(20, 184, 166, 0.04) !important;
+}
+body.nc-bright .toast.success .toast-icon { color: var(--nc-teal) !important; }
+
+body.nc-bright .toast.error {
+  border-color: rgba(245, 66, 108, 0.25) !important;
+  background: rgba(245, 66, 108, 0.04) !important;
+}
+body.nc-bright .toast.error .toast-icon { color: var(--nc-rose) !important; }
+
+body.nc-bright .toast.info {
+  border-color: rgba(91, 108, 255, 0.25) !important;
+  background: rgba(91, 108, 255, 0.04) !important;
+}
+body.nc-bright .toast.info .toast-icon { color: var(--nc-indigo) !important; }
+
+body.nc-bright .toast.warning {
+  border-color: rgba(245, 158, 11, 0.25) !important;
+  background: rgba(245, 158, 11, 0.04) !important;
+}
+body.nc-bright .toast.warning .toast-icon { color: var(--nc-amber-ink) !important; }
+
+/* ── Phase A additional global frontend polish overrides ── */
+body.nc-bright .tab-btn.active {
+  border-bottom-color: var(--nc-indigo, #5B6CFF) !important;
+}
+
+/* Premium submit button active feedback for login card */
+.nc-login-submit:active:not(:disabled) {
+  transform: translateY(0) scale(0.985);
+  transition-duration: 90ms;
+}
+
+/* Composed strategist transition for sections and tab panels */
+body.nc-bright .section.active {
+  animation: neu-fade-up var(--nc-dur-base, 320ms) var(--nc-ease, cubic-bezier(0.16, 1, 0.3, 1)) both !important;
+}
+body.nc-bright .tab-panel.active {
+  animation: neu-fade-in var(--nc-dur-base, 320ms) var(--nc-ease, cubic-bezier(0.16, 1, 0.3, 1)) both !important;
+}
+
+/* Admin Business Section Polish */
+body.nc-bright .abz-stat {
+  border: 1px solid var(--nc-border) !important;
+  border-radius: 14px !important;
+  background: var(--nc-bg-secondary) !important;
+  box-shadow: var(--nc-shadow-sm) !important;
+  padding: 14px 16px !important;
+}
+body.nc-bright .abz-stat-n {
+  font-family: var(--nc-font-display) !important;
+  font-weight: 700 !important;
+  color: var(--nc-text-primary) !important;
+}
+body.nc-bright .abz-stat-l {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.02em !important;
+  text-transform: uppercase !important;
+  color: var(--nc-text-muted) !important;
+}
+body.nc-bright .abz-table-wrap {
+  border: 1px solid var(--nc-border) !important;
+  border-radius: 14px !important;
+  background: var(--nc-bg-elevated) !important;
+  box-shadow: var(--nc-shadow-sm) !important;
+  margin-top: 12px !important;
+}
+body.nc-bright .abz-table th {
+  background: var(--nc-bg-secondary) !important;
+  color: var(--nc-text-muted) !important;
+  font-family: var(--nc-font-display) !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.05em !important;
+  padding: 12px 16px !important;
+  border-bottom: 1px solid var(--nc-border) !important;
+}
+body.nc-bright .abz-table td {
+  padding: 12px 16px !important;
+  color: var(--nc-text-secondary) !important;
+  border-bottom: 1px solid var(--nc-border) !important;
+}
+body.nc-bright .abz-table tr:hover {
+  background-color: color-mix(in oklab, var(--nc-bg-secondary), transparent 60%) !important;
+  transition: background-color var(--nc-dur-fast) ease !important;
+}
