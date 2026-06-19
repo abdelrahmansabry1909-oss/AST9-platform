@@ -458,11 +458,12 @@
         ExercisePicker.open({
           title: 'Pick exercise from Library',
           defaultFilter,
-          onSelect: ({ exercise_id, exercise_name }) => {
+          onSelect: ({ exercise_id, exercise_name, exercise }) => {
             const row = _program.workouts[wi][key][i];
             if (!row) return;
             row.exercise_id = exercise_id;
             row.name        = exercise_name;
+            row.video_url   = _snapVideo(exercise);   // Phase 13 — snapshot demo link
             _drawProgram();   // redraws → reflects link badge + new name
           },
         }).catch(() => {});  // user closed; nothing to do
@@ -504,6 +505,7 @@
           if (!target) return;
           target.exercise_id = ex.id;
           target.name        = ex.name;
+          target.video_url   = _snapVideo(ex);   // Phase 13 — snapshot demo link
           suggest.classList.add('hidden');
           _drawProgram();
         };
@@ -808,6 +810,60 @@
     modal.classList.remove('hidden');
   }
 
+  // ── Phase 13 — video snapshot (publish-time + on-pick) ────
+  // We store each exercise's demo `video_url` directly in the published
+  // program JSON so client Train and the PDF have a stable link even if the
+  // library row later changes or can't be resolved. Picking from the library
+  // snapshots immediately (_snapVideo); publishing backfills the rest.
+  function _snapVideo(ex) {
+    const u = ex && ex.video_url;
+    if (!u) return null;
+    return (typeof ExerciseLibrary !== 'undefined' && ExerciseLibrary.sanitizeUrl)
+      ? ExerciseLibrary.sanitizeUrl(u) : u;
+  }
+  function _normName(s) {
+    return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  }
+
+  // Walk the program and ensure every exercise row carries its demo link:
+  //   • library-linked rows (exercise_id) → snapshot the library video_url
+  //   • free-text rows (generated programs) → attach ONLY on a unique,
+  //     normalized-exact name match against the library (never fuzzy/ambiguous)
+  // Returns { total, linked, matched } for honest reporting.
+  async function _snapshotVideos(program) {
+    const out = { total: 0, linked: 0, matched: 0 };
+    if (typeof ExerciseLibrary === 'undefined') return out;
+    let lib = [];
+    try { lib = await ExerciseLibrary.loadAll(); } catch { return out; }
+    const byId   = new Map(lib.map((e) => [e.id, e]));
+    const byName = new Map();
+    lib.forEach((e) => {
+      const k = _normName(e.name);
+      if (!k) return;
+      if (!byName.has(k)) byName.set(k, []);
+      byName.get(k).push(e);
+    });
+    (program.workouts || []).forEach((wk) => {
+      ['warmup', 'main', 'cooldown'].forEach((g) => {
+        (wk[g] || []).forEach((ex) => {
+          if (!ex || !(ex.name || '').trim()) return;
+          out.total++;
+          if (ex.exercise_id && byId.has(ex.exercise_id)) {
+            const v = _snapVideo(byId.get(ex.exercise_id));
+            if (v) { ex.video_url = v; out.linked++; }
+            return;
+          }
+          if (!ex.exercise_id) {
+            const matches = byName.get(_normName(ex.name)) || [];
+            const v = matches.length === 1 ? _snapVideo(matches[0]) : null;
+            if (v) { ex.exercise_id = matches[0].id; ex.video_url = v; out.matched++; }
+          }
+        });
+      });
+    });
+    return out;
+  }
+
   // ── Publish ───────────────────────────────────────────────
   async function _publish() {
     const btn = document.getElementById('pp-publish');
@@ -835,6 +891,12 @@
 
     // Re-id the routine tasks 0..N so the client tracker keys stay stable.
     _program.daily_routine_tasks.forEach((t, i) => { t.id = i; });
+
+    // Phase 13 — snapshot demo videos into the program before it is stored.
+    let snap = { total: 0, linked: 0, matched: 0 };
+    try { snap = await _snapshotVideos(_program); }
+    catch (e) { console.warn('[publish] video snapshot skipped:', e?.message); }
+    console.info(`[publish] video snapshot — linked ${snap.linked}, name-matched ${snap.matched} of ${snap.total} exercise(s)`);
 
     const origHTML = btn.innerHTML;
     btn.disabled = true;

@@ -41,9 +41,14 @@
   const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) =>
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-  // Filter chips — ordered exactly as the spec lists.
+  // Filter chips. The three body-region chips surface the David Grey SYSTEM
+  // library (Phase 13) right where a coach builds a program; the original
+  // phase/category/tag chips are unchanged.
   const FILTERS = [
     { id: 'all',          label: 'All' },
+    { id: 'upper',        label: 'Upper Body' },
+    { id: 'core',         label: 'Core' },
+    { id: 'lower',        label: 'Lower Body' },
     { id: 'phase1',       label: 'Phase 1' },
     { id: 'phase2',       label: 'Phase 2' },
     { id: 'phase3',       label: 'Phase 3' },
@@ -55,6 +60,9 @@
   // Map filter id → ExerciseLibrary.loadAll() options.
   function _filterQuery(id) {
     switch (id) {
+      case 'upper':        return { category: 'Upper Body' };
+      case 'core':         return { category: 'Core' };
+      case 'lower':        return { category: 'Lower Body' };
       case 'phase1':       return { phase: 'Phase 1' };
       case 'phase2':       return { phase: 'Phase 2' };
       case 'phase3':       return { phase: 'Phase 3' };

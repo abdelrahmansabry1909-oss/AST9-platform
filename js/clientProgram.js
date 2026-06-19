@@ -95,7 +95,17 @@
     return out;
   }
   const _workoutById = (id) => S.workouts.find((w) => w.id === id) || S.workouts[0];
-  const _meta = (ex) => (ex && ex.exercise_id && S.libMap) ? (S.libMap.get(ex.exercise_id) || null) : null;
+  // Library row by exercise_id, else a minimal meta from the row's own
+  // snapshot video_url (Phase 13) so generated / snapshotted plans still
+  // surface ▶ Watch. Null when there's neither.
+  const _meta = (ex) => {
+    if (!ex) return null;
+    const lib = (ex.exercise_id && S.libMap) ? S.libMap.get(ex.exercise_id) : null;
+    if (lib) return lib;
+    const url = (typeof ExerciseLibrary !== 'undefined' && ExerciseLibrary.sanitizeUrl)
+      ? ExerciseLibrary.sanitizeUrl(ex.video_url) : (ex.video_url || null);
+    return url ? { id: ex.exercise_id || null, name: ex.name, video_url: url } : null;
+  };
   const _scrollTop = () => { try { S.host.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (_) {} };
 
   // Estimated duration — historical → program-defined → computed → fallback.

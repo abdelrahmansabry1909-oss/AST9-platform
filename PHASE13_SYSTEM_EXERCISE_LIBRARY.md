@@ -1,8 +1,9 @@
 # Phase 13 — System Exercise Library (David Grey import)
 
-Status: **13A extraction + 13B database import are DONE and verified live in production.**
-The coach/client UI surfacing + PDF-export hyperlinks (13C–F) are the next increment
-(see "Remaining work").
+Status: **13A–13F are DONE.** 13A extraction + 13B database import are verified live in
+production; 13C–13F (coach library UI, builder/publish video snapshot, client Train video,
+PDF hyperlinks) are implemented in the app and verified mechanically (see "13C–13F — UI,
+snapshot, client video, PDF").
 
 ## Source
 Four David Grey Rehab PDFs (owner-supplied), read with PyMuPDF — text **and PDF link
@@ -61,15 +62,67 @@ imported, and AST9 does **not** redistribute the PDFs. Before any public/commerc
 of this third-party content, the owner must confirm the licensing/redistribution rights
 with David Grey Rehab.
 
-## Remaining work (next increment — UI not yet built)
-- **13C** Coach library UI: Upper/Core/Lower tabs + Lower IR/ER/Combined/Other filters +
-  right-side video preview. (System rows are readable by coaches under RLS; whether the
-  existing `exercisePicker.js` query already lists them or needs a tweak is to be verified
-  as part of this step.)
-- **13D** Manual-builder / program-publish: snapshot `video_url` into the published
-  program JSON so client/PDF links stay stable.
-- **13E** Client Train video display (note: `workoutSession.js`/`clients.js` already render
-  a `video_url` "Watch demo" link + thumbnail, so most of this may already work once a
-  system exercise is in a client's program — to be verified).
-- **13F** PDF/print export: make exercise names clickable when a `video_url` exists; safe
-  URL allow-list helper (YouTube/youtu.be only; block `javascript:`/`data:`/`file:`/iframe).
+## 13C–13F — UI, snapshot, client video, PDF (implemented)
+
+No schema or RLS change — these are presentation/snapshot only. The Phase 5 RLS already
+exposes system rows to coaches read-only, hides the library from client browsing, and lets
+clients see only the media inside their own program.
+
+**Shared URL allow-list** — `ExerciseLibrary.safeYouTubeUrl(url)` (`js/exerciseLibrary.js`):
+parses the URL, requires `http(s)`, requires a YouTube host (`youtube.com`, `www.`/`m.`
+variants, `youtu.be`), extracts the id from `watch?v=` / `youtu.be/` / `embed|shorts|v|live`,
+and returns a canonical `https://www.youtube.com/watch?v=<id>` or `null`. Hardened against a
+stray `?v=` on a non-YouTube host. Embeds keep using `getEmbedUrl` (YouTube-id → `…/embed/…`,
+`rel=0&modestbranding=1`, **no autoplay**).
+
+**13C — Coach Exercise Library + picker.** The live library page renderer is
+`Clients.loadExercises()` (`js/clients.js`, wired from `dashboard.js` `exercise-library`),
+not `ExerciseUI`. It now loads once and filters in-memory by: **Region** chips (All / Upper
+Body / Core / Lower Body), a **Focus** sub-row for Lower Body (All / Internal Rotation /
+External Rotation / IR/ER Combined / Other), and **Source** (All / System Library / My
+Exercises). Selecting a card shows a **right-side** preview: a safe YouTube embed (or a calm
+"No video attached" state) + an "Open on YouTube" link. System rows carry a "System" badge;
+the delete ✕ is shown only on the coach's own rows (RLS also blocks editing system rows). The
+Manual-Builder `ExercisePicker` gained Upper Body / Core / Lower Body chips mapped to
+`loadAll({ category })`. Chip/card styling reuses the existing `.btn`/`.exercise-card`/badge
+classes and `--lime`/`--teal` tokens — no new visual language.
+
+**13D — Builder/publish video snapshot** (`js/programPublish.js`). Picking from the library
+(picker `onSelect` and the name-field autosuggest) now snapshots the exercise's `video_url`
+onto the program row via `_snapVideo` (sanitized http(s)). At publish, `_snapshotVideos`
+backfills every row: library-linked rows (`exercise_id`) take the library `video_url`;
+free-text rows (generated programs) get a link **only** on a unique normalized-exact name
+match against the library — ambiguous (0 or >1) matches are left empty, never guessed. The
+match report is logged (`linked` / `name-matched` / `total`). No fake URLs; ongoing/one-time
+modes and the revision trigger are untouched (snapshot is additive to the program JSON).
+
+**13E — Client Train video** (`js/clientProgram.js`). `_meta(ex)` now falls back to a minimal
+meta built from the row's own snapshot `video_url` when the live library row can't be
+resolved, so generated / snapshotted plans surface ▶ Watch in day detail and guided
+execution. Embeds open inline (no autoplay) with a modal fallback on narrow screens; the
+existing safe iframe path is reused. `ExerciseInstructions.build` now drops the internal
+`system` / `david-grey` provenance tags so they never appear as client instruction chips.
+(The legacy in-page `WorkoutSession.mountWorkouts` tracker — reachable only via the hidden
+`#nav-my-program` per CX F-1 — was intentionally left untouched.)
+
+**13F — PDF export** (`js/pdfExport.js`). `exerciseTable` renders the exercise name as a
+native jsPDF `textWithLink` (teal) when `safeVideo(ex.video_url)` resolves to a YouTube URL;
+rows without a safe video stay plain ink text. A one-line caption appears only when at least
+one row links. PDF program rows carry `video_url` after the 13D snapshot.
+
+### Verification (13C–13F)
+- `node --check` passes on all 7 changed JS files; `npm run build` (vite) succeeds and the
+  `copy-legacy-js` step carries the changes into `dist/js`.
+- `safeYouTubeUrl` unit-tested against the **real** module: 14/14 — accepts `watch` /
+  `youtu.be` / `embed` / `shorts` / `m.youtube.com`; rejects `javascript:` / `data:` /
+  `file:` / look-alike hosts (`evil.com/?v=…`, `youtube.evil.com`) / iframe strings / null.
+- Live DB re-confirm (no DB change this increment): 152 system rows, all 152 with canonical
+  YouTube URLs; the DB `category` values (Upper Body / Core / Lower Body) and Lower
+  `target_area` values (Internal/External Rotation, IR/ER Combined, Other) **exactly match**
+  the filter-chip values, so the filters return rows.
+- Live RLS impersonation: real coach reads **152** system rows and edits a system row in
+  **0** rows (blocked); client browses **0** system rows (blocked); admin edits **1** (manages
+  all); `admin_count = 1` (owner-only admin intact).
+- **Not performed:** interactive in-browser smoke as a logged-in coach/client (requires the
+  owner's account credentials, which the assistant does not hold). Verification was mechanical
+  (syntax, production build, real-module URL unit test) + live DB/RLS — not a click-through.

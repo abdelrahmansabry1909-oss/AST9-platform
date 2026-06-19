@@ -58,7 +58,12 @@
     }
 
     const joints = Array.isArray(exercise.target_joints) ? exercise.target_joints.filter(Boolean) : [];
-    const tags   = Array.isArray(exercise.tags)          ? exercise.tags.filter(Boolean)          : [];
+    // Drop internal provenance tags (Phase 13 system import) so clients never
+    // see catalog plumbing like "system" / "david-grey" as instruction chips.
+    const _provenance = new Set(['system', 'david-grey']);
+    const tags = Array.isArray(exercise.tags)
+      ? exercise.tags.filter((t) => t && !_provenance.has(String(t).toLowerCase()))
+      : [];
 
     return {
       sections,
