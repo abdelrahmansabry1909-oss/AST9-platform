@@ -1,6 +1,21 @@
 # FEATURE_STATUS.md — NeuCore Platform
 
-**Last updated:** 2026-06-06 (post Client Mobile Redesign S0–S6)
+## ▶ CURRENT (2026-06-19)
+
+The per-feature detail below covers the legacy **Feature 1–8 (F-N)** era and is
+historical. The current product is tracked by **`Phase N`** — see the
+**Phase ledger** at the top of [`PROJECT_STATUS.md`](./PROJECT_STATUS.md) for the
+authoritative shipped-to-`main` list (Phases 1–13 + Antigravity's Phase A), and
+`PHASE12_EMAIL_AUTH_PRODUCTIONIZATION.md` / `PHASE13_SYSTEM_EXERCISE_LIBRARY.md`
+for the newest write-ups. Live on `origin/main` @ `1f4dc4d`; Supabase
+`byquokhcbagofshsclfy` (48 migrations, 11 edge functions, owner-only admin).
+
+> The F1–F8 sections that follow are accurate for their era but were last
+> revised 2026-06-06 — do not treat them as the current feature inventory.
+
+---
+
+**Last updated:** 2026-06-06 (post Client Mobile Redesign S0–S6) _(historical — see Current section above)_
 **Branch:** `claude/interesting-buck-452459`
 **HEAD commit:** Client Mobile Redesign S6 just shipped (commit pending)
 **Live Supabase project:** `byquokhcbagofshsclfy` (eu-central-1, Postgres 17.6.1.111)

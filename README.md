@@ -6,7 +6,8 @@ collaborative coach/client community. **NeuCore** is the intelligence stack
 inside the platform that powers movement scoring, gait analysis, and
 phase-gated rehab planning.
 
-> Live demo: <https://abdelrahmansabry1909-oss.github.io/AST9-platform/>
+> Live demo: <https://abdelrahmansabry1909-oss.github.io/AST9_HUB/>
+> Repository: `abdelrahmansabry1909-oss/AST9_HUB` · deployed to GitHub Pages by `.github/workflows/deploy.yml` on every push to `main`.
 
 **Documentation map**
 
@@ -18,6 +19,8 @@ phase-gated rehab planning.
 | [`ArchitectureDecisionRecords.md`](./ArchitectureDecisionRecords.md) | architects + reviewers | Why the system was built this way. Risk register. Future ADRs. |
 | `AST9_MASTER_PROMPT_v3.md`                                       | product / clinical        | Canonical platform specification.                          |
 | `RPM_ARCHITECTURE_PLAN.md`                                       | engineers                 | Design rationale for the Reactive Phase Management module. |
+| [`PROJECT_STATUS.md`](./PROJECT_STATUS.md) / [`FEATURE_STATUS.md`](./FEATURE_STATUS.md) | engineers | Current phase ledger + per-feature status. Start of each lives at the top of the file. |
+| `PHASE12_EMAIL_AUTH_PRODUCTIONIZATION.md` · `PHASE13_SYSTEM_EXERCISE_LIBRARY.md` | engineers / product | Newest phase write-ups (email-auth productionization; David Grey system exercise library + coach UI + videos + PDF links). |
 
 ---
 
@@ -81,10 +84,38 @@ platform.
 - **Case Studies showcase** — admin-approved community case studies
   surface in a sidebar carousel (with marketing-card fallback when none
   approved yet).
-- **Exercise Library** — searchable library + playlists.
+- **Exercise Library** — a shared **system library** (152 David Grey Rehab
+  exercises imported as `created_by IS NULL` / `is_global` rows) browsable by
+  body region (Upper / Core / Lower) and Lower-Body rotation focus (IR / ER /
+  Combined / Other), with a right-side YouTube preview, plus each coach's own
+  private exercises. RLS keeps the system library read-only to coaches and
+  hidden from client browsing. See `PHASE13_SYSTEM_EXERCISE_LIBRARY.md`.
+- **Program builder & publishing** — manual / generated programs with a
+  Library picker that snapshots each exercise's demo `video_url` into the
+  published program JSON; one-time vs. ongoing program modes with a revision
+  audit trail (`client_program_revisions`).
+- **Workout session tracking** — guided client Train flow (day cards →
+  guided execution → set/rep/weight + intensity logging) with ▶ Watch demo
+  videos, plus a coach Workout History view with progress insights.
+- **Coaching business layer** — coach packages / client slots with
+  server-side slot enforcement, monthly/annual billing, subscription grace +
+  write-gate, coach signup + onboarding, and an admin-only coach business
+  overview (`admin_coach_business_overview`).
+- **Appointments** — internal coach↔client scheduling (manual links) with
+  assignment-scoped RLS and inbox notifications.
+- **Transcript Assistant** — paste a session transcript → drafted subjective
+  assessment (heuristic, or Anthropic when a key is set).
+- **Recovery Pulse (S4)** — per-client recovery status signals + coach
+  Needs-Attention alerts (pg_cron-driven).
+- **Email auth (production)** — branded Supabase Auth emails over Resend SMTP
+  (custom domain, redirect allow-list, leaked-password protection). See
+  `PHASE12_EMAIL_AUTH_PRODUCTIONIZATION.md`.
+- **Owner-only admin** — exactly one admin (the owner); coaches/clients can
+  never become admin; enforced in triggers + admin-only RPCs.
 - **Progress Charts** — per-client progress timelines (Chart.js).
 - **Analytics** — platform-wide intelligence dashboard.
-- **Professional PDF export** — full clinical report via jsPDF.
+- **Professional PDF export** — full clinical report via jsPDF, with exercise
+  names rendered as clickable YouTube links when a demo video exists.
 - **Landing page** — public marketing site (`index.html`) with a visitor
   inquiry survey backed by a Supabase Edge Function.
 
@@ -171,14 +202,16 @@ Supabase client:
 │       └── metadata_bundle.json
 │
 ├── supabase/
-│   ├── migrations/                  # Versioned SQL migrations
-│   │   ├── 20260515_rpm_foundation.sql
-│   │   ├── 20260516_rpm_phase5.sql
-│   │   ├── 20260521_daily_routine.sql
-│   │   ├── 20260522_client_program_publish.sql
-│   │   └── 20260523_case_study_approval.sql
-│   └── functions/                   # Deno edge functions
+│   ├── migrations/                  # 48 versioned SQL migrations (date-prefixed);
+│   │                                #   paired rollbacks in supabase/rollbacks/
+│   └── functions/                   # Deno edge functions (11)
+│       ├── _shared/                 # Unified auth/CORS guard (requireRole, corsHeaders)
+│       ├── create-user/ · delete-user/ · claim-coach/   # Coach/client account lifecycle (admin-gated)
+│       ├── generate-program/        # AI program generation proxy
 │       ├── rpm-ai-suggest/          # Claude proxy for phase + exercise suggestions
+│       ├── subjective-transcript-assistant/  # Transcript → subjective draft
+│       ├── send-email/              # Transactional email via Resend
+│       ├── pulse-alerts/ · subscription-checker/   # Cron-invoked S4 alerts + subscription sweep
 │       └── visitor-survey/          # Landing-page inquiry handler (Resend)
 │
 └── docs/
@@ -202,8 +235,8 @@ Supabase client:
 
 ```bash
 # 1. Clone
-git clone https://github.com/abdelrahmansabry1909-oss/AST9-platform.git
-cd AST9-platform
+git clone https://github.com/abdelrahmansabry1909-oss/AST9_HUB.git
+cd AST9_HUB
 
 # 2. Install dependencies
 npm install
@@ -389,7 +422,9 @@ The repository targets a **two-surface deployment**:
 1. **Static front-end** (landing + SPA) — `npm run build` produces a
    `dist/` directory that can be served from any static host. The
    reference deployment lives on GitHub Pages at
-   <https://abdelrahmansabry1909-oss.github.io/AST9-platform/>.
+   <https://abdelrahmansabry1909-oss.github.io/AST9_HUB/> and is built +
+   published automatically by `.github/workflows/deploy.yml` (GitHub
+   Actions) on every push to `main` — no manual upload required.
 2. **Supabase backend** — database schema is shipped as SQL files under
    `supabase/migrations/`; edge functions live under
    `supabase/functions/`.
@@ -404,12 +439,17 @@ npm run build
 # Database
 supabase db push                              # or apply migrations in order
 
-# Edge functions
+# Edge functions — deploy each directory under supabase/functions/.
+# Public endpoints (no JWT) use --no-verify-jwt; the rest verify the
+# caller's session via the shared _shared/auth.ts guard.
 supabase functions deploy rpm-ai-suggest
 supabase functions deploy visitor-survey --no-verify-jwt
+# ...plus create-user, delete-user, claim-coach, generate-program,
+#    subjective-transcript-assistant, send-email, pulse-alerts,
+#    subscription-checker (see supabase/functions/).
 
-# Set secrets in the Supabase dashboard:
-#   ANTHROPIC_API_KEY, RESEND_API_KEY, RESEND_FROM, NOTIFY_EMAIL
+# Set secrets in the Supabase dashboard (Edge Functions → Secrets):
+#   ANTHROPIC_API_KEY, RESEND_API_KEY, RESEND_FROM / FROM_EMAIL, NOTIFY_EMAIL
 ```
 
 > Make sure `public/models/ecorche_humanoid.glb` is included in your
