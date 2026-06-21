@@ -1,6 +1,37 @@
 # PROJECT_STATUS.md — NeuCore Platform
 
-**Last updated:** 2026-06-09
+## ▶ CURRENT STATE (2026-06-19)
+
+**Live:** `origin/main` @ `1f4dc4d` · GitHub Pages <https://abdelrahmansabry1909-oss.github.io/AST9_HUB/> (auto-deployed by `.github/workflows/deploy.yml`).
+**Supabase:** `byquokhcbagofshsclfy` (eu-central-1, Postgres 17) · **48 migrations** · **11 edge functions** · **owner-only admin verified live (`admin_count = 1`)**.
+
+> The detailed body below this section is an older **handoff snapshot (2026-06-09)** written in the legacy `Feature 1–8 (F-N)` numbering and frozen at the F1–F6 era. Everything from **Phase 2 onward** uses the newer `Phase N` scheme summarized here. When the two disagree, trust this section + the per-phase docs.
+
+**Two-agent split (since 2026-06-19):** Claude Code owns backend / product-logic / security (DB, migrations, RLS, edge functions, data contracts); **Antigravity** owns frontend visual/UI (CSS, layout, `js/neucore-ui.js`). See `feedback_agent_role_boundaries` in memory.
+
+### Phase ledger (shipped to `main`)
+
+| Phase | What shipped | Key artifacts |
+|---|---|---|
+| 1 | Role routing / client-safety sidebar gating | `app.html` role classes |
+| 2–3 | Coach packages + client slots, server-side slot enforcement, monthly/annual billing, slot-limit UX | `20260614000000_coach_packages_foundation.sql`, `..._harden.sql`; `create-user` edge fn |
+| 4 | Coach signup + onboarding, `complete_onboarding` RPC, first-login tour | `20260614020000_coach_signup_onboarding.sql`; `claim-coach` edge fn |
+| 5 | Coach exercise library (owner-scoped RLS) + manual program builder (reuse ProgramPublish) | `20260614030000_coach_exercise_library.sql` |
+| 6 | Program modes (one-time / ongoing), `client_program_revisions` audit trail | `20260615000000_program_modes.sql`; `reference_program_modes` |
+| 7 | Appointments V1 (internal scheduling, assignment-scoped RLS + notify) | `20260616000000_appointments_v1.sql`; `reference_appointments_v1` |
+| 8 | Transcript Assistant (paste transcript → subjective draft) | `subjective-transcript-assistant` edge fn; `reference_transcript_assistant_v1` |
+| 9 | Admin Business Tracking (admin-only coach business overview, CSV) | `20260616010000_admin_coach_business_overview.sql`, `20260616020000_coach_business_profile.sql`; `reference_admin_business_v1` |
+| S4 | Recovery Pulse alerts + coach Needs-Attention (pg_cron) | `20260611195947_s4_pulse_alerts_foundation.sql`, `..._cron.sql`; `pulse-alerts` edge fn |
+| 11 | Workout History progress insights (no DB change) | `reference_workout_insights_v1` |
+| 12 | Email-auth productionization + edge CORS resync (Resend SMTP, redirect allow-list, leaked-pw, branded templates) | `PHASE12_EMAIL_AUTH_PRODUCTIONIZATION.md` (PR #45) |
+| 13 | System Exercise Library (152 David Grey rows) + coach region/preview UI + `video_url` snapshot + client Train video + PDF links | `20260619000000_system_exercise_library.sql`; `PHASE13_SYSTEM_EXERCISE_LIBRARY.md` (PR #47, #48) |
+| A | Frontend surface polish — **Antigravity** | PR #49 (merged → `1f4dc4d`) |
+
+Also live: community privacy + realtime scoping (`20260614040000_community_privacy_realtime.sql`).
+
+---
+
+**Last updated:** 2026-06-09 _(handoff snapshot below — historical)_
 **Branch:** `claude/interesting-buck-452459`
 **HEAD commit:** Client Mobile Redesign S6 just shipped (commit pending)
 **Worktree path:** `D:\ASThub\.claude\worktrees\interesting-buck-452459`
