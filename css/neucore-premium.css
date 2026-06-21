@@ -1266,3 +1266,178 @@ body.nc-bright .abz-table tr:hover {
   background-color: color-mix(in oklab, var(--nc-bg-secondary), transparent 60%) !important;
   transition: background-color var(--nc-dur-fast) ease !important;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   PHASE B1 — AUTHENTICATED APP UX POLISH
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── 1. Coach Dashboard spacing & card rhythm ── */
+body.nc-bright .nc-dash-welcome {
+  margin-bottom: var(--nc-sp-8, 32px) !important;
+}
+body.nc-bright .nc-kpi-grid {
+  gap: var(--nc-sp-6, 24px) !important;
+  margin-bottom: var(--nc-sp-8, 32px) !important;
+}
+body.nc-bright .nc-dash-grid {
+  gap: var(--nc-sp-6, 24px) !important;
+}
+body.nc-bright .nc-panel {
+  border-radius: 18px !important;
+  box-shadow: var(--nc-shadow-card) !important;
+  border: 1px solid var(--nc-border) !important;
+  background: var(--nc-bg-card) !important;
+  margin-bottom: var(--nc-sp-6, 24px) !important;
+  padding: var(--nc-sp-6, 24px) !important;
+}
+
+/* ── 2. New Session mobile horizontal scroll & tab row focus ── */
+body.nc-bright #session-tabs.tab-row {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  overflow-x: auto !important;
+  scroll-behavior: smooth !important;
+  -webkit-overflow-scrolling: touch !important;
+  scroll-snap-type: x mandatory !important;
+  border-bottom: 1px solid var(--nc-border) !important;
+  gap: var(--nc-sp-2, 8px) !important;
+  padding-bottom: 2px !important;
+}
+body.nc-bright #session-tabs.tab-row::-webkit-scrollbar {
+  display: none !important; /* Hide scrollbar for clean visual look */
+}
+body.nc-bright #session-tabs .tab-btn {
+  flex: 0 0 auto !important;
+  scroll-snap-align: start !important;
+  border-radius: 8px 8px 0 0 !important;
+  transition: all var(--nc-dur-fast) var(--nc-ease) !important;
+  border: 1px solid transparent !important;
+}
+body.nc-bright #session-tabs .tab-btn:focus-visible {
+  outline: none !important;
+  box-shadow: var(--nc-focus-ring) !important;
+}
+
+/* ── 3. Objective/Subjective panel spacing consistency ── */
+body.nc-bright .neucore-assess-layout {
+  gap: var(--nc-sp-6, 24px) !important;
+}
+body.nc-bright .assess-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)) !important;
+  gap: var(--nc-sp-6, 24px) !important;
+}
+body.nc-bright .tab-panel {
+  padding-top: var(--nc-sp-4, 16px) !important;
+}
+body.nc-bright .form-group {
+  margin-bottom: var(--nc-sp-4, 16px) !important;
+}
+body.nc-bright .form-group:last-child {
+  margin-bottom: 0 !important;
+}
+body.nc-bright .nc-wizard-step {
+  margin-bottom: var(--nc-sp-4, 16px) !important;
+  padding: var(--nc-sp-5, 20px) !important;
+  border-radius: 14px !important;
+  border: 1px solid var(--nc-border) !important;
+}
+
+/* ── 4. Exercise Library & Picker Modal visual polish ── */
+body.nc-bright .ex-library-grid,
+body.nc-bright .ex-picker-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
+  gap: var(--nc-sp-4, 16px) !important;
+}
+/* Modal backdrop blur and scaling easing */
+body.nc-bright .modal-overlay {
+  background: rgba(8, 15, 26, 0.54) !important; /* Slightly darker overlay for premium depth */
+}
+body.nc-bright .modal {
+  animation: nc-modal-scale-spring var(--nc-dur-base, 320ms) var(--nc-ease-spring) both !important;
+}
+@keyframes nc-modal-scale-spring {
+  from { opacity: 0; transform: scale(0.95) translateY(16px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* ── 5. Admin Business Metrics & Table Spacing ── */
+body.nc-bright .abz-stat {
+  border-radius: var(--nc-r-md, 12px) !important;
+  background: var(--nc-bg-card, #fff) !important;
+  border: 1px solid var(--nc-border) !important;
+  box-shadow: var(--nc-shadow-card) !important;
+}
+body.nc-bright .abz-table-wrap {
+  border-radius: var(--nc-r-md, 12px) !important;
+  box-shadow: var(--nc-shadow-card) !important;
+}
+body.nc-bright .abz-table th {
+  padding: 14px 20px !important;
+}
+body.nc-bright .abz-table td {
+  padding: 14px 20px !important;
+}
+
+/* ── 6. Client Today/Train/Progress Card Contrast & Spacing ── */
+body.nc-bright.nc-client .card,
+body.nc-bright.nc-client .dr-card {
+  box-shadow: var(--nc-shadow-card) !important;
+  background: var(--nc-bg-card) !important;
+}
+/* Progress Ring Label High Contrast in Light mode */
+body.nc-bright.nc-client .dr-card svg text {
+  fill: var(--nc-text-primary) !important;
+  font-weight: 700 !important;
+}
+/* Hologram panel smooth fade-in */
+body.nc-bright #cp-holo-overlay {
+  animation: nc-holo-fade-in var(--nc-dur-base) ease-out both !important;
+}
+@keyframes nc-holo-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ── 7. Mobile bottom tabbar safe-area ── */
+body.nc-bright.nc-client .nc-tabbar {
+  padding-bottom: env(safe-area-inset-bottom, 16px) !important;
+  height: calc(64px + env(safe-area-inset-bottom, 16px)) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-around !important;
+}
+
+/* ── 8. Form focus transitions ── */
+body.nc-bright .form-input,
+body.nc-bright .neu-input,
+body.nc-bright .neu-textarea,
+body.nc-bright .neu-select,
+body.nc-bright input,
+body.nc-bright select,
+body.nc-bright textarea {
+  transition: border-color 180ms ease, box-shadow 180ms ease !important;
+}
+
+/* ── 9. Modal/Toast Spring Physics ── */
+body.nc-bright .toast {
+  animation: nc-toast-spring var(--nc-dur-base, 320ms) var(--nc-ease-spring) both !important;
+}
+@keyframes nc-toast-spring {
+  from { opacity: 0; transform: translateY(16px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ── 10. Prefers Reduced Motion overrides ── */
+@media (prefers-reduced-motion: reduce) {
+  body.nc-bright .modal,
+  body.nc-bright .modal-overlay,
+  body.nc-bright .toast,
+  body.nc-bright #cp-holo-overlay,
+  body.nc-bright .section.active,
+  body.nc-bright .tab-panel.active {
+    animation: none !important;
+    transition: none !important;
+  }
+}
