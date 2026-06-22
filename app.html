@@ -2601,8 +2601,8 @@ setInterval(() => { if (!document.hidden) _refreshApprovalsBadge(); }, 60_000);
 <!-- jsPDF — professional PDF report engine (UMD global: window.jspdf), vendored locally -->
 <script src="js/lib/jspdf.umd.min.js"></script>
 <script src="js/pdfExport.js?v=20260619a"></script>
-<script src="js/subscriptionService.js?v=20260530a"></script>
-<script src="js/auth.js?v=20260614p4"></script>
+<script src="js/subscriptionService.js?v=20260622a"></script>
+<script src="js/auth.js?v=20260622a"></script>
 <script src="js/dashboard.js?v=20260617a"></script>
 <script src="js/clients.js?v=20260619a"></script>
 <script src="js/subscriptions.js?v=20260614p6"></script>
@@ -3028,6 +3028,10 @@ if (typeof Auth !== 'undefined') {
   Auth.listen(event => {
     if (event === 'PASSWORD_RECOVERY') Dashboard.openModal('modal-change-password');
     if (event === 'SIGNED_OUT') {
+      // Subscription-gate sign-out: the inactive/contact-coach screen owns the
+      // UI — skip the landing redirect for that one event. Real logout leaves
+      // the flag false and still redirects below.
+      if (typeof Auth !== 'undefined' && Auth.consumeGateSignout && Auth.consumeGateSignout()) return;
       // Don't loop if we're already on landing or just opened a fresh tab
       if (!window.location.pathname.endsWith('index.html') && window.location.pathname !== '/') {
         window.location.href = 'index.html';
@@ -3042,7 +3046,12 @@ if (typeof Auth !== 'undefined') {
 //   - With session                                 → show app
 //   - No session, no ?login                        → redirect to /index.html (landing)
 (async () => {
-  const _bootTimeout = new Promise(r => setTimeout(() => r(null), 4000));
+  // Returning sessions can take time to resolve on a cold Supabase project or
+  // a slow mobile network (Auth.init allows 60s for getSession). A short race
+  // that resolves to this sentinel must NOT be mistaken for "no session" and
+  // bounce a valid user to the marketing landing — on timeout we show login.
+  const TIMED_OUT = Symbol('boot-timeout');
+  const _bootTimeout = new Promise(r => setTimeout(() => r(TIMED_OUT), 8000));
   const params = new URLSearchParams(window.location.search);
   const loginIntent = params.has('login');
 
@@ -3055,11 +3064,15 @@ if (typeof Auth !== 'undefined') {
   };
 
   try {
-    const profile = typeof Auth !== 'undefined'
+    const result = typeof Auth !== 'undefined'
       ? await Promise.race([Auth.init(), _bootTimeout])
       : null;
     if (typeof UI !== 'undefined') UI._hideLoading();
-    if (profile && typeof UI !== 'undefined') {
+    if (result === TIMED_OUT) {
+      // Init didn't finish in time — never strand a possibly-valid user on the
+      // marketing page; show login so they can proceed.
+      _showLoginScreen();
+    } else if (result && typeof UI !== 'undefined') {
       UI._showApp();
     } else if (loginIntent) {
       _showLoginScreen();

@@ -11,6 +11,24 @@ const Auth = (() => {
   let _user    = null;
   let _profile = null;
 
+  // ── Subscription-gate sign-out suppression ──────────────────
+  // The gate signs a blocked client out so they can't keep a live session.
+  // That fires onAuthStateChange('SIGNED_OUT'), which the app-shell listener
+  // uses to redirect to the landing page. We set this one-shot flag around
+  // the gate's own sign-out so the shell skips the redirect and lets the
+  // subscription-inactive screen show. A real user logout leaves the flag
+  // false → the landing redirect still happens.
+  let _suppressSignedOutRedirect = false;
+  async function _gateSignOut() {
+    _suppressSignedOutRedirect = true;
+    await sb.auth.signOut({ scope: 'local' });
+  }
+  function consumeGateSignout() {
+    const v = _suppressSignedOutRedirect;
+    _suppressSignedOutRedirect = false;
+    return v;
+  }
+
   // ── Public API ──────────────────────────────────────────────
   const getUser    = () => _user;
   const getProfile = () => _profile;
@@ -123,8 +141,15 @@ const Auth = (() => {
       // Subscription gate for clients (active + grace pass through).
       if (_profile.role === 'client') {
         const state = await _refreshSubscriptionState(data.user.id);
+        // Transient read failure — do NOT sign out / bounce. Surface a retry
+        // on the login screen so a valid client isn't locked out by a blip.
+        if (state?.effective_status === 'unknown') {
+          const ne = new Error('We couldn’t verify your subscription. Check your connection and try again.');
+          ne.code = 'SUBSCRIPTION_CHECK_FAILED';
+          throw ne;
+        }
         if (!_gateClient(state)) {
-          await sb.auth.signOut();
+          await _gateSignOut();
           _user = null; _profile = null;
           throw new SubscriptionInactiveError(state);
         }
@@ -175,8 +200,11 @@ const Auth = (() => {
         // Recheck subscription on page reload for clients
         if (_profile.role === 'client') {
           const state = await _refreshSubscriptionState(session.user.id);
+          // Transient read failure on a returning session — keep the valid
+          // session in the app (read-only via canWrite) instead of bouncing.
+          if (state?.effective_status === 'unknown') return _profile;
           if (!_gateClient(state)) {
-            await sb.auth.signOut();
+            await _gateSignOut();
             _user = null; _profile = null;
             throw new SubscriptionInactiveError(state);
           }
@@ -286,7 +314,7 @@ const Auth = (() => {
   return {
     getUser, getProfile, getRole, isAdmin, isCoach, isAdminOrCoach,
     login, logout, sendPasswordReset, updatePassword, init, listen,
-    loadProfile,
+    loadProfile, consumeGateSignout,
     // Subscription:
     getSubscriptionState, canWrite,
     // Phase 4 — public coach signup:
