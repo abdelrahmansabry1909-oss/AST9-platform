@@ -64,7 +64,9 @@
         .maybeSingle();
       if (error) {
         console.warn('[SubscriptionService] view read failed:', error.message);
-        return _normalize(null);
+        // Fail-soft: a read error is NOT a real "no subscription". Returning
+        // 'none' here would gate + bounce a valid client on a flaky network.
+        return { effective_status: 'unknown', error: true };
       }
       const state = _normalize(data);
       _cache.set(clientId, state);
@@ -72,7 +74,8 @@
       return state;
     } catch (e) {
       console.warn('[SubscriptionService] view read threw:', e.message);
-      return _normalize(null);
+      // Fail-soft (see above): transient failure → 'unknown', never 'none'.
+      return { effective_status: 'unknown', error: true };
     }
   }
 
@@ -115,6 +118,7 @@
     }
     if (s === 'pending') return { label: 'Pending activation',   tone: 'amber' };
     if (s === 'expired') return { label: 'Subscription expired', tone: 'rose'  };
+    if (s === 'unknown') return { label: 'Checking subscription…', tone: 'gray' };
     return                       { label: 'No subscription',     tone: 'gray'  };
   }
 
