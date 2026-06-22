@@ -367,9 +367,25 @@ button { font: inherit; cursor: pointer; border: none; background: none; color: 
 }
 
 @media (max-width: 900px) {
-  .nc-nav-links, .nc-nav-cta .nc-btn { display: none; }
-  .nc-nav-cta .nc-btn--primary { display: inline-flex; padding: 10px 16px; font-size: 13px; }
-  .nc-nav-toggle { display: inline-flex; }
+  .nc-nav-links {
+    display: none;
+  }
+
+  .nc-nav-cta .nc-btn--primary {
+    display: inline-flex;
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+
+  .nc-nav-cta .nc-btn--ghost {
+    display: inline-flex;
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+
+  .nc-nav-toggle {
+    display: none;
+  }
 }
 
 /* ── HERO ───────────────────────────────────────────────────── */
