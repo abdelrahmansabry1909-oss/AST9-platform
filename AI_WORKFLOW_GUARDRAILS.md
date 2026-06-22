@@ -209,6 +209,20 @@ After every phase, report:
 
 ---
 
+## AST9 Claude Skills Pack
+
+In addition to the general guard skills in §4, this repo has a **project-specific** AST9 Claude
+skills pack that encodes the real regressions and process mistakes already hit during AST9
+development: client-login landing bounce, mobile Sign-In reachability, realtime smoke testing,
+cleanup/worktree safety, agent boundaries, and production verification.
+
+- **Runtime (active) location:** `.claude/skills/` — auto-discovered by Claude Code, but **gitignored** (local-only).
+- **Canonical tracked copy:** [`docs/claude-skills/ast9-skill-pack/`](docs/claude-skills/ast9-skill-pack/) — the version-controlled source of truth. Its `README.md` lists the six skills, what each one prevents, and how to reinstall them into `.claude/skills/`.
+
+Keep the runtime and canonical copies in sync when a skill changes. Installing or copying skills must never edit production app code.
+
+---
+
 ## Standing constraints
 
 - **Do not start Feature 8.**
