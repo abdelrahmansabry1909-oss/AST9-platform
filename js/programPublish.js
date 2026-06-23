@@ -363,6 +363,12 @@
     // Feature 5 — show a small library badge when exercise_id is set so
     // the coach can see at a glance which rows are library-backed.
     const linked = !!ex.exercise_id;
+    // C1A — demo-video status. The client ▶ Watch/Preview button only appears
+    // when a row carries a video_url; generated/free-text rows start without one.
+    // "Link demo" lets the coach attach a library demo while keeping their name.
+    const _demoUrl = (typeof ExerciseLibrary !== 'undefined' && ExerciseLibrary.sanitizeUrl)
+      ? ExerciseLibrary.sanitizeUrl(ex.video_url) : (ex.video_url || null);
+    const hasVideo = !!_demoUrl;
     return `
       <div style="display:flex;gap:6px;align-items:flex-start;margin-bottom:6px;flex-wrap:wrap;
                   padding:8px;border:1px solid var(--border-subtle);border-radius:8px;background:var(--bg-raised)"
@@ -378,6 +384,17 @@
           ${linked ? `<div style="font-size:10px;color:var(--nc-teal,#14b8a6);letter-spacing:.04em">
             ◈ linked · ${esc(ex.exercise_id).slice(0,8)}…
           </div>` : ''}
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:10px">
+            ${hasVideo
+              ? `<span style="color:var(--nc-teal,#14b8a6);font-weight:600">▶ Demo linked</span>
+                 <button type="button" class="btn btn-ghost btn-sm" data-linkdemo="${wi}:${key}:${i}"
+                         title="Choose a different demo video" style="padding:2px 8px;font-size:10px">Change</button>
+                 <button type="button" class="btn btn-ghost btn-sm" data-unlinkdemo="${wi}:${key}:${i}"
+                         title="Remove the demo video" style="padding:2px 8px;font-size:10px;color:var(--rose)">Unlink</button>`
+              : `<button type="button" class="btn btn-ghost btn-sm" data-linkdemo="${wi}:${key}:${i}"
+                         title="Attach a demo video from the library — keeps this exercise name" style="padding:2px 8px;font-size:10px">▶ Link demo</button>
+                 <span style="color:var(--text-tertiary)">no demo video</span>`}
+          </div>
           ${f('notes', ex.notes, 'Coaching notes', 'font-size:12px')}
           <div data-suggest="${wi}:${key}:${i}" class="hidden"
                style="position:absolute;left:0;right:78px;top:36px;background:var(--bg-raised,#0f172a);
@@ -467,6 +484,41 @@
             _drawProgram();   // redraws → reflects link badge + new name
           },
         }).catch(() => {});  // user closed; nothing to do
+      });
+    });
+    // ── ▶ Link demo (C1A) — attach a library demo video to a row WITHOUT
+    //    renaming it. Sets exercise_id + video_url so publish snapshots the demo
+    //    and the existing client Train / guided screens show the ▶ button.
+    panel.querySelectorAll(`[data-linkdemo^="${wi}:${key}:"]`).forEach((btn) => {
+      btn.addEventListener('click', () => {
+        if (typeof ExercisePicker === 'undefined') { _toast('Library picker not loaded', 'error'); return; }
+        const i = +btn.dataset.linkdemo.split(':')[2];
+        const defaultFilter = (_program?.phase || '').startsWith('Phase ')
+          ? 'phase' + _program.phase.replace('Phase ', '') : 'all';
+        ExercisePicker.open({
+          title: 'Choose a demo video',
+          defaultFilter,
+          onSelect: ({ exercise_id, exercise }) => {
+            const row = _program.workouts[wi][key][i];
+            if (!row) return;
+            const v = _snapVideo(exercise);
+            if (!v) { _toast('That exercise has no demo video — choose another.', 'warning'); return; }
+            row.exercise_id = exercise_id;   // demo source (resolvable client-side; publish re-snapshots)
+            row.video_url   = v;             // snapshot the demo link now
+            _drawProgram();                  // keeps row.name — the prescribed exercise is preserved
+          },
+        }).catch(() => {});
+      });
+    });
+    // ── Unlink demo — drop the demo video, return the row to free-text. ──
+    panel.querySelectorAll(`[data-unlinkdemo^="${wi}:${key}:"]`).forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const i = +btn.dataset.unlinkdemo.split(':')[2];
+        const row = _program.workouts[wi][key][i];
+        if (!row) return;
+        row.exercise_id = null;
+        row.video_url   = null;
+        _drawProgram();
       });
     });
   }
