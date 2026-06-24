@@ -39,7 +39,7 @@
       <a href="#services" class="nc-nav-link">Services</a>
       <a href="#biomechanics" class="nc-nav-link">Intelligence</a>
       <a href="#cases" class="nc-nav-link">Case Studies</a>
-      <a href="#cta" class="nc-nav-link">Pricing</a>
+      <a href="#pricing-tiers" class="nc-nav-link">Pricing</a>
     </div>
 
     <div class="nc-nav-cta">
@@ -72,8 +72,8 @@
       </h1>
 
       <p class="nc-hero-sub nc-reveal delay-2">
-        AI-powered biomechanics, movement intelligence, and neuro-performance optimization
-        built for the future of rehabilitation and elite health.
+        The movement intelligence operating system for rehabilitation and elite sports science.
+        Empowering coaches, clinicians, and athletic directors with objective biomechanical telemetry.
       </p>
 
       <div class="nc-hero-cta nc-reveal delay-3">
@@ -82,7 +82,7 @@
           <svg class="nc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
         </a>
         <a href="#features" class="nc-btn nc-btn--ghost nc-btn--lg">
-          Explore Platform
+          See platform preview
         </a>
       </div>
 
@@ -106,6 +106,27 @@
     <div class="nc-hero-visual nc-reveal delay-2">
       <div class="nc-orb-rings"></div>
       <div class="nc-orb"></div>
+
+      <!-- Semi-transparent Dashboard Preview Card -->
+      <div class="nc-dashboard-preview">
+        <div class="nc-dash-preview-header">
+          <div class="nc-dash-preview-avatar">AP</div>
+          <div>
+            <div class="nc-dash-preview-name">Athlete Profile</div>
+            <div class="nc-dash-preview-status"><span class="nc-status-dot-active"></span>Active · Phase II Control</div>
+          </div>
+        </div>
+        <div class="nc-dash-preview-metric">
+          <div class="nc-dash-preview-metric-label">Joint ROM Deficit</div>
+          <div class="nc-dash-preview-metric-value">-8.2° <span class="nc-dash-trend-down">L-Hip IR</span></div>
+        </div>
+        <div class="nc-dash-preview-progress">
+          <div class="nc-dash-preview-progress-label">Recovery Path Progress</div>
+          <div class="nc-dash-preview-progress-bar">
+            <span style="width: 68%;"></span>
+          </div>
+        </div>
+      </div>
 
       <!-- Floating data card 1 -->
       <div class="nc-floating-card nc-floating-card-1">
@@ -392,6 +413,8 @@
       <div class="nc-3d-canvas">
         <!-- Stylized skeleton SVG (placeholder for the live three.js skeleton) -->
         <svg class="nc-skeleton-svg" viewBox="0 0 200 400" fill="none" stroke="#67E8F9" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <!-- Laser Scan Line -->
+          <line x1="0" y1="0" x2="200" y2="0" stroke="rgba(20, 184, 166, 0.55)" stroke-width="2.2" class="nc-skeleton-laser" />
           <!-- Head -->
           <circle cx="100" cy="38" r="22" stroke="#14B8A6" stroke-width="1.8"/>
           <!-- Spine -->
@@ -421,6 +444,13 @@
           <!-- Feet -->
           <path d="M72 360 L60 372"/>
           <path d="M128 360 L140 372"/>
+          <!-- Glowing Joint Indicators -->
+          <circle cx="75" cy="210" r="4" class="nc-joint-node nc-joint-node--warning" />
+          <circle cx="125" cy="210" r="4" class="nc-joint-node nc-joint-node--warning" />
+          <circle cx="62" cy="90" r="4" class="nc-joint-node nc-joint-node--primary" />
+          <circle cx="138" cy="90" r="4" class="nc-joint-node nc-joint-node--primary" />
+          <circle cx="70" cy="290" r="4" class="nc-joint-node nc-joint-node--primary" />
+          <circle cx="130" cy="290" r="4" class="nc-joint-node nc-joint-node--primary" />
         </svg>
       </div>
 
@@ -648,6 +678,73 @@
             <div class="nc-testimonial-name">Eleanor H., 75</div>
             <div class="nc-testimonial-role">Chronic back-pain patient</div>
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════ PLANS ═══════════════════════════════ -->
+<section class="nc-section nc-plans-section" id="pricing-tiers">
+  <div class="nc-container">
+    <div class="nc-section-head nc-reveal">
+      <span class="nc-eyebrow">Plans & Access</span>
+      <h2 class="nc-display nc-h2">Designed for elite growth.</h2>
+      <p class="nc-lead">Plans tailored for independent coaches, clinical teams, and performance centers.</p>
+    </div>
+
+    <div class="nc-plans-grid">
+      <!-- Plan 1 -->
+      <div class="nc-plan-card nc-reveal">
+        <div class="nc-plan-header">
+          <h3 class="nc-plan-name">Coach</h3>
+          <p class="nc-plan-desc">For independent trainers and coaches optimizing individual athlete protocols.</p>
+        </div>
+        <ul class="nc-plan-features">
+          <li>Core movement assessments</li>
+          <li>Auto-generated client programs</li>
+          <li>Basic ROM telemetry tracking</li>
+          <li>Secure client dashboard portal</li>
+        </ul>
+        <div class="nc-plan-action">
+          <a href="#" data-visitor-trigger class="nc-btn nc-btn--primary" style="width:100%">Start assessment</a>
+        </div>
+      </div>
+
+      <!-- Plan 2 -->
+      <div class="nc-plan-card nc-plan-card--featured nc-reveal delay-1">
+        <div class="nc-plan-tag">Most Popular</div>
+        <div class="nc-plan-header">
+          <h3 class="nc-plan-name">Clinic</h3>
+          <p class="nc-plan-desc">For physical therapy clinics and multi-coach athletic training facilities.</p>
+        </div>
+        <ul class="nc-plan-features">
+          <li>Everything in Coach plan</li>
+          <li>EMG-validated motor twins</li>
+          <li>Phase-gated decision rules</li>
+          <li>Multi-therapist staff seats</li>
+          <li>Advanced recovery analytics</li>
+        </ul>
+        <div class="nc-plan-action">
+          <a href="#" data-visitor-trigger class="nc-btn nc-btn--gold" style="width:100%">Request access</a>
+        </div>
+      </div>
+
+      <!-- Plan 3 -->
+      <div class="nc-plan-card nc-reveal delay-2">
+        <div class="nc-plan-header">
+          <h3 class="nc-plan-name">Enterprise / Custom</h3>
+          <p class="nc-plan-desc">For elite sports teams, university programs, and high-volume clinical networks.</p>
+        </div>
+        <ul class="nc-plan-features">
+          <li>Everything in Clinic plan</li>
+          <li>Custom assessment protocols</li>
+          <li>Enterprise SSO & HIPAA controls</li>
+          <li>API and EHR integrations</li>
+          <li>Dedicated performance director</li>
+        </ul>
+        <div class="nc-plan-action">
+          <a href="mailto:hello@neucore.io" class="nc-btn nc-btn--ghost" style="width:100%">Talk to us</a>
         </div>
       </div>
     </div>

@@ -1354,3 +1354,301 @@ button { font: inherit; cursor: pointer; border: none; background: none; color: 
 @media (max-width: 480px) {
   .nc-assess-dropdown { min-width: 260px; }
 }
+
+/* ── FOCUS STATES (ACCESSIBILITY) ───────────────────────────── */
+a:focus-visible,
+button:focus-visible,
+.nc-btn:focus-visible,
+.nc-tab-trigger:focus-visible,
+.nc-case-card:focus-visible {
+  outline: 2px solid var(--nc-cyan) !important;
+  outline-offset: 4px !important;
+  box-shadow: 0 0 14px var(--nc-cyan-glow) !important;
+}
+
+/* ── HERO DASHBOARD PREVIEW CARD ────────────────────────────── */
+.nc-dashboard-preview {
+  position: absolute;
+  top: 24%;
+  left: 12%;
+  width: 280px;
+  padding: var(--nc-sp-5);
+  background: var(--nc-bg-card);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  border: 1px solid var(--nc-border-strong);
+  border-radius: var(--nc-r-xl);
+  box-shadow: var(--nc-shadow-xl), 0 0 40px rgba(20, 184, 166, 0.08);
+  z-index: 4;
+  animation: nc-float 7s var(--nc-ease) infinite;
+  animation-delay: -2s;
+}
+
+.nc-dash-preview-header {
+  display: flex;
+  align-items: center;
+  gap: var(--nc-sp-3);
+  margin-bottom: var(--nc-sp-4);
+  border-bottom: 1px solid var(--nc-border);
+  padding-bottom: var(--nc-sp-3);
+}
+
+.nc-dash-preview-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--nc-teal), var(--nc-cyan));
+  color: #04141A;
+  font-weight: 700;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nc-dash-preview-name {
+  font-family: var(--nc-font-display);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--nc-text-primary);
+}
+
+.nc-dash-preview-status {
+  font-size: 11px;
+  color: var(--nc-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 1px;
+}
+
+.nc-status-dot-active {
+  width: 6px;
+  height: 6px;
+  background: var(--nc-teal);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--nc-teal);
+}
+
+.nc-dash-preview-metric {
+  margin-bottom: var(--nc-sp-4);
+}
+
+.nc-dash-preview-metric-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--nc-text-muted);
+  font-weight: 600;
+}
+
+.nc-dash-preview-metric-value {
+  font-family: var(--nc-font-display);
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--nc-text-primary);
+  margin-top: 2px;
+  display: flex;
+  align-items: baseline;
+  gap: var(--nc-sp-2);
+}
+
+.nc-dash-trend-down {
+  font-size: 12px;
+  color: var(--nc-rose);
+  font-weight: 600;
+}
+
+.nc-dash-preview-progress-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--nc-text-muted);
+  font-weight: 600;
+  margin-bottom: var(--nc-sp-2);
+}
+
+.nc-dash-preview-progress-bar {
+  height: 5px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.nc-dash-preview-progress-bar span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--nc-teal), var(--nc-cyan));
+  border-radius: 99px;
+}
+
+@media (max-width: 1024px) {
+  .nc-dashboard-preview {
+    top: auto;
+    bottom: -10px;
+    left: 5%;
+    width: 240px;
+  }
+}
+
+@media (max-width: 480px) {
+  .nc-dashboard-preview {
+    display: none;
+  }
+}
+
+/* ── PLANS & ACCESS SECTION ─────────────────────────────────── */
+.nc-plans-section {
+  padding-top: 0;
+}
+
+.nc-plans-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--nc-sp-8);
+  margin-top: var(--nc-sp-12);
+}
+
+@media (max-width: 1024px) {
+  .nc-plans-grid {
+    grid-template-columns: 1fr;
+    gap: var(--nc-sp-6);
+  }
+}
+
+.nc-plan-card {
+  position: relative;
+  background: linear-gradient(180deg, rgba(18, 33, 48, 0.5), rgba(14, 26, 36, 0.3));
+  border: 1px solid var(--nc-border);
+  border-radius: var(--nc-r-2xl);
+  padding: var(--nc-sp-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--nc-sp-6);
+  box-shadow: var(--nc-shadow-lg);
+  transition: transform var(--nc-ease) 0.4s, border-color var(--nc-ease) 0.4s, box-shadow var(--nc-ease) 0.4s;
+}
+
+.nc-plan-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--nc-border-strong);
+  box-shadow: var(--nc-shadow-xl);
+}
+
+.nc-plan-card--featured {
+  background: linear-gradient(180deg, rgba(20, 35, 65, 0.6), rgba(10, 20, 42, 0.4));
+  border-color: rgba(20, 184, 166, 0.25);
+  box-shadow: 0 16px 48px rgba(20, 184, 166, 0.08);
+}
+
+.nc-plan-card--featured:hover {
+  border-color: var(--nc-border-glow);
+  box-shadow: var(--nc-shadow-teal);
+}
+
+.nc-plan-tag {
+  position: absolute;
+  top: -12px;
+  right: var(--nc-sp-8);
+  background: linear-gradient(135deg, var(--nc-teal), var(--nc-cyan));
+  color: #04141A;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: var(--nc-r-full);
+  letter-spacing: 0.05em;
+  box-shadow: 0 4px 12px rgba(20, 184, 166, 0.25);
+}
+
+.nc-plan-name {
+  font-family: var(--nc-font-display);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--nc-text-primary);
+  margin-bottom: var(--nc-sp-2);
+}
+
+.nc-plan-desc {
+  font-size: 14px;
+  color: var(--nc-text-secondary);
+  line-height: 1.5;
+}
+
+.nc-plan-features {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--nc-sp-3);
+  flex-grow: 1;
+}
+
+.nc-plan-features li {
+  font-size: 14px;
+  color: var(--nc-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: var(--nc-sp-3);
+}
+
+.nc-plan-features li::before {
+  content: "✓";
+  color: var(--nc-teal);
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.nc-plan-action {
+  margin-top: auto;
+}
+
+/* ── SKELETON TWIN ANIMATIONS ───────────────────────────────── */
+.nc-skeleton-laser {
+  animation: nc-laser-sweep 4s linear infinite;
+}
+
+.nc-joint-node {
+  animation: nc-joint-glow 2.5s var(--nc-ease) infinite;
+  transform-origin: center;
+}
+
+.nc-joint-node--primary {
+  fill: var(--nc-cyan) !important;
+}
+
+.nc-joint-node--warning {
+  fill: var(--nc-gold) !important;
+  animation-delay: -1.25s;
+}
+
+@keyframes nc-laser-sweep {
+  0% {
+    y1: 0;
+    y2: 0;
+    opacity: 0;
+  }
+  10%, 90% {
+    opacity: 1;
+  }
+  50% {
+    y1: 400;
+    y2: 400;
+  }
+  100% {
+    y1: 0;
+    y2: 0;
+    opacity: 0;
+  }
+}
+
+@keyframes nc-joint-glow {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.4);
+    opacity: 0.55;
+  }
+}
+
