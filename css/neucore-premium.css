@@ -1344,13 +1344,6 @@ body.nc-bright .nc-wizard-step {
 }
 
 /* ── 4. Exercise Library & Picker Modal visual polish ── */
-body.nc-bright .ex-library-grid,
-body.nc-bright .ex-picker-grid {
-  display: grid !important;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
-  gap: var(--nc-sp-4, 16px) !important;
-}
-/* Modal backdrop blur and scaling easing */
 body.nc-bright .modal-overlay {
   background: rgba(8, 15, 26, 0.54) !important; /* Slightly darker overlay for premium depth */
 }
@@ -1439,5 +1432,472 @@ body.nc-bright .toast {
   body.nc-bright .tab-panel.active {
     animation: none !important;
     transition: none !important;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   PHASE C2 — EXERCISE LIBRARY & SIDEBAR VISUAL POLISH
+   ════════════════════════════════════════════════════════════════ */
+
+/* ── 1. Exercise Library One-Column List Layout ── */
+body.nc-bright .exercise-grid-ph3,
+body.nc-bright .exercise-grid {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+}
+
+body.nc-bright .ex-card,
+body.nc-bright .exercise-card {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 20px !important;
+  padding: 16px !important;
+  border: 1px solid var(--nc-border) !important;
+  border-radius: 16px !important;
+  background: var(--nc-bg-card) !important;
+  box-shadow: var(--nc-shadow-card) !important;
+  transition: all 250ms var(--nc-ease, cubic-bezier(0.16, 1, 0.3, 1)) !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+body.nc-bright .ex-card:hover,
+body.nc-bright .exercise-card:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: var(--nc-shadow-lg) !important;
+  border-color: var(--nc-border-strong) !important;
+}
+
+/* Selected row visual connection (Clients subtab selection outline override) */
+body.nc-bright .exercise-card[style*="outline"] {
+  outline: none !important;
+  border-color: var(--nc-indigo, #5B6CFF) !important;
+  background: color-mix(in oklab, var(--nc-bg-card), var(--nc-indigo, #5B6CFF) 3%) !important;
+  box-shadow: var(--nc-shadow-md), 0 0 0 3px rgba(91, 108, 255, 0.16) !important;
+}
+
+/* Image Thumbnails & Placeholders in list rows */
+body.nc-bright .ex-card-thumb,
+body.nc-bright .ex-card-thumb-placeholder {
+  width: 120px !important;
+  height: 80px !important;
+  border-radius: 10px !important;
+  overflow: hidden !important;
+  position: relative !important;
+  flex-shrink: 0 !important;
+  margin: 0 !important;
+  background: var(--nc-bg-secondary) !important;
+}
+
+body.nc-bright .ex-card-thumb img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  display: block !important;
+}
+
+/* Video Availability - Play Icon Indicator (visible at all times) */
+body.nc-bright .ex-card-play-btn {
+  position: absolute !important;
+  inset: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: rgba(13, 24, 40, 0.24) !important;
+  opacity: 1 !important;
+  transition: background var(--nc-dur-fast) ease !important;
+}
+
+body.nc-bright .ex-card-play-btn::before {
+  content: "▶" !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 50% !important;
+  background: var(--nc-indigo, #5B6CFF) !important;
+  color: #FFFFFF !important;
+  font-size: 13px !important;
+  box-shadow: 0 4px 12px rgba(91, 108, 255, 0.35) !important;
+  transition: transform var(--nc-dur-fast) ease, background var(--nc-dur-fast) ease !important;
+}
+
+body.nc-bright .ex-card-thumb:hover .ex-card-play-btn {
+  background: rgba(13, 24, 40, 0.35) !important;
+}
+
+body.nc-bright .ex-card-thumb:hover .ex-card-play-btn::before {
+  transform: scale(1.1) !important;
+  background: var(--nc-teal, #14B8A6) !important;
+  box-shadow: 0 4px 12px rgba(20, 184, 166, 0.45) !important;
+}
+
+/* Calm "No Video" state (Hiding the hardcoded ▶ arrow text) */
+body.nc-bright .ex-card-thumb-placeholder {
+  font-size: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: 1px dashed var(--nc-border-strong) !important;
+}
+
+body.nc-bright .ex-card-thumb-placeholder::after {
+  content: "NO VIDEO" !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.05em !important;
+  color: var(--nc-text-muted) !important;
+}
+
+/* List details grid layout inside the card body */
+body.nc-bright .ex-card-body {
+  flex: 1 !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+  display: grid !important;
+  grid-template-columns: 1fr auto !important;
+  align-items: center !important;
+  gap: 20px !important;
+}
+
+/* Stack metadata title, badges, cues, tags on left side */
+body.nc-bright .ex-card-body > *:not(.ex-card-actions) {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+}
+
+body.nc-bright .ex-card-title {
+  font-family: var(--nc-font-display) !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  color: var(--nc-text-primary) !important;
+  margin: 0 !important;
+}
+
+body.nc-bright .ex-card-badges {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: wrap !important;
+  gap: 6px !important;
+  margin: 0 !important;
+}
+
+body.nc-bright .ex-card-cues {
+  font-size: 12px !important;
+  color: var(--nc-text-secondary) !important;
+  line-height: 1.5 !important;
+  margin: 0 !important;
+}
+
+body.nc-bright .ex-card-tags {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: wrap !important;
+  gap: 4px !important;
+  margin: 0 !important;
+}
+
+body.nc-bright .ex-card-actions {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: wrap !important;
+  gap: 6px !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+}
+
+/* ── 2. Connecting the Preview Modal as a Right-side Drawer ── */
+body.nc-bright #modal-ex-video.modal-overlay {
+  display: flex !important;
+  justify-content: flex-end !important;
+  align-items: stretch !important;
+  background: rgba(13, 24, 40, 0.45) !important;
+}
+
+body.nc-bright #modal-ex-video .modal {
+  width: 480px !important;
+  max-width: 90vw !important;
+  height: 100vh !important;
+  max-height: 100vh !important;
+  border-radius: 0 !important;
+  margin: 0 !important;
+  transform: none !important;
+  box-shadow: -8px 0 32px rgba(13, 24, 40, 0.18) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  animation: nc-drawer-slide var(--nc-dur-base, 320ms) cubic-bezier(0.16, 1, 0.3, 1) both !important;
+}
+
+@keyframes nc-drawer-slide {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+body.nc-bright #modal-ex-video .modal-header {
+  flex-shrink: 0 !important;
+}
+
+body.nc-bright #modal-ex-video .modal-body {
+  flex: 1 !important;
+  overflow-y: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+body.nc-bright #ex-video-details {
+  padding: 20px !important;
+  color: var(--nc-text-secondary) !important;
+  font-size: 13px !important;
+  line-height: 1.55 !important;
+}
+
+/* ── 3. Exercise Picker Modal Visual Polish ── */
+body.nc-bright #modal-exercise-picker .modal {
+  background: var(--nc-bg-elevated) !important;
+  border-radius: 20px !important;
+  box-shadow: 0 24px 64px rgba(13, 24, 40, 0.16) !important;
+}
+
+body.nc-bright #ep-filters {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 6px !important;
+  margin-bottom: 14px !important;
+}
+
+body.nc-bright #ep-filters .ep-chip {
+  height: 28px !important;
+  padding: 0 12px !important;
+  font-size: 11px !important;
+  border-radius: 9999px !important;
+}
+
+body.nc-bright #ep-list [data-row-id] {
+  background: var(--nc-bg-secondary) !important;
+  border: 1px solid var(--nc-border) !important;
+  border-radius: 12px !important;
+  padding: 10px 12px !important;
+  transition: all 180ms ease !important;
+}
+
+body.nc-bright #ep-list [data-row-id]:hover {
+  background: var(--nc-bg-elevated) !important;
+  border-color: var(--nc-indigo, #5B6CFF) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: var(--nc-shadow-sm) !important;
+}
+
+body.nc-bright #ep-list [data-row-id] img {
+  border: 1px solid var(--nc-border) !important;
+  border-radius: 6px !important;
+  background: var(--nc-bg-secondary) !important;
+}
+
+body.nc-bright #ep-list [data-row-id] div[style*="background:rgba(255,255,255,.04)"] {
+  background: var(--nc-bg-secondary) !important;
+  border: 1px dashed var(--nc-border-strong) !important;
+  color: var(--nc-text-muted) !important;
+  font-size: 0 !important;
+}
+
+body.nc-bright #ep-list [data-row-id] div[style*="background:rgba(255,255,255,.04)"]::after {
+  content: "NO VID" !important;
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.02em !important;
+  color: var(--nc-text-muted) !important;
+}
+
+/* ── 4. Collapsible Sidebar Spacing & Overflow Fixes ── */
+@media (min-width: 901px) {
+  /* Prevent wordmark, sections, items and details from vertical wrapping or vertical stretch */
+  .sidebar .nc-sidebar-wordmark {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+  }
+
+  .sidebar .nc-sidebar-sub,
+  .sidebar .nav-section,
+  .sidebar .nav-label,
+  .sidebar .user-name,
+  .sidebar .user-role-tag {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .sidebar .nav-item {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    overflow: hidden !important;
+  }
+
+  /* Safe transition visibility guard for text elements */
+  .sidebar .nc-sidebar-wordmark > span:not(.nc-sidebar-mark),
+  .sidebar .nc-sidebar-sub,
+  .sidebar .nav-section,
+  .sidebar .nav-item > *:not(.nav-item-icon):not(.nav-badge) {
+    transition: opacity var(--sidebar-transition), visibility var(--sidebar-transition) !important;
+  }
+
+  .sidebar:not(:hover):not(:focus-within) .nc-sidebar-wordmark > span:not(.nc-sidebar-mark),
+  .sidebar:not(:hover):not(:focus-within) .nc-sidebar-sub,
+  .sidebar:not(:hover):not(:focus-within) .nav-section,
+  .sidebar:not(:hover):not(:focus-within) .nav-item > *:not(.nav-item-icon):not(.nav-badge) {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+
+  .sidebar:hover .nc-sidebar-wordmark > span:not(.nc-sidebar-mark),
+  .sidebar:focus-within .nc-sidebar-wordmark > span:not(.nc-sidebar-mark),
+  .sidebar:hover .nc-sidebar-sub,
+  .sidebar:focus-within .nc-sidebar-sub,
+  .sidebar:hover .nav-section,
+  .sidebar:focus-within .nav-section,
+  .sidebar:hover .nav-item > *:not(.nav-item-icon):not(.nav-badge),
+  .sidebar:focus-within .nav-item > *:not(.nav-item-icon):not(.nav-badge) {
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+  }
+
+  /* ── 5. Sidebar Footer & Logout Pill Button ── */
+  .sidebar:not(:hover):not(:focus-within) .user-details,
+  .sidebar:not(:hover):not(:focus-within) .logout-icon,
+  .sidebar:not(:hover):not(:focus-within) #notif-bell {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .sidebar:not(:hover):not(:focus-within) .user-card {
+    padding: 8px !important;
+    justify-content: center !important;
+    background: transparent !important;
+    border-color: transparent !important;
+  }
+
+  .sidebar:hover .user-card,
+  .sidebar:focus-within .user-card {
+    padding: 12px 14px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    background: var(--nc-bg-secondary) !important;
+    border: 1px solid var(--nc-border) !important;
+  }
+
+  .sidebar .user-details {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 2px !important;
+    flex: 1 !important;
+    min-width: 0 !important;
+    transition: opacity var(--sidebar-transition), visibility var(--sidebar-transition) !important;
+  }
+
+  .sidebar .user-name {
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    color: var(--nc-text-primary) !important;
+  }
+
+  .sidebar .user-role-tag {
+    font-size: 10px !important;
+    color: var(--nc-text-muted) !important;
+    text-transform: uppercase !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.05em !important;
+  }
+
+  /* Red-tinted pill logout styling */
+  .sidebar .user-card .logout-icon {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 28px !important;
+    height: 28px !important;
+    border-radius: 50% !important;
+    background: rgba(245, 66, 108, 0.08) !important;
+    border: 1px solid rgba(245, 66, 108, 0.16) !important;
+    color: #F5426C !important;
+    font-size: 13px !important;
+    cursor: pointer !important;
+    flex-shrink: 0 !important;
+    transition: all 180ms ease !important;
+  }
+
+  .sidebar .user-card .logout-icon:hover {
+    background: #F5426C !important;
+    border-color: #F5426C !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 4px 12px rgba(245, 66, 108, 0.24) !important;
+  }
+
+  /* Blue-tinted notifications pill styling */
+  .sidebar .user-card #notif-bell.logout-icon {
+    background: rgba(91, 108, 255, 0.08) !important;
+    border: 1px solid rgba(91, 108, 255, 0.16) !important;
+    color: var(--nc-indigo, #5B6CFF) !important;
+  }
+
+  .sidebar .user-card #notif-bell.logout-icon:hover {
+    background: var(--nc-indigo, #5B6CFF) !important;
+    border-color: var(--nc-indigo, #5B6CFF) !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 4px 12px rgba(91, 108, 255, 0.24) !important;
+  }
+}
+
+/* ── 6. Mobile & Tablet Responsiveness ── */
+@media (max-width: 768px) {
+  body.nc-bright .ex-card,
+  body.nc-bright .exercise-card {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 14px !important;
+    padding: 16px !important;
+  }
+
+  body.nc-bright .ex-card-thumb,
+  body.nc-bright .ex-card-thumb-placeholder {
+    width: 100% !important;
+    height: 160px !important;
+  }
+
+  body.nc-bright .ex-card-body {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+
+  body.nc-bright .ex-card-actions {
+    justify-content: flex-start !important;
+  }
+
+  body.nc-bright #modal-ex-video.modal-overlay {
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  body.nc-bright #modal-ex-video .modal {
+    width: 90vw !important;
+    height: auto !important;
+    max-height: 90vh !important;
+    border-radius: 18px !important;
+    animation: nc-modal-scale-spring var(--nc-dur-base, 320ms) var(--nc-ease-spring) both !important;
   }
 }
