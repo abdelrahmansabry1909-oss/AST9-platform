@@ -82,15 +82,48 @@
     if (!clientId) return { ok: false, reason: 'no-auth' };
     if (typeof sb === 'undefined' || !sb) return { ok: false, reason: 'no-db' };
 
-    let row = null;
+    // Current pointer (existing model). Also yields the FK-safe program id used
+    // for workout_sessions.program_id and the back-compat fallback below.
+    let cp = null;
     try {
       const { data, error } = await sb.from('client_programs')
         .select('id, program, published, published_at').eq('client_id', clientId).maybeSingle();
       if (error) throw error;
-      row = data;
+      cp = data;
     } catch (e) {
       return { ok: false, reason: 'load-error', message: e.message };
     }
+
+    // ── Phase E1b — effective-date version overlay ──────────────
+    //   RLS restricts a client to their OWN, published, already-effective rows
+    //   (effective_from <= now(), SERVER time), so future scheduled versions are
+    //   never returned here. We serve a version only when it is the source of
+    //   truth — i.e. at least as fresh as the current pointer — so a normal
+    //   republish (which updates client_programs, not versions, until E1b-2) is
+    //   never shadowed by a stale baseline version. No version row, an older
+    //   version, an unpublished/absent pointer, or a missing table (throw) all
+    //   fall through to the existing client_programs behavior.
+    let row = cp;
+    if (cp && cp.published) {
+      try {
+        const { data: vers } = await sb.from('client_program_versions')
+          .select('id, program, published_at, source_program_id')
+          .eq('client_id', clientId)
+          .eq('published', true)
+          .order('effective_from', { ascending: false })
+          .limit(1);
+        const v = vers && vers[0];
+        if (v && v.program
+            && (!cp.published_at || Date.parse(v.published_at) >= Date.parse(cp.published_at))) {
+          // Keep the client_programs id (FK-safe for workout_sessions.program_id);
+          // override only the served program content + published_at.
+          row = { id: cp.id, program: v.program, published: true, published_at: v.published_at };
+        }
+      } catch (e) {
+        console.warn('[program] version overlay skipped:', e?.message);  // fall back to pointer
+      }
+    }
+
     if (!row || !row.published || !row.program || (!row.program.structure && !row.program.workouts)) {
       return { ok: false, reason: 'empty' };
     }
