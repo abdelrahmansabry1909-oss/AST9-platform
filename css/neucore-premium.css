@@ -1757,6 +1757,13 @@ body.nc-bright #ep-list [data-row-id] div[style*="background:rgba(255,255,255,.0
     pointer-events: none !important;
   }
 
+  .sidebar:not(:hover):not(:focus-within) .nav-section {
+    height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+  }
+
   .sidebar:hover .nc-sidebar-wordmark > span:not(.nc-sidebar-mark),
   .sidebar:focus-within .nc-sidebar-wordmark > span:not(.nc-sidebar-mark),
   .sidebar:hover .nc-sidebar-sub,
@@ -1768,6 +1775,13 @@ body.nc-bright #ep-list [data-row-id] div[style*="background:rgba(255,255,255,.0
     opacity: 1 !important;
     visibility: visible !important;
     pointer-events: auto !important;
+  }
+
+  .sidebar:hover .nav-section,
+  .sidebar:focus-within .nav-section {
+    height: auto !important;
+    overflow: visible !important;
+    padding: 20px 16px 8px !important;
   }
 
   /* ── 5. Sidebar Footer & Logout Pill Button ── */
