@@ -23,11 +23,19 @@
   let _clientName = '';
   // Phase 6 — current published-program metadata for this client (mode +
   // revision + last-updated), loaded async so the coach sees live state.
-  let _meta = { loaded: false, exists: false, mode: 'one_time', revision: 0, updatedAt: null, published: false };
+  let _meta = { loaded: false, exists: false, mode: 'one_time', revision: 0, updatedAt: null, published: false, programId: null };
   // Coach's selections for the NEXT publish — kept off the program jsonb so
   // the stored plan never carries mode/note (those are dedicated columns).
   let _selectedMode = null;
   let _changeNote   = '';
+  // Phase E1b-2 — effective-date scheduling for the NEXT publish:
+  //   'now'  → apply immediately (also updates the client_programs pointer)
+  //   'next' → version effective now, pointer left as-is (in-progress session
+  //            keeps its snapshot; client's next session resolves the new plan)
+  //   'date' → scheduled version with a future effective_from (hidden by RLS
+  //            from the client until due)
+  let _startMode = 'now';
+  let _startDate = '';     // 'YYYY-MM-DD' when _startMode === 'date'
 
   const PANEL_ID = 'program-review-panel';
 
@@ -43,6 +51,8 @@
     _clientName = opts.clientName || '';
     _selectedMode = null;   // resolved from this client's existing program in _loadMeta
     _changeNote   = '';
+    _startMode    = 'now';  // Phase E1b-2 — default to immediate apply
+    _startDate    = '';
     const panel = document.getElementById(PANEL_ID);
     if (!panel) return;
     if (!_program || (!_program.structure && !_program.workouts)) { panel.classList.add('hidden'); return; }
@@ -97,24 +107,33 @@
     // ── Phase E1b — effective-date version overlay ──────────────
     //   RLS restricts a client to their OWN, published, already-effective rows
     //   (effective_from <= now(), SERVER time), so future scheduled versions are
-    //   never returned here. We serve a version only when it is the source of
-    //   truth — i.e. at least as fresh as the current pointer — so a normal
-    //   republish (which updates client_programs, not versions, until E1b-2) is
-    //   never shadowed by a stale baseline version. No version row, an older
-    //   version, an unpublished/absent pointer, or a missing table (throw) all
-    //   fall through to the existing client_programs behavior.
+    //   never returned here. Of the versions the client may see, we take the one
+    //   with the greatest effective_from (the latest plan that has started).
+    //
+    //   Reconciliation with the client_programs pointer (E1b-2): the pointer is
+    //   just another candidate, competing on START time. Serve the version when
+    //   its effective_from is at least as recent as the pointer's last write
+    //   (published_at); otherwise serve the pointer. This:
+    //     • keeps E1b-1 back-compat — a baseline version (effective_from =
+    //       cp.published_at) ties and serves identical content; a pointer-only
+    //       republish (cp.published_at newer than any version's start) wins;
+    //     • honours scheduling — a future version, once due, has the greatest
+    //       effective_from and is NOT shadowed by an apply-now pointer write
+    //       that happened earlier (the bug a published_at compare would cause).
+    //   No version row, an out-of-date version, an unpublished/absent pointer,
+    //   or a missing table (throw) all fall through to client_programs behavior.
     let row = cp;
     if (cp && cp.published) {
       try {
         const { data: vers } = await sb.from('client_program_versions')
-          .select('id, program, published_at, source_program_id')
+          .select('id, program, effective_from, published_at, source_program_id')
           .eq('client_id', clientId)
           .eq('published', true)
           .order('effective_from', { ascending: false })
           .limit(1);
         const v = vers && vers[0];
         if (v && v.program
-            && (!cp.published_at || Date.parse(v.published_at) >= Date.parse(cp.published_at))) {
+            && (!cp.published_at || Date.parse(v.effective_from) >= Date.parse(cp.published_at))) {
           // Keep the client_programs id (FK-safe for workout_sessions.program_id);
           // override only the served program content + published_at.
           row = { id: cp.id, program: v.program, published: true, published_at: v.published_at };
@@ -221,6 +240,7 @@
         <div id="pp-mode"></div>
         <div id="pp-program"></div>
         <div id="pp-routine" style="margin-top:18px"></div>
+        <div id="pp-schedule" style="margin-top:18px"></div>
 
         <div style="display:flex;gap:10px;align-items:center;margin-top:20px;flex-wrap:wrap">
           <button class="btn btn-primary" id="pp-publish">📤 Publish to Client</button>
@@ -234,6 +254,7 @@
     _drawMode();
     _drawProgram();
     _drawRoutine();
+    _drawSchedule();
     _syncPublishUi();
 
     panel.querySelector('#pp-publish').addEventListener('click', _publish);
@@ -799,25 +820,122 @@
     el.innerHTML = `${badge} <span style="margin-left:6px">Current: <b>${esc(_modeLabel(_meta.mode))}</b> · revision ${_meta.revision} · last updated ${esc(_fmtWhen(_meta.updatedAt))}</span>`;
   }
 
-  // Publish button copy follows the selected mode — never ambiguous.
+  // Publish button copy follows the selected timing + mode — never ambiguous.
   function _syncPublishUi() {
     const btn = document.getElementById('pp-publish');
     if (!btn || btn.disabled) return;
+    if (_startMode === 'date') { btn.innerHTML = '📅 Schedule update'; return; }
+    if (_startMode === 'next') { btn.innerHTML = '📤 Publish (from next session)'; return; }
     btn.innerHTML = _currentMode() === 'ongoing_manual' ? '💾 Save live update' : '📤 Publish snapshot';
+  }
+
+  // ── Phase E1b-2 — effective-date scheduling control ──────────
+  //   Lets the coach choose WHEN an edited program takes effect. Writes to the
+  //   live client_program_versions table on publish (see _publish). "Next" and
+  //   "On a date" require an already-published program (they leave the
+  //   client_programs pointer in place; the serving overlay needs that pointer
+  //   to be published — see resolveClientProgram).
+  function _drawSchedule() {
+    const host = document.getElementById('pp-schedule');
+    if (!host) return;
+    const canSchedule = !!(_meta.exists && _meta.published);
+    if (_startMode !== 'now' && !canSchedule) { _startMode = 'now'; }   // guard
+    const chip = (val, label, sub, disabled) => {
+      const active = _startMode === val;
+      return `<button type="button" data-pp-start="${val}" ${disabled ? 'disabled' : ''}
+        style="flex:1;min-width:150px;text-align:left;padding:10px 12px;border-radius:10px;cursor:${disabled ? 'not-allowed' : 'pointer'};
+               background:${active ? 'rgba(20,184,166,.12)' : 'var(--bg-raised)'};
+               border:1px solid ${active ? 'rgba(20,184,166,.45)' : 'var(--border-subtle)'};opacity:${disabled ? '.5' : '1'}">
+        <div style="font-weight:700;font-size:13px;color:${active ? 'var(--nc-teal)' : 'var(--text-primary)'}">${esc(label)}</div>
+        <div style="font-size:11px;color:var(--text-tertiary);margin-top:2px">${esc(sub)}</div>
+      </button>`;
+    };
+    // Minimum schedulable date = tomorrow (local).
+    const tmrw = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
+    host.innerHTML = `
+      <div style="border-top:1px solid var(--border-subtle);padding-top:14px">
+        <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-secondary);margin-bottom:7px">When should this take effect?</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          ${chip('now',  'Apply now',          'Client sees it on their next open.')}
+          ${chip('next', 'From next session',  "Won't disturb an in-progress workout.", !canSchedule)}
+          ${chip('date', 'On a date',          'Schedule a future start.',              !canSchedule)}
+        </div>
+        ${!canSchedule ? '<div style="font-size:11px;color:var(--text-tertiary);margin-top:6px">Publish a program first to schedule future changes.</div>' : ''}
+        <div id="pp-start-date-wrap" style="${_startMode === 'date' ? '' : 'display:none;'}margin-top:9px">
+          <input type="date" id="pp-start-date" class="form-input" min="${tmrw}" value="${esc(_startDate || '')}"
+            style="max-width:200px;font-size:13px"/>
+          <span style="font-size:11px;color:var(--text-tertiary);margin-left:8px">Client keeps their current plan until this date.</span>
+        </div>
+        <div id="pp-scheduled-list" style="margin-top:12px"></div>
+      </div>`;
+    host.querySelectorAll('[data-pp-start]').forEach((b) => {
+      if (b.disabled) return;
+      b.addEventListener('click', () => {
+        _startMode = b.dataset.ppStart;
+        _drawSchedule();
+        _syncPublishUi();
+      });
+    });
+    const dateInput = host.querySelector('#pp-start-date');
+    if (dateInput) dateInput.addEventListener('input', () => { _startDate = dateInput.value; });
+    _loadScheduledVersions();
+  }
+
+  // List the coach/admin-visible FUTURE scheduled versions for this client.
+  // RLS scopes this to the assigned coach / admin; the client never sees it.
+  async function _loadScheduledVersions() {
+    const el = document.getElementById('pp-scheduled-list');
+    if (!el) return;
+    if (!_clientId || typeof sb === 'undefined' || !sb) { el.innerHTML = ''; return; }
+    let rows = [];
+    try {
+      const { data, error } = await sb.from('client_program_versions')
+        .select('id, effective_from, status, change_note')
+        .eq('client_id', _clientId)
+        .gt('effective_from', new Date().toISOString())
+        .order('effective_from', { ascending: true });
+      if (error) throw error;
+      rows = data || [];
+    } catch (e) { console.warn('[schedule] list load:', e?.message); el.innerHTML = ''; return; }
+    if (!rows.length) { el.innerHTML = ''; return; }
+    el.innerHTML = `
+      <div style="font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text-secondary);margin-bottom:6px">Scheduled changes</div>
+      ${rows.map((v) => `
+        <div style="display:flex;align-items:center;gap:10px;padding:9px 11px;border:1px solid var(--border-subtle);border-radius:9px;background:var(--bg-raised);margin-bottom:7px">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:12.5px;font-weight:600;color:var(--text-primary)">Starts ${esc(_fmtWhen(v.effective_from))}</div>
+            ${v.change_note ? `<div style="font-size:11px;color:var(--text-tertiary)">${esc(v.change_note)}</div>` : ''}
+          </div>
+          <button class="btn btn-ghost btn-sm" data-cancel-ver="${esc(v.id)}">Cancel</button>
+        </div>`).join('')}`;
+    el.querySelectorAll('[data-cancel-ver]').forEach((b) =>
+      b.addEventListener('click', () => _cancelScheduledVersion(b.dataset.cancelVer)));
+  }
+
+  async function _cancelScheduledVersion(id) {
+    if (!id) return;
+    if (!confirm('Cancel this scheduled program change? The client keeps their current plan.')) return;
+    try {
+      const { error } = await sb.from('client_program_versions').delete().eq('id', id);
+      if (error) throw error;
+      _toast('Scheduled change cancelled.', 'success');
+    } catch (e) { _toast('Could not cancel: ' + (e.message || e), 'error'); }
+    _loadScheduledVersions();
   }
 
   // Load this client's current program metadata (mode/revision/updated_at)
   // so the coach sees live state and the right mode is pre-selected.
   async function _loadMeta(clientId) {
-    _meta = { loaded: false, exists: false, mode: 'one_time', revision: 0, updatedAt: null, published: false };
+    _meta = { loaded: false, exists: false, mode: 'one_time', revision: 0, updatedAt: null, published: false, programId: null };
     if (clientId && typeof sb !== 'undefined' && sb) {
       try {
         const { data } = await sb.from('client_programs')
-          .select('program_mode, revision, updated_at, published')
+          .select('id, program_mode, revision, updated_at, published')
           .eq('client_id', clientId).maybeSingle();
         if (data) {
           _meta = { loaded: true, exists: true, mode: data.program_mode || 'one_time',
-                    revision: data.revision || 1, updatedAt: data.updated_at, published: !!data.published };
+                    revision: data.revision || 1, updatedAt: data.updated_at, published: !!data.published,
+                    programId: data.id || null };
           _selectedMode = _meta.mode;   // adopt the existing mode at load
         } else {
           _meta.loaded = true;
@@ -827,6 +945,7 @@
       _meta.loaded = true;
     }
     _drawMode();
+    _drawSchedule();   // scheduling options depend on whether a program is already published
     _syncPublishUi();
   }
 
@@ -966,10 +1085,40 @@
     // program jsonb; persisted to dedicated columns by the upsert below).
     const mode = _currentMode();
     const changeNote = ((document.getElementById('pp-change-note')?.value ?? _changeNote) || '').trim() || null;
-    // One-time replace guard — replacing a published snapshot changes what the
-    // client sees. Completed workout history is preserved (it lives in the logs).
-    if (mode === 'one_time' && _meta.exists && _meta.published) {
+
+    // ── Phase E1b-2 — resolve the effective timing for this publish ──
+    //   now  → version effective now + update the client_programs pointer
+    //   next → version effective now, pointer untouched (in-progress session
+    //          keeps its snapshot; the client's next session resolves the new
+    //          plan via resolveClientProgram)
+    //   date → scheduled version with a future effective_from; pointer untouched
+    //          (RLS hides it from the client until due)
+    let startMode = _startMode || 'now';
+    const canSchedule = !!(_meta.exists && _meta.published);
+    if (startMode !== 'now' && !canSchedule) {
+      if (startMode === 'date') { _toast('Publish a program first before scheduling a future change.', 'error'); return; }
+      startMode = 'now';   // 'next' with no current program is just an immediate publish
+    }
+    const now = new Date().toISOString();
+    let effectiveFrom = now;
+    let isScheduled = false;
+    const updatePointer = (startMode === 'now');
+    if (startMode === 'date') {
+      const d = _startDate ? new Date(_startDate + 'T00:00:00') : null;   // client-local start of day
+      if (!d || isNaN(d.getTime())) { _toast('Pick a valid start date.', 'error'); return; }
+      if (d.getTime() <= Date.now()) { _toast('Choose a future date for a scheduled change.', 'error'); return; }
+      effectiveFrom = d.toISOString();
+      isScheduled = true;
+    }
+
+    // Confirmations: apply-now to a one-time program replaces the live view;
+    // a scheduled change is gentler (current plan stays until the date).
+    if (updatePointer && mode === 'one_time' && _meta.exists && _meta.published) {
       if (!confirm(`This replaces ${_clientName || 'the client'}'s current published program (revision ${_meta.revision}).\n\nThe new plan becomes what they see now. Completed workout history is preserved. Continue?`)) {
+        return;
+      }
+    } else if (isScheduled) {
+      if (!confirm(`Schedule this program to start on ${_fmtWhen(effectiveFrom)}?\n\n${_clientName || 'The client'} keeps their current plan until then. Completed workout history is preserved.`)) {
         return;
       }
     }
@@ -977,7 +1126,8 @@
     // Re-id the routine tasks 0..N so the client tracker keys stay stable.
     _program.daily_routine_tasks.forEach((t, i) => { t.id = i; });
 
-    // Phase 13 — snapshot demo videos into the program before it is stored.
+    // Phase 13 — snapshot demo videos into the program before it is stored
+    // (preserves exercise_id + video_url + Link Demo rows inside the version).
     let snap = { total: 0, linked: 0, matched: 0 };
     try { snap = await _snapshotVideos(_program); }
     catch (e) { console.warn('[publish] video snapshot skipped:', e?.message); }
@@ -985,72 +1135,100 @@
 
     const origHTML = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = '<span class="spinner"></span> Publishing…';
+    btn.innerHTML = '<span class="spinner"></span> ' + (isScheduled ? 'Scheduling…' : 'Publishing…');
     if (status) { status.textContent = ''; status.style.color = 'var(--text-tertiary)'; }
 
     let coachId = null;
     try { coachId = Auth.getUser()?.id || null; } catch {}
-    const now = new Date().toISOString();
 
     try {
-      const progRes = await sb.from('client_programs').upsert({
-        client_id: _clientId, coach_id: coachId,
-        program: _program, published: true, published_at: now, updated_at: now,
-        program_mode: mode, change_note: changeNote,   // Phase 6 — trigger versions it
-      }, { onConflict: 'client_id' });
-      if (progRes.error) throw progRes.error;
+      // Phase E1b-2 — every publish writes a version row (the timeline of record).
+      const verRes = await sb.from('client_program_versions').insert({
+        client_id:         _clientId,
+        coach_id:          coachId,
+        program:           _program,
+        effective_from:    effectiveFrom,
+        status:            isScheduled ? 'scheduled' : 'active',
+        published:         true,
+        source_program_id: _meta.programId || null,
+        source_revision:   _meta.revision || null,
+        change_note:       changeNote,
+        created_by:        coachId,
+        published_at:      now,
+      });
+      if (verRes.error) throw verRes.error;
 
-      const routRes = await sb.from('client_routines').upsert({
-        client_id: _clientId, coach_id: coachId,
-        tasks: _program.daily_routine_tasks, published: true, published_at: now, updated_at: now,
-      }, { onConflict: 'client_id' });
-      if (routRes.error) throw routRes.error;
+      // Apply-now also updates the live client_programs pointer + routine, and
+      // runs the substitution sweep — preserving the prior publish behavior.
+      // Scheduled / next-session versions intentionally leave the pointer in
+      // place (the serving overlay resolves the version when it is due).
+      if (updatePointer) {
+        const progRes = await sb.from('client_programs').upsert({
+          client_id: _clientId, coach_id: coachId,
+          program: _program, published: true, published_at: now, updated_at: now,
+          program_mode: mode, change_note: changeNote,   // Phase 6 — trigger versions it
+        }, { onConflict: 'client_id' });
+        if (progRes.error) throw progRes.error;
 
-      // ── Feature 6 — republish sweep (Q2) ──────────────────────────
-      // Auto-close all active substitutions for this client when a new
-      // program is published. A stale (workout_key, exercise_index)
-      // substitution from the prior program could otherwise swap the
-      // wrong exercise in the new one. We set status='declined' so the
-      // existing tg_aer_notify_client trigger fires once per closed
-      // request, with body "Closed — Program Republished" per user spec.
-      // Non-fatal — publish has already succeeded.
-      try {
-        const { data: closedRows, error: sweepErr } = await sb
-          .from('exercise_alternative_requests')
-          .update({
-            status:                 'declined',
-            substitute_exercise_id: null,
-            coach_response:         'Closed — Program Republished',
-            responded_at:           now,
-          })
-          .eq('client_id', _clientId)
-          .eq('status',    'addressed')
-          .not('substitute_exercise_id', 'is', null)
-          .select('id');
-        if (sweepErr) {
-          console.warn('[publish] substitution sweep:', sweepErr.message);
-        } else if (closedRows && closedRows.length) {
-          console.info(`[publish] closed ${closedRows.length} active substitution(s) on republish`);
+        const routRes = await sb.from('client_routines').upsert({
+          client_id: _clientId, coach_id: coachId,
+          tasks: _program.daily_routine_tasks, published: true, published_at: now, updated_at: now,
+        }, { onConflict: 'client_id' });
+        if (routRes.error) throw routRes.error;
+
+        // ── Feature 6 — republish sweep (Q2) ──────────────────────────
+        // Auto-close all active substitutions for this client when a new
+        // program is published. A stale (workout_key, exercise_index)
+        // substitution from the prior program could otherwise swap the
+        // wrong exercise in the new one. We set status='declined' so the
+        // existing tg_aer_notify_client trigger fires once per closed
+        // request, with body "Closed — Program Republished" per user spec.
+        // Non-fatal — publish has already succeeded.
+        try {
+          const { data: closedRows, error: sweepErr } = await sb
+            .from('exercise_alternative_requests')
+            .update({
+              status:                 'declined',
+              substitute_exercise_id: null,
+              coach_response:         'Closed — Program Republished',
+              responded_at:           now,
+            })
+            .eq('client_id', _clientId)
+            .eq('status',    'addressed')
+            .not('substitute_exercise_id', 'is', null)
+            .select('id');
+          if (sweepErr) {
+            console.warn('[publish] substitution sweep:', sweepErr.message);
+          } else if (closedRows && closedRows.length) {
+            console.info(`[publish] closed ${closedRows.length} active substitution(s) on republish`);
+          }
+        } catch (sweepEx) {
+          console.warn('[publish] substitution sweep threw:', sweepEx?.message);
         }
-      } catch (sweepEx) {
-        console.warn('[publish] substitution sweep threw:', sweepEx?.message);
       }
 
-      const okMsg = mode === 'ongoing_manual'
-        ? `Live program updated — ${_clientName || 'the client'} sees it now`
-        : `Program published to ${_clientName || 'the client'}`;
+      const okMsg = isScheduled
+        ? `Scheduled — ${_clientName || 'the client'} starts the new plan ${_fmtWhen(effectiveFrom)}`
+        : startMode === 'next'
+          ? `Update saved — ${_clientName || 'the client'} sees it from their next session`
+          : mode === 'ongoing_manual'
+            ? `Live program updated — ${_clientName || 'the client'} sees it now`
+            : `Program published to ${_clientName || 'the client'}`;
       if (status) { status.textContent = '✓ ' + okMsg; status.style.color = 'var(--lime, #16a34a)'; }
       _toast(okMsg + ' ✓', 'success');
     } catch (e) {
       console.error('[publish] failed:', e);
-      const msg = e.message || e.code || 'unknown error';
+      let msg = e.message || e.code || 'unknown error';
+      if (e.code === '23505' || /duplicate key|unique/i.test(msg)) {
+        msg = 'a change is already scheduled for that time — pick another date';
+      }
       if (status) { status.textContent = `Publish failed: ${msg}`; status.style.color = '#FCA5A5'; }
       _toast('Publish failed: ' + msg, 'error');
     } finally {
       btn.disabled = false;
       btn.innerHTML = origHTML;
     }
-    _loadMeta(_clientId);   // refresh the mode/revision badge with the new state
+    _loadMeta(_clientId);   // refresh the mode/revision badge + scheduled list
   }
 
   // ── Client side ───────────────────────────────────────────
