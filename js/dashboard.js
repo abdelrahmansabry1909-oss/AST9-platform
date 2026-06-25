@@ -218,6 +218,30 @@ const Dashboard = (() => {
                               altHost.innerHTML = '';
                             }
                           },
+      'athletic-dashboard': () => {
+                            if (typeof AthleticService !== 'undefined') {
+                              AthleticService.populateAthleteSelects();
+                              AthleticService.loadDashboard();
+                            }
+                          },
+      'athlete-story-intake': () => {
+                            if (typeof AthleticService !== 'undefined') {
+                              AthleticService.populateAthleteSelects();
+                              AthleticService.loadStoryIntake();
+                            }
+                          },
+      'athletic-movement-assessment': () => {
+                            if (typeof AthleticService !== 'undefined') {
+                              AthleticService.populateAthleteSelects();
+                              AthleticService.loadMovementAssessment();
+                            }
+                          },
+      'athlete-profile': () => {
+                            if (typeof AthleticService !== 'undefined') {
+                              AthleticService.populateAthleteSelects();
+                              AthleticService.loadAthleteProfile();
+                            }
+                          },
     };
     // BUG 3 — leaving Community: drop its realtime channels so they don't
     // linger or double-deliver if the section is re-opened.
