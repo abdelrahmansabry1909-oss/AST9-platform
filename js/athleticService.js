@@ -20,6 +20,23 @@ const AthleticService = (() => {
   let activeBattery = null;
   let activeAssessmentTests = [];
 
+  function normalizeSide(value) {
+    const v = String(value || '').trim().toLowerCase();
+    if (['left', 'right', 'bilateral', 'na'].includes(v)) return v;
+    return 'na';
+  }
+
+  function safeJsonObject(value) {
+    if (!value) return {};
+    if (typeof value === 'object' && !Array.isArray(value)) return value;
+    try {
+      const parsed = JSON.parse(value);
+      return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+    } catch {
+      return { raw_notes: String(value) };
+    }
+  }
+
   // Initialize and populate dropdown selectors
   async function populateAthleteSelects() {
     try {
@@ -812,7 +829,7 @@ const AthleticService = (() => {
       battery_id: document.getElementById('assess-battery-select').value || null,
       assessed_at: new Date().toISOString(),
       season_phase: document.getElementById('assess-season-phase').value,
-      conditions: document.getElementById('assess-conditions').value,
+      conditions: safeJsonObject(document.getElementById('assess-conditions').value),
       notes: document.getElementById('assess-notes').value,
       status: 'completed',
       created_by: coachId
@@ -852,10 +869,10 @@ const AthleticService = (() => {
             raw_value: trialNum,
             text_value: '',
             unit: t.unit || '',
-            side: t.side || 'Bilateral',
+            side: normalizeSide(t.side),
             trial_n: idx + 1,
             best_of: isBest,
-            conditions: t.conditions || '',
+            conditions: safeJsonObject(t.conditions),
             protocol_version: 'v1',
             score_confidence: 1.0,
             coach_note: t.coach_note || '',
@@ -1103,7 +1120,7 @@ const AthleticService = (() => {
     ledger.innerHTML = Object.keys(catsMap).map(catName => {
       const rows = catsMap[catName].map(r => `
         <div style="display:flex;justify-content:space-between;align-items:center;font-size:12.5px;padding:6px 0">
-          <span style="color:var(--nc-text-secondary)">${r.test_key} ${r.side !== 'Bilateral' ? `(${r.side[0]})` : ''}</span>
+          <span style="color:var(--nc-text-secondary)">${r.test_key} ${(r.side || '').toLowerCase() !== 'bilateral' ? `(${(r.side || '').charAt(0).toUpperCase()})` : ''}</span>
           <strong style="color:#FB7185">${r.raw_value} ${r.unit}</strong>
         </div>
       `).join('');
@@ -1119,16 +1136,17 @@ const AthleticService = (() => {
     // Symmetry rendering logic: find test keys that have both Left and Right side scores in the latest assessment
     const testMapBySide = {};
     latestResults.forEach(r => {
-      if (r.side === 'Left' || r.side === 'Right') {
+      const sideLower = (r.side || '').toLowerCase();
+      if (sideLower === 'left' || sideLower === 'right') {
         testMapBySide[r.test_key] = testMapBySide[r.test_key] || {};
-        testMapBySide[r.test_key][r.side] = r;
+        testMapBySide[r.test_key][sideLower] = r;
       }
     });
 
     const symmetryRows = [];
     Object.keys(testMapBySide).forEach(testKey => {
-      const left = testMapBySide[testKey]['Left'];
-      const right = testMapBySide[testKey]['Right'];
+      const left = testMapBySide[testKey]['left'];
+      const right = testMapBySide[testKey]['right'];
       if (left && right) {
         const leftVal = left.raw_value;
         const rightVal = right.raw_value;
