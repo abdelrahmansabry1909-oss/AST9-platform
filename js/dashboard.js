@@ -58,6 +58,27 @@ const Dashboard = (() => {
 
     loadDashboardStats();
     _populateClientSelects();
+    setService('rehab');
+  }
+
+  function setService(service) {
+    const validServices = ['rehab', 'athletic'];
+    if (!validServices.includes(service)) service = 'rehab';
+
+    document.body.classList.remove('service-rehab', 'service-athletic');
+    document.body.classList.add('service-' + service);
+
+    document.querySelectorAll('.nc-service-btn').forEach(btn => {
+      btn.classList.remove('active');
+    });
+    const activeBtn = document.getElementById('switcher-' + service);
+    if (activeBtn) activeBtn.classList.add('active');
+
+    if (service === 'athletic') {
+      showSection('athletic-dashboard');
+    } else {
+      showSection('dashboard');
+    }
   }
 
   function _roleLabel(role) {
@@ -1412,7 +1433,7 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
   }
 
   return {
-    initShell, showSection, initTabs,
+    initShell, showSection, initTabs, setService,
     loadDashboardStats,
     refreshClientSelects: _populateClientSelects,
     refreshAfterRosterChange,
