@@ -271,92 +271,97 @@
         <span>NEUCORE</span>
       </div>
       <div class="sidebar-sub nc-sidebar-sub">An AST9 Solution</div>
+      <!-- SERVICE SWITCHER -->
+      <div class="nc-service-switcher role-coach-admin">
+        <button type="button" class="nc-service-btn active" id="switcher-rehab" onclick="Dashboard.setService('rehab')" data-service="rehab">Rehab</button>
+        <button type="button" class="nc-service-btn" id="switcher-athletic" onclick="Dashboard.setService('athletic')" data-service="athletic">Performance</button>
+      </div>
     </div>
     <nav class="sidebar-nav">
-      <div class="nav-section">Main</div>
-      <div class="nav-item active" id="nav-dashboard" onclick="Dashboard.showSection('dashboard')" title="Dashboard">
+      <div class="nav-section rehab-only">Main</div>
+      <div class="nav-item active rehab-only" id="nav-dashboard" onclick="Dashboard.showSection('dashboard')" title="Dashboard">
         <span class="nav-item-icon">⬡</span><span class="nav-label">Dashboard</span>
       </div>
-      <div class="nav-item role-coach-admin" id="nav-new-session" onclick="Dashboard.showSection('new-session')" title="New Session">
+      <div class="nav-item role-coach-admin rehab-only" id="nav-new-session" onclick="Dashboard.showSection('new-session')" title="New Session">
         <span class="nav-item-icon">✦</span><span class="nav-label">New Session</span>
       </div>
-      <div class="nav-item role-coach-admin" id="nav-programs" onclick="Dashboard.showSection('programs')" title="Programs">
+      <div class="nav-item role-coach-admin rehab-only" id="nav-programs" onclick="Dashboard.showSection('programs')" title="Programs">
         <span class="nav-item-icon">◈</span><span class="nav-label">Programs</span>
       </div>
       <!-- Daily Routine is coach/admin-only in the nav now: the coach adherence
            dashboard. Clients reach their routine inside Train (folded in S2);
            this avoids a duplicate desktop path. Section + workflow unchanged. -->
-      <div class="nav-item role-coach-admin" id="nav-daily-routine" onclick="Dashboard.showSection('daily-routine')" title="Daily Routine">
+      <div class="nav-item role-coach-admin rehab-only" id="nav-daily-routine" onclick="Dashboard.showSection('daily-routine')" title="Daily Routine">
         <span class="nav-item-icon">𓆸</span><span class="nav-label">Daily Routine</span>
       </div>
-      <div class="nav-item role-client-only" id="nav-nutrition-plan" onclick="Dashboard.showSection('nutrition-plan')" title="Nutrition Plan">
+      <div class="nav-item role-client-only rehab-only" id="nav-nutrition-plan" onclick="Dashboard.showSection('nutrition-plan')" title="Nutrition Plan">
         <span class="nav-item-icon">◴</span><span class="nav-label">Nutrition Plan</span>
       </div>
 
-      <div class="nav-section role-coach-admin">Manage</div>
-      <div class="nav-item role-coach-admin" id="nav-clients" onclick="Dashboard.showSection('clients')" title="Clients">
+      <div class="nav-section role-coach-admin rehab-only">Manage</div>
+      <div class="nav-item role-coach-admin rehab-only" id="nav-clients" onclick="Dashboard.showSection('clients')" title="Clients">
         <span class="nav-item-icon">◉</span><span class="nav-label">Clients</span>
       </div>
-      <div class="nav-item role-coach-admin" id="nav-appointments" onclick="Dashboard.showSection('appointments')" title="Appointments">
+      <div class="nav-item role-coach-admin rehab-only" id="nav-appointments" onclick="Dashboard.showSection('appointments')" title="Appointments">
         <span class="nav-item-icon">🗓</span><span class="nav-label">Appointments</span>
       </div>
-      <div class="nav-item role-coach-admin" id="nav-subscriptions" onclick="Dashboard.showSection('subscriptions')" title="Subscriptions">
+      <div class="nav-item role-coach-admin rehab-only" id="nav-subscriptions" onclick="Dashboard.showSection('subscriptions')" title="Subscriptions">
         <span class="nav-item-icon">◌</span><span class="nav-label">Subscriptions</span>
       </div>
-      <div class="nav-item role-coach-admin" id="nav-billing" onclick="Dashboard.showSection('billing')" title="Billing">
+      <div class="nav-item role-coach-admin rehab-only" id="nav-billing" onclick="Dashboard.showSection('billing')" title="Billing">
         <span class="nav-item-icon">◇</span><span class="nav-label">Billing</span>
       </div>
-      <div class="nav-item role-coach-admin" id="nav-coach-profile" onclick="Dashboard.showSection('coach-profile')" title="My Profile">
+      <div class="nav-item role-coach-admin rehab-only" id="nav-coach-profile" onclick="Dashboard.showSection('coach-profile')" title="My Profile">
         <span class="nav-item-icon">◍</span><span class="nav-label">My Profile</span>
       </div>
-      <div class="nav-item role-coach-admin" id="nav-exercise-library" onclick="Dashboard.showSection('exercise-library')" title="Exercise Library">
+      <div class="nav-item role-coach-admin rehab-only" id="nav-exercise-library" onclick="Dashboard.showSection('exercise-library')" title="Exercise Library">
         <span class="nav-item-icon">▶</span><span class="nav-label">Exercise Library</span>
       </div>
-      <div class="nav-item role-coach-admin" id="nav-progress" onclick="Dashboard.showSection('progress')" title="Progress Charts">
+      <div class="nav-item role-coach-admin rehab-only" id="nav-progress" onclick="Dashboard.showSection('progress')" title="Progress Charts">
         <span class="nav-item-icon">◎</span><span class="nav-label">Progress Charts</span>
       </div>
-      <div class="nav-item role-coach-admin" id="nav-workout-history" onclick="Dashboard.showSection('workout-history')" title="Workout History">
+      <div class="nav-item role-coach-admin rehab-only" id="nav-workout-history" onclick="Dashboard.showSection('workout-history')" title="Workout History">
         <span class="nav-item-icon">◐</span><span class="nav-label">Workout History</span>
       </div>
-      <div class="nav-item role-coach-admin" id="nav-progression" onclick="Dashboard.showSection('progression')" title="Progression">
+      <div class="nav-item role-coach-admin rehab-only" id="nav-progression" onclick="Dashboard.showSection('progression')" title="Progression">
         <span class="nav-item-icon">◭</span><span class="nav-label">Progression</span>
       </div>
 
-      <div class="nav-section role-coach-admin">NeuCore Intelligence</div>
-      <div class="nav-item" id="nav-services" onclick="Dashboard.showSection('services')" title="Our Services">
+      <div class="nav-section role-coach-admin rehab-only">NeuCore Intelligence</div>
+      <div class="nav-item rehab-only" id="nav-services" onclick="Dashboard.showSection('services')" title="Our Services">
         <span class="nav-item-icon">✦</span><span class="nav-label">Our Services</span>
       </div>
       <!-- Gait Analysis removed from navigation (Phase 8). The engine stays
            wired into the New Session generation pipeline (gait-panel /
            _setLastGait / Reactive Graph); only the standalone sidebar entry
            is hidden. Re-add this nav item to expose the section again. -->
-      <div class="nav-item" id="nav-case-studies" onclick="Dashboard.showSection('case-studies')" title="Case Studies">
+      <div class="nav-item rehab-only" id="nav-case-studies" onclick="Dashboard.showSection('case-studies')" title="Case Studies">
         <span class="nav-item-icon">◧</span><span class="nav-label">Case Studies</span>
       </div>
-      <div class="nav-item role-coach-admin" id="nav-analytics" onclick="Dashboard.showSection('analytics')" title="Analytics">
+      <div class="nav-item role-coach-admin rehab-only" id="nav-analytics" onclick="Dashboard.showSection('analytics')" title="Analytics">
         <span class="nav-item-icon">◎</span><span class="nav-label">Analytics</span>
       </div>
-      <div class="nav-item role-coach-admin" id="nav-rpm-approvals" onclick="Dashboard.showSection('rpm-approvals')" title="Phase Approvals">
+      <div class="nav-item role-coach-admin rehab-only" id="nav-rpm-approvals" onclick="Dashboard.showSection('rpm-approvals')" title="Phase Approvals">
         <span class="nav-item-icon">✓</span><span class="nav-label">Approvals</span>
         <span id="badge-rpm-approvals" class="nav-badge hidden">0</span>
       </div>
-      <div class="nav-item role-client-only" id="nav-my-graph" onclick="Dashboard.showSection('my-graph')" title="My Reactive Graph">
+      <div class="nav-item role-client-only rehab-only" id="nav-my-graph" onclick="Dashboard.showSection('my-graph')" title="My Reactive Graph">
         <span class="nav-item-icon">↟</span><span class="nav-label">My Graph</span>
       </div>
       <!-- My Program folded into Train → "Your training plan" (CX1 ClientProgram).
            Legacy nav item + #section-my-program removed in the F-1 cleanup. -->
-      <div class="nav-item role-client-only" id="nav-client-train" onclick="Dashboard.showSection('client-train')" title="Train">
+      <div class="nav-item role-client-only rehab-only" id="nav-client-train" onclick="Dashboard.showSection('client-train')" title="Train">
         <span class="nav-item-icon">◈</span><span class="nav-label">Train</span>
       </div>
-      <div class="nav-item role-client-only" id="nav-client-progress" onclick="Dashboard.showSection('client-progress')" title="Progress">
+      <div class="nav-item role-client-only rehab-only" id="nav-client-progress" onclick="Dashboard.showSection('client-progress')" title="Progress">
         <span class="nav-item-icon">◮</span><span class="nav-label">Progress</span>
       </div>
-      <div class="nav-item role-client-only" id="nav-client-coach" onclick="Dashboard.showSection('client-coach')" title="Coach">
+      <div class="nav-item role-client-only rehab-only" id="nav-client-coach" onclick="Dashboard.showSection('client-coach')" title="Coach">
         <span class="nav-item-icon">✦</span><span class="nav-label">Coach</span>
       </div>
 
-      <div class="nav-section">Community</div>
-      <div class="nav-item" id="nav-community" onclick="Dashboard.showSection('community')" title="Community">
+      <div class="nav-section rehab-only">Community</div>
+      <div class="nav-item rehab-only" id="nav-community" onclick="Dashboard.showSection('community')" title="Community">
         <span class="nav-item-icon">◈</span><span class="nav-label">Community</span>
         <span id="badge-community" class="nav-badge hidden">0</span>
       </div>
@@ -364,23 +369,67 @@
            alt-exercise queue. Clients get the same data reframed on the Coach
            tab (S4), so the raw inbox is no longer a separate client path.
            Section + workflow unchanged for coach/admin. -->
-      <div class="nav-item role-coach-admin" id="nav-notifications" onclick="Dashboard.showSection('notifications')" title="Notifications">
+      <div class="nav-item role-coach-admin rehab-only" id="nav-notifications" onclick="Dashboard.showSection('notifications')" title="Notifications">
         <span class="nav-item-icon">◔</span><span class="nav-label">Notifications</span>
       </div>
 
-      <div class="nav-section role-admin-only">Admin</div>
-      <div class="nav-item role-admin-only" id="nav-coaches" onclick="Dashboard.showSection('coaches')" title="Coaches">
+      <div class="nav-section role-admin-only rehab-only">Admin</div>
+      <div class="nav-item role-admin-only rehab-only" id="nav-coaches" onclick="Dashboard.showSection('coaches')" title="Coaches">
         <span class="nav-item-icon">◈</span><span class="nav-label">Coaches</span>
       </div>
-      <div class="nav-item role-admin-only" id="nav-admin-business" onclick="Dashboard.showSection('admin-business')" title="Business">
+      <div class="nav-item role-admin-only rehab-only" id="nav-admin-business" onclick="Dashboard.showSection('admin-business')" title="Business">
         <span class="nav-item-icon">📊</span><span class="nav-label">Business</span>
       </div>
-      <div class="nav-item role-admin-only" id="nav-settings" onclick="Dashboard.showSection('settings')" title="Settings">
+      <div class="nav-item role-admin-only rehab-only" id="nav-settings" onclick="Dashboard.showSection('settings')" title="Settings">
         <span class="nav-item-icon">◎</span><span class="nav-label">Settings</span>
       </div>
-      <div class="nav-item role-client-only" id="nav-client-settings" onclick="Dashboard.showSection('client-settings')" title="Settings">
+      <div class="nav-item role-client-only rehab-only" id="nav-client-settings" onclick="Dashboard.showSection('client-settings')" title="Settings">
         <span class="nav-item-icon">◎</span><span class="nav-label">Settings</span>
       </div>
+
+      <!-- Athletic Performance Nav Group -->
+      <div class="nav-section role-coach-admin athletic-only" style="display: none;">Athletic Performance</div>
+
+      <div class="nav-item role-coach-admin athletic-only" id="nav-athletic-dashboard" onclick="Dashboard.showSection('athletic-dashboard')" title="Athletic Dashboard" style="display: none;">
+        <span class="nav-item-icon">⬡</span><span class="nav-label">Dashboard</span>
+      </div>
+
+      <div class="nav-item role-coach-admin athletic-only" id="nav-athlete-story-intake" onclick="Dashboard.showSection('athlete-story-intake')" title="Athlete Story Intake" style="display: none;">
+        <span class="nav-item-icon">✦</span><span class="nav-label">Story Intake</span>
+      </div>
+
+      <div class="nav-item role-coach-admin athletic-only" id="nav-athletic-movement-assessment" onclick="Dashboard.showSection('athletic-movement-assessment')" title="Movement Assessment" style="display: none;">
+        <span class="nav-item-icon">⚡</span><span class="nav-label">Assessment</span>
+      </div>
+
+      <div class="nav-item role-coach-admin athletic-only" id="nav-athletic-movement-twin" onclick="Dashboard.showSection('athletic-movement-twin')" title="Athletic Movement Twin" style="display: none;">
+        <span class="nav-item-icon">🧬</span><span class="nav-label">Movement Twin</span>
+      </div>
+
+      <div class="nav-item role-coach-admin athletic-only" id="nav-athlete-profile" onclick="Dashboard.showSection('athlete-profile')" title="Athlete Profile" style="display: none;">
+        <span class="nav-item-icon">◉</span><span class="nav-label">Athlete Profile</span>
+      </div>
+
+      <div class="nav-item role-coach-admin athletic-only" id="nav-movement-deficit-profile" onclick="Dashboard.showSection('movement-deficit-profile')" title="Movement Deficit Profile" style="display: none;">
+        <span class="nav-item-icon">◭</span><span class="nav-label">Deficit Profile</span>
+      </div>
+
+      <div class="nav-item role-coach-admin athletic-only" id="nav-athletic-program-design" onclick="Dashboard.showSection('athletic-program-design')" title="Athletic Program Design" style="display: none;">
+        <span class="nav-item-icon">◇</span><span class="nav-label">Program Design</span>
+      </div>
+
+      <div class="nav-item role-coach-admin athletic-only" id="nav-periodization-calendar" onclick="Dashboard.showSection('periodization-calendar')" title="Periodization Calendar" style="display: none;">
+        <span class="nav-item-icon">🗓</span><span class="nav-label">Periodization Calendar</span>
+      </div>
+
+      <div class="nav-item role-coach-admin athletic-only" id="nav-performance-reports" onclick="Dashboard.showSection('performance-reports')" title="Performance Reports" style="display: none;">
+        <span class="nav-item-icon">📈</span><span class="nav-label">Performance Reports</span>
+      </div>
+
+      <div class="nav-item role-coach-admin athletic-only" id="nav-ml-insights" onclick="Dashboard.showSection('ml-insights')" title="ML Insights" style="display: none;">
+        <span class="nav-item-icon">🧠</span><span class="nav-label">ML Insights</span>
+      </div>
+
     </nav>
     <div class="sidebar-footer">
       <div class="user-card">
@@ -1897,6 +1946,236 @@
         <div class="nc-app-empty">
           <span class="nc-app-empty-icon">⌛</span>
           <p>Loading approvals queue…</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════ ATHLETIC PERFORMANCE LANE ═══════════════════════ -->
+    
+    <!-- ATHLETIC DASHBOARD -->
+    <div class="section" id="section-athletic-dashboard">
+      <header class="nc-dash-welcome">
+        <div>
+          <div class="nc-dash-eyebrow">AST9 Athletic Intelligence</div>
+          <h1 class="nc-dash-greeting">Performance Center</h1>
+          <p class="nc-dash-sub">High-performance sports telemetry, athletic profiling, and micro-periodization calendar.</p>
+        </div>
+      </header>
+      
+      <!-- Premium placeholder cards/KPIs -->
+      <div class="nc-kpi-grid">
+        <div class="nc-kpi nc-kpi--indigo">
+          <div class="nc-kpi-top"><span class="nc-kpi-icon">⚡</span></div>
+          <div class="nc-kpi-value">92.4</div>
+          <div class="nc-kpi-label">Performance Readiness</div>
+          <div class="nc-kpi-sub">CNS fatigue & load capacity optimal</div>
+        </div>
+        <div class="nc-kpi nc-kpi--teal">
+          <div class="nc-kpi-top"><span class="nc-kpi-icon">🧬</span></div>
+          <div class="nc-kpi-value">8.9</div>
+          <div class="nc-kpi-label">Movement Efficiency</div>
+          <div class="nc-kpi-sub">based on gait & force symmetry</div>
+        </div>
+        <div class="nc-kpi nc-kpi--violet">
+          <div class="nc-kpi-top"><span class="nc-kpi-icon">◈</span></div>
+          <div class="nc-kpi-value">16-Wk</div>
+          <div class="nc-kpi-label">Current Macrocycle</div>
+          <div class="nc-kpi-sub">Phase II: Hypertrophy/Strength</div>
+        </div>
+        <div class="nc-kpi nc-kpi--amber">
+          <div class="nc-kpi-top"><span class="nc-kpi-icon">◭</span></div>
+          <div class="nc-kpi-value">2</div>
+          <div class="nc-kpi-label">Movement Deficits</div>
+          <div class="nc-kpi-sub">requiring correction in next block</div>
+        </div>
+      </div>
+      
+      <div class="nc-dash-grid">
+        <div class="nc-dash-main">
+          <section class="nc-panel">
+            <div class="nc-section-head">
+              <div class="nc-section-title"><span class="nc-section-dot" style="background:#5B6CFF"></span>Athletic Performance Hub</div>
+            </div>
+            <div class="empty-state">
+              <span class="empty-icon" style="font-size:36px">⚡</span>
+              <div class="empty-title">Athletic Mode Active</div>
+              <p class="empty-desc">Coming next: Athletic assessment engine powered by AST9 movement intelligence.</p>
+            </div>
+          </section>
+        </div>
+        <aside class="nc-dash-rail">
+          <section class="nc-panel">
+            <div class="nc-section-head">
+              <div class="nc-section-title"><span class="nc-section-dot" style="background:#14B8A6"></span>ML Insights</div>
+            </div>
+            <div class="empty-state">
+              <span class="empty-icon" style="font-size:28px">🧠</span>
+              <div class="empty-title">Neural Adaptations</div>
+              <p class="empty-desc">ML prediction of motor unit recruitment deficits and muscle firing rate imbalances.</p>
+            </div>
+          </section>
+        </aside>
+      </div>
+    </div>
+
+    <!-- ATHLETE STORY INTAKE -->
+    <div class="section" id="section-athlete-story-intake">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="nc-dashboard-eyebrow">Athletic Intelligence</div>
+          <h1 class="page-title">Athlete <span class="accent" style="color:var(--nc-indigo)">Story Intake</span></h1>
+          <p class="page-subtitle">Qualitative history, training experience, sport specific loading history, and client goals.</p>
+        </div>
+      </div>
+      <div class="card glass-card" style="padding:48px">
+        <div class="empty-state">
+          <span class="empty-icon" style="font-size:36px">📝</span>
+          <div class="empty-title">Athlete Intake</div>
+          <p class="empty-desc">Coming next: Athletic assessment engine powered by AST9 movement intelligence.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ATHLETIC MOVEMENT ASSESSMENT -->
+    <div class="section" id="section-athletic-movement-assessment">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="nc-dashboard-eyebrow">Athletic Intelligence</div>
+          <h1 class="page-title">Movement <span class="accent" style="color:var(--nc-indigo)">Assessment</span></h1>
+          <p class="page-subtitle">Functional telemetry, force plate integration, joint ROM testing, and dynamic load evaluation.</p>
+        </div>
+      </div>
+      <div class="card glass-card" style="padding:48px">
+        <div class="empty-state">
+          <span class="empty-icon" style="font-size:36px">🏃</span>
+          <div class="empty-title">Performance Telemetry</div>
+          <p class="empty-desc">Coming next: Athletic assessment engine powered by AST9 movement intelligence.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ATHLETIC MOVEMENT TWIN -->
+    <div class="section" id="section-athletic-movement-twin">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="nc-dashboard-eyebrow">Athletic Intelligence</div>
+          <h1 class="page-title">Athletic <span class="accent" style="color:var(--nc-indigo)">Movement Twin</span></h1>
+          <p class="page-subtitle">Real-time biomechanical twin mapping joint force vectors, center of pressure, and skeletal load levels.</p>
+        </div>
+      </div>
+      <div class="card glass-card" style="padding:48px">
+        <div class="empty-state">
+          <span class="empty-icon" style="font-size:36px">🧬</span>
+          <div class="empty-title">Biomechanical Twin</div>
+          <p class="empty-desc">Coming next: Athletic assessment engine powered by AST9 movement intelligence.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ATHLETE PROFILE -->
+    <div class="section" id="section-athlete-profile">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="nc-dashboard-eyebrow">Athletic Intelligence</div>
+          <h1 class="page-title">Athlete <span class="accent" style="color:var(--nc-indigo)">Profile</span></h1>
+          <p class="page-subtitle">Unified performance roster, physical readiness markers, and training age metrics.</p>
+        </div>
+      </div>
+      <div class="card glass-card" style="padding:48px">
+        <div class="empty-state">
+          <span class="empty-icon" style="font-size:36px">👤</span>
+          <div class="empty-title">Roster Shell</div>
+          <p class="empty-desc">Coming next: Athletic assessment engine powered by AST9 movement intelligence.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- MOVEMENT DEFICIT PROFILE -->
+    <div class="section" id="section-movement-deficit-profile">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="nc-dashboard-eyebrow">Athletic Intelligence</div>
+          <h1 class="page-title">Movement <span class="accent" style="color:var(--nc-indigo)">Deficit Profile</span></h1>
+          <p class="page-subtitle">Identified compensations, lateral force discrepancies, and kinetic chain leakages.</p>
+        </div>
+      </div>
+      <div class="card glass-card" style="padding:48px">
+        <div class="empty-state">
+          <span class="empty-icon" style="font-size:36px">◭</span>
+          <div class="empty-title">Kinetic Leakage Map</div>
+          <p class="empty-desc">Coming next: Athletic assessment engine powered by AST9 movement intelligence.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ATHLETIC PROGRAM DESIGN -->
+    <div class="section" id="section-athletic-program-design">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="nc-dashboard-eyebrow">Athletic Intelligence</div>
+          <h1 class="page-title">Program <span class="accent" style="color:var(--nc-indigo)">Design</span></h1>
+          <p class="page-subtitle">Custom strength, power, speed, and energy system development programming.</p>
+        </div>
+      </div>
+      <div class="card glass-card" style="padding:48px">
+        <div class="empty-state">
+          <span class="empty-icon" style="font-size:36px">⚙️</span>
+          <div class="empty-title">Programming Engine</div>
+          <p class="empty-desc">Coming next: Athletic assessment engine powered by AST9 movement intelligence.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- PERIODIZATION CALENDAR -->
+    <div class="section" id="section-periodization-calendar">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="nc-dashboard-eyebrow">Athletic Intelligence</div>
+          <h1 class="page-title">Periodization <span class="accent" style="color:var(--nc-indigo)">Calendar</span></h1>
+          <p class="page-subtitle">Macrocycle, mesocycle, and microcycle planning with target volumes and intensities.</p>
+        </div>
+      </div>
+      <div class="card glass-card" style="padding:48px">
+        <div class="empty-state">
+          <span class="empty-icon" style="font-size:36px">🗓</span>
+          <div class="empty-title">Macrocycle Calendar</div>
+          <p class="empty-desc">Coming next: Athletic assessment engine powered by AST9 movement intelligence.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- PERFORMANCE REPORTS -->
+    <div class="section" id="section-performance-reports">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="nc-dashboard-eyebrow">Athletic Intelligence</div>
+          <h1 class="page-title">Performance <span class="accent" style="color:var(--nc-indigo)">Reports</span></h1>
+          <p class="page-subtitle">Progress logs, peak power metrics, velocity tracking records, and readiness trends.</p>
+        </div>
+      </div>
+      <div class="card glass-card" style="padding:48px">
+        <div class="empty-state">
+          <span class="empty-icon" style="font-size:36px">📈</span>
+          <div class="empty-title">Analytics Ledger</div>
+          <p class="empty-desc">Coming next: Athletic assessment engine powered by AST9 movement intelligence.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ML INSIGHTS -->
+    <div class="section" id="section-ml-insights">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="nc-dashboard-eyebrow">Athletic Intelligence</div>
+          <h1 class="page-title">ML <span class="accent" style="color:var(--nc-indigo)">Insights</span></h1>
+          <p class="page-subtitle">Machine learning insights predicting performance fatigue and muscle recruitment compensation patterns.</p>
+        </div>
+      </div>
+      <div class="card glass-card" style="padding:48px">
+        <div class="empty-state">
+          <span class="empty-icon" style="font-size:36px">🧠</span>
+          <div class="empty-title">Recruitment Analysis</div>
+          <p class="empty-desc">Coming next: Athletic assessment engine powered by AST9 movement intelligence.</p>
         </div>
       </div>
     </div>
