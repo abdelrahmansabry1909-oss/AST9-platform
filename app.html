@@ -2194,6 +2194,7 @@
           <div class="tab-row" style="margin:0;border:none">
             <button class="tab-btn active" id="assess-subtab-btn-record" onclick="AthleticService.switchAssessSubtab('record')">Record Assessment</button>
             <button class="tab-btn" id="assess-subtab-btn-builder" onclick="AthleticService.switchAssessSubtab('builder')">Battery Builder</button>
+            <button class="tab-btn" id="assess-subtab-btn-observations" onclick="AthleticService.switchAssessSubtab('observations')">Movement Observations</button>
           </div>
         </div>
       </div>
@@ -2329,6 +2330,225 @@
           </div>
         </div>
       </div>
+
+      <!-- TAB C: MOVEMENT OBSERVATIONS -->
+      <div id="assess-tab-observations" class="assess-tab-panel" style="display:none">
+        <div class="card glass-card" style="padding:24px;margin-bottom:24px;display:flex;gap:20px;align-items:center;flex-wrap:wrap">
+          <div style="flex:1;min-width:200px">
+            <label class="form-label" style="margin-bottom:6px">Select Athlete:</label>
+            <select id="obs-athlete-select" class="form-input" onchange="AthleticService.loadSelectedAthleteObservations()"></select>
+          </div>
+          <div style="flex:1;min-width:200px">
+            <label class="form-label" style="margin-bottom:6px">Select Assessment Session:</label>
+            <select id="obs-assessment-select" class="form-input" onchange="AthleticService.loadSelectedAssessmentDetails()"></select>
+          </div>
+          <div style="flex:1;min-width:200px">
+            <label class="form-label" style="margin-bottom:6px">Link to Test Result (Optional):</label>
+            <select id="obs-linked-test-select" class="form-input"></select>
+          </div>
+        </div>
+
+        <!-- State: No Athlete Selected -->
+        <div id="obs-empty-athlete" class="card glass-card" style="padding:48px;text-align:center">
+          <div class="empty-state">
+            <span class="empty-icon" style="font-size:36px">🏃</span>
+            <div class="empty-title">Select an Athlete</div>
+            <p class="empty-desc">Choose an athlete from the list to start managing movement observations.</p>
+          </div>
+        </div>
+
+        <!-- State: No Assessment Selected -->
+        <div id="obs-empty-assessment" class="card glass-card" style="display:none;padding:48px;text-align:center">
+          <div class="empty-state">
+            <span class="empty-icon" style="font-size:36px">⏱</span>
+            <div class="empty-title">Select an Assessment Session</div>
+            <p class="empty-desc">No assessment session selected or no sessions recorded yet for this athlete.</p>
+          </div>
+        </div>
+
+        <!-- State: RLS / Access Denied -->
+        <div id="obs-access-denied-state" class="card glass-card" style="display:none;padding:48px;text-align:center;border:1px solid #F5426C">
+          <div class="empty-state">
+            <span class="empty-icon" style="font-size:36px">🔒</span>
+            <div class="empty-title" style="color:#F5426C">Access Denied</div>
+            <p class="empty-desc">Row-Level Security restrictions prevent recording observations for this athlete.</p>
+          </div>
+        </div>
+
+        <!-- Main Form & Observations Ledger Container -->
+        <div id="obs-main-container" style="display:none">
+          <!-- Session Header Context Info Card -->
+          <div class="card glass-card" style="padding:20px;margin-bottom:24px;border:1px solid var(--nc-border)">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+              <strong style="color:var(--nc-text-primary)">Session Context Info</strong>
+              <span id="obs-session-phase-badge" class="badge" style="background:rgba(20,184,166,0.1);color:#2DD4BF"></span>
+            </div>
+            <div style="font-size:12.5px;color:var(--nc-text-secondary);display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <div><strong>Testing Conditions:</strong> <span id="obs-session-conditions-text">None</span></div>
+              <div><strong>General Coach Notes:</strong> <span id="obs-session-notes-text">None</span></div>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:24px;align-items:start">
+            <!-- Left: Add New Observation Form -->
+            <div class="card glass-card" style="padding:24px">
+              <h3 style="margin:0 0 20px;font-size:15px;color:#FB7185;border-bottom:1px solid var(--nc-border);padding-bottom:8px">Record Movement Observation</h3>
+              
+              <form id="obs-form" onsubmit="event.preventDefault(); AthleticService.saveMovementObservation();">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+                  <div class="form-group">
+                    <label class="form-label">Movement Domain *</label>
+                    <select id="obs-domain" class="form-input" required>
+                      <option value="">— Select Domain —</option>
+                      <option value="accel">Acceleration</option>
+                      <option value="maxv">Max Velocity</option>
+                      <option value="jump_takeoff">Jump Takeoff</option>
+                      <option value="landing">Landing</option>
+                      <option value="decel">Deceleration</option>
+                      <option value="cod">Change of Direction</option>
+                      <option value="sl_control">Single-Leg Control</option>
+                      <option value="lateral">Lateral Movement</option>
+                      <option value="rotation">Rotational Control</option>
+                      <option value="dyn_mobility">Dynamic Mobility</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Movement Phase</label>
+                    <input type="text" id="obs-phase" class="form-input" placeholder="e.g. Mid-stance, Early drive" />
+                  </div>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px">
+                  <div class="form-group">
+                    <label class="form-label">Region *</label>
+                    <input type="text" id="obs-region" class="form-input" placeholder="e.g. knee, ankle" required />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Joint</label>
+                    <input type="text" id="obs-joint" class="form-input" placeholder="e.g. patellofemoral" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Kinetic Chain</label>
+                    <input type="text" id="obs-chain" class="form-input" placeholder="e.g. posterior" />
+                  </div>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px">
+                  <div class="form-group">
+                    <label class="form-label">Side</label>
+                    <select id="obs-side" class="form-input">
+                      <option value="na">N/A (Default)</option>
+                      <option value="left">Left</option>
+                      <option value="right">Right</option>
+                      <option value="bilateral">Bilateral</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Plane</label>
+                    <select id="obs-plane" class="form-input">
+                      <option value="na">N/A (Default)</option>
+                      <option value="sagittal">Sagittal</option>
+                      <option value="frontal">Frontal</option>
+                      <option value="transverse">Transverse</option>
+                      <option value="multi">Multi-planar</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Asymmetry Variance (%)</label>
+                    <input type="number" step="any" id="obs-asymmetry-pct" class="form-input" placeholder="e.g. 8.5" />
+                  </div>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1.2fr 0.8fr 1fr;gap:12px;margin-bottom:16px">
+                  <div class="form-group">
+                    <label class="form-label">Observed Range</label>
+                    <input type="number" step="any" id="obs-range-value" class="form-input" placeholder="Value" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Unit</label>
+                    <input type="text" id="obs-range-unit" class="form-input" placeholder="deg/cm" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Passive Reference</label>
+                    <input type="number" step="any" id="obs-passive-ref" class="form-input" placeholder="Value" />
+                  </div>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px">
+                  <div class="form-group">
+                    <label class="form-label">Quality Rating</label>
+                    <select id="obs-quality" class="form-input">
+                      <option value="not_assessed">Not Assessed</option>
+                      <option value="solid">Solid</option>
+                      <option value="adequate">Adequate</option>
+                      <option value="limited">Limited</option>
+                      <option value="poor">Poor</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Confidence</label>
+                    <select id="obs-confidence" class="form-input">
+                      <option value="high">High</option>
+                      <option value="medium">Medium</option>
+                      <option value="low">Low</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Source</label>
+                    <select id="obs-source" class="form-input">
+                      <option value="coach_visual">Coach Visual</option>
+                      <option value="video">Video analysis</option>
+                      <option value="wearable">Wearable telemetry</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom:16px">
+                  <label class="form-label" style="display:flex;align-items:center;gap:8px">
+                    <input type="checkbox" id="obs-pain-flag" style="margin:0" />
+                    <span style="color:#FB7185;font-weight:600">Flag Pain / Discomfort during movement</span>
+                  </label>
+                </div>
+
+                <div class="form-group" style="margin-bottom:16px">
+                  <label class="form-label">Finding Tags</label>
+                  <div id="obs-tags-picker" style="display:flex;flex-wrap:wrap;gap:6px;max-height:120px;overflow-y:auto;background:rgba(0,0,0,0.2);padding:10px;border-radius:8px;border:1px solid var(--nc-border)">
+                    <!-- Dynamically populated tags with checkboxes -->
+                  </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom:16px">
+                  <label class="form-label">Control Observation Note</label>
+                  <input type="text" id="obs-control-note" class="form-input" placeholder="e.g. dynamic knee valgus under load" />
+                </div>
+                <div class="form-group" style="margin-bottom:16px">
+                  <label class="form-label">Symmetry Observation Note</label>
+                  <input type="text" id="obs-symmetry-note" class="form-input" placeholder="e.g. reduced excursion on left leg landing" />
+                </div>
+                <div class="form-group" style="margin-bottom:20px">
+                  <label class="form-label">Coach Notes</label>
+                  <textarea id="obs-coach-note" class="form-input" style="height:60px" placeholder="Additional qualitative notes..."></textarea>
+                </div>
+
+                <div style="text-align:right">
+                  <button type="submit" class="btn btn-primary">Save Observation</button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Right: Ledger / Recent observations -->
+            <div style="display:flex;flex-direction:column;gap:20px">
+              <div class="card glass-card" style="padding:24px">
+                <h3 style="margin:0 0 16px;font-size:15px;color:#FB7185;border-bottom:1px solid var(--nc-border);padding-bottom:8px">Recorded Observations</h3>
+                <div id="obs-ledger-list" style="display:flex;flex-direction:column;gap:12px;max-height:680px;overflow-y:auto;padding-right:4px">
+                  <!-- observations loaded here -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- ATHLETIC MOVEMENT TWIN -->
@@ -2415,6 +2635,42 @@
               </div>
               <div id="profile-symmetry-container" style="display:flex;flex-direction:column;gap:16px">
                 <!-- Left vs Right outputs -->
+              </div>
+            </section>
+
+            <!-- Movement Observations summary panel -->
+            <section class="nc-panel" style="padding:24px">
+              <div class="nc-section-head" style="margin-bottom:16px">
+                <div class="nc-section-title"><span class="nc-section-dot" style="background:#E11D48"></span>Movement Observations summary</div>
+              </div>
+              <div id="profile-observations-container" style="display:none;padding:12px;text-align:center;color:var(--nc-text-muted)">
+                No observations found.
+              </div>
+              <div id="profile-observations-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+                <div class="card glass-card" style="padding:16px">
+                  <h4 style="margin:0 0 10px;font-size:12px;color:#FB7185">Movement Notes</h4>
+                  <div id="profile-obs-notes" style="font-size:11.5px;color:var(--nc-text-secondary);display:flex;flex-direction:column;gap:8px">
+                    —
+                  </div>
+                </div>
+                <div class="card glass-card" style="padding:16px">
+                  <h4 style="margin:0 0 10px;font-size:12px;color:#FB7185">Dynamic ROM & Reference</h4>
+                  <div id="profile-obs-rom" style="font-size:11.5px;color:var(--nc-text-secondary);display:flex;flex-direction:column;gap:8px">
+                    —
+                  </div>
+                </div>
+                <div class="card glass-card" style="padding:16px">
+                  <h4 style="margin:0 0 10px;font-size:12px;color:#FB7185">Control & Symmetry</h4>
+                  <div id="profile-obs-control" style="font-size:11.5px;color:var(--nc-text-secondary);display:flex;flex-direction:column;gap:8px">
+                    —
+                  </div>
+                </div>
+                <div class="card glass-card" style="padding:16px">
+                  <h4 style="margin:0 0 10px;font-size:12px;color:#FB7185">Pain & Fatigue Flags</h4>
+                  <div id="profile-obs-flags" style="font-size:11.5px;color:var(--nc-text-secondary);display:flex;flex-direction:column;gap:8px">
+                    —
+                  </div>
+                </div>
               </div>
             </section>
 
