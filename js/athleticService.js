@@ -28,6 +28,22 @@ const AthleticService = (() => {
     'energy_leak', 'timing_fault', 'pain_limited', 'fatigue_limited'
   ];
 
+  const PHASE_LABELS = {
+    off: 'Off-Season',
+    pre: 'Pre-Season',
+    in: 'In-Season',
+    post: 'Post-Season',
+    unknown: 'Unknown'
+  };
+
+  const SIDE_LABELS = {
+    left: 'Left',
+    right: 'Right',
+    bilateral: 'Bilateral',
+    na: 'N/A',
+    unknown: 'Unknown'
+  };
+
   const TAG_LABELS = {
     limited_range: 'Limited Range',
     range_loss_under_load: 'Range Loss Under Load',
@@ -159,15 +175,25 @@ const AthleticService = (() => {
         document.getElementById('story-position').value = data.position || '';
         document.getElementById('story-level').value = data.level || 'Collegiate';
         document.getElementById('story-training-age').value = data.training_age_years || '';
-        document.getElementById('story-dominant-side').value = data.dominant_side || 'Right';
-        document.getElementById('story-season-phase').value = data.season_phase || 'Off-Season';
+        document.getElementById('story-dominant-side').value = data.dominant_side || 'right';
+        document.getElementById('story-season-phase').value = data.season_phase || 'off';
         document.getElementById('story-comp-dates').value = Array.isArray(data.competition_dates) ? data.competition_dates.join(', ') : '';
-        document.getElementById('story-goals').value = data.goals || '';
+        
+        const goalsVal = data.goals;
+        document.getElementById('story-goals').value = (goalsVal && typeof goalsVal === 'object')
+          ? (goalsVal.raw_notes || JSON.stringify(goalsVal))
+          : (goalsVal || '');
+
         document.getElementById('story-days-week').value = data.available_days_per_week || '3';
         document.getElementById('story-duration').value = data.session_duration_minutes || '';
         document.getElementById('story-equipment').value = Array.isArray(data.equipment) ? data.equipment.join(', ') : '';
         document.getElementById('story-environment').value = data.training_environment || '';
-        document.getElementById('story-injury-history').value = data.injury_history || '';
+        
+        const injuryVal = data.injury_history;
+        document.getElementById('story-injury-history').value = (injuryVal && typeof injuryVal === 'object')
+          ? (injuryVal.raw_notes || JSON.stringify(injuryVal))
+          : (injuryVal || '');
+
         document.getElementById('story-flags').value = Array.isArray(data.current_flags) ? data.current_flags.join(', ') : '';
       }
 
@@ -242,13 +268,13 @@ const AthleticService = (() => {
       training_age_years: parseInt(document.getElementById('story-training-age').value) || 0,
       dominant_side: document.getElementById('story-dominant-side').value,
       season_phase: document.getElementById('story-season-phase').value,
-      goals: document.getElementById('story-goals').value,
+      goals: safeJsonObject(document.getElementById('story-goals').value),
       competition_dates: compDates,
       available_days_per_week: parseInt(document.getElementById('story-days-week').value) || 3,
       session_duration_minutes: parseInt(document.getElementById('story-duration').value) || 60,
       equipment: equip,
       training_environment: document.getElementById('story-environment').value,
-      injury_history: document.getElementById('story-injury-history').value,
+      injury_history: safeJsonObject(document.getElementById('story-injury-history').value),
       current_flags: flags,
       coach_id: coachId,
       created_by: coachId
@@ -913,7 +939,7 @@ const AthleticService = (() => {
             best_of: isBest,
             conditions: safeJsonObject(t.conditions),
             protocol_version: 'v1',
-            score_confidence: 1.0,
+            score_confidence: null,
             coach_note: t.coach_note || '',
             assessed_at: sessionPayload.assessed_at,
             created_by: coachId
@@ -1060,13 +1086,13 @@ const AthleticService = (() => {
       </div>
       <div class="nc-kpi nc-kpi--violet">
         <div class="nc-kpi-top"><span class="nc-kpi-icon">🗓</span></div>
-        <div class="nc-kpi-value">${p.season_phase || '–'}</div>
+        <div class="nc-kpi-value">${PHASE_LABELS[p.season_phase] || p.season_phase || '–'}</div>
         <div class="nc-kpi-label">Current Phase</div>
         <div class="nc-kpi-sub">${p.available_days_per_week || '0'} days/wk, ${p.session_duration_minutes || '0'} min</div>
       </div>
       <div class="nc-kpi nc-kpi--amber">
         <div class="nc-kpi-top"><span class="nc-kpi-icon">◭</span></div>
-        <div class="nc-kpi-value">${p.dominant_side || 'Right'}</div>
+        <div class="nc-kpi-value">${SIDE_LABELS[p.dominant_side] || p.dominant_side || 'Right'}</div>
         <div class="nc-kpi-label">Dominant Side</div>
         <div class="nc-kpi-sub">Injury history logged</div>
       </div>
@@ -1091,12 +1117,12 @@ const AthleticService = (() => {
       : 'None';
 
     el.innerHTML = `
-      <div><strong>Discipline Goals:</strong><p style="margin:4px 0 0;line-height:1.4">${p.goals || 'None'}</p></div>
+      <div><strong>Discipline Goals:</strong><p style="margin:4px 0 0;line-height:1.4">${(p.goals && typeof p.goals === 'object') ? (p.goals.raw_notes || JSON.stringify(p.goals)) : (p.goals || 'None')}</p></div>
       <hr style="border:none;border-top:1px solid var(--nc-border);margin:8px 0" />
       <div><strong>Training Environment:</strong> ${p.training_environment || '–'}</div>
       <div><strong>Available Tools:</strong> ${Array.isArray(p.equipment) ? p.equipment.join(', ') : '–'}</div>
       <hr style="border:none;border-top:1px solid var(--nc-border);margin:8px 0" />
-      <div><strong>Loading History:</strong><p style="margin:4px 0 0;line-height:1.4">${p.injury_history || 'None'}</p></div>
+      <div><strong>Loading History:</strong><p style="margin:4px 0 0;line-height:1.4">${(p.injury_history && typeof p.injury_history === 'object') ? (p.injury_history.raw_notes || JSON.stringify(p.injury_history)) : (p.injury_history || 'None')}</p></div>
       <hr style="border:none;border-top:1px solid var(--nc-border);margin:8px 0" />
       <div style="margin-bottom:6px"><strong>Status Flags:</strong><div style="margin-top:4px">${flagsHtml}</div></div>
       <div><strong>Target Competition Dates:</strong><div style="margin-top:4px">${compHtml}</div></div>
@@ -1123,7 +1149,7 @@ const AthleticService = (() => {
         <div style="background:rgba(255,255,255,0.01);border:1px solid var(--nc-border);border-radius:10px;padding:10px">
           <div style="display:flex;justify-content:space-between;font-size:12px">
             <strong style="color:var(--nc-text-primary)">${date}</strong>
-            <span class="badge" style="background:rgba(20,184,166,0.1);color:#2DD4BF">${s.season_phase}</span>
+            <span class="badge" style="background:rgba(20,184,166,0.1);color:#2DD4BF">${PHASE_LABELS[s.season_phase] || s.season_phase}</span>
           </div>
           ${s.notes ? `<div style="font-size:11px;color:var(--nc-text-muted);margin-top:6px;line-height:1.4">${s.notes}</div>` : ''}
         </div>
@@ -1357,7 +1383,7 @@ const AthleticService = (() => {
           const dateStr = new Date(s.assessed_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
           const opt = document.createElement('option');
           opt.value = s.id;
-          opt.textContent = `${dateStr} (${s.season_phase})`;
+          opt.textContent = `${dateStr} (${PHASE_LABELS[s.season_phase] || s.season_phase})`;
           assessSelect.appendChild(opt);
         });
 
@@ -1399,7 +1425,7 @@ const AthleticService = (() => {
 
     if (activeSession) {
       const badge = document.getElementById('obs-session-phase-badge');
-      if (badge) badge.textContent = activeSession.season_phase;
+      if (badge) badge.textContent = PHASE_LABELS[activeSession.season_phase] || activeSession.season_phase;
 
       const condEl = document.getElementById('obs-session-conditions-text');
       if (condEl) {
