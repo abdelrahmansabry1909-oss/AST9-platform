@@ -144,7 +144,55 @@
         <label class="nc-login-label" for="su-password2">Confirm password</label>
         <input id="su-password2" type="password" class="nc-login-input" placeholder="••••••••" autocomplete="new-password"/>
       </div>
-      <button id="su-btn" class="nc-login-submit" onclick="UI.handleCoachSignup()">Create coach account</button>
+      
+      <!-- Legal Checkboxes -->
+      <div class="nc-login-field" style="margin-top:20px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 18px;">
+        <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: rgba(255,255,255,0.4); margin-bottom: 12px;">Legal Agreements</div>
+        
+        <div style="display: flex; gap: 8px; align-items: flex-start; margin-bottom: 10px;">
+          <input type="checkbox" id="su-agree-terms" style="margin-top: 3px; cursor: pointer;" required />
+          <label for="su-agree-terms" style="font-size: 12px; color: rgba(255,255,255,0.65); line-height: 1.4; cursor: pointer; user-select: none;">
+            I agree to the <a href="legal/terms.html" target="_blank" style="color: var(--teal, #2DD4BF); text-decoration: none;">Terms of Service</a> <span style="color: #f43f5e;">*</span>
+          </label>
+        </div>
+
+        <div style="display: flex; gap: 8px; align-items: flex-start; margin-bottom: 10px;">
+          <input type="checkbox" id="su-agree-privacy" style="margin-top: 3px; cursor: pointer;" required />
+          <label for="su-agree-privacy" style="font-size: 12px; color: rgba(255,255,255,0.65); line-height: 1.4; cursor: pointer; user-select: none;">
+            I agree to the <a href="legal/privacy.html" target="_blank" style="color: var(--teal, #2DD4BF); text-decoration: none;">Privacy Policy</a> <span style="color: #f43f5e;">*</span>
+          </label>
+        </div>
+
+        <div style="display: flex; gap: 8px; align-items: flex-start; margin-bottom: 10px;">
+          <input type="checkbox" id="su-agree-disclaimer" style="margin-top: 3px; cursor: pointer;" required />
+          <label for="su-agree-disclaimer" style="font-size: 12px; color: rgba(255,255,255,0.65); line-height: 1.4; cursor: pointer; user-select: none;">
+            I have read the <a href="legal/medical-disclaimer.html" target="_blank" style="color: var(--teal, #2DD4BF); text-decoration: none;">Medical Disclaimer</a> <span style="color: #f43f5e;">*</span>
+          </label>
+        </div>
+
+        <div style="display: flex; gap: 8px; align-items: flex-start; margin-bottom: 10px;">
+          <input type="checkbox" id="su-agree-health" style="margin-top: 3px; cursor: pointer;" required />
+          <label for="su-agree-health" style="font-size: 12px; color: rgba(255,255,255,0.65); line-height: 1.4; cursor: pointer; user-select: none;">
+            I consent to the <a href="legal/health-data-consent.html" target="_blank" style="color: var(--teal, #2DD4BF); text-decoration: none;">Processing of Health/Rehab Data</a> <span style="color: #f43f5e;">*</span>
+          </label>
+        </div>
+
+        <div style="display: flex; gap: 8px; align-items: flex-start; margin-bottom: 6px; opacity: 0.7;">
+          <input type="checkbox" id="su-agree-refund" style="margin-top: 3px; cursor: pointer;" />
+          <label for="su-agree-refund" style="font-size: 12px; color: rgba(255,255,255,0.65); line-height: 1.4; cursor: pointer; user-select: none;">
+            I acknowledge the <a href="legal/refund-policy.html" target="_blank" style="color: var(--teal, #2DD4BF); text-decoration: none;">Refund Policy</a>
+          </label>
+        </div>
+
+        <div style="display: flex; gap: 8px; align-items: flex-start; margin-bottom: 12px; opacity: 0.7;">
+          <input type="checkbox" id="su-agree-cookies" style="margin-top: 3px; cursor: pointer;" />
+          <label for="su-agree-cookies" style="font-size: 12px; color: rgba(255,255,255,0.65); line-height: 1.4; cursor: pointer; user-select: none;">
+            I accept the <a href="legal/cookie-policy.html" target="_blank" style="color: var(--teal, #2DD4BF); text-decoration: none;">Cookie Policy</a>
+          </label>
+        </div>
+      </div>
+      
+      <button id="su-btn" class="nc-login-submit" onclick="if (typeof UI !== 'undefined' && UI.validateLegalCheckboxes && UI.validateLegalCheckboxes()) { UI.handleCoachSignup(); } else if (typeof UI === 'undefined' || !UI.validateLegalCheckboxes) { UI.handleCoachSignup(); }">Create coach account</button>
       <div class="nc-login-meta">
         Already have an account? <span class="nc-link" onclick="UI.switchLoginTab('signin')">← Back to Sign In</span>
       </div>
@@ -202,6 +250,82 @@
     </a>
     <div class="nc-login-meta" style="margin-top:6px">
       <span class="nc-link" id="sub-inactive-signout">← Sign out</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ LEGAL ACCEPTANCE REQUIRED ═══════════════════════ -->
+<!-- Gating screen shown post-auth when the coach or client has not accepted
+     the latest terms. Prevents access to the dashboard until accepted. -->
+<div id="screen-legal-required" class="hidden nc-login" style="background:#05080F">
+  <div class="nc-login-glow nc-login-glow--teal" style="background:radial-gradient(circle,rgba(45,212,191,0.18),transparent 60%)"></div>
+  <div class="nc-login-card" style="max-width:520px;text-align:left">
+    <div class="nc-login-brand" style="justify-content:center;margin-bottom:20px">
+      <span class="nc-login-mark" aria-hidden="true" style="background: linear-gradient(135deg, #F6E27A, #D4AF37);"></span>
+      <div>
+        <div class="nc-login-wordmark">NEUCORE</div>
+        <div class="nc-login-tagline">Legal Acceptance Required</div>
+      </div>
+    </div>
+
+    <h1 class="nc-login-headline" style="font-size:22px;text-align:center;margin-bottom:12px">Review &amp; Accept Agreements</h1>
+    <p class="nc-login-headline-sub" style="margin-bottom:24px;text-align:center;font-size:13.5px">
+      Please review and accept the current Terms, Privacy Policy, Medical Disclaimer, and Health/Rehab Data Consent before continuing.
+    </p>
+
+    <!-- Checkboxes -->
+    <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:20px;margin-bottom:24px">
+      <div style="display: flex; gap: 10px; align-items: flex-start; margin-bottom: 14px;">
+        <input type="checkbox" id="gate-agree-terms" style="margin-top: 3px; cursor: pointer;" required />
+        <label for="gate-agree-terms" style="font-size: 13px; color: rgba(255,255,255,0.75); line-height: 1.4; cursor: pointer; user-select: none;">
+          I agree to the <a href="legal/terms.html" target="_blank" style="color: var(--teal, #2DD4BF); text-decoration: none;">Terms of Service</a> <span style="color: #f43f5e;">*</span>
+        </label>
+      </div>
+
+      <div style="display: flex; gap: 10px; align-items: flex-start; margin-bottom: 14px;">
+        <input type="checkbox" id="gate-agree-privacy" style="margin-top: 3px; cursor: pointer;" required />
+        <label for="gate-agree-privacy" style="font-size: 13px; color: rgba(255,255,255,0.75); line-height: 1.4; cursor: pointer; user-select: none;">
+          I agree to the <a href="legal/privacy.html" target="_blank" style="color: var(--teal, #2DD4BF); text-decoration: none;">Privacy Policy</a> <span style="color: #f43f5e;">*</span>
+        </label>
+      </div>
+
+      <div style="display: flex; gap: 10px; align-items: flex-start; margin-bottom: 14px;">
+        <input type="checkbox" id="gate-agree-disclaimer" style="margin-top: 3px; cursor: pointer;" required />
+        <label for="gate-agree-disclaimer" style="font-size: 13px; color: rgba(255,255,255,0.75); line-height: 1.4; cursor: pointer; user-select: none;">
+          I have read the <a href="legal/medical-disclaimer.html" target="_blank" style="color: var(--teal, #2DD4BF); text-decoration: none;">Medical Disclaimer</a> <span style="color: #f43f5e;">*</span>
+        </label>
+      </div>
+
+      <div style="display: flex; gap: 10px; align-items: flex-start; margin-bottom: 14px;">
+        <input type="checkbox" id="gate-agree-health" style="margin-top: 3px; cursor: pointer;" required />
+        <label for="gate-agree-health" style="font-size: 13px; color: rgba(255,255,255,0.75); line-height: 1.4; cursor: pointer; user-select: none;">
+          I consent to the <a href="legal/health-data-consent.html" target="_blank" style="color: var(--teal, #2DD4BF); text-decoration: none;">Processing of Health/Rehab Data</a> <span style="color: #f43f5e;">*</span>
+        </label>
+      </div>
+
+      <div style="display: flex; gap: 10px; align-items: flex-start; margin-bottom: 8px; opacity: 0.7;">
+        <input type="checkbox" id="gate-agree-refund" style="margin-top: 3px; cursor: pointer;" />
+        <label for="gate-agree-refund" style="font-size: 13px; color: rgba(255,255,255,0.6); line-height: 1.4; cursor: pointer; user-select: none;">
+          I acknowledge the <a href="legal/refund-policy.html" target="_blank" style="color: var(--teal, #2DD4BF); text-decoration: none;">Refund Policy</a>
+        </label>
+      </div>
+
+      <div style="display: flex; gap: 10px; align-items: flex-start; opacity: 0.7;">
+        <input type="checkbox" id="gate-agree-cookies" style="margin-top: 3px; cursor: pointer;" />
+        <label for="gate-agree-cookies" style="font-size: 13px; color: rgba(255,255,255,0.6); line-height: 1.4; cursor: pointer; user-select: none;">
+          I accept the <a href="legal/cookie-policy.html" target="_blank" style="color: var(--teal, #2DD4BF); text-decoration: none;">Cookie Policy</a>
+        </label>
+      </div>
+    </div>
+
+    <!-- Error message area -->
+    <div id="legal-gate-error" class="nc-login-error hidden" style="margin-bottom:16px"></div>
+
+    <button id="legal-gate-accept-btn" class="nc-login-submit" onclick="UI.handleLegalGateAccept()" style="margin-bottom:12px">
+      Accept &amp; Continue
+    </button>
+    <div class="nc-login-meta" style="text-align:center">
+      Decline terms? <span class="nc-link" onclick="if (typeof Auth !== 'undefined' && Auth.signOut) { Auth.signOut(); } else { window.location.reload(); }">← Log out</span>
     </div>
   </div>
 </div>
@@ -4052,6 +4176,73 @@ if (typeof Auth !== 'undefined') {
     if (loginIntent) _showLoginScreen(); else _bounceToLanding();
   }
 })();
+
+// ── LEGAL UX VALIDATION STUBS ──
+if (typeof UI !== 'undefined') {
+  UI.validateLegalCheckboxes = function() {
+    const t = document.getElementById('su-agree-terms');
+    const p = document.getElementById('su-agree-privacy');
+    const d = document.getElementById('su-agree-disclaimer');
+    const h = document.getElementById('su-agree-health');
+    if (!t || !p || !d || !h) return true; // fallback if element not rendered
+    
+    if (!t.checked || !p.checked || !d.checked || !h.checked) {
+      const errEl = document.getElementById('login-error');
+      if (errEl) {
+        errEl.textContent = 'Please accept all required agreements (*)';
+        errEl.classList.remove('hidden');
+      } else {
+        alert('Please accept all required agreements (*)');
+      }
+      return false;
+    }
+    return true;
+  };
+
+  UI.handleLegalGateAccept = function() {
+    const t = document.getElementById('gate-agree-terms');
+    const p = document.getElementById('gate-agree-privacy');
+    const d = document.getElementById('gate-agree-disclaimer');
+    const h = document.getElementById('gate-agree-health');
+    if (!t || !p || !d || !h) return;
+    
+    if (!t.checked || !p.checked || !d.checked || !h.checked) {
+      const errEl = document.getElementById('legal-gate-error');
+      if (errEl) {
+        errEl.textContent = 'Please accept all required agreements (*)';
+        errEl.classList.remove('hidden');
+      } else {
+        alert('Please accept all required agreements (*)');
+      }
+      return;
+    }
+    
+    console.log("Legal checkboxes accepted. record_legal_acceptance() will be called by Claude's auth gate.");
+    const btn = document.getElementById('legal-gate-accept-btn');
+    if (btn) {
+      btn.innerHTML = '<span class="spinner"></span> Processing...';
+      btn.disabled = true;
+    }
+    
+    if (window._onLegalAccepted) {
+      window._onLegalAccepted();
+    } else {
+      setTimeout(() => {
+        const gate = document.getElementById('screen-legal-required');
+        if (gate) gate.classList.add('hidden');
+        if (btn) {
+          btn.innerHTML = 'Accept &amp; Continue';
+          btn.disabled = false;
+        }
+        // Temporary preview: show app if user exists
+        if (typeof Dashboard !== 'undefined' && typeof Auth !== 'undefined' && Auth.getUser()) {
+          const appScreen = document.getElementById('screen-app');
+          if (appScreen) appScreen.classList.remove('hidden');
+        }
+      }, 1000);
+    }
+  };
+}
 </script>
 </body>
 </html>
