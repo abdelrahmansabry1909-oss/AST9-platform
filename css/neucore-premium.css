@@ -2151,4 +2151,9 @@ body.service-athletic .nc-ai-chip::before {
   background: #E11D48 !important;
 }
 
+/* Ruby edge gradient for locked performance modal top highlight */
+#modal-athletic-locked .modal::before {
+  background: linear-gradient(90deg, #E11D48 0%, #FB7185 100%) !important;
+}
+
 

@@ -52,6 +52,16 @@ const Dashboard = (() => {
       el.style.display = (Auth.getRole() === 'client') ? '' : 'none';
     });
 
+    // Update Service Switcher label for coaches
+    const switcherAthleticBtn = document.getElementById('switcher-athletic');
+    if (switcherAthleticBtn) {
+      if (Auth.getRole() === 'coach') {
+        switcherAthleticBtn.innerHTML = 'Performance 🔒';
+      } else {
+        switcherAthleticBtn.innerHTML = 'Performance';
+      }
+    }
+
     // Admin email
     const adminEmailEl = document.getElementById('admin-email-display');
     if (adminEmailEl) adminEmailEl.textContent = p?.email || '–';
@@ -64,6 +74,19 @@ const Dashboard = (() => {
   function setService(service) {
     const validServices = ['rehab', 'athletic'];
     if (!validServices.includes(service)) service = 'rehab';
+
+    // Gate Athletic Performance for non-admins
+    if (service === 'athletic' && Auth.getRole() !== 'admin') {
+      openModal('modal-athletic-locked');
+      // Reset active button state to Rehab
+      const rehabBtn = document.getElementById('switcher-rehab');
+      const athleticBtn = document.getElementById('switcher-athletic');
+      if (rehabBtn) rehabBtn.classList.add('active');
+      if (athleticBtn) athleticBtn.classList.remove('active');
+      document.body.classList.remove('service-athletic');
+      document.body.classList.add('service-rehab');
+      return false;
+    }
 
     document.body.classList.remove('service-rehab', 'service-athletic');
     document.body.classList.add('service-' + service);
@@ -101,6 +124,18 @@ const Dashboard = (() => {
     'my-graph', 'nutrition-plan', 'case-studies', 'community', 'services',
   ]);
   const ADMIN_ONLY_SECTIONS = new Set(['coaches', 'admin-business', 'settings']);
+  const ATHLETIC_SECTIONS = new Set([
+    'athletic-dashboard',
+    'athlete-story-intake',
+    'athletic-movement-assessment',
+    'athletic-movement-twin',
+    'athlete-profile',
+    'movement-deficit-profile',
+    'athletic-program-design',
+    'periodization-calendar',
+    'performance-reports',
+    'ml-insights'
+  ]);
 
   function showSection(id) {
     // BUG 3 — capture the section we're leaving so we can tear down its
@@ -108,7 +143,14 @@ const Dashboard = (() => {
     const _leavingSection = document.querySelector('.section.active')?.id || null;
     // Phase 1 guard — keep each role inside the sections it may use.
     const _role = (typeof Auth !== 'undefined' && Auth.getRole) ? Auth.getRole() : 'client';
-    if (_role === 'client' && !CLIENT_SAFE_SECTIONS.has(id)) {
+    if (ATHLETIC_SECTIONS.has(id) && _role !== 'admin') {
+      if (_role === 'client') {
+        id = 'dashboard';
+      } else {
+        id = 'dashboard';
+        openModal('modal-athletic-locked');
+      }
+    } else if (_role === 'client' && !CLIENT_SAFE_SECTIONS.has(id)) {
       id = 'dashboard';                          // client → own home
     } else if (_role !== 'admin' && ADMIN_ONLY_SECTIONS.has(id)) {
       id = 'dashboard';                          // coach → coach home (admin-only blocked)

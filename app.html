@@ -3190,6 +3190,38 @@
   </div>
 </div>
 
+<!-- Athletic Performance Locked Modal -->
+<div class="modal-overlay hidden" id="modal-athletic-locked">
+  <div class="modal" style="max-width: 440px; border: 1px solid rgba(225, 29, 72, 0.35); box-shadow: 0 0 15px rgba(225, 29, 72, 0.15);">
+    <div class="modal-header" style="border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 12px;">
+      <h3 style="display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 700; color: var(--text-primary);">
+        <span style="font-size: 14px;">⬡</span> Athletic Performance
+      </h3>
+      <button class="btn-icon" onclick="Dashboard.closeModal('modal-athletic-locked')" style="color: var(--text-tertiary); transition: color 0.2s;">✕</button>
+    </div>
+    <div class="modal-body" style="text-align: center; padding: 28px 20px;">
+      <div style="width: 56px; height: 56px; border-radius: 50%; background: rgba(225, 29, 72, 0.1); border: 1px solid rgba(225, 29, 72, 0.25); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+        <span style="font-size: 24px; filter: drop-shadow(0 0 4px rgba(225, 29, 72, 0.3));">🔒</span>
+      </div>
+      <h4 style="margin: 0 0 10px; font-size: 18px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.5px;">Coming Soon</h4>
+      <p style="margin: 0 0 16px; font-size: 13.5px; color: var(--text-secondary); line-height: 1.5;">
+        This service is being prepared for performance testing, sprinting, jumping, change of direction, and athlete program design.
+      </p>
+      <p style="margin: 0; font-size: 12.5px; color: var(--text-tertiary); line-height: 1.5;">
+        For now, continue using the Rehab platform.
+      </p>
+      <div style="margin-top: 12px; font-size: 10px; color: var(--text-muted);">
+        Available soon after internal testing is complete.
+      </div>
+    </div>
+    <div class="modal-footer" style="justify-content: center; border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 14px;">
+      <button class="btn btn-primary" onclick="Dashboard.closeModal('modal-athletic-locked')" style="background: var(--nc-indigo, #5B6CFF); border-color: var(--nc-indigo, #5B6CFF); color: #ffffff; padding: 8px 24px; font-weight: 600; font-size: 13px; border-radius: 8px; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(91, 108, 255, 0.25);">
+        Back to Rehab
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- Phase Upgrade -->
 <div class="modal-overlay hidden" id="modal-phase-upgrade">
   <div class="modal">
