@@ -3682,7 +3682,7 @@ setInterval(() => { if (!document.hidden) _refreshApprovalsBadge(); }, 60_000);
 <script src="js/lib/jspdf.umd.min.js"></script>
 <script src="js/pdfExport.js?v=20260619a"></script>
 <script src="js/subscriptionService.js?v=20260622a"></script>
-<script src="js/auth.js?v=20260622a"></script>
+<script src="js/auth.js?v=20260627a"></script>
 <script src="js/dashboard.js?v=20260617a"></script>
 <script src="js/clients.js?v=20260619a"></script>
 <script src="js/subscriptions.js?v=20260614p6"></script>
@@ -3889,6 +3889,10 @@ const UI = {
       UI._showApp();
     } catch(e) {
       btn.innerHTML = 'Sign In'; btn.disabled = false;
+      if (e?.code === 'LEGAL_ACCEPTANCE_REQUIRED') {
+        UI._showLegalGate();
+        return;
+      }
       if (e?.code === 'SUBSCRIPTION_INACTIVE') {
         UI._showSubscriptionInactive(e.state);
         return;
@@ -4053,6 +4057,23 @@ const UI = {
     ie.classList.remove('hidden');
   },
 
+  // Legal acceptance gate — shown post-auth for ANY role that has not accepted
+  // the current required legal documents (or when the check fails closed).
+  _showLegalGate() {
+    const gate = document.getElementById('screen-legal-required');
+    if (!gate) return;
+    const login = document.getElementById('screen-login');
+    if (login) login.classList.add('hidden');
+    const app = document.getElementById('screen-app');
+    if (app) app.style.display = 'none';
+    // Reset the accept button + clear any stale error each time the gate shows.
+    const btn = document.getElementById('legal-gate-accept-btn');
+    if (btn) { btn.disabled = false; btn.innerHTML = 'Accept &amp; Continue'; }
+    const err = document.getElementById('legal-gate-error');
+    if (err) err.classList.add('hidden');
+    gate.classList.remove('hidden');
+  },
+
   _loginErr(msg) {
     const el = document.getElementById('login-error');
     el.textContent = msg; el.style.cssText = '';
@@ -4162,6 +4183,12 @@ if (typeof Auth !== 'undefined') {
     }
   } catch(e) {
     if (typeof UI !== 'undefined') UI._hideLoading();
+    if (e?.code === 'LEGAL_ACCEPTANCE_REQUIRED') {
+      // All roles must accept the current legal documents before the dashboard.
+      // Dedicated screen, never a bounce to landing.
+      UI._showLegalGate();
+      return;
+    }
     if (e?.code === 'SUBSCRIPTION_INACTIVE') {
       // Dedicated screen, not a bounce to landing — the user is a valid
       // client whose subscription lapsed past the grace window.
@@ -4199,47 +4226,54 @@ if (typeof UI !== 'undefined') {
     return true;
   };
 
-  UI.handleLegalGateAccept = function() {
+  UI.handleLegalGateAccept = async function() {
     const t = document.getElementById('gate-agree-terms');
     const p = document.getElementById('gate-agree-privacy');
     const d = document.getElementById('gate-agree-disclaimer');
     const h = document.getElementById('gate-agree-health');
+    const errEl = document.getElementById('legal-gate-error');
+    const btn   = document.getElementById('legal-gate-accept-btn');
+    const _err = (msg) => {
+      if (errEl) { errEl.textContent = msg; errEl.classList.remove('hidden'); }
+      else alert(msg);
+    };
+    const _resetBtn = () => { if (btn) { btn.disabled = false; btn.innerHTML = 'Accept &amp; Continue'; } };
+
+    // 1. The four required legal boxes must be checked.
     if (!t || !p || !d || !h) return;
-    
     if (!t.checked || !p.checked || !d.checked || !h.checked) {
-      const errEl = document.getElementById('legal-gate-error');
-      if (errEl) {
-        errEl.textContent = 'Please accept all required agreements (*)';
-        errEl.classList.remove('hidden');
-      } else {
-        alert('Please accept all required agreements (*)');
-      }
+      _err('Please accept all required agreements (*)');
       return;
     }
-    
-    console.log("Legal checkboxes accepted. record_legal_acceptance() will be called by Claude's auth gate.");
-    const btn = document.getElementById('legal-gate-accept-btn');
-    if (btn) {
-      btn.innerHTML = '<span class="spinner"></span> Processing...';
-      btn.disabled = true;
-    }
-    
-    if (window._onLegalAccepted) {
-      window._onLegalAccepted();
-    } else {
-      setTimeout(() => {
+    if (errEl) errEl.classList.add('hidden');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Processing…'; }
+
+    try {
+      // 2–4. Fetch CURRENT versions, record via the RPC (versions validated +
+      //      role stamped server-side), then re-check — all inside Auth. No raw
+      //      insert, no client-stamped role, no hard-coded versions.
+      await Auth.acceptCurrentLegal();
+      // Accepted — re-run routing so the client subscription gate and role
+      // routing still apply (the legal gate now passes).
+      const result = await Auth.init();
+      const gate = document.getElementById('screen-legal-required');
+      if (gate) gate.classList.add('hidden');
+      _resetBtn();
+      if (result) UI._showApp();
+    } catch (e) {
+      _resetBtn();
+      if (e?.code === 'SUBSCRIPTION_INACTIVE') {
         const gate = document.getElementById('screen-legal-required');
         if (gate) gate.classList.add('hidden');
-        if (btn) {
-          btn.innerHTML = 'Accept &amp; Continue';
-          btn.disabled = false;
-        }
-        // Temporary preview: show app if user exists
-        if (typeof Dashboard !== 'undefined' && typeof Auth !== 'undefined' && Auth.getUser()) {
-          const appScreen = document.getElementById('screen-app');
-          if (appScreen) appScreen.classList.remove('hidden');
-        }
-      }, 1000);
+        UI._showSubscriptionInactive(e.state);
+        return;
+      }
+      // Stay on the gate (fail closed) and show a user-safe message; technical
+      // detail goes to the console only.
+      console.error('[legal-gate] acceptance failed:', e);
+      _err(e?.code === 'LEGAL_DOCS_UNAVAILABLE'
+        ? 'Legal documents are temporarily unavailable. Please try again later.'
+        : 'We couldn’t record your acceptance. Please try again.');
     }
   };
 }
