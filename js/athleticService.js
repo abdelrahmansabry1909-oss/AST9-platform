@@ -936,7 +936,7 @@ const AthleticService = (() => {
             unit: t.unit || '',
             side: normalizeSide(t.side),
             trial_n: idx + 1,
-            best_of: isBest,
+            best_of: isBest ? 1 : 0,
             conditions: safeJsonObject(t.conditions),
             protocol_version: 'v1',
             score_confidence: null,
@@ -1446,7 +1446,7 @@ const AthleticService = (() => {
         const { data, error } = await sb.from('athlete_test_results')
           .select('*')
           .eq('assessment_id', assessmentId)
-          .eq('best_of', true);
+          .eq('best_of', 1);
 
         if (!error && data) {
           data.forEach(t => {
