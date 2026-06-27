@@ -90,28 +90,21 @@ const Auth = (() => {
     }
   }
 
-  // Thrown by login/init when the user has NOT accepted the current required
-  // legal documents (any role). The UI catches the code and shows
-  // #screen-legal-required instead of entering the dashboard. Never return
-  // null for this case — that would bounce a valid session to the landing page.
-  class LegalAcceptanceRequiredError extends Error {
-    constructor() {
-      super('Legal acceptance required');
-      this.code = 'LEGAL_ACCEPTANCE_REQUIRED';
-    }
-  }
-
   function _gateClient(state) {
     const s = state?.effective_status || 'none';
     // active + grace get through. Everything else is blocked.
     return s === 'active' || s === 'grace';
   }
 
-  // ── Legal acceptance gate (all roles) ───────────────────────
+  // ── Legal acceptance helpers ────────────────────────────────
   // Backend-persisted, versioned acceptance. The DB is the source of truth:
   //   has_accepted_current_legal(uid)     → compliance read (RLS self/admin)
   //   record_legal_acceptance(jsonb,text) → validated, role-stamped write
   // No raw inserts, no client-stamped role, no hard-coded versions, no pre-auth call.
+  // R1C-Auth-Gate-2: the global post-login gate was REMOVED — existing users are
+  // NEVER blocked at login/boot. These helpers remain for the legal-acceptance
+  // shell and for recording acceptance at a post-auth point during NEW-account
+  // signup only.
   const _LEGAL_REQUIRED = ['terms', 'privacy', 'medical_disclaimer', 'health_data_consent'];
 
   async function hasAcceptedCurrentLegal(userId) {
@@ -169,21 +162,6 @@ const Auth = (() => {
     return true;
   }
 
-  // Gate enforced for EVERY authenticated role (admin/coach/client). Fails
-  // CLOSED: any RPC error or a false result throws LegalAcceptanceRequiredError
-  // → the UI shows the legal gate; the dashboard is never entered without a
-  // valid current acceptance.
-  async function _enforceLegalGate(userId) {
-    let accepted = false;
-    try {
-      accepted = await hasAcceptedCurrentLegal(userId);
-    } catch (e) {
-      console.error('[auth] legal gate check failed (fail closed):', e.message);
-      throw new LegalAcceptanceRequiredError();
-    }
-    if (!accepted) throw new LegalAcceptanceRequiredError();
-  }
-
   // ── Login ────────────────────────────────────────────────────
   async function login(email, password) {
     // A paused/cold Supabase project can take 30–90s to wake on the first
@@ -226,10 +204,6 @@ const Auth = (() => {
       // (a new coach is briefly role=client and would otherwise be blocked as
       // an inactive client).
       await _maybeClaimCoach(data.user);
-      // Legal acceptance gate — ALL roles must accept the current required
-      // legal documents before any dashboard access. Runs BEFORE the client
-      // subscription gate. Throws LegalAcceptanceRequiredError (fail closed).
-      await _enforceLegalGate(data.user.id);
       // Subscription gate for clients (active + grace pass through).
       if (_profile.role === 'client') {
         const state = await _refreshSubscriptionState(data.user.id);
@@ -249,7 +223,6 @@ const Auth = (() => {
       return _profile;
     } catch(e) {
       if (e?.code === 'SUBSCRIPTION_INACTIVE') throw e;
-      if (e?.code === 'LEGAL_ACCEPTANCE_REQUIRED') throw e;
       if (e?.code === 'EMAIL_NOT_CONFIRMED') throw e;
       if (e.message.includes('timed out')) {
         throw new Error('Unable to connect to authentication server. The server may be waking up from pause - please wait a moment and try again.');
@@ -290,8 +263,6 @@ const Auth = (() => {
         await loadProfile(session.user);
         // Phase 4 — promote a verified self-signup coach before the client gate.
         await _maybeClaimCoach(session.user);
-        // Legal acceptance gate — ALL roles (runs before the subscription gate).
-        await _enforceLegalGate(session.user.id);
         // Recheck subscription on page reload for clients
         if (_profile.role === 'client') {
           const state = await _refreshSubscriptionState(session.user.id);
@@ -309,10 +280,6 @@ const Auth = (() => {
       return null;
     } catch(e) {
       if (e?.code === 'SUBSCRIPTION_INACTIVE') throw e;
-      // Must re-throw — returning null here would make BOOT treat a valid
-      // session as "logged out" and bounce it to the marketing landing page
-      // instead of showing the legal gate (the PR #53 class of bug).
-      if (e?.code === 'LEGAL_ACCEPTANCE_REQUIRED') throw e;
       console.error('Auth init error:', e.message);
       return null;
     }
@@ -416,14 +383,14 @@ const Auth = (() => {
     loadProfile, consumeGateSignout,
     // Subscription:
     getSubscriptionState, canWrite,
-    // Legal acceptance gate (all roles):
+    // Legal acceptance helpers (signup-time + shell; NOT a global login gate):
     hasAcceptedCurrentLegal, getCurrentLegalVersions, recordLegalAcceptance, acceptCurrentLegal,
     // Phase 4 — public coach signup:
     signUpCoach, resendVerification,
     // Demo:
     loginAsGuest,
-    // Error types (UI compares e.code):
-    SubscriptionInactiveError, LegalAcceptanceRequiredError,
+    // Error type (UI compares e.code === 'SUBSCRIPTION_INACTIVE'):
+    SubscriptionInactiveError,
   };
 })();
 

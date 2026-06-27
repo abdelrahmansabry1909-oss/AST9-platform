@@ -145,50 +145,26 @@
         <input id="su-password2" type="password" class="nc-login-input" placeholder="••••••••" autocomplete="new-password"/>
       </div>
       
-      <!-- Legal Checkboxes -->
+      <!-- Legal acceptance — ONE final required checkbox (R1C-Auth-Gate-2). -->
       <div class="nc-login-field" style="margin-top:20px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 18px;">
-        <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: rgba(255,255,255,0.4); margin-bottom: 12px;">Legal Agreements</div>
-        
-        <div style="display: flex; gap: 8px; align-items: flex-start; margin-bottom: 10px;">
-          <input type="checkbox" id="su-agree-terms" style="margin-top: 3px; cursor: pointer;" required />
-          <label for="su-agree-terms" style="font-size: 12px; color: rgba(255,255,255,0.65); line-height: 1.4; cursor: pointer; user-select: none;">
-            I agree to the <a href="legal/terms.html" target="_blank" style="color: var(--teal, #2DD4BF); text-decoration: none;">Terms of Service</a> <span style="color: #f43f5e;">*</span>
-          </label>
-        </div>
+        <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: rgba(255,255,255,0.4); margin-bottom: 12px;">Legal Agreement</div>
 
         <div style="display: flex; gap: 8px; align-items: flex-start; margin-bottom: 10px;">
-          <input type="checkbox" id="su-agree-privacy" style="margin-top: 3px; cursor: pointer;" required />
-          <label for="su-agree-privacy" style="font-size: 12px; color: rgba(255,255,255,0.65); line-height: 1.4; cursor: pointer; user-select: none;">
-            I agree to the <a href="legal/privacy.html" target="_blank" style="color: var(--teal, #2DD4BF); text-decoration: none;">Privacy Policy</a> <span style="color: #f43f5e;">*</span>
+          <input type="checkbox" id="su-agree-legal" style="margin-top: 3px; cursor: pointer;" required />
+          <label for="su-agree-legal" style="font-size: 12px; color: rgba(255,255,255,0.65); line-height: 1.5; cursor: pointer; user-select: none;">
+            I have read and agree to the
+            <a href="legal/terms.html" target="_blank" style="color: var(--teal, #2DD4BF); text-decoration: none;">Terms of Service</a>,
+            <a href="legal/privacy.html" target="_blank" style="color: var(--teal, #2DD4BF); text-decoration: none;">Privacy Policy</a>,
+            <a href="legal/medical-disclaimer.html" target="_blank" style="color: var(--teal, #2DD4BF); text-decoration: none;">Medical Disclaimer</a>, and
+            <a href="legal/health-data-consent.html" target="_blank" style="color: var(--teal, #2DD4BF); text-decoration: none;">Consent to Process Health/Rehab Data</a>.
+            <span style="color: #f43f5e;">*</span>
           </label>
         </div>
 
-        <div style="display: flex; gap: 8px; align-items: flex-start; margin-bottom: 10px;">
-          <input type="checkbox" id="su-agree-disclaimer" style="margin-top: 3px; cursor: pointer;" required />
-          <label for="su-agree-disclaimer" style="font-size: 12px; color: rgba(255,255,255,0.65); line-height: 1.4; cursor: pointer; user-select: none;">
-            I have read the <a href="legal/medical-disclaimer.html" target="_blank" style="color: var(--teal, #2DD4BF); text-decoration: none;">Medical Disclaimer</a> <span style="color: #f43f5e;">*</span>
-          </label>
-        </div>
-
-        <div style="display: flex; gap: 8px; align-items: flex-start; margin-bottom: 10px;">
-          <input type="checkbox" id="su-agree-health" style="margin-top: 3px; cursor: pointer;" required />
-          <label for="su-agree-health" style="font-size: 12px; color: rgba(255,255,255,0.65); line-height: 1.4; cursor: pointer; user-select: none;">
-            I consent to the <a href="legal/health-data-consent.html" target="_blank" style="color: var(--teal, #2DD4BF); text-decoration: none;">Processing of Health/Rehab Data</a> <span style="color: #f43f5e;">*</span>
-          </label>
-        </div>
-
-        <div style="display: flex; gap: 8px; align-items: flex-start; margin-bottom: 6px; opacity: 0.7;">
-          <input type="checkbox" id="su-agree-refund" style="margin-top: 3px; cursor: pointer;" />
-          <label for="su-agree-refund" style="font-size: 12px; color: rgba(255,255,255,0.65); line-height: 1.4; cursor: pointer; user-select: none;">
-            I acknowledge the <a href="legal/refund-policy.html" target="_blank" style="color: var(--teal, #2DD4BF); text-decoration: none;">Refund Policy</a>
-          </label>
-        </div>
-
-        <div style="display: flex; gap: 8px; align-items: flex-start; margin-bottom: 12px; opacity: 0.7;">
-          <input type="checkbox" id="su-agree-cookies" style="margin-top: 3px; cursor: pointer;" />
-          <label for="su-agree-cookies" style="font-size: 12px; color: rgba(255,255,255,0.65); line-height: 1.4; cursor: pointer; user-select: none;">
-            I accept the <a href="legal/cookie-policy.html" target="_blank" style="color: var(--teal, #2DD4BF); text-decoration: none;">Cookie Policy</a>
-          </label>
+        <div style="font-size: 11px; color: rgba(255,255,255,0.45); line-height: 1.5; padding-left: 24px;">
+          See also our
+          <a href="legal/refund-policy.html" target="_blank" style="color: var(--teal, #2DD4BF); text-decoration: none;">Refund Policy</a> and
+          <a href="legal/cookie-policy.html" target="_blank" style="color: var(--teal, #2DD4BF); text-decoration: none;">Cookie Policy</a>.
         </div>
       </div>
       
@@ -3682,7 +3658,7 @@ setInterval(() => { if (!document.hidden) _refreshApprovalsBadge(); }, 60_000);
 <script src="js/lib/jspdf.umd.min.js"></script>
 <script src="js/pdfExport.js?v=20260619a"></script>
 <script src="js/subscriptionService.js?v=20260622a"></script>
-<script src="js/auth.js?v=20260627a"></script>
+<script src="js/auth.js?v=20260627b"></script>
 <script src="js/dashboard.js?v=20260617a"></script>
 <script src="js/clients.js?v=20260619a"></script>
 <script src="js/subscriptions.js?v=20260614p6"></script>
@@ -3889,10 +3865,6 @@ const UI = {
       UI._showApp();
     } catch(e) {
       btn.innerHTML = 'Sign In'; btn.disabled = false;
-      if (e?.code === 'LEGAL_ACCEPTANCE_REQUIRED') {
-        UI._showLegalGate();
-        return;
-      }
       if (e?.code === 'SUBSCRIPTION_INACTIVE') {
         UI._showSubscriptionInactive(e.state);
         return;
@@ -4183,12 +4155,6 @@ if (typeof Auth !== 'undefined') {
     }
   } catch(e) {
     if (typeof UI !== 'undefined') UI._hideLoading();
-    if (e?.code === 'LEGAL_ACCEPTANCE_REQUIRED') {
-      // All roles must accept the current legal documents before the dashboard.
-      // Dedicated screen, never a bounce to landing.
-      UI._showLegalGate();
-      return;
-    }
     if (e?.code === 'SUBSCRIPTION_INACTIVE') {
       // Dedicated screen, not a bounce to landing — the user is a valid
       // client whose subscription lapsed past the grace window.
@@ -4207,19 +4173,15 @@ if (typeof Auth !== 'undefined') {
 // ── LEGAL UX VALIDATION STUBS ──
 if (typeof UI !== 'undefined') {
   UI.validateLegalCheckboxes = function() {
-    const t = document.getElementById('su-agree-terms');
-    const p = document.getElementById('su-agree-privacy');
-    const d = document.getElementById('su-agree-disclaimer');
-    const h = document.getElementById('su-agree-health');
-    if (!t || !p || !d || !h) return true; // fallback if element not rendered
-    
-    if (!t.checked || !p.checked || !d.checked || !h.checked) {
+    const legal = document.getElementById('su-agree-legal');
+    if (!legal) return true; // fallback if element not rendered
+    if (!legal.checked) {
       const errEl = document.getElementById('login-error');
       if (errEl) {
-        errEl.textContent = 'Please accept all required agreements (*)';
+        errEl.textContent = 'Please accept the legal agreement to continue.';
         errEl.classList.remove('hidden');
       } else {
-        alert('Please accept all required agreements (*)');
+        alert('Please accept the legal agreement to continue.');
       }
       return false;
     }
