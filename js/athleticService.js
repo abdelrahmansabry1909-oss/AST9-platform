@@ -896,7 +896,7 @@ const AthleticService = (() => {
       season_phase: document.getElementById('assess-season-phase').value,
       conditions: safeJsonObject(document.getElementById('assess-conditions').value),
       notes: document.getElementById('assess-notes').value,
-      status: 'completed',
+      status: 'final',
       created_by: coachId
     };
 
@@ -961,10 +961,11 @@ const AthleticService = (() => {
       }
       applyBatteryToAssessment();
     } catch (e) {
+      const errMsg = e.message || e.details || String(e);
       if (typeof toast !== 'undefined') {
-        toast('Save failed: ' + e.message, 'error');
+        toast('Save failed: ' + errMsg, 'error');
       } else {
-        alert('Save failed: ' + e.message);
+        alert('Save failed: ' + errMsg);
       }
     }
   }
