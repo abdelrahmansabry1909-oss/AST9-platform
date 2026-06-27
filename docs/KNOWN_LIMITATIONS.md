@@ -1,0 +1,39 @@
+# AST9 Known Limitations
+
+> Honest, current limitations. These are tracked deliberately — they are not
+> hidden defects. Update as items are resolved.
+
+---
+
+## L1 — Real authenticated save smoke requires owner manual testing
+The agent/build environment cannot run a real authenticated browser session, so
+end-to-end save flows (especially the Athletic Story / assessment saves) are
+verified at the backend layer (impersonated, rolled-back SQL) and then require an
+**owner manual save smoke** in the live app to confirm end-to-end. See
+[ISSUE_LOG.md](ISSUE_LOG.md) #1–#2.
+
+## L2 — Automated browser visual smoke may fail (DevTools / localhost limits)
+Automated visual smoke can fail for environment reasons (no authenticated session,
+DevTools-localhost constraints) — this is an environment limitation, not an app
+bug. UI changes are verified by owner visual review. See [NOT_A_BUG.md](NOT_A_BUG.md) #4.
+
+## L3 — Legal text requires final lawyer review before launch
+Terms / consent / disclaimer copy is not finalized and must be reviewed by a lawyer
+before any public launch. Acceptance must also be **backend-persisted** (decision
+D3 in [DECISIONS.md](DECISIONS.md)) — currently not implemented.
+
+## L4 — Payment integration not implemented
+Billing/packages exist as a foundation, but live payment processing is not wired.
+See root `BUSINESS_MODEL_AUTH_BILLING_PLAN.md`.
+
+## L5 — Athletic Performance is not production-ready
+The Athletic lane is an admin-only locked preview (PR #72). It must not be exposed
+to coaches/clients until fully smoked. See [DECISIONS.md](DECISIONS.md) D1/D6.
+
+## L6 — Supabase Preview CI check always fails (baseline gap)
+Non-blocking and expected; do not chase it green. See [NOT_A_BUG.md](NOT_A_BUG.md) #3.
+
+## L7 — No markdown lint tooling in the repo
+`package.json` defines only Vite scripts (`dev`/`build`/`preview`); there is no
+markdownlint/prettier dev dependency. Docs are reviewed manually against the
+`clean-code-guard` / documentation-quality standards rather than by a linter.
