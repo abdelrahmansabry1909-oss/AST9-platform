@@ -5709,42 +5709,41 @@ tbody td:first-child { color: var(--text-primary); font-weight: 500; }
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   PREMIUM OVERRIDES & FRONTEND POLISH (Phase R1E)
-   Unifies landing + login + transition states into a premium, 
-   coherent, and high-trust clinical operating system aesthetic.
+   PREMIUM OVERRIDES & FRONTEND REDESIGN (Phase R1E-Visual-2)
+   Cinematic clinical dashboard aesthetic matching core app.
 ═══════════════════════════════════════════════════════════════ */
 
-/* ── 1 · Global Color variables override for landing page ── */
+/* ── 1 · Global Color Variables Override for Landing Page ── */
 :root {
-  --nc-bg-primary:   #06080E;   /* deep noir graphite black-blue base */
-  --nc-bg-secondary: #0A0D15;   /* deep clinical void */
-  --nc-bg-elevated:  #0F131F;
-  --nc-bg-card:      rgba(10, 13, 21, 0.68);
+  --nc-bg-primary:   #020408;   /* deep cinematic medical-tech base */
+  --nc-bg-secondary: #060913;   /* dark clinical void */
+  --nc-bg-elevated:  #0C0F1D;
+  --nc-bg-card:      rgba(10, 14, 23, 0.72);
   
-  --nc-teal:         #2DD4BF;   /* subtle clinical recovery emerald/teal */
-  --nc-teal-glow:    rgba(45, 212, 191, 0.12);
-  --nc-cyan:         #38BDF8;   /* soft cyan / electric blue highlights */
-  --nc-cyan-glow:    rgba(56, 189, 248, 0.10);
+  --nc-teal:         #2DD4BF;   /* soft recovery teal glow */
+  --nc-teal-glow:    rgba(45, 212, 191, 0.08);
+  --nc-cyan:         #38BDF8;   /* electric cyan accent */
+  --nc-cyan-glow:    rgba(56, 189, 248, 0.12);
   
-  --nc-gold:         #c8f04a;   /* electric lime branding/success accent */
-  --nc-gold-soft:    rgba(200, 240, 74, 0.08);
-  --nc-champagne:    #c8f04a;
+  --nc-gold:         #38BDF8;   /* unify yellow with clinical blue */
+  --nc-gold-soft:    rgba(56, 189, 248, 0.08);
+  --nc-champagne:    #38BDF8;
 }
 
 /* ── 2 · Hero and General Buttons ── */
 .nc-btn--primary {
-  background: linear-gradient(135deg, #0d9488 0%, #0284c7 100%) !important;
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
   color: #FFFFFF !important;
   font-weight: 600 !important;
-  box-shadow: 0 4px 20px rgba(13, 148, 136, 0.25), inset 0 1px 0 rgba(255,255,255,0.15) !important;
+  box-shadow: 0 4px 16px rgba(2, 132, 199, 0.25), inset 0 1px 0 rgba(255,255,255,0.15) !important;
   border: 1px solid rgba(255,255,255,0.05) !important;
   border-radius: 9999px !important;
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 .nc-btn--primary:hover {
-  background: linear-gradient(135deg, #0f766e 0%, #0369a1 100%) !important;
-  transform: translateY(-2.5px) !important;
-  box-shadow: 0 10px 28px rgba(13, 148, 136, 0.4), inset 0 1px 0 rgba(255,255,255,0.2) !important;
+  background: linear-gradient(135deg, #0369a1 0%, #075985 100%) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 24px rgba(2, 132, 199, 0.4), inset 0 1px 0 rgba(255,255,255,0.2) !important;
 }
 
 .nc-btn--ghost {
@@ -5759,98 +5758,158 @@ tbody td:first-child { color: var(--text-primary); font-weight: 500; }
 .nc-btn--ghost:hover {
   background: rgba(255, 255, 255, 0.05) !important;
   border-color: rgba(255, 255, 255, 0.16) !important;
-  transform: translateY(-2.5px) !important;
+  transform: translateY(-2px) !important;
   color: #FFFFFF !important;
 }
 
 .nc-btn--gold {
-  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%) !important;
+  background: linear-gradient(135deg, #0e9384 0%, #0c7a6e 100%) !important;
   color: #FFFFFF !important;
   font-weight: 600 !important;
-  box-shadow: 0 4px 20px rgba(14, 165, 233, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+  box-shadow: 0 4px 16px rgba(14, 147, 132, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
   border: 1px solid rgba(255, 255, 255, 0.05) !important;
   border-radius: 9999px !important;
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 .nc-btn--gold:hover {
-  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
-  transform: translateY(-2.5px) !important;
-  box-shadow: 0 10px 28px rgba(14, 165, 233, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+  background: linear-gradient(135deg, #0c7a6e 0%, #0f766e 100%) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 24px rgba(14, 147, 132, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
 }
 
-/* ── 3 · Pricing/Access Cards ── */
+/* ── 3 · Pricing / Access Cards ── */
 .nc-plan-card {
-  background: rgba(10, 13, 21, 0.65) !important;
+  background: rgba(10, 14, 23, 0.7) !important;
   border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5) !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6) !important;
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 .nc-plan-card:hover {
-  transform: translateY(-5px) !important;
-  border-color: rgba(56, 189, 248, 0.3) !important;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7), 0 0 20px rgba(56, 189, 248, 0.08) !important;
+  transform: translateY(-4px) !important;
+  border-color: rgba(56, 189, 248, 0.25) !important;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75), 0 0 20px rgba(56, 189, 248, 0.06) !important;
 }
 
 .nc-plan-card--featured {
-  background: rgba(10, 13, 21, 0.8) !important;
-  border-color: rgba(45, 212, 191, 0.28) !important;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6), 0 0 24px rgba(45, 212, 191, 0.06) !important;
+  background: rgba(10, 14, 23, 0.85) !important;
+  border-color: rgba(45, 212, 191, 0.24) !important;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65), 0 0 24px rgba(45, 212, 191, 0.05) !important;
 }
 .nc-plan-card--featured:hover {
-  border-color: rgba(45, 212, 191, 0.45) !important;
-  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.75), 0 0 32px rgba(45, 212, 191, 0.15) !important;
+  border-color: rgba(45, 212, 191, 0.4) !important;
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.8), 0 0 32px rgba(45, 212, 191, 0.12) !important;
 }
 
 .nc-plan-tag {
-  background: linear-gradient(135deg, #0e9384, #0c7a6e) !important;
+  background: linear-gradient(135deg, #0ea5e9, #0284c7) !important;
   color: #FFFFFF !important;
-  box-shadow: 0 4px 12px rgba(14, 147, 132, 0.25) !important;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25) !important;
 }
 
 /* ── 4 · Transition Boot Screen Overlay ── */
 #loading-overlay {
-  background:
-    radial-gradient(120% 90% at 50% 32%, #0f1526 0%, transparent 60%),
-    radial-gradient(90% 70% at 50% 116%, rgba(45,212,191,0.06) 0%, transparent 55%),
-    linear-gradient(180deg, #06080F 0%, #030406 100%) !important;
+  position: fixed; inset: 0; z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
+  background: #020408 !important;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(45, 212, 191, 0.08), transparent 70%),
+    radial-gradient(circle 800px at 50% 50%, rgba(56, 189, 248, 0.04), transparent 60%) !important;
+  overflow: hidden;
+  transition: opacity 400ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.nc-loader-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: radial-gradient(circle 400px at 50% 50%, #000, transparent);
+  -webkit-mask-image: radial-gradient(circle 400px at 50% 50%, #000, transparent);
+  pointer-events: none;
+}
+
+.nc-loader-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  z-index: 2;
+  text-align: center;
+}
+
+.nc-loader-brand {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.nc-loader-titles {
+  text-align: left;
 }
 
 .nc-loader-mark {
-  filter: drop-shadow(0 12px 32px rgba(45, 212, 191, 0.25)) !important;
+  width: 52px; height: 52px;
+  filter: drop-shadow(0 8px 24px rgba(56, 189, 248, 0.25)) !important;
+  animation: nc-loader-pulse 2s ease-in-out infinite alternate;
+}
+@keyframes nc-loader-pulse {
+  from { transform: scale(1); filter: drop-shadow(0 8px 24px rgba(56, 189, 248, 0.2)); }
+  to { transform: scale(1.03); filter: drop-shadow(0 12px 32px rgba(56, 189, 248, 0.35)); }
+}
+
+.nc-loader-word {
+  font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+  font-size: 28px; font-weight: 800; letter-spacing: 0.12em;
+  color: #F8FAFC; line-height: 1;
+}
+
+.nc-loader-sub {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.24em; text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4); margin-top: 6px;
+}
+
+.loader-bar {
+  width: 200px; height: 3px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 999px; overflow: hidden;
+  position: relative;
+}
+
+.loader-bar::after {
+  content: '';
+  display: block; height: 100%;
+  width: 50%;
+  background: linear-gradient(90deg, #38BDF8, #2DD4BF);
+  border-radius: 999px;
+  animation: loader-sweep-fast 1.2s infinite cubic-bezier(0.25, 1, 0.5, 1);
+  position: absolute; left: 0; top: 0;
+}
+@keyframes loader-sweep-fast {
+  0% { transform: translateX(-100%); }
+  50% { transform: translateX(100%); }
+  100% { transform: translateX(200%); }
 }
 
 .nc-loader-status {
-  font-size: 13px;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.5);
-  margin-top: 14px;
-  height: 20px;
-  text-align: center;
-  position: relative;
-  letter-spacing: 0.02em;
+  font-size: 12px; font-weight: 500; color: rgba(255,255,255,0.45);
+  letter-spacing: 0.02em; margin-top: 4px;
 }
 
-.nc-loader-status::after {
-  content: 'Preparing your recovery workspace...';
-  display: inline-block;
-  animation: nc-status-cycle 9s infinite cubic-bezier(0.16, 1, 0.3, 1);
+/* ── 5 · Landing Page Hero & Section Overrides ── */
+.nc-hero-glow--teal {
+  background: radial-gradient(circle, rgba(45, 212, 191, 0.12), transparent 70%) !important;
+}
+.nc-hero-glow--cyan {
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.08), transparent 70%) !important;
+}
+.nc-feature-card, .nc-stat-card {
+  background: rgba(10, 14, 23, 0.7) !important;
+  border-color: rgba(255,255,255,0.06) !important;
+  box-shadow: 0 12px 36px rgba(0,0,0,0.5) !important;
+}
+.nc-feature-card:hover, .nc-stat-card:hover {
+  border-color: rgba(56, 189, 248, 0.2) !important;
 }
 
-@keyframes nc-status-cycle {
-  0% { content: 'Preparing your recovery workspace...'; opacity: 0; transform: translateY(4px); }
-  3%, 22% { opacity: 1; transform: translateY(0); }
-  25% { opacity: 0; transform: translateY(-4px); }
-  
-  28% { content: 'Checking your subscription...'; opacity: 0; transform: translateY(4px); }
-  31%, 47% { opacity: 1; transform: translateY(0); }
-  50% { opacity: 0; transform: translateY(-4px); }
-  
-  53% { content: 'Loading your coach dashboard...'; opacity: 0; transform: translateY(4px); }
-  56%, 72% { opacity: 1; transform: translateY(0); }
-  75% { opacity: 0; transform: translateY(-4px); }
-  
-  78% { content: 'Opening your rehab hub...'; opacity: 0; transform: translateY(4px); }
-  81%, 97% { opacity: 1; transform: translateY(0); }
-  100% { opacity: 0; transform: translateY(-4px); }
-}
 

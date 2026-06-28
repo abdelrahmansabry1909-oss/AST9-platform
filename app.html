@@ -19,27 +19,36 @@
 
 <!-- LOADING — Royal Premium transition screen -->
 <div id="loading-overlay">
-  <div class="nc-loader-mark" aria-hidden="true">
-    <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="NeuCore">
-      <defs>
-        <linearGradient id="ncRoyalLd" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
-          <stop stop-color="#1A2748"/><stop offset="1" stop-color="#0A1024"/>
-        </linearGradient>
-        <linearGradient id="ncRoyalLdG" x1="10" y1="9" x2="30" y2="31" gradientUnits="userSpaceOnUse">
-          <stop stop-color="#F6E27A"/><stop offset=".5" stop-color="#D4AF37"/><stop offset="1" stop-color="#B8860B"/>
-        </linearGradient>
-      </defs>
-      <rect x="1.5" y="1.5" width="37" height="37" rx="11" fill="url(#ncRoyalLd)"/>
-      <rect x="2.5" y="2.5" width="35" height="35" rx="10" fill="none" stroke="url(#ncRoyalLdG)" stroke-width="1" opacity=".75"/>
-      <path d="M13 28V13l14 14V12" fill="none" stroke="url(#ncRoyalLdG)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
-      <circle cx="27" cy="12" r="2.6" fill="#2DD4BF"/>
-      <circle cx="27" cy="12" r="5" fill="none" stroke="#2DD4BF" stroke-width="1" opacity=".5"/>
-    </svg>
+  <!-- Subtle backgrid for tech vibe -->
+  <div class="nc-loader-grid"></div>
+  <!-- Centered container -->
+  <div class="nc-loader-content">
+    <div class="nc-loader-brand">
+      <span class="nc-loader-mark" aria-hidden="true">
+        <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="NeuCore">
+          <defs>
+            <linearGradient id="ncRoyalLd" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#0f172a"/><stop offset="1" stop-color="#020617"/>
+            </linearGradient>
+            <linearGradient id="ncRoyalLdG" x1="10" y1="9" x2="30" y2="31" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#38BDF8"/><stop offset=".5" stop-color="#0EA5E9"/><stop offset="1" stop-color="#0284c7"/>
+            </linearGradient>
+          </defs>
+          <rect x="1.5" y="1.5" width="37" height="37" rx="11" fill="url(#ncRoyalLd)"/>
+          <rect x="2.5" y="2.5" width="35" height="35" rx="10" fill="none" stroke="url(#ncRoyalLdG)" stroke-width="1" opacity=".75"/>
+          <path d="M13 28V13l14 14V12" fill="none" stroke="url(#ncRoyalLdG)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="27" cy="12" r="2.6" fill="#2DD4BF"/>
+          <circle cx="27" cy="12" r="5" fill="none" stroke="#2DD4BF" stroke-width="1" opacity=".5"/>
+        </svg>
+      </span>
+      <div class="nc-loader-titles">
+        <div class="nc-loader-word">NEU<span style="color:#38BDF8">CORE</span></div>
+        <div class="nc-loader-sub">Movement Operating System</div>
+      </div>
+    </div>
+    <div class="loader-bar"></div>
+    <div class="nc-loader-status">Opening your rehab workspace…</div>
   </div>
-  <div class="nc-loader-word">NEU<span class="nc-loader-word-accent">CORE</span></div>
-  <div class="nc-loader-sub">An AST9 Solution</div>
-  <div class="loader-bar"></div>
-  <div class="nc-loader-status"></div>
 </div>
 
 <!-- TOASTS -->
@@ -62,9 +71,11 @@
         <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="NeuCore">
           <defs>
             <linearGradient id="ncRoyalLg" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
-              <stop stop-color="#1A2748"/><stop offset="1" stop-color="#0A1024"/></linearGradient>
+              <stop stop-color="#0f172a"/><stop offset="1" stop-color="#020617"/>
+            </linearGradient>
             <linearGradient id="ncRoyalLgG" x1="10" y1="9" x2="30" y2="31" gradientUnits="userSpaceOnUse">
-              <stop stop-color="#F6E27A"/><stop offset=".5" stop-color="#D4AF37"/><stop offset="1" stop-color="#B8860B"/></linearGradient>
+              <stop stop-color="#38BDF8"/><stop offset=".5" stop-color="#0EA5E9"/><stop offset="1" stop-color="#0284c7"/>
+            </linearGradient>
           </defs>
           <rect x="1.5" y="1.5" width="37" height="37" rx="11" fill="url(#ncRoyalLg)"/>
           <rect x="2.5" y="2.5" width="35" height="35" rx="10" fill="none" stroke="url(#ncRoyalLgG)" stroke-width="1" opacity=".75"/>
@@ -74,8 +85,8 @@
         </svg>
       </span>
       <div>
-        <div class="nc-login-wordmark">NEUCORE</div>
-        <div class="nc-login-tagline">An AST9 Solution</div>
+        <div class="nc-login-wordmark">NEU<span style="color:#38BDF8">CORE</span></div>
+        <div class="nc-login-tagline">Movement Operating System</div>
       </div>
     </div>
 
