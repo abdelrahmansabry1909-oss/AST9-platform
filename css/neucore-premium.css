@@ -2156,4 +2156,74 @@ body.service-athletic .nc-ai-chip::before {
   background: linear-gradient(90deg, #E11D48 0%, #FB7185 100%) !important;
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   PREMIUM LOGIN & SIGNUP SCREEN DESIGN POLISH (Phase R1E)
+   Upgrades card styling, focus glows, form fields, and animations.
+═══════════════════════════════════════════════════════════════ */
+
+#screen-login.nc-login {
+  background: #05080F !important;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(45, 212, 191, 0.14), transparent 70%),
+    radial-gradient(ellipse 60% 40% at 100% 30%, rgba(56, 189, 248, 0.08), transparent 70%),
+    radial-gradient(ellipse 70% 50% at 0% 70%, rgba(200, 240, 74, 0.04), transparent 70%) !important;
+}
+
+.nc-login-card {
+  background: rgba(10, 15, 28, 0.72) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.03) inset !important;
+  backdrop-filter: blur(28px) saturate(170%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(170%) !important;
+}
+
+.nc-login-card::before {
+  background: linear-gradient(90deg, var(--nc-teal, #2DD4BF), var(--nc-cyan, #38BDF8), #c8f04a) !important;
+}
+
+.nc-login-input {
+  background: rgba(255, 255, 255, 0.02) !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  color: #F8FAFC !important;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.nc-login-input:focus {
+  border-color: var(--nc-teal, #2DD4BF) !important;
+  box-shadow: 0 0 0 4px rgba(45, 212, 191, 0.15), inset 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+}
+
+.nc-login-tab {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  font-weight: 600 !important;
+}
+
+.nc-login-tab.active {
+  background: linear-gradient(135deg, rgba(45, 212, 191, 0.15), rgba(56, 189, 248, 0.05)) !important;
+  color: var(--nc-cyan, #38BDF8) !important;
+  box-shadow: 0 0 0 1px rgba(45, 212, 191, 0.25) !important;
+}
+
+.nc-login-submit {
+  background: linear-gradient(135deg, #0e9384 0%, #0c7a6e 100%) !important;
+  color: #FFFFFF !important;
+  font-weight: 600 !important;
+  border-radius: 10px !important;
+  box-shadow: 0 4px 12px rgba(14, 147, 132, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.nc-login-submit:hover:not(:disabled) {
+  background: linear-gradient(135deg, #10a393 0%, #0e8a7d 100%) !important;
+  transform: translateY(-1.5px) !important;
+  box-shadow: 0 8px 24px rgba(14, 147, 132, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+}
+
+.nc-login-submit:active:not(:disabled) {
+  transform: translateY(0.5px) !important;
+  box-shadow: 0 2px 6px rgba(14, 147, 132, 0.15) !important;
+}
+
+
 
