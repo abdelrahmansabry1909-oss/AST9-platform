@@ -587,9 +587,7 @@ const Dashboard = (() => {
     });
   }
 
-  function openQuickActions() {
-    showSection('new-session');
-  }
+
 
   function _animateNumber(el, target) {
     const start = 0;
@@ -725,7 +723,7 @@ COOLDOWN: 1. 2.
 --- HOMEWORK ---
 Daily: 1. 2. 3.
 
-Keep output clean, structured, and clinically precise.`;
+Keep output clean, structured, and professionally precise.`;
   }
 
   // Read the Program Setup card — coach's chosen program shape.
@@ -938,7 +936,7 @@ Keep output clean, structured, and clinically precise.`;
     ].filter(r => r.value);
   }
 
-  // Clinical findings (posture / movement screens / compensations).
+  // Assessment findings (posture / movement screens / compensations).
   function _objectiveFindingRows(a, gait) {
     a = a || {};
     const rows = [
@@ -1195,8 +1193,8 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
     if (!data || !data.length) {
       el.innerHTML = _emptyState(
         '◈', 'No programs published yet',
-        'Run New Session, generate a program, then publish it for your client.',
-        { label: '+ New Session', onclick: "Dashboard.showSection('new-session')" });
+        'Run a new Assessment, generate a program, then publish it for your client.',
+        { label: '+ Assessment', onclick: "Dashboard.showSection('new-session')" });
       return;
     }
 
@@ -1550,7 +1548,6 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
     toast,
     emptyState: _emptyState,
     handleGlobalSearch,
-    openQuickActions,
   };
 
 })();
