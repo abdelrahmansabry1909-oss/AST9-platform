@@ -2498,66 +2498,113 @@ body.nc-bright .sidebar .logout-icon:hover {
   color: #ef4444;
 }
 
-/* Onboarding Quickstart Card */
-.nc-quickstart-card {
-  background: linear-gradient(135deg, #0b0f19 0%, #1e293b 100%) !important;
-  border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 20px;
-  padding: 24px;
-  color: #f8fafc;
-  margin-bottom: 26px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+/* Onboarding Quickstart Bar (Phase R1G-Visual-2) */
+.nc-quickstart-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: var(--nc-bg-elevated);
+  border: 1px solid var(--nc-border);
+  border-radius: 12px;
+  margin-bottom: 20px;
+  box-shadow: var(--nc-shadow-sm);
 }
-.nc-quickstart-content h3 {
-  font-size: 17px;
+.nc-quickstart-title {
+  font-size: 12px;
   font-weight: 700;
-  color: #ffffff;
-  margin-bottom: 6px;
+  color: var(--nc-text-primary);
 }
-.nc-quickstart-content p {
-  font-size: 13px;
-  color: #94a3b8;
-  margin-bottom: 18px;
-  max-width: 680px;
-}
-.nc-steps-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 14px;
-}
-.nc-step-item {
+.nc-quickstart-steps {
   display: flex;
   align-items: center;
   gap: 12px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 12px 14px;
-  border-radius: 12px;
+}
+.nc-quickstart-steps .step-item {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--nc-text-secondary);
   cursor: pointer;
-  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.15s ease;
 }
-.nc-step-item:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: var(--nc-indigo);
-  transform: translateY(-1.5px);
+.nc-quickstart-steps .step-item:hover {
+  color: var(--nc-indigo);
 }
-.nc-step-item .step-num {
-  width: 24px;
-  height: 24px;
+.nc-quickstart-steps .step-badge {
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
-  background: var(--nc-indigo);
-  color: #ffffff;
-  font-weight: 700;
-  font-size: 11px;
-  display: flex;
+  background: var(--nc-indigo-soft);
+  color: var(--nc-indigo);
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
+  font-size: 9px;
+  font-weight: 700;
 }
-.nc-step-item .step-lbl {
-  font-size: 12.5px;
+.nc-quickstart-steps .step-arrow {
+  font-size: 11px;
+  color: var(--nc-text-muted);
   font-weight: 600;
-  color: #e2e8f0;
+}
+
+/* Compact Welcome Header (Phase R1G-Visual-2) */
+.nc-dash-welcome-compact {
+  margin-top: 4px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.nc-dash-welcome-compact .nc-dash-greeting {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--nc-text-primary);
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+.nc-dash-welcome-compact .nc-dash-subtitle {
+  font-size: 12px;
+  color: var(--nc-text-muted);
+  font-weight: 500;
+}
+
+/* Tighter KPI styles (Phase R1G-Visual-2) */
+.nc-kpi {
+  padding: 14px 16px 12px !important;
+  border-radius: 12px !important;
+}
+.nc-kpi-top {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 8px !important;
+  margin-bottom: 8px !important;
+}
+.nc-kpi-top svg {
+  color: var(--kpi) !important;
+  flex-shrink: 0 !important;
+}
+.nc-kpi-label {
+  font-size: 11.5px !important;
+  font-weight: 600 !important;
+  color: var(--nc-text-secondary) !important;
+  margin-top: 0 !important;
+  letter-spacing: 0.01em !important;
+}
+.nc-kpi-value {
+  font-size: 28px !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.03em !important;
+  line-height: 1.1 !important;
+}
+.nc-kpi-sub {
+  font-size: 10.5px !important;
+  color: var(--nc-text-muted) !important;
+  margin-top: 2px !important;
 }
 
 /* Telemetry Stats Card */
@@ -2567,8 +2614,8 @@ body.nc-bright .sidebar .logout-icon:hover {
 .nc-telemetry-row {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-  margin-bottom: 18px;
+  gap: 12px;
+  margin-bottom: 14px;
 }
 .nc-telemetry-stat {
   display: flex;
@@ -2576,31 +2623,31 @@ body.nc-bright .sidebar .logout-icon:hover {
   gap: 4px;
   background: var(--nc-bg-primary);
   border: 1px solid var(--nc-border);
-  padding: 12px;
-  border-radius: 12px;
+  padding: 10px;
+  border-radius: 10px;
 }
 .nc-telemetry-stat .lbl {
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 600;
   color: var(--nc-text-muted);
 }
 .nc-telemetry-stat .val {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 800;
   letter-spacing: -0.02em;
 }
 .nc-telemetry-bar-wrap {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 .nc-telemetry-bar-label {
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 600;
   color: var(--nc-text-muted);
 }
 .nc-telemetry-bar {
-  height: 8px;
+  height: 6px;
   background: var(--nc-bg-primary);
   border: 1px solid var(--nc-border);
   border-radius: 99px;
@@ -2616,34 +2663,34 @@ body.nc-bright .sidebar .logout-icon:hover {
 .nc-schedule-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 .nc-schedule-item {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 10px 12px;
+  gap: 12px;
+  padding: 8px 10px;
   background: var(--nc-bg-primary);
   border: 1px solid var(--nc-border);
-  border-radius: 12px;
+  border-radius: 10px;
 }
 .nc-schedule-item .time {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   color: var(--nc-indigo);
   background: var(--nc-indigo-soft);
-  padding: 4px 8px;
-  border-radius: 8px;
+  padding: 3px 6px;
+  border-radius: 6px;
   white-space: nowrap;
 }
 .nc-schedule-item .details {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
   min-width: 0;
 }
 .nc-schedule-item .details .title {
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--nc-text-primary);
   white-space: nowrap;
@@ -2651,12 +2698,23 @@ body.nc-bright .sidebar .logout-icon:hover {
   text-overflow: ellipsis;
 }
 .nc-schedule-item .details .subtitle {
-  font-size: 11px;
+  font-size: 10.5px;
   color: var(--nc-text-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* SVGs inside nav items */
+.sidebar .nav-item svg {
+  margin-right: 12px;
+  flex-shrink: 0;
+  transition: color var(--sidebar-transition);
+}
+.sidebar.collapsed .nav-item svg {
+  margin-right: 0;
+}
+
 
 
 

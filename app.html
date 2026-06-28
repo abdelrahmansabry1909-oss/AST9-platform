@@ -128,11 +128,11 @@
       </div>
       <div class="nc-login-field">
         <label class="nc-login-label" for="su-email">Email address</label>
-        <input id="su-email" type="email" class="nc-login-input" placeholder="you@clinic.com" autocomplete="email"/>
+        <input id="su-email" type="email" class="nc-login-input" placeholder="you@domain.com" autocomplete="email"/>
       </div>
       <div class="nc-login-field">
         <label class="nc-login-label" for="su-email2">Confirm email</label>
-        <input id="su-email2" type="email" class="nc-login-input" placeholder="you@clinic.com"/>
+        <input id="su-email2" type="email" class="nc-login-input" placeholder="you@domain.com"/>
       </div>
       <div class="nc-login-field">
         <label class="nc-login-label" for="su-phone">Mobile number</label>
@@ -392,56 +392,56 @@
     <nav class="sidebar-nav">
       <div class="nav-section rehab-only">Main</div>
       <div class="nav-item active rehab-only" id="nav-dashboard" onclick="Dashboard.showSection('dashboard')" title="Dashboard">
-        <span class="nav-item-icon">⬡</span><span class="nav-label">Dashboard</span>
+        <svg class="nav-item-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg><span class="nav-label">Dashboard</span>
       </div>
-      <div class="nav-item role-coach-admin rehab-only" id="nav-new-session" onclick="Dashboard.showSection('new-session')" title="New Session">
-        <span class="nav-item-icon">✦</span><span class="nav-label">New Session</span>
+      <div class="nav-item role-coach-admin rehab-only" id="nav-new-session" onclick="Dashboard.showSection('new-session')" title="Assessment">
+        <svg class="nav-item-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg><span class="nav-label">Assessment</span>
       </div>
       <div class="nav-item role-coach-admin rehab-only" id="nav-programs" onclick="Dashboard.showSection('programs')" title="Programs">
-        <span class="nav-item-icon">◈</span><span class="nav-label">Programs</span>
+        <svg class="nav-item-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg><span class="nav-label">Programs</span>
       </div>
       <!-- Daily Routine is coach/admin-only in the nav now: the coach adherence
            dashboard. Clients reach their routine inside Train (folded in S2);
            this avoids a duplicate desktop path. Section + workflow unchanged. -->
       <div class="nav-item role-coach-admin rehab-only" id="nav-daily-routine" onclick="Dashboard.showSection('daily-routine')" title="Daily Routine">
-        <span class="nav-item-icon">𓆸</span><span class="nav-label">Daily Routine</span>
+        <svg class="nav-item-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg><span class="nav-label">Daily Routine</span>
       </div>
       <div class="nav-item role-client-only rehab-only" id="nav-nutrition-plan" onclick="Dashboard.showSection('nutrition-plan')" title="Nutrition Plan">
-        <span class="nav-item-icon">◴</span><span class="nav-label">Nutrition Plan</span>
+        <svg class="nav-item-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg><span class="nav-label">Nutrition Plan</span>
       </div>
 
       <div class="nav-section role-coach-admin rehab-only">Manage</div>
       <div class="nav-item role-coach-admin rehab-only" id="nav-clients" onclick="Dashboard.showSection('clients')" title="Clients">
-        <span class="nav-item-icon">◉</span><span class="nav-label">Clients</span>
+        <svg class="nav-item-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg><span class="nav-label">Clients</span>
       </div>
       <div class="nav-item role-coach-admin rehab-only" id="nav-appointments" onclick="Dashboard.showSection('appointments')" title="Appointments">
-        <span class="nav-item-icon">🗓</span><span class="nav-label">Appointments</span>
+        <svg class="nav-item-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg><span class="nav-label">Appointments</span>
       </div>
       <div class="nav-item role-coach-admin rehab-only" id="nav-subscriptions" onclick="Dashboard.showSection('subscriptions')" title="Subscriptions">
-        <span class="nav-item-icon">◌</span><span class="nav-label">Subscriptions</span>
+        <svg class="nav-item-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg><span class="nav-label">Subscriptions</span>
       </div>
       <div class="nav-item role-coach-admin rehab-only" id="nav-billing" onclick="Dashboard.showSection('billing')" title="Billing">
-        <span class="nav-item-icon">◇</span><span class="nav-label">Billing</span>
+        <svg class="nav-item-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg><span class="nav-label">Billing</span>
       </div>
       <div class="nav-item role-coach-admin rehab-only" id="nav-coach-profile" onclick="Dashboard.showSection('coach-profile')" title="My Profile">
-        <span class="nav-item-icon">◍</span><span class="nav-label">My Profile</span>
+        <svg class="nav-item-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg><span class="nav-label">My Profile</span>
       </div>
       <div class="nav-item role-coach-admin rehab-only" id="nav-exercise-library" onclick="Dashboard.showSection('exercise-library')" title="Exercise Library">
-        <span class="nav-item-icon">▶</span><span class="nav-label">Exercise Library</span>
+        <svg class="nav-item-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg><span class="nav-label">Exercise Library</span>
       </div>
       <div class="nav-item role-coach-admin rehab-only" id="nav-progress" onclick="Dashboard.showSection('progress')" title="Progress Charts">
-        <span class="nav-item-icon">◎</span><span class="nav-label">Progress Charts</span>
+        <svg class="nav-item-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"></path><path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"></path></svg><span class="nav-label">Progress Charts</span>
       </div>
       <div class="nav-item role-coach-admin rehab-only" id="nav-workout-history" onclick="Dashboard.showSection('workout-history')" title="Workout History">
-        <span class="nav-item-icon">◐</span><span class="nav-label">Workout History</span>
+        <svg class="nav-item-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l3 3"></path><path d="M3.05 11a9 9 0 1 1 .05.084V12H3v-1.05z"></path></svg><span class="nav-label">Workout History</span>
       </div>
       <div class="nav-item role-coach-admin rehab-only" id="nav-progression" onclick="Dashboard.showSection('progression')" title="Progression">
-        <span class="nav-item-icon">◭</span><span class="nav-label">Progression</span>
+        <svg class="nav-item-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"></path></svg><span class="nav-label">Progression</span>
       </div>
 
       <div class="nav-section role-coach-admin rehab-only">NeuCore Intelligence</div>
       <div class="nav-item rehab-only" id="nav-services" onclick="Dashboard.showSection('services')" title="Our Services">
-        <span class="nav-item-icon">✦</span><span class="nav-label">Our Services</span>
+        <svg class="nav-item-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg><span class="nav-label">Our Services</span>
       </div>
       <!-- Gait Analysis removed from navigation (Phase 8). The engine stays
            wired into the New Session generation pipeline (gait-panel /
@@ -523,23 +523,23 @@
       </div>
 
       <div class="nav-item role-coach-admin athletic-only" id="nav-movement-deficit-profile" onclick="Dashboard.showSection('movement-deficit-profile')" title="Movement Deficit Profile" style="display: none;">
-        <span class="nav-item-icon">◭</span><span class="nav-label">Deficit Profile</span>
+        <svg class="nav-item-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg><span class="nav-label">Deficit Profile</span>
       </div>
 
       <div class="nav-item role-coach-admin athletic-only" id="nav-athletic-program-design" onclick="Dashboard.showSection('athletic-program-design')" title="Athletic Program Design" style="display: none;">
-        <span class="nav-item-icon">◇</span><span class="nav-label">Program Design</span>
+        <svg class="nav-item-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg><span class="nav-label">Program Design</span>
       </div>
 
       <div class="nav-item role-coach-admin athletic-only" id="nav-periodization-calendar" onclick="Dashboard.showSection('periodization-calendar')" title="Periodization Calendar" style="display: none;">
-        <span class="nav-item-icon">🗓</span><span class="nav-label">Periodization Calendar</span>
+        <svg class="nav-item-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg><span class="nav-label">Periodization Calendar</span>
       </div>
 
       <div class="nav-item role-coach-admin athletic-only" id="nav-performance-reports" onclick="Dashboard.showSection('performance-reports')" title="Performance Reports" style="display: none;">
-        <span class="nav-item-icon">📈</span><span class="nav-label">Performance Reports</span>
+        <svg class="nav-item-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg><span class="nav-label">Performance Reports</span>
       </div>
 
       <div class="nav-item role-coach-admin athletic-only" id="nav-ml-insights" onclick="Dashboard.showSection('ml-insights')" title="ML Insights" style="display: none;">
-        <span class="nav-item-icon">🧠</span><span class="nav-label">ML Insights</span>
+        <svg class="nav-item-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.59 4.59A2 2 0 1 1 11 8H9m10.59 11.41A2 2 0 1 1 18 16h1.59M16 8h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-3m-6 3H5c-1.1 0-2-.9-2-2v-3c0-1.1.9-2 2-2h3"></path></svg><span class="nav-label">ML Insights</span>
       </div>
 
     </nav>
@@ -552,9 +552,11 @@
           <div class="user-name truncate" id="sb-user-name">–</div>
           <div class="user-role-tag" id="sb-user-role">–</div>
         </div>
-        <div id="notif-bell" class="logout-icon" title="Notifications"
-             style="position:relative;cursor:pointer;margin-right:6px">◔</div>
-        <div class="logout-icon" title="Sign out" onclick="UI.handleLogout()">⏻</div>
+        <div id="notif-bell" class="logout-icon" title="Notifications" onclick="Dashboard.showSection('notifications')"
+             style="position:relative;cursor:pointer;margin-right:8px;display:flex;align-items:center;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </div>
+        <svg class="logout-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" onclick="UI.handleLogout()" title="Sign out"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
       </div>
     </div>
   </aside>
@@ -608,15 +610,12 @@
         </div>
       </div>
       <div class="nc-topbar-right">
-        <button class="nc-topbar-btn" onclick="Dashboard.openQuickActions()" title="Quick Action">
-          <span class="btn-icon">+</span> <span class="btn-text">Quick Action</span>
-        </button>
         <div class="nc-topbar-icon-btn" onclick="Dashboard.showSection('notifications')" title="Notifications">
-          <span class="icon">◔</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/></svg>
           <span class="nc-topbar-badge hidden" id="topbar-badge-notifications">0</span>
         </div>
         <div class="nc-topbar-icon-btn" onclick="Dashboard.showSection('coach-profile')" title="Help & Feedback">
-          <span class="icon">?</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
         </div>
         <div class="nc-topbar-divider"></div>
         <div class="nc-topbar-user" onclick="Dashboard.showSection('coach-profile')">
@@ -684,68 +683,68 @@
       <div class="nc-status-banner nc-reveal" id="dash-status-banner">
         <div class="nc-status-banner-content">
           <span class="badge" style="background:rgba(20,184,166,0.1); color:var(--nc-teal); border: 1px solid rgba(20,184,166,0.2);">ACTIVE</span>
-          <span class="text">Clinic Workspace status is fully configured. All client seats are operational.</span>
+          <span class="text">Workspace status is fully configured. All client seats are operational.</span>
         </div>
         <button class="btn-close" onclick="this.parentElement.remove()" style="background:none; border:none; color:inherit; cursor:pointer;">×</button>
       </div>
 
-      <!-- Phase G — executive welcome header (no in-hero action buttons;
-           the sidebar owns New Session / Analytics navigation). -->
-      <header class="nc-dash-welcome">
-        <div>
-          <div class="nc-dash-eyebrow"><span id="nc-dash-context">NeuCore Intelligence</span></div>
-          <h1 class="nc-dash-greeting" id="nc-dashboard-greeting">Welcome back</h1>
-          <p class="nc-dash-sub" id="nc-dash-summary">Your coaching command center — clients, recovery, and growth at a glance.</p>
-        </div>
+      <!-- Compact Coach Workspace Header (Phase R1G-Visual-2) -->
+      <header class="nc-dash-welcome-compact">
+        <h2 class="nc-dash-greeting" id="nc-dashboard-greeting">Welcome back</h2>
+        <span class="nc-dash-subtitle" id="nc-dash-summary">Workspace Overview</span>
       </header>
 
-      <!-- Onboarding Quickstart Card -->
-      <div class="nc-quickstart-card nc-reveal">
-        <div class="nc-quickstart-content">
-          <h3>Get Started in 3 Steps</h3>
-          <p>NeuCore integrates objective joint telemetry, builders, and client loops. Here's your recommended workflow:</p>
-          <div class="nc-steps-grid">
-            <div class="nc-step-item" onclick="Dashboard.showSection('clients')">
-              <span class="step-num">1</span>
-              <span class="step-lbl">Add Client Roster</span>
-            </div>
-            <div class="nc-step-item" onclick="Dashboard.showSection('new-session')">
-              <span class="step-num">2</span>
-              <span class="step-lbl">Conduct Joint ROM Assessment</span>
-            </div>
-            <div class="nc-step-item" onclick="Dashboard.showSection('programs')">
-              <span class="step-num">3</span>
-              <span class="step-lbl">Publish Phase-Gated Program</span>
-            </div>
-          </div>
+      <!-- Slim Onboarding Workflow Guide (Phase R1G-Visual-2) -->
+      <div class="nc-quickstart-bar nc-reveal">
+        <span class="nc-quickstart-title">Recommended Workflow:</span>
+        <div class="nc-quickstart-steps">
+          <span class="step-item" onclick="Dashboard.showSection('clients')">
+            <span class="step-badge">1</span> Add Client
+          </span>
+          <span class="step-arrow">→</span>
+          <span class="step-item" onclick="Dashboard.showSection('new-session')">
+            <span class="step-badge">2</span> Complete Assessment
+          </span>
+          <span class="step-arrow">→</span>
+          <span class="step-item" onclick="Dashboard.showSection('programs')">
+            <span class="step-badge">3</span> Assign Program
+          </span>
         </div>
       </div>
 
-      <!-- KPI row -->
+      <!-- KPI row (Phase R1G-Visual-2) -->
       <div class="nc-kpi-grid">
         <div class="nc-kpi nc-kpi--indigo">
-          <div class="nc-kpi-top"><span class="nc-kpi-icon">◉</span></div>
+          <div class="nc-kpi-top">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
+            <span class="nc-kpi-label">Clients</span>
+          </div>
           <div class="nc-kpi-value" id="stat-clients">–</div>
-          <div class="nc-kpi-label">Clients</div>
-          <div class="nc-kpi-sub">active on your roster</div>
+          <div class="nc-kpi-sub">active roster</div>
         </div>
         <div class="nc-kpi nc-kpi--teal">
-          <div class="nc-kpi-top"><span class="nc-kpi-icon">◈</span></div>
+          <div class="nc-kpi-top">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+            <span class="nc-kpi-label">Active Programs</span>
+          </div>
           <div class="nc-kpi-value" id="stat-programs">–</div>
-          <div class="nc-kpi-label">Active Programs</div>
-          <div class="nc-kpi-sub">published &amp; running</div>
+          <div class="nc-kpi-sub">running</div>
         </div>
         <div class="nc-kpi nc-kpi--violet">
-          <div class="nc-kpi-top"><span class="nc-kpi-icon">◍</span></div>
+          <div class="nc-kpi-top">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+            <span class="nc-kpi-label">Assessments</span>
+          </div>
           <div class="nc-kpi-value" id="stat-assessments">–</div>
-          <div class="nc-kpi-label">Assessments</div>
-          <div class="nc-kpi-sub">movement evaluations</div>
+          <div class="nc-kpi-sub">completed</div>
         </div>
         <div class="nc-kpi nc-kpi--amber">
-          <div class="nc-kpi-top"><span class="nc-kpi-icon">◔</span></div>
+          <div class="nc-kpi-top">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            <span class="nc-kpi-label">Alerts</span>
+          </div>
           <div class="nc-kpi-value" id="stat-alerts">–</div>
-          <div class="nc-kpi-label">Recovery Alerts</div>
-          <div class="nc-kpi-sub">clients needing attention</div>
+          <div class="nc-kpi-sub">attention needed</div>
         </div>
       </div>
 
@@ -848,10 +847,22 @@
               <div class="nc-section-title"><span class="nc-section-dot" style="background:#14B8A6"></span>Quick Actions</div>
             </div>
             <div class="nc-quick-grid">
-              <button class="nc-quick-btn" onclick="Dashboard.showSection('new-session')"><span class="nc-quick-ico">✦</span>New Session</button>
-              <button class="nc-quick-btn" onclick="Dashboard.showSection('clients')"><span class="nc-quick-ico">◉</span>Clients</button>
-              <button class="nc-quick-btn" onclick="Dashboard.showSection('programs')"><span class="nc-quick-ico">◈</span>Programs</button>
-              <button class="nc-quick-btn" onclick="Dashboard.showSection('analytics')"><span class="nc-quick-ico">◎</span>Analytics</button>
+              <button class="nc-quick-btn" onclick="Dashboard.showSection('new-session')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                Assessment
+              </button>
+              <button class="nc-quick-btn" onclick="Dashboard.showSection('clients')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
+                Clients
+              </button>
+              <button class="nc-quick-btn" onclick="Dashboard.showSection('programs')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                Programs
+              </button>
+              <button class="nc-quick-btn" onclick="Dashboard.showSection('progress')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px"><path d="M3 3v18h18"></path><path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"></path></svg>
+                Analytics
+              </button>
             </div>
           </section>
 
@@ -863,7 +874,7 @@
     <div class="section" id="section-new-session">
       <div class="page-header">
         <div class="page-header-left">
-          <h1 class="page-title">New <span class="accent">Session</span></h1>
+          <h1 class="page-title">Assessment <span class="accent">Workspace</span></h1>
           <p class="page-subtitle">Complete all tabs then generate the AI program</p>
         </div>
       </div>
@@ -991,7 +1002,7 @@
             <div class="form-group">
               <label class="form-label">Client Reported Complaints & History</label>
               <textarea id="ns-subjective" class="form-input" style="min-height:160px"
-                placeholder="Pain location, behaviour, onset, aggravating/easing factors, previous treatments, medications, sleep quality, stress levels, occupation demands..."></textarea>
+                placeholder="Pain location, behaviour, onset, aggravating/easing factors, previous notes, medications, sleep quality, stress levels, occupation demands..."></textarea>
             </div>
           </div>
         </div>
@@ -1484,7 +1495,7 @@
         <div id="output-panel" class="hidden">
           <div class="card" style="margin-bottom:var(--sp-4)">
             <div class="card-header">
-              <span class="card-title">AI Clinical Narrative</span>
+              <span class="card-title">AI Assessment Summary</span>
               <div style="display:flex;gap:var(--sp-2)">
                 <button class="btn btn-ghost btn-sm" onclick="Dashboard.previewWeb()">🌐 Web Preview</button>
                 <button class="btn btn-primary btn-sm" id="btn-export-pdf" onclick="Dashboard.exportProfessionalPDF()">📄 Export Professional PDF</button>
@@ -2018,7 +2029,7 @@
         <div class="empty-state">
           <span class="empty-icon">⟳</span>
           <div class="empty-title">Run an assessment first</div>
-          <p class="empty-desc">Use the <b>✦ New Session</b> button in the sidebar to begin — gait results will populate here after Generate.</p>
+          <p class="empty-desc">Use the <b>✦ Assessment</b> button in the sidebar to begin — gait results will populate here after Generate.</p>
         </div>
       </div>
     </div>
@@ -2092,9 +2103,9 @@
           </a>
 
           <a href="#" class="nc-case-card">
-            <img src="https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=900&auto=format&q=80" alt="Longevity clinic"/>
+            <img src="https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=900&auto=format&q=80" alt="Longevity hub"/>
             <div class="nc-case-content">
-              <span class="nc-case-tag">Longevity Clinic</span>
+              <span class="nc-case-tag">Longevity Workspace</span>
               <div class="nc-case-title">Executive-tier movement scoring across a 200-client cohort</div>
               <div class="nc-case-desc">A longevity-medicine practice deployed NeuCore as the standard movement-assessment battery across its concierge program.</div>
               <div class="nc-case-readmore">Read case study
@@ -2284,7 +2295,7 @@
           <button class="tab-btn active" onclick="AthleticService.switchStoryStep(0)" id="story-step-btn-0">Context & Ranks</button>
           <button class="tab-btn" onclick="AthleticService.switchStoryStep(1)" id="story-step-btn-1">Macrocycle & Goals</button>
           <button class="tab-btn" onclick="AthleticService.switchStoryStep(2)" id="story-step-btn-2">Logistics & Tools</button>
-          <button class="tab-btn" onclick="AthleticService.switchStoryStep(3)" id="story-step-btn-3">Medical History & Flags</button>
+          <button class="tab-btn" onclick="AthleticService.switchStoryStep(3)" id="story-step-btn-3">Health History & Flags</button>
         </div>
 
         <form id="story-form" onsubmit="event.preventDefault(); AthleticService.saveAthleteStory();">
@@ -2377,7 +2388,7 @@
             </div>
           </div>
 
-          <!-- Step 4: Medical History & Flags -->
+          <!-- Step 4: Health History & Flags -->
           <div class="story-step-panel" id="story-step-panel-3" style="display:none">
             <div class="form-group">
               <label class="form-label">Injury / Loading History</label>
@@ -3559,7 +3570,7 @@
   <div class="nc-fb-card">
     <div class="nc-fb-eyebrow">Help train the AI</div>
     <h3 class="nc-fb-title" id="rpm-fb-title">Why did you change this?</h3>
-    <p class="nc-fb-sub">A 5-second answer here teaches the system. Your reason becomes training data so future suggestions match your clinical judgement.</p>
+    <p class="nc-fb-sub">A 5-second answer here teaches the system. Your reason becomes training data so future suggestions match your professional judgement.</p>
 
     <div class="nc-fb-diff">
       <div class="nc-fb-diff-side original">
@@ -3573,10 +3584,10 @@
     </div>
 
     <div class="nc-fb-chips" id="rpm-fb-chips">
-      <button class="nc-fb-chip" data-reason="patient_not_ready">Patient not ready for this stage</button>
+      <button class="nc-fb-chip" data-reason="patient_not_ready">Client not ready for this stage</button>
       <button class="nc-fb-chip" data-reason="wrong_phase_match">Wrong fit for the phase</button>
       <button class="nc-fb-chip" data-reason="exercise_unsafe">Unsafe / contraindicated</button>
-      <button class="nc-fb-chip" data-reason="better_alternative">Better clinical alternative</button>
+      <button class="nc-fb-chip" data-reason="better_alternative">Better programming alternative</button>
       <button class="nc-fb-chip" data-reason="other">Other</button>
     </div>
 
