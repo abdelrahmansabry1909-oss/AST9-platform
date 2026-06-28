@@ -2251,5 +2251,413 @@ body.service-athletic .nc-ai-chip::before {
   box-shadow: 0 2px 6px rgba(2, 132, 199, 0.15) !important;
 }
 
+/* ── EXECUTIVE SHELL & DASHBOARD REDESIGN OVERRIDES ── */
+
+/* Deep graphite sidebar override for bright mode (coach dashboard) */
+body.nc-bright .sidebar {
+  background: #0b0f19 !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
+  box-shadow: none !important;
+}
+body.nc-bright .sidebar::before {
+  opacity: 0.25 !important;
+}
+body.nc-bright .sidebar .nc-sidebar-wordmark {
+  color: #ffffff !important;
+}
+body.nc-bright .sidebar .nc-sidebar-sub {
+  color: #475569 !important;
+}
+body.nc-bright .sidebar .nav-section {
+  color: #475569 !important;
+}
+body.nc-bright .sidebar .nc-service-switcher {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+body.nc-bright .sidebar .nc-service-btn {
+  color: #94a3b8 !important;
+}
+body.nc-bright .sidebar .nc-service-btn.active[data-service="rehab"] {
+  background: #14B8A6 !important;
+  color: #04141a !important;
+  box-shadow: 0 2px 8px rgba(20, 184, 166, 0.25) !important;
+}
+body.nc-bright .sidebar .nc-service-btn.active[data-service="athletic"] {
+  background: #5B6CFF !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(91, 108, 255, 0.25) !important;
+}
+body.nc-bright .sidebar .nav-item {
+  color: #94a3b8 !important;
+}
+body.nc-bright .sidebar .nav-item:hover {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+}
+body.nc-bright .sidebar .nav-item.active {
+  color: #38bdf8 !important;
+  background: rgba(56, 189, 248, 0.08) !important;
+  box-shadow: inset 0 0 0 1px rgba(56, 189, 248, 0.15) !important;
+}
+body.nc-bright .sidebar .nav-item.active .nav-item-icon {
+  color: #38bdf8 !important;
+}
+body.nc-bright .sidebar .user-card {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border-color: rgba(255, 255, 255, 0.06) !important;
+}
+body.nc-bright .sidebar .user-name {
+  color: #ffffff !important;
+}
+body.nc-bright .sidebar .user-role-tag {
+  background: rgba(56, 189, 248, 0.1) !important;
+  color: #38bdf8 !important;
+}
+body.nc-bright .sidebar .logout-icon {
+  color: #94a3b8 !important;
+}
+body.nc-bright .sidebar .logout-icon:hover {
+  color: #f43f5e !important;
+}
+
+/* Desktop top bar */
+.nc-topbar {
+  display: none;
+}
+@media (min-width: 901px) {
+  .nc-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 0;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--nc-border);
+    background: transparent;
+  }
+}
+.nc-topbar-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 320px;
+}
+.nc-topbar-search .search-icon {
+  position: absolute;
+  left: 12px;
+  color: var(--nc-text-muted);
+  font-size: 13px;
+  pointer-events: none;
+}
+.nc-topbar-search input {
+  width: 100%;
+  padding: 8px 12px 8px 32px;
+  font-size: 13.5px;
+  font-weight: 500;
+  border: 1px solid var(--nc-border);
+  border-radius: 10px;
+  background: var(--nc-bg-elevated);
+  color: var(--nc-text-primary);
+  transition: all 0.2s ease;
+}
+.nc-topbar-search input:focus {
+  outline: none;
+  border-color: var(--nc-indigo);
+  box-shadow: 0 0 0 3px rgba(91, 108, 255, 0.12);
+}
+.nc-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.nc-topbar-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  font-size: 12.5px;
+  font-weight: 600;
+  border-radius: 10px;
+  border: none;
+  background: var(--nc-indigo);
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  box-shadow: 0 2px 6px rgba(91, 108, 255, 0.2);
+}
+.nc-topbar-btn:hover {
+  background: var(--nc-indigo-ink);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(91, 108, 255, 0.3);
+}
+.nc-topbar-btn:active {
+  transform: translateY(0);
+}
+.nc-topbar-icon-btn {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--nc-bg-elevated);
+  border: 1px solid var(--nc-border);
+  color: var(--nc-text-secondary);
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+.nc-topbar-icon-btn:hover {
+  background: var(--nc-bg-secondary);
+  color: var(--nc-text-primary);
+  border-color: var(--nc-border-strong);
+}
+.nc-topbar-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #ef4444;
+  color: #ffffff;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 4px;
+  border-radius: 8px;
+  min-width: 14px;
+  text-align: center;
+  border: 2px solid var(--nc-bg-elevated);
+}
+.nc-topbar-divider {
+  height: 20px;
+  width: 1px;
+  background: var(--nc-border);
+}
+.nc-topbar-user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 8px;
+  transition: background 0.18s ease;
+}
+.nc-topbar-user:hover {
+  background: var(--nc-bg-secondary);
+}
+.nc-topbar-user .topbar-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--nc-indigo-soft);
+  color: var(--nc-indigo);
+  font-weight: 700;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(91, 108, 255, 0.2);
+}
+.nc-topbar-user .topbar-username {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--nc-text-primary);
+}
+
+/* Status Banner */
+.nc-status-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  background: var(--nc-bg-elevated);
+  border: 1px solid var(--nc-border);
+  border-radius: 14px;
+  margin-bottom: 24px;
+  box-shadow: var(--nc-shadow-sm);
+}
+.nc-status-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--nc-text-secondary);
+}
+.nc-status-banner-content .badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+.nc-status-banner .btn-close {
+  font-size: 18px;
+  color: var(--nc-text-muted);
+  transition: color 0.15s ease;
+}
+.nc-status-banner .btn-close:hover {
+  color: #ef4444;
+}
+
+/* Onboarding Quickstart Card */
+.nc-quickstart-card {
+  background: linear-gradient(135deg, #0b0f19 0%, #1e293b 100%) !important;
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 20px;
+  padding: 24px;
+  color: #f8fafc;
+  margin-bottom: 26px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+.nc-quickstart-content h3 {
+  font-size: 17px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 6px;
+}
+.nc-quickstart-content p {
+  font-size: 13px;
+  color: #94a3b8;
+  margin-bottom: 18px;
+  max-width: 680px;
+}
+.nc-steps-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+}
+.nc-step-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 12px 14px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.nc-step-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--nc-indigo);
+  transform: translateY(-1.5px);
+}
+.nc-step-item .step-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--nc-indigo);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.nc-step-item .step-lbl {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+/* Telemetry Stats Card */
+.nc-telemetry-summary-content {
+  padding-top: 6px;
+}
+.nc-telemetry-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 18px;
+}
+.nc-telemetry-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--nc-bg-primary);
+  border: 1px solid var(--nc-border);
+  padding: 12px;
+  border-radius: 12px;
+}
+.nc-telemetry-stat .lbl {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--nc-text-muted);
+}
+.nc-telemetry-stat .val {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.nc-telemetry-bar-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.nc-telemetry-bar-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--nc-text-muted);
+}
+.nc-telemetry-bar {
+  height: 8px;
+  background: var(--nc-bg-primary);
+  border: 1px solid var(--nc-border);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.nc-telemetry-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--nc-indigo) 0%, var(--nc-teal) 100%);
+  border-radius: 99px;
+}
+
+/* Schedule List Card */
+.nc-schedule-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.nc-schedule-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 12px;
+  background: var(--nc-bg-primary);
+  border: 1px solid var(--nc-border);
+  border-radius: 12px;
+}
+.nc-schedule-item .time {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--nc-indigo);
+  background: var(--nc-indigo-soft);
+  padding: 4px 8px;
+  border-radius: 8px;
+  white-space: nowrap;
+}
+.nc-schedule-item .details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.nc-schedule-item .details .title {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--nc-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.nc-schedule-item .details .subtitle {
+  font-size: 11px;
+  color: var(--nc-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
 
 

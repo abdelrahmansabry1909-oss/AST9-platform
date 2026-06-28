@@ -599,6 +599,33 @@
   <!-- MAIN -->
   <main class="main-content">
 
+    <!-- Desktop top bar -->
+    <div class="nc-topbar">
+      <div class="nc-topbar-left">
+        <div class="nc-topbar-search">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="global-search-input" placeholder="Search clients, programs, or telemetry..." oninput="Dashboard.handleGlobalSearch(this.value)"/>
+        </div>
+      </div>
+      <div class="nc-topbar-right">
+        <button class="nc-topbar-btn" onclick="Dashboard.openQuickActions()" title="Quick Action">
+          <span class="btn-icon">+</span> <span class="btn-text">Quick Action</span>
+        </button>
+        <div class="nc-topbar-icon-btn" onclick="Dashboard.showSection('notifications')" title="Notifications">
+          <span class="icon">◔</span>
+          <span class="nc-topbar-badge hidden" id="topbar-badge-notifications">0</span>
+        </div>
+        <div class="nc-topbar-icon-btn" onclick="Dashboard.showSection('coach-profile')" title="Help & Feedback">
+          <span class="icon">?</span>
+        </div>
+        <div class="nc-topbar-divider"></div>
+        <div class="nc-topbar-user" onclick="Dashboard.showSection('coach-profile')">
+          <div class="topbar-avatar" id="topbar-avatar-char">?</div>
+          <span class="topbar-username" id="topbar-user-name">Coach</span>
+        </div>
+      </div>
+    </div>
+
     <!-- Mobile top bar -->
     <div class="mobile-topbar">
       <button class="hamburger" id="hamburger-btn" onclick="Dashboard.toggleSidebar()" aria-label="Menu">
@@ -653,6 +680,15 @@
     <!-- ── DASHBOARD ── -->
     <div class="section active" id="section-dashboard">
 
+      <!-- Status Banner -->
+      <div class="nc-status-banner nc-reveal" id="dash-status-banner">
+        <div class="nc-status-banner-content">
+          <span class="badge" style="background:rgba(20,184,166,0.1); color:var(--nc-teal); border: 1px solid rgba(20,184,166,0.2);">ACTIVE</span>
+          <span class="text">Clinic Workspace status is fully configured. All client seats are operational.</span>
+        </div>
+        <button class="btn-close" onclick="this.parentElement.remove()" style="background:none; border:none; color:inherit; cursor:pointer;">×</button>
+      </div>
+
       <!-- Phase G — executive welcome header (no in-hero action buttons;
            the sidebar owns New Session / Analytics navigation). -->
       <header class="nc-dash-welcome">
@@ -662,6 +698,28 @@
           <p class="nc-dash-sub" id="nc-dash-summary">Your coaching command center — clients, recovery, and growth at a glance.</p>
         </div>
       </header>
+
+      <!-- Onboarding Quickstart Card -->
+      <div class="nc-quickstart-card nc-reveal">
+        <div class="nc-quickstart-content">
+          <h3>Get Started in 3 Steps</h3>
+          <p>NeuCore integrates objective joint telemetry, builders, and client loops. Here's your recommended workflow:</p>
+          <div class="nc-steps-grid">
+            <div class="nc-step-item" onclick="Dashboard.showSection('clients')">
+              <span class="step-num">1</span>
+              <span class="step-lbl">Add Client Roster</span>
+            </div>
+            <div class="nc-step-item" onclick="Dashboard.showSection('new-session')">
+              <span class="step-num">2</span>
+              <span class="step-lbl">Conduct Joint ROM Assessment</span>
+            </div>
+            <div class="nc-step-item" onclick="Dashboard.showSection('programs')">
+              <span class="step-num">3</span>
+              <span class="step-lbl">Publish Phase-Gated Program</span>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <!-- KPI row -->
       <div class="nc-kpi-grid">
@@ -708,6 +766,35 @@
 
           <section class="nc-panel">
             <div class="nc-section-head">
+              <div class="nc-section-title"><span class="nc-section-dot" style="background:var(--nc-indigo)"></span>Telemetry & Compliance Pulse</div>
+              <button class="nc-section-link" onclick="Dashboard.showSection('progress')">Trends ↗</button>
+            </div>
+            <div class="nc-telemetry-summary-content">
+              <div class="nc-telemetry-row">
+                <div class="nc-telemetry-stat">
+                  <span class="lbl">Compliance Rate</span>
+                  <span class="val" style="color:var(--nc-teal)">94.2%</span>
+                </div>
+                <div class="nc-telemetry-stat">
+                  <span class="lbl">Avg ROM Deficit</span>
+                  <span class="val" style="color:var(--nc-indigo)">12.5°</span>
+                </div>
+                <div class="nc-telemetry-stat">
+                  <span class="lbl">Pain Score Index</span>
+                  <span class="val" style="color:#ef4444">2.4/10</span>
+                </div>
+              </div>
+              <div class="nc-telemetry-bar-wrap">
+                <div class="nc-telemetry-bar-label">Weekly Client Activity Target</div>
+                <div class="nc-telemetry-bar">
+                  <div class="nc-telemetry-bar-fill" style="width: 85%"></div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="nc-panel">
+            <div class="nc-section-head">
               <div class="nc-section-title"><span class="nc-section-dot"></span>Recent Activity</div>
               <button class="nc-section-link" onclick="Dashboard.showSection('programs')">View all ↗</button>
             </div>
@@ -723,6 +810,29 @@
               <button class="nc-section-link" onclick="Dashboard.showSection('clients')">All ↗</button>
             </div>
             <div id="dashboard-clients-list"></div>
+          </section>
+
+          <section class="nc-panel">
+            <div class="nc-section-head">
+              <div class="nc-section-title"><span class="nc-section-dot" style="background:#8b5cf6"></span>Upcoming Schedule</div>
+              <button class="nc-section-link" onclick="Dashboard.showSection('appointments')">Schedule ↗</button>
+            </div>
+            <div class="nc-schedule-list">
+              <div class="nc-schedule-item">
+                <div class="time">09:30 AM</div>
+                <div class="details">
+                  <span class="title">Initial Assessment</span>
+                  <span class="subtitle">Client: Sarah Jenkins</span>
+                </div>
+              </div>
+              <div class="nc-schedule-item">
+                <div class="time">11:00 AM</div>
+                <div class="details">
+                  <span class="title">ROM Telemetry Scan</span>
+                  <span class="subtitle">Client: David Miller</span>
+                </div>
+              </div>
+            </div>
           </section>
 
           <section class="nc-panel">

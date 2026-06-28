@@ -66,6 +66,12 @@ const Dashboard = (() => {
     const adminEmailEl = document.getElementById('admin-email-display');
     if (adminEmailEl) adminEmailEl.textContent = p?.email || '–';
 
+    // Populate topbar profile details (Phase R1G)
+    const topbarAvatar = document.getElementById('topbar-avatar-char');
+    if (topbarAvatar) topbarAvatar.textContent = (p?.full_name || p?.email || '?')[0].toUpperCase();
+    const topbarName = document.getElementById('topbar-user-name');
+    if (topbarName) topbarName.textContent = (p?.full_name || p?.email || 'Coach').split(' ')[0];
+
     loadDashboardStats();
     _populateClientSelects();
     setService('rehab');
@@ -553,6 +559,36 @@ const Dashboard = (() => {
       el.textContent = '0';
       _animateNumber(el, parseInt(val) || 0);
     }
+    // Sync with topbar badge for alerts (Phase R1G)
+    if (id === 'stat-alerts') {
+      const tbBadge = document.getElementById('topbar-badge-notifications');
+      if (tbBadge) {
+        tbBadge.textContent = val;
+        if (parseInt(val) > 0) {
+          tbBadge.classList.remove('hidden');
+        } else {
+          tbBadge.classList.add('hidden');
+        }
+      }
+    }
+  }
+
+  function handleGlobalSearch(query) {
+    const q = (query || '').toLowerCase().trim();
+    const clientRows = document.querySelectorAll('#dashboard-clients-list > div');
+    clientRows.forEach(row => {
+      const text = (row.textContent || '').toLowerCase();
+      row.style.display = (!q || text.includes(q)) ? '' : 'none';
+    });
+    const recoveryRows = document.querySelectorAll('#dash-recovery-center tr, #dash-recovery-center .flex');
+    recoveryRows.forEach(row => {
+      const text = (row.textContent || '').toLowerCase();
+      row.style.display = (!q || text.includes(q)) ? '' : 'none';
+    });
+  }
+
+  function openQuickActions() {
+    showSection('new-session');
   }
 
   function _animateNumber(el, target) {
@@ -1513,6 +1549,8 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
     populateProgressClientSelect,
     toast,
     emptyState: _emptyState,
+    handleGlobalSearch,
+    openQuickActions,
   };
 
 })();
