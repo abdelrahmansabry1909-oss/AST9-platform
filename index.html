@@ -53,30 +53,161 @@
 </nav>
 
 <!-- ═══════════════════════════════ HERO ═══════════════════════════════ -->
+<!-- ═══════════════════════════════ HERO (Section 1) ═══════════════════════════════ -->
 <header class="nc-hero" id="top">
-  <div class="nc-grid-overlay"></div>
+  <!-- Dark overlay to ensure absolute readability over animations -->
+  <div class="nc-hero-overlay"></div>
   <div class="nc-noise"></div>
   <div class="nc-hero-glow nc-hero-glow--teal"></div>
   <div class="nc-hero-glow nc-hero-glow--cyan"></div>
 
-  <div class="nc-container nc-hero-grid">
-    <div class="nc-hero-content">
-      <span class="nc-badge nc-badge--accent nc-reveal">
+  <!-- Sliding holographic product stage behind headline -->
+  <div class="nc-hero-stage">
+    <div class="nc-stage-row nc-stage-row--left">
+      <!-- Screen 1: Active Assessment Session -->
+      <div class="nc-product-screen">
+        <div class="nc-mock-header">
+          <span class="nc-mock-title">Session Assessment</span>
+          <span class="nc-mock-badge nc-mock-badge--teal">Telemetry</span>
+        </div>
+        <div class="nc-mock-list">
+          <div class="nc-mock-item">
+            <span class="nc-mock-item-label">Active Athlete</span>
+            <span class="nc-mock-item-val" style="color:#2DD4BF">A. Peterson</span>
+          </div>
+          <div class="nc-mock-item">
+            <span class="nc-mock-item-label">Deficit Map</span>
+            <span class="nc-mock-item-val">-8.2° L-Hip IR</span>
+          </div>
+          <div class="nc-mock-item">
+            <span class="nc-mock-item-label">State</span>
+            <span class="nc-mock-item-val" style="color:#2DD4BF">Phase II Control</span>
+          </div>
+        </div>
+      </div>
+      <!-- Screen 2: Program Builder -->
+      <div class="nc-product-screen nc-product-screen--teal">
+        <div class="nc-mock-header">
+          <span class="nc-mock-title">Program Designer</span>
+          <span class="nc-mock-badge nc-mock-badge--cyan">Builder</span>
+        </div>
+        <div class="nc-mock-list">
+          <div class="nc-mock-item">
+            <span class="nc-mock-item-label">Protocol</span>
+            <span class="nc-mock-item-val">Single-Leg Midfoot Bridge</span>
+          </div>
+          <div class="nc-mock-item">
+            <span class="nc-mock-item-label">Volume</span>
+            <span class="nc-mock-item-val">3 sets x 8 reps</span>
+          </div>
+          <div class="nc-mock-item">
+            <span class="nc-mock-item-label">Target RPE</span>
+            <span class="nc-mock-item-val">RPE 7 (Mod-Hard)</span>
+          </div>
+        </div>
+      </div>
+      <!-- Screen 3: Client mobile log -->
+      <div class="nc-product-screen">
+        <div class="nc-mock-header">
+          <span class="nc-mock-title">Client Feed</span>
+          <span class="nc-mock-badge nc-mock-badge--teal">Session Logs</span>
+        </div>
+        <div class="nc-mock-list">
+          <div class="nc-mock-item">
+            <span class="nc-mock-item-label">Completed</span>
+            <span class="nc-mock-item-val">Post-Sprain Resiliency</span>
+          </div>
+          <div class="nc-mock-item">
+            <span class="nc-mock-item-label">Pain Level</span>
+            <span class="nc-mock-item-val">2 / 10 (Mild)</span>
+          </div>
+          <div class="nc-mock-item">
+            <span class="nc-mock-item-label">Logged RPE</span>
+            <span class="nc-mock-item-val">6 (Moderate)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="nc-stage-row nc-stage-row--right">
+      <!-- Screen 4: Telemetry Charts -->
+      <div class="nc-product-screen nc-product-screen--teal">
+        <div class="nc-mock-header">
+          <span class="nc-mock-title">Kinetic Timeline</span>
+          <span class="nc-mock-badge nc-mock-badge--cyan">Charts</span>
+        </div>
+        <div class="nc-mock-list">
+          <div class="nc-mock-item">
+            <span class="nc-mock-item-label">Ankle Inversion</span>
+            <span class="nc-mock-item-val">+4.5° Symmetry</span>
+          </div>
+          <div class="nc-mock-item">
+            <span class="nc-mock-item-label">Knee Extension</span>
+            <span class="nc-mock-item-val">100% baseline</span>
+          </div>
+          <div class="nc-mock-item">
+            <span class="nc-mock-item-label">Telemetry Lock</span>
+            <span class="nc-mock-item-val" style="color:#38BDF8">Signal active</span>
+          </div>
+        </div>
+      </div>
+      <!-- Screen 5: Progress Stories -->
+      <div class="nc-product-screen">
+        <div class="nc-mock-header">
+          <span class="nc-mock-title">Progress Case</span>
+          <span class="nc-mock-badge nc-mock-badge--teal">Case note</span>
+        </div>
+        <div class="nc-mock-list">
+          <div class="nc-mock-item">
+            <span class="nc-mock-item-label">Observation</span>
+            <span class="nc-mock-item-val">Ankle Instability</span>
+          </div>
+          <div class="nc-mock-item">
+            <span class="nc-mock-item-label">Intervention</span>
+            <span class="nc-mock-item-val">Perturbation drills</span>
+          </div>
+          <div class="nc-mock-item">
+            <span class="nc-mock-item-label">Status</span>
+            <span class="nc-mock-item-val" style="color:#2DD4BF">Resilience verified</span>
+          </div>
+        </div>
+      </div>
+      <!-- Screen 6: Athletic Locked Preview -->
+      <div class="nc-product-screen nc-product-screen--performance">
+        <div class="nc-mock-header">
+          <span class="nc-mock-title" style="color:#FB7185">Performance Preview</span>
+          <span class="nc-mock-badge nc-mock-badge--rose">Locked</span>
+        </div>
+        <div class="nc-mock-list">
+          <div class="nc-mock-item">
+            <span class="nc-mock-item-label">Sprint Telemetry</span>
+            <span class="nc-mock-item-val" style="color:#FB7185">🔒 Coming Soon</span>
+          </div>
+          <div class="nc-mock-item">
+            <span class="nc-mock-item-label">Jump & COD Assessment</span>
+            <span class="nc-mock-item-val" style="color:#FB7185">🔒 Locked</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nc-container nc-hero-container">
+    <div style="max-width: 680px; margin: 0 auto; text-align: center;">
+      <span class="nc-badge nc-badge--accent nc-reveal" style="margin-bottom: 24px;">
         <span class="nc-badge-dot"></span>
-        Now in private beta · v3.0
+        The Living Rehab Operating System
       </span>
 
-      <h1 class="nc-hero-headline nc-reveal delay-1">
-        <span class="nc-line">Objective Telemetry for</span>
-        <span class="nc-line nc-gradient-text">Precision Rehabilitation.</span>
+      <h1 class="nc-hero-headline nc-reveal delay-1" style="font-size: clamp(32px, 5vw, 56px); line-height: 1.15; margin-bottom: 24px;">
+        One Rehab Operating System.<br/>
+        <span class="nc-gradient-text">From Assessment to Delivery.</span>
       </h1>
 
-      <p class="nc-hero-sub nc-reveal delay-2">
-        NeuCore is the clinical operating system designed for modern physical therapy and sports science.
-        Unify Range of Motion (ROM), muscle activation telemetry, and gait analysis in a single high-trust workspace.
+      <p class="nc-hero-sub nc-reveal delay-2" style="max-width: 600px; margin: 0 auto 36px; font-size: clamp(15px, 2vw, 18px); color: rgba(255,255,255,0.7); line-height: 1.6;">
+        Unify objective Range of Motion (ROM), telemetry mapping, and graded progression workflows in one clinical workspace. Built for modern physical therapy and sports science.
       </p>
 
-      <div class="nc-hero-cta nc-reveal delay-3">
+      <div class="nc-hero-cta nc-reveal delay-3" style="justify-content: center; gap: 16px;">
         <a href="#" data-visitor-trigger class="nc-btn nc-btn--primary nc-btn--lg">
           Start Assessment
           <svg class="nc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
@@ -85,598 +216,226 @@
           See platform preview
         </a>
       </div>
-
-      <div class="nc-hero-trust nc-reveal delay-4">
-        <div class="nc-trust-item">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg>
-          HIPAA-compliant
-        </div>
-        <div class="nc-trust-item">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg>
-          Clinically validated
-        </div>
-        <div class="nc-trust-item">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg>
-          Trusted by 200+ elite teams
-        </div>
-      </div>
-    </div>
-
-    <!-- Hero Visual -->
-    <div class="nc-hero-visual nc-reveal delay-2">
-      <div class="nc-orb-rings"></div>
-      <div class="nc-orb"></div>
-
-      <!-- Semi-transparent Dashboard Preview Card -->
-      <div class="nc-dashboard-preview">
-        <div class="nc-dash-preview-header">
-          <div class="nc-dash-preview-avatar">AP</div>
-          <div>
-            <div class="nc-dash-preview-name">Athlete Profile</div>
-            <div class="nc-dash-preview-status"><span class="nc-status-dot-active"></span>Active · Phase II Control</div>
-          </div>
-        </div>
-        <div class="nc-dash-preview-metric">
-          <div class="nc-dash-preview-metric-label">Joint ROM Deficit</div>
-          <div class="nc-dash-preview-metric-value">-8.2° <span class="nc-dash-trend-down">L-Hip IR</span></div>
-        </div>
-        <div class="nc-dash-preview-progress">
-          <div class="nc-dash-preview-progress-label">Recovery Path Progress</div>
-          <div class="nc-dash-preview-progress-bar">
-            <span style="width: 68%;"></span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Floating data card 1 -->
-      <div class="nc-floating-card nc-floating-card-1">
-        <div class="nc-card-label">Gait Symmetry</div>
-        <div class="nc-card-value">94.2<span style="font-size:14px;color:var(--nc-text-secondary);">%</span></div>
-        <div class="nc-card-meta">▲ 3.1% week-over-week</div>
-        <div class="nc-card-bars">
-          <span style="height:40%"></span>
-          <span style="height:60%"></span>
-          <span style="height:48%"></span>
-          <span style="height:78%"></span>
-          <span style="height:65%"></span>
-          <span style="height:92%"></span>
-          <span style="height:88%"></span>
-        </div>
-      </div>
-
-      <!-- Floating data card 2 -->
-      <div class="nc-floating-card nc-floating-card-2">
-        <div class="nc-card-label">Neural Recovery</div>
-        <div class="nc-card-value">8.7<span style="font-size:14px;color:var(--nc-text-secondary);"> / 10</span></div>
-        <div class="nc-card-meta">Optimal · Phase IV</div>
-        <div style="display:flex;gap:4px;margin-top:10px;">
-          <div style="flex:1;height:4px;background:var(--nc-teal);border-radius:2px;box-shadow:0 0 8px var(--nc-teal-glow);"></div>
-          <div style="flex:1;height:4px;background:var(--nc-teal);border-radius:2px;"></div>
-          <div style="flex:1;height:4px;background:var(--nc-teal);border-radius:2px;"></div>
-          <div style="flex:1;height:4px;background:rgba(255,255,255,0.1);border-radius:2px;"></div>
-        </div>
-      </div>
     </div>
   </div>
 </header>
 
-<!-- ═══════════════════════════════ TRUST STRIP ═══════════════════════════════ -->
-<section class="nc-trust-strip">
+<!-- ═══════════════════════════════ PLATFORM MODULES (Section 2) ═══════════════════════════════ -->
+<section class="nc-section" id="features" style="background:#060913; position:relative; z-index:4;">
   <div class="nc-container">
-    <div class="nc-trust-grid">
-      <div class="nc-reveal">
-        <span class="nc-stat-value nc-gradient-text">2.4M+</span>
-        <div class="nc-stat-label">Movement assessments</div>
-      </div>
-      <div class="nc-reveal delay-1">
-        <span class="nc-stat-value nc-gradient-text">98.3%</span>
-        <div class="nc-stat-label">Diagnostic accuracy</div>
-      </div>
-      <div class="nc-reveal delay-2">
-        <span class="nc-stat-value nc-gradient-text">200+</span>
-        <div class="nc-stat-label">Elite teams & clinics</div>
-      </div>
-      <div class="nc-reveal delay-3">
-        <span class="nc-stat-value nc-gradient-text">42</span>
-        <div class="nc-stat-label">Countries served</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════════════ FEATURE TABS ═══════════════════════════════ -->
-<section class="nc-section" id="features">
-  <div class="nc-container">
-    <div class="nc-section-head nc-reveal">
-      <span class="nc-eyebrow">The Platform</span>
-      <h2 class="nc-display nc-h2">A complete intelligence layer<br/>for human movement.</h2>
-      <p class="nc-lead">Three modules. One signal-rich engine. Built so clinicians, coaches, and elite athletes can act on what the body is actually doing — not what it looks like.</p>
+    <div class="nc-section-head nc-reveal" style="text-align: center; max-width: 700px; margin: 0 auto 60px;">
+      <span class="nc-eyebrow">Product Capabilities</span>
+      <h2 class="nc-display nc-h2" style="font-size: clamp(28px, 4vw, 40px);">Six Modules. One Integrated Signal.</h2>
+      <p class="nc-lead">Ditch disconnected logs and clinical templates. NeuCore integrates telemetry, builders, and client feedback loops into a unified, high-trust system.</p>
     </div>
 
-    <!-- Tabs trigger row -->
-    <div class="nc-tabs-list" role="tablist">
-      <button class="nc-tab-trigger active" data-tab="ai-gait" role="tab" aria-selected="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-        AI Gait Analysis
-      </button>
-      <button class="nc-tab-trigger" data-tab="recovery" role="tab" aria-selected="false">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-        Neural Recovery Tracking
-      </button>
-      <button class="nc-tab-trigger" data-tab="biomech" role="tab" aria-selected="false">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-        Biomechanics Intelligence
-      </button>
-    </div>
-
-    <!-- Tab panels -->
-    <div class="nc-tab-panel active" data-panel="ai-gait" role="tabpanel">
-      <div class="nc-tab-content">
-        <span class="nc-badge">Movement AI</span>
-        <h3 class="nc-h3">See every step. Score every phase.</h3>
-        <p>Computer-vision gait capture with phase-by-phase scoring across stance, swing, and double-support. NeuCore detects asymmetry deficits invisible to the human eye and pinpoints the exact joint and millisecond where movement breaks down.</p>
-        <a href="#cta" class="nc-btn nc-btn--primary" style="width:fit-content;margin-top:8px;">
-          Run a Sample Analysis
-          <svg class="nc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
-        </a>
-      </div>
-      <div class="nc-tab-image">
-        <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=1200&auto=format&q=80" alt="Athlete in motion captured for gait analysis" loading="lazy"/>
-      </div>
-    </div>
-
-    <div class="nc-tab-panel" data-panel="recovery" role="tabpanel">
-      <div class="nc-tab-content">
-        <span class="nc-badge">Neural Telemetry</span>
-        <h3 class="nc-h3">Recovery is a signal — not a guess.</h3>
-        <p>Continuous tracking of nervous-system load, motor-control fidelity, and tissue-readiness across rehab phases. NeuCore tells coaches and clinicians the precise day a return-to-train decision is supported by the data — not by feel.</p>
-        <a href="#cta" class="nc-btn nc-btn--primary" style="width:fit-content;margin-top:8px;">
-          See Recovery Engine
-          <svg class="nc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
-        </a>
-      </div>
-      <div class="nc-tab-image">
-        <img src="https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=1200&auto=format&q=80" alt="Recovery and rehabilitation monitoring" loading="lazy"/>
-      </div>
-    </div>
-
-    <div class="nc-tab-panel" data-panel="biomech" role="tabpanel">
-      <div class="nc-tab-content">
-        <span class="nc-badge">Holographic Twin</span>
-        <h3 class="nc-h3">A holographic twin of every body.</h3>
-        <p>206-bone digital skeleton with EMG-validated muscle activation, real-time pain mapping, and joint-level ROM telemetry. Build, test, and prescribe interventions on the twin before applying them to the body.</p>
-        <a href="#cta" class="nc-btn nc-btn--primary" style="width:fit-content;margin-top:8px;">
-          Open the 3D Engine
-          <svg class="nc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
-        </a>
-      </div>
-      <div class="nc-tab-image">
-        <img src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=1200&auto=format&q=80" alt="Biomechanics intelligence interface" loading="lazy"/>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════════════ OUR SERVICES ═══════════════════════════════ -->
-<section class="nc-section" id="services" style="padding-top:0;">
-  <div class="nc-container">
-    <div class="nc-section-head nc-reveal">
-      <span class="nc-eyebrow">Our Services</span>
-      <h2 class="nc-display nc-h2">End-to-end performance,<br/>engineered.</h2>
-      <p class="nc-lead">From the first assessment to the final return-to-play decision — every layer is built on the same NeuCore intelligence stack.</p>
-    </div>
-
-    <div class="nc-services-grid">
-      <!-- Service 1 -->
+    <div class="nc-services-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px;">
+      <!-- Card 1: Assess -->
       <div class="nc-service-card nc-reveal">
-        <div class="nc-service-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/></svg>
-        </div>
-        <h3 class="nc-service-title">Movement Assessment</h3>
-        <p class="nc-service-desc">Multi-plane biomechanics capture across squat, hinge, gait, and sport-specific patterns. Outputs a 4-domain score in under 12 minutes.</p>
-        <a href="#cta" class="nc-service-link">
-          Learn more
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
-        </a>
+        <div class="nc-service-icon" style="color:var(--nc-cyan)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
+        <h3 class="nc-service-title">1. Assess (ROM Telemetry)</h3>
+        <p class="nc-service-desc">Capture range of motion, pain scores, and joint metrics in under 12 minutes during active session observations.</p>
       </div>
 
-      <!-- Service 2 -->
+      <!-- Card 2: Build -->
       <div class="nc-service-card nc-reveal delay-1">
-        <div class="nc-service-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-        </div>
-        <h3 class="nc-service-title">Neuro-Performance</h3>
-        <p class="nc-service-desc">CNS-load monitoring and motor-control diagnostics that turn nervous-system readiness into a measurable training input.</p>
-        <a href="#cta" class="nc-service-link">
-          Learn more
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
-        </a>
+        <div class="nc-service-icon" style="color:var(--nc-teal)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M3 20h9M12 4V2M4 12h16"/></svg></div>
+        <h3 class="nc-service-title">2. Build (Phase-Gated Programs)</h3>
+        <p class="nc-service-desc">Draft structured rehab exercises, target volume, and sets/reps based on objective joint deficit heuristics.</p>
       </div>
 
-      <!-- Service 3 -->
+      <!-- Card 3: Deliver -->
       <div class="nc-service-card nc-reveal delay-2">
-        <div class="nc-service-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-        </div>
-        <h3 class="nc-service-title">Rehabilitation Programs</h3>
-        <p class="nc-service-desc">Auto-generated, phase-gated rehab plans backed by 25+ deficit rules and EMG-validated muscle-activation data.</p>
-        <a href="#cta" class="nc-service-link">
-          Learn more
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
-        </a>
+        <div class="nc-service-icon" style="color:var(--nc-cyan)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 17V9l7 4-7 4z"/></svg></div>
+        <h3 class="nc-service-title">3. Deliver (Client Workspace)</h3>
+        <p class="nc-service-desc">Distribute daily routines directly to the client's workspace dashboard, complete with clear instruction notes.</p>
       </div>
 
-      <!-- Service 4 -->
+      <!-- Card 4: Track -->
       <div class="nc-service-card nc-reveal">
-        <div class="nc-service-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg>
-        </div>
-        <h3 class="nc-service-title">Performance Analytics</h3>
-        <p class="nc-service-desc">Longitudinal dashboards across symmetry, ROM, force, and CNS load — purpose-built for elite-team performance directors.</p>
-        <a href="#cta" class="nc-service-link">
-          Learn more
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
-        </a>
+        <div class="nc-service-icon" style="color:var(--nc-teal)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></div>
+        <h3 class="nc-service-title">4. Track (Symptom Log Loop)</h3>
+        <p class="nc-service-desc">Receive real-time logs of pain thresholds, subjective feedback, and completed volumes after every client session.</p>
       </div>
 
-      <!-- Service 5 -->
+      <!-- Card 5: Report -->
       <div class="nc-service-card nc-reveal delay-1">
-        <div class="nc-service-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-        </div>
-        <h3 class="nc-service-title">Posture & Gait Optimization</h3>
-        <p class="nc-service-desc">Closed-loop posture correction and gait re-patterning using the NeuCore holographic twin and live deficit overlays.</p>
-        <a href="#cta" class="nc-service-link">
-          Learn more
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
-        </a>
+        <div class="nc-service-icon" style="color:var(--nc-cyan)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/></svg></div>
+        <h3 class="nc-service-title">5. Report (Timeline Trends)</h3>
+        <p class="nc-service-desc">Review longitudinal tracking charts detailing pain levels and ROM symmetry gains to verify progress milestones.</p>
       </div>
 
-      <!-- Service 6 -->
+      <!-- Card 6: Scale -->
       <div class="nc-service-card nc-reveal delay-2">
-        <div class="nc-service-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2z"/><path d="M12 6v6l4 2"/></svg>
-        </div>
-        <h3 class="nc-service-title">Longevity Coaching</h3>
-        <p class="nc-service-desc">Year-over-year human-optimization tracks designed for executives, founders, and athletes investing in span-of-life performance.</p>
-        <a href="#cta" class="nc-service-link">
-          Learn more
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
-        </a>
+        <div class="nc-service-icon" style="color:var(--nc-teal)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+        <h3 class="nc-service-title">6. Scale (Clinic/Team Controls)</h3>
+        <p class="nc-service-desc">Deploy to large teams with multi-therapist staff seats, secure data standard configurations, and central billing controls.</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ═══════════════════════════════ BIOMECHANICS / AI ═══════════════════════════════ -->
-<section class="nc-section" id="biomechanics" style="padding-top:0;">
-  <div class="nc-container nc-bio-grid">
-    <div class="nc-bio-content nc-reveal">
-      <span class="nc-eyebrow">Biomechanical Intelligence</span>
-      <h2 class="nc-display nc-h2">An AI engine trained on<br/>the language of movement.</h2>
-      <p class="nc-lead">NeuCore fuses computer vision, EMG-validated motor models, and clinical-grade rules into a single decision engine. The output isn't another dashboard — it's a verdict you can act on.</p>
-
-      <div class="nc-bio-list">
-        <div class="nc-bio-item">
-          <div class="nc-bio-check">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
-          </div>
-          <div>
-            <div class="nc-bio-item-title">Phase-gated decisioning</div>
-            <div class="nc-bio-item-desc">No phase advances until the underlying biomechanical criteria are objectively met.</div>
-          </div>
-        </div>
-        <div class="nc-bio-item">
-          <div class="nc-bio-check">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
-          </div>
-          <div>
-            <div class="nc-bio-item-title">Asymmetry detection</div>
-            <div class="nc-bio-item-desc">Sub-degree, sub-millisecond left/right deficit spotting across the kinetic chain.</div>
-          </div>
-        </div>
-        <div class="nc-bio-item">
-          <div class="nc-bio-check">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
-          </div>
-          <div>
-            <div class="nc-bio-item-title">25+ deficit rules</div>
-            <div class="nc-bio-item-desc">Codified clinical heuristics from sports medicine, physiotherapy, and motor-control literature.</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="nc-bio-visual nc-reveal delay-2">
-      <img src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=1200&auto=format&q=80" alt="AI biomechanics in action" loading="lazy"/>
-      <div class="nc-bio-overlay-card">
-        <div class="nc-card-label">Live deficit map</div>
-        <div style="display:flex;align-items:end;justify-content:space-between;margin-top:8px;">
-          <div class="nc-card-value">L4–L5 · -8.2°</div>
-          <div style="padding:4px 10px;border-radius:999px;background:rgba(212,175,55,0.16);border:1px solid rgba(212,175,55,0.4);font-size:11px;color:#F4D77A;font-weight:600;">FLAGGED</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════════════ NEUCORE 3D VISUAL ═══════════════════════════════ -->
-<section class="nc-section nc-3d-section" id="visual" style="padding-top:0;">
+<!-- ═══════════════════════════════ HOLOGRAM SHOWCASE (Section 3) ═══════════════════════════════ -->
+<section class="nc-section nc-3d-section" id="visual" style="background:#020408; position:relative; z-index:4;">
   <div class="nc-container">
-    <div class="nc-section-head nc-reveal">
-      <span class="nc-eyebrow">NeuCore Holographic Twin</span>
-      <h2 class="nc-display nc-h2 nc-gradient-text">Every body, rendered.</h2>
-      <p class="nc-lead">A 206-bone digital twin streamed live from your assessment. Joint-by-joint pain mapping, ROM telemetry, and EMG-validated muscle activation in one navigable canvas.</p>
+    <div class="nc-section-head nc-reveal" style="text-align: center; max-width: 700px; margin: 0 auto 60px;">
+      <span class="nc-eyebrow">Holographic Telemetry</span>
+      <h2 class="nc-display nc-h2 nc-gradient-text" style="font-size: clamp(28px, 4vw, 40px);">Hologram Assessment Showcase</h2>
+      <p class="nc-lead">Fusing range of motion observations, pain scores, and kinetic metrics into one navigable digital skeleton visual.</p>
     </div>
 
-    <div class="nc-3d-stage nc-reveal">
-      <div class="nc-3d-canvas">
-        <!-- Stylized skeleton SVG (placeholder for the live three.js skeleton) -->
-        <svg class="nc-skeleton-svg" viewBox="0 0 200 400" fill="none" stroke="#67E8F9" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <div class="nc-3d-stage nc-reveal" style="background:rgba(10, 14, 23, 0.5); border:1px solid rgba(255,255,255,0.06); border-radius:20px; padding:40px; position:relative;">
+      <div class="nc-3d-canvas" style="max-width: 400px; margin: 0 auto;">
+        <!-- Stylized skeleton SVG -->
+        <svg class="nc-skeleton-svg" viewBox="0 0 200 400" fill="none" stroke="#38BDF8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width: 100%; height: auto;">
           <!-- Laser Scan Line -->
-          <line x1="0" y1="0" x2="200" y2="0" stroke="rgba(20, 184, 166, 0.55)" stroke-width="2.2" class="nc-skeleton-laser" />
+          <line x1="0" y1="0" x2="200" y2="0" stroke="rgba(45, 212, 191, 0.45)" stroke-width="2" class="nc-skeleton-laser" />
           <!-- Head -->
-          <circle cx="100" cy="38" r="22" stroke="#14B8A6" stroke-width="1.8"/>
+          <circle cx="100" cy="38" r="22" stroke="#2DD4BF" stroke-width="1.8"/>
           <!-- Spine -->
-          <path d="M100 60 L100 200" stroke-dasharray="0"/>
-          <!-- Clavicles / shoulders -->
+          <path d="M100 60 L100 200"/>
+          <!-- Clavicles -->
           <path d="M62 90 L100 78 L138 90"/>
-          <circle cx="62" cy="90" r="5" fill="#14B8A6" stroke="none"/>
-          <circle cx="138" cy="90" r="5" fill="#14B8A6" stroke="none"/>
+          <circle cx="62" cy="90" r="5" fill="#2DD4BF" stroke="none"/>
+          <circle cx="138" cy="90" r="5" fill="#2DD4BF" stroke="none"/>
           <!-- Arms -->
           <path d="M62 90 L48 150 L52 210"/>
           <path d="M138 90 L152 150 L148 210"/>
-          <circle cx="48" cy="150" r="4" fill="#67E8F9" stroke="none"/>
-          <circle cx="152" cy="150" r="4" fill="#67E8F9" stroke="none"/>
-          <!-- Ribcage hint -->
-          <path d="M75 100 Q100 110 125 100" opacity="0.5"/>
-          <path d="M70 130 Q100 142 130 130" opacity="0.5"/>
-          <path d="M68 160 Q100 172 132 160" opacity="0.5"/>
+          <circle cx="48" cy="150" r="4" fill="#38BDF8" stroke="none"/>
+          <circle cx="152" cy="150" r="4" fill="#38BDF8" stroke="none"/>
+          <!-- Ribcage -->
+          <path d="M75 100 Q100 110 125 100" opacity="0.4"/>
+          <path d="M70 130 Q100 142 130 130" opacity="0.4"/>
+          <path d="M68 160 Q100 172 132 160" opacity="0.4"/>
           <!-- Hips -->
-          <path d="M75 210 L100 200 L125 210" stroke="#14B8A6" stroke-width="1.8"/>
-          <circle cx="75" cy="210" r="5" fill="#D4AF37" stroke="none"/>
-          <circle cx="125" cy="210" r="5" fill="#D4AF37" stroke="none"/>
+          <path d="M75 210 L100 200 L125 210" stroke="#2DD4BF" stroke-width="1.8"/>
+          <circle cx="75" cy="210" r="5" fill="#38BDF8" stroke="none"/>
+          <circle cx="125" cy="210" r="5" fill="#38BDF8" stroke="none"/>
           <!-- Legs -->
           <path d="M75 210 L70 290 L72 360"/>
           <path d="M125 210 L130 290 L128 360"/>
-          <circle cx="70" cy="290" r="5" fill="#67E8F9" stroke="none"/>
-          <circle cx="130" cy="290" r="5" fill="#67E8F9" stroke="none"/>
-          <!-- Feet -->
-          <path d="M72 360 L60 372"/>
-          <path d="M128 360 L140 372"/>
-          <!-- Glowing Joint Indicators -->
-          <circle cx="75" cy="210" r="4" class="nc-joint-node nc-joint-node--warning" />
-          <circle cx="125" cy="210" r="4" class="nc-joint-node nc-joint-node--warning" />
-          <circle cx="62" cy="90" r="4" class="nc-joint-node nc-joint-node--primary" />
-          <circle cx="138" cy="90" r="4" class="nc-joint-node nc-joint-node--primary" />
-          <circle cx="70" cy="290" r="4" class="nc-joint-node nc-joint-node--primary" />
-          <circle cx="130" cy="290" r="4" class="nc-joint-node nc-joint-node--primary" />
+          <!-- Joints -->
+          <circle cx="75" cy="210" r="4" class="nc-joint-node nc-joint-node--warning" style="fill:#38BDF8" />
+          <circle cx="125" cy="210" r="4" class="nc-joint-node nc-joint-node--warning" style="fill:#38BDF8" />
+          <circle cx="62" cy="90" r="4" class="nc-joint-node nc-joint-node--primary" style="fill:#2DD4BF" />
+          <circle cx="138" cy="90" r="4" class="nc-joint-node nc-joint-node--primary" style="fill:#2DD4BF" />
         </svg>
       </div>
 
       <div class="nc-3d-tags">
-        <div class="nc-3d-tag nc-3d-tag-1">Cervical · normal</div>
-        <div class="nc-3d-tag nc-3d-tag-2">L-shoulder · -4.1°</div>
-        <div class="nc-3d-tag nc-3d-tag-3">L-hip · flagged</div>
-        <div class="nc-3d-tag nc-3d-tag-4">R-knee · stable</div>
+        <div class="nc-3d-tag nc-3d-tag-1" style="background:rgba(10,14,23,0.9); border:1px solid rgba(255,255,255,0.08); border-radius:6px; color:#F8FAFC;">Cervical · normal</div>
+        <div class="nc-3d-tag nc-3d-tag-2" style="background:rgba(10,14,23,0.9); border:1px solid rgba(255,255,255,0.08); border-radius:6px; color:#F8FAFC;">L-shoulder · 165°</div>
+        <div class="nc-3d-tag nc-3d-tag-3" style="background:rgba(10,14,23,0.9); border:1px solid rgba(255,255,255,0.08); border-radius:6px; color:#F8FAFC;">L-hip · deficit flagged</div>
+        <div class="nc-3d-tag nc-3d-tag-4" style="background:rgba(10,14,23,0.9); border:1px solid rgba(255,255,255,0.08); border-radius:6px; color:#F8FAFC;">R-knee · stable</div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ═══════════════════════════════ CASE STUDIES ═══════════════════════════════ -->
-<section class="nc-section" id="cases" style="padding-top:0;">
+<!-- ═══════════════════════════════ COACH + CLIENT LOOP (Section 4) ═══════════════════════════════ -->
+<section class="nc-section" id="loop" style="background:#060913; position:relative; z-index:4;">
   <div class="nc-container">
-    <div class="nc-cases-head nc-reveal">
+    <div class="nc-section-head nc-reveal" style="text-align: center; max-width: 700px; margin: 0 auto 60px;">
+      <span class="nc-eyebrow">Platform Loop</span>
+      <h2 class="nc-display nc-h2" style="font-size: clamp(28px, 4vw, 40px);">The Connected Rehab Loop</h2>
+      <p class="nc-lead">See how NeuCore keeps coaches and clients in a continuous feedback loop from assessment to progress tracking.</p>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 40px; max-width: 800px; margin: 0 auto;">
+      <!-- Step 1 -->
+      <div style="display: flex; gap: 24px; align-items: flex-start;" class="nc-reveal">
+        <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56,189,248,0.3); display: flex; align-items: center; justify-content: center; font-weight: 700; color: #38BDF8; flex-shrink: 0;">1</div>
+        <div>
+          <h4 style="font-size: 18px; font-weight: 700; color: #FFFFFF; margin-bottom: 8px;">Coach Assessment & Telemetry</h4>
+          <p style="color: rgba(255,255,255,0.6); font-size: 14px; line-height: 1.6;">Coach documents joint Range of Motion (ROM), active pain scores, and movement notes in a quick assessment session.</p>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div style="display: flex; gap: 24px; align-items: flex-start;" class="nc-reveal delay-1">
+        <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(45, 212, 191, 0.1); border: 1px solid rgba(45,212,191,0.3); display: flex; align-items: center; justify-content: center; font-weight: 700; color: #2DD4BF; flex-shrink: 0;">2</div>
+        <div>
+          <h4 style="font-size: 18px; font-weight: 700; color: #FFFFFF; margin-bottom: 8px;">Graded Program Design</h4>
+          <p style="color: rgba(255,255,255,0.6); font-size: 14px; line-height: 1.6;">The assessment findings flow into the program builder, letting coaches prescribe precise sets, reps, and RPE goals.</p>
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div style="display: flex; gap: 24px; align-items: flex-start;" class="nc-reveal delay-2">
+        <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56,189,248,0.3); display: flex; align-items: center; justify-content: center; font-weight: 700; color: #38BDF8; flex-shrink: 0;">3</div>
+        <div>
+          <h4 style="font-size: 18px; font-weight: 700; color: #FFFFFF; margin-bottom: 8px;">Client Workout Session</h4>
+          <p style="color: rgba(255,255,255,0.6); font-size: 14px; line-height: 1.6;">Clients access their daily routine via their web dashboard, tracking active volume and viewing instruction notes.</p>
+        </div>
+      </div>
+
+      <!-- Step 4 -->
+      <div style="display: flex; gap: 24px; align-items: flex-start;" class="nc-reveal">
+        <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(45, 212, 191, 0.1); border: 1px solid rgba(45,212,191,0.3); display: flex; align-items: center; justify-content: center; font-weight: 700; color: #2DD4BF; flex-shrink: 0;">4</div>
+        <div>
+          <h4 style="font-size: 18px; font-weight: 700; color: #FFFFFF; margin-bottom: 8px;">Real-Time Feedback Logging</h4>
+          <p style="color: rgba(255,255,255,0.6); font-size: 14px; line-height: 1.6;">After training, clients log completed sets, RPE, and post-session pain ratings. This provides coaches with instant symptom updates.</p>
+        </div>
+      </div>
+
+      <!-- Step 5 -->
+      <div style="display: flex; gap: 24px; align-items: flex-start;" class="nc-reveal delay-1">
+        <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56,189,248,0.3); display: flex; align-items: center; justify-content: center; font-weight: 700; color: #38BDF8; flex-shrink: 0;">5</div>
+        <div>
+          <h4 style="font-size: 18px; font-weight: 700; color: #FFFFFF; margin-bottom: 8px;">Longitudinal Progress reports</h4>
+          <p style="color: rgba(255,255,255,0.6); font-size: 14px; line-height: 1.6;">The logged logs update the coach's charts, allowing them to verify compliance and adjust protocols objectively.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════ CASE STUDIES (Section 5) ═══════════════════════════════ -->
+<section class="nc-section" id="cases" style="background:#020408; position:relative; z-index:4;">
+  <div class="nc-container">
+    <div class="nc-cases-head nc-reveal" style="margin-bottom:40px;">
       <div class="nc-cases-head-text">
-        <span class="nc-eyebrow">Case Studies</span>
-        <h2 class="nc-display nc-h2">Elite teams. Real outcomes.</h2>
-        <p class="nc-lead">From Olympic medalists to NBA training rooms — here's what NeuCore looks like when it ships into the field.</p>
-      </div>
-      <div class="nc-carousel-controls">
-        <button class="nc-carousel-btn" id="nc-carousel-prev" aria-label="Previous case study" disabled>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-        </button>
-        <button class="nc-carousel-btn" id="nc-carousel-next" aria-label="Next case study">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        </button>
+        <span class="nc-eyebrow">Progress Stories</span>
+        <h2 class="nc-display nc-h2">Observed client recovery paths.</h2>
+        <p class="nc-lead">How coaches have applied objective telemetry, session notes, and phase-gated rules in sample workflows.</p>
       </div>
     </div>
-  </div>
 
-  <div class="nc-carousel-viewport" id="nc-carousel">
-    <div class="nc-carousel-track" id="nc-carousel-track">
-      <!-- 1 · Back pain -->
-      <a href="#" class="nc-case-card">
-        <img src="https://images.unsplash.com/photo-1626202373052-9cb5c1bf25cf?w=900&auto=format&q=80" alt="Chronic back pain rehab"/>
-        <div class="nc-case-content">
-          <span class="nc-case-tag cat-back">Back Pain</span>
-          <div class="nc-case-title">8 years of chronic back pain → gardening 2 hrs/day in 8 weeks</div>
-          <div class="nc-case-desc">A 75-year-old woman whose back pain was rooted in a 10-year-old ankle sprain. NeuCore's 80/20 framework targeted leg load tolerance instead of the symptom site.</div>
-          <div class="nc-case-readmore">
-            Read case study
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+    <div class="nc-carousel-viewport" style="overflow:visible;">
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:30px;">
+        <!-- Sprain Case -->
+        <div class="nc-case-card" style="display:flex; flex-direction:column; background:rgba(10,14,23,0.7); border:1px solid rgba(255,255,255,0.06); border-radius:12px; overflow:hidden;">
+          <div style="padding:24px;">
+            <span class="nc-case-tag" style="background:rgba(56,189,248,0.1); color:#38BDF8; font-size:11px; font-weight:700; text-transform:uppercase; padding:4px 10px; border-radius:99px; display:inline-block; margin-bottom:14px;">Ankle Instability</span>
+            <h4 style="font-size:18px; font-weight:700; color:#FFFFFF; margin-bottom:10px; line-height:1.4;">Sample Workflow: Instability Tracking</h4>
+            <p style="color:rgba(255,255,255,0.6); font-size:13.5px; line-height:1.6; margin-bottom:16px;">
+              Tracked midfoot load tolerance and range of motion (ROM) deficits over 8 weeks. Target exercise progression adjusted based on daily pain ratings and logged RPE.
+            </p>
+            <div style="font-size:12px; font-weight:600; color:#38BDF8;">Example progress card →</div>
           </div>
         </div>
-      </a>
 
-      <!-- 2 · Knee -->
-      <a href="#" class="nc-case-card">
-        <img src="https://images.unsplash.com/photo-1599058917212-d750089bc07e?w=900&auto=format&q=80" alt="ACL knee rehab"/>
-        <div class="nc-case-content">
-          <span class="nc-case-tag cat-knee">Knee</span>
-          <div class="nc-case-title">From ACL to first-eleven in 14 weeks — fully data-gated</div>
-          <div class="nc-case-desc">A premier-league rehab unit used NeuCore phase gates and ROM telemetry as the single source of truth for return-to-train decisions.</div>
-          <div class="nc-case-readmore">
-            Read case study
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        <!-- Knee post-op Case -->
+        <div class="nc-case-card" style="display:flex; flex-direction:column; background:rgba(10,14,23,0.7); border:1px solid rgba(255,255,255,0.06); border-radius:12px; overflow:hidden;">
+          <div style="padding:24px;">
+            <span class="nc-case-tag" style="background:rgba(45,212,191,0.1); color:#2DD4BF; font-size:11px; font-weight:700; text-transform:uppercase; padding:4px 10px; border-radius:99px; display:inline-block; margin-bottom:14px;">Knee Post-Op</span>
+            <h4 style="font-size:18px; font-weight:700; color:#FFFFFF; margin-bottom:10px; line-height:1.4;">Sample Workflow: Post-Op Milestone tracking</h4>
+            <p style="color:rgba(255,255,255,0.6); font-size:13.5px; line-height:1.6; margin-bottom:16px;">
+              Utilized phase-gated program structures to enforce milestone discipline, checking flexion symmetry before advancing legs workload.
+            </p>
+            <div style="font-size:12px; font-weight:600; color:#2DD4BF;">Example progress card →</div>
           </div>
         </div>
-      </a>
 
-      <!-- 3 · Shoulder -->
-      <a href="#" class="nc-case-card">
-        <img src="https://images.unsplash.com/photo-1583500178690-f7fd39e44a23?w=900&auto=format&q=80" alt="Shoulder rehab and overhead athletes"/>
-        <div class="nc-case-content">
-          <span class="nc-case-tag cat-shoulder">Shoulder</span>
-          <div class="nc-case-title">Overhead athletes: 31% gain in pain-free flexion in 9 sessions</div>
-          <div class="nc-case-desc">Volleyball blockers and pitchers regained full overhead range using bottom-up perturbation drills sequenced by NeuCore's bridging-the-gap protocol.</div>
-          <div class="nc-case-readmore">
-            Read case study
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
-          </div>
-        </div>
-      </a>
-
-      <!-- 4 · Hip -->
-      <a href="#" class="nc-case-card">
-        <img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=900&auto=format&q=80" alt="Hip-flexor sprint rehab"/>
-        <div class="nc-case-content">
-          <span class="nc-case-tag cat-hip">Hip</span>
-          <div class="nc-case-title">Olympic sprinters: 11.3% asymmetry reduction in 6 weeks</div>
-          <div class="nc-case-desc">National-team sprinters used NeuCore gait analysis to identify hip-flexor deficits invisible to traditional video review.</div>
-          <div class="nc-case-readmore">
-            Read case study
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
-          </div>
-        </div>
-      </a>
-
-      <!-- 5 · Ankle -->
-      <a href="#" class="nc-case-card">
-        <img src="https://images.unsplash.com/photo-1559757175-5700dde675bc?w=900&auto=format&q=80" alt="Ankle sprain return to sport"/>
-        <div class="nc-case-content">
-          <span class="nc-case-tag cat-ankle">Ankle</span>
-          <div class="nc-case-title">Recurrent ankle sprains: 0 re-injuries across 28-week season</div>
-          <div class="nc-case-desc">A college lacrosse program ran the midfoot-bridge tripwire and hopping graded-exposure protocols to rebuild ankle resilience after chronic instability.</div>
-          <div class="nc-case-readmore">
-            Read case study
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
-          </div>
-        </div>
-      </a>
-
-      <!-- 6 · Stroke recovery -->
-      <a href="#" class="nc-case-card">
-        <img src="https://images.unsplash.com/photo-1581595220892-b0739db3ba8c?w=900&auto=format&q=80" alt="Stroke neuro recovery"/>
-        <div class="nc-case-content">
-          <span class="nc-case-tag cat-stroke">Stroke Recovery</span>
-          <div class="nc-case-title">Post-stroke gait: 2.4× walking speed gain in 12 weeks</div>
-          <div class="nc-case-desc">Neurorehab clinic combined NeuCore's holographic skeleton + EMG telemetry with progressive loading to rewire motor patterns post-CVA.</div>
-          <div class="nc-case-readmore">
-            Read case study
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
-          </div>
-        </div>
-      </a>
-
-      <!-- 7 · Post-surgical -->
-      <a href="#" class="nc-case-card">
-        <img src="https://images.unsplash.com/photo-1551601651-2a8555f1a136?w=900&auto=format&q=80" alt="Post-surgical knee rehab"/>
-        <div class="nc-case-content">
-          <span class="nc-case-tag cat-postsurg">Post-Surgical</span>
-          <div class="nc-case-title">TKR cohort: 94% phase-gate adherence with NeuCore programs</div>
-          <div class="nc-case-desc">A total-knee-replacement program used NeuCore's auto-generated, phase-gated rehab plans to enforce milestone discipline across 60+ post-op patients.</div>
-          <div class="nc-case-readmore">
-            Read case study
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
-          </div>
-        </div>
-      </a>
-
-      <!-- 8 · Athletic / Performance -->
-      <a href="#" class="nc-case-card">
-        <img src="https://images.unsplash.com/photo-1546519638-68e109498ffc?w=900&auto=format&q=80" alt="Pro athlete return to play"/>
-        <div class="nc-case-content">
-          <span class="nc-case-tag cat-athletic">Athletic Performance</span>
-          <div class="nc-case-title">NBA training room cuts return-to-play time by 22%</div>
-          <div class="nc-case-desc">Phase-gated rehab decisions backed by NeuCore's neural-recovery scoring shortened soft-tissue rehab cycles materially.</div>
-          <div class="nc-case-readmore">
-            Read case study
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
-          </div>
-        </div>
-      </a>
-    </div>
-
-    <div class="nc-carousel-dots" id="nc-carousel-dots"></div>
-  </div>
-</section>
-
-<!-- ═══════════════════════ BUILT BY REHAB EXPERTS ═══════════════════════ -->
-<section class="nc-experts-band">
-  <div class="nc-container">
-    <div class="nc-experts-grid">
-      <div>
-        <div class="nc-eyebrow" style="margin-bottom:10px">Built by rehab experts</div>
-        <h2 class="nc-experts-headline">
-          Engineered with clinicians who have rehabbed Olympians,<br/>
-          <span class="nc-gold-text">premier-league athletes, and 75-year-olds with 8 years of back pain.</span>
-        </h2>
-      </div>
-      <div class="nc-experts-stats">
-        <div class="nc-experts-stat">
-          <span class="nc-experts-stat-value">15+ yrs</span>
-          <span class="nc-experts-stat-label">Combined sports-medicine clinical experience</span>
-        </div>
-        <div class="nc-experts-stat">
-          <span class="nc-experts-stat-value">8 pillars</span>
-          <span class="nc-experts-stat-label">NeuCore "Go-To Therapist" framework, end-to-end</span>
-        </div>
-        <div class="nc-experts-stat">
-          <span class="nc-experts-stat-value">25+ rules</span>
-          <span class="nc-experts-stat-label">Codified clinical heuristics in the engine</span>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════ COMMUNITY PREVIEW ═══════════════════════ -->
-<section class="nc-section" id="community" style="padding-top:80px;">
-  <div class="nc-container">
-    <div class="nc-section-head nc-reveal">
-      <span class="nc-eyebrow">Voices from the platform</span>
-      <h2 class="nc-display nc-h2">Trusted by clinicians,<br/>loved by patients.</h2>
-      <p class="nc-lead">Real coaches. Real athletes. Real people whose movement got rebuilt — not just patched.</p>
-    </div>
-
-    <div class="nc-community-grid">
-      <!-- Testimonial 1 — clinician -->
-      <div class="nc-testimonial nc-reveal">
-        <div class="nc-testimonial-mark">"</div>
-        <p class="nc-testimonial-quote">NeuCore took my best clinical instincts and turned them into a system every coach in my clinic now follows. Patient drop-off at session 3 is basically gone.</p>
-        <div class="nc-testimonial-foot">
-          <div class="nc-testimonial-avatar">DK</div>
-          <div>
-            <div class="nc-testimonial-name">Dr Kara Lindholm</div>
-            <div class="nc-testimonial-role">Head physio · Apex Movement Clinic</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Testimonial 2 — athlete -->
-      <div class="nc-testimonial nc-reveal delay-1">
-        <div class="nc-testimonial-mark">"</div>
-        <p class="nc-testimonial-quote">For the first time in 6 years I trust my knee. The phase-gated plan stopped me doing what I "felt ready" for and made me earn each step. Back to competing.</p>
-        <div class="nc-testimonial-foot">
-          <div class="nc-testimonial-avatar">MR</div>
-          <div>
-            <div class="nc-testimonial-name">Marcus Rivera</div>
-            <div class="nc-testimonial-role">D-1 sprinter · Post-ACL return-to-play</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Testimonial 3 — life impact -->
-      <div class="nc-testimonial nc-reveal delay-2">
-        <div class="nc-testimonial-mark">"</div>
-        <p class="nc-testimonial-quote">I'm gardening for two hours a day again. Eight years of back pain, and the answer was in my ankle. NeuCore's coach explained it so I finally understood my own body.</p>
-        <div class="nc-testimonial-foot">
-          <div class="nc-testimonial-avatar">EH</div>
-          <div>
-            <div class="nc-testimonial-name">Eleanor H., 75</div>
-            <div class="nc-testimonial-role">Chronic back-pain patient</div>
+        <!-- Back pain load tolerance Case -->
+        <div class="nc-case-card" style="display:flex; flex-direction:column; background:rgba(10,14,23,0.7); border:1px solid rgba(255,255,255,0.06); border-radius:12px; overflow:hidden;">
+          <div style="padding:24px;">
+            <span class="nc-case-tag" style="background:rgba(56,189,248,0.1); color:#38BDF8; font-size:11px; font-weight:700; text-transform:uppercase; padding:4px 10px; border-radius:99px; display:inline-block; margin-bottom:14px;">Lumbar Spacing</span>
+            <h4 style="font-size:18px; font-weight:700; color:#FFFFFF; margin-bottom:10px; line-height:1.4;">Sample Workflow: Load Tolerance tracking</h4>
+            <p style="color:rgba(255,255,255,0.6); font-size:13.5px; line-height:1.6; margin-bottom:16px;">
+              Observed changes in kinetic chain load tolerance during single-leg support drills. Adjusted weekly routines dynamically using client logs.
+            </p>
+            <div style="font-size:12px; font-weight:600; color:#38BDF8;">Example progress card →</div>
           </div>
         </div>
       </div>
@@ -684,87 +443,40 @@
   </div>
 </section>
 
-<!-- ═══════════════════════════════ PLANS ═══════════════════════════════ -->
-<section class="nc-section nc-plans-section" id="pricing-tiers">
+<!-- ═══════════════════════════════ ATHLETIC PREVIEW (Section 6) ═══════════════════════════════ -->
+<section class="nc-section" id="athletic" style="background:#060913; position:relative; z-index:4;">
   <div class="nc-container">
-    <div class="nc-section-head nc-reveal">
-      <span class="nc-eyebrow">Plans & Access</span>
-      <h2 class="nc-display nc-h2">Designed for elite growth.</h2>
-      <p class="nc-lead">Plans tailored for independent coaches, clinical teams, and performance centers.</p>
+    <div class="nc-section-head nc-reveal" style="text-align: center; max-width: 700px; margin: 0 auto 60px;">
+      <span class="nc-eyebrow" style="color:#FB7185;">Performance Lane</span>
+      <h2 class="nc-display nc-h2" style="font-size: clamp(28px, 4vw, 40px);">Athletic Performance Preview</h2>
+      <p class="nc-lead">Unlocked for administrator/developer roles. Elite sprint, jump, and change-of-direction (COD) telemetry tools remain locked for standard coach profiles.</p>
     </div>
 
-    <div class="nc-plans-grid">
-      <!-- Plan 1 -->
-      <div class="nc-plan-card nc-reveal">
-        <div class="nc-plan-header">
-          <h3 class="nc-plan-name">Coach</h3>
-          <p class="nc-plan-desc">For independent trainers and coaches optimizing individual athlete protocols.</p>
-        </div>
-        <ul class="nc-plan-features">
-          <li>Core movement assessments</li>
-          <li>Auto-generated client programs</li>
-          <li>Basic ROM telemetry tracking</li>
-          <li>Secure client dashboard portal</li>
-        </ul>
-        <div class="nc-plan-action">
-          <a href="#" data-visitor-trigger class="nc-btn nc-btn--primary" style="width:100%">Start assessment</a>
-        </div>
-      </div>
-
-      <!-- Plan 2 -->
-      <div class="nc-plan-card nc-plan-card--featured nc-reveal delay-1">
-        <div class="nc-plan-tag">Most Popular</div>
-        <div class="nc-plan-header">
-          <h3 class="nc-plan-name">Clinic</h3>
-          <p class="nc-plan-desc">For physical therapy clinics and multi-coach athletic training facilities.</p>
-        </div>
-        <ul class="nc-plan-features">
-          <li>Everything in Coach plan</li>
-          <li>EMG-validated motor twins</li>
-          <li>Phase-gated decision rules</li>
-          <li>Multi-therapist staff seats</li>
-          <li>Advanced recovery analytics</li>
-        </ul>
-        <div class="nc-plan-action">
-          <a href="#" data-visitor-trigger class="nc-btn nc-btn--gold" style="width:100%">Request access</a>
-        </div>
-      </div>
-
-      <!-- Plan 3 -->
-      <div class="nc-plan-card nc-reveal delay-2">
-        <div class="nc-plan-header">
-          <h3 class="nc-plan-name">Enterprise / Custom</h3>
-          <p class="nc-plan-desc">For elite sports teams, university programs, and high-volume clinical networks.</p>
-        </div>
-        <ul class="nc-plan-features">
-          <li>Everything in Clinic plan</li>
-          <li>Custom assessment protocols</li>
-          <li>Enterprise SSO & HIPAA controls</li>
-          <li>API and EHR integrations</li>
-          <li>Dedicated performance director</li>
-        </ul>
-        <div class="nc-plan-action">
-          <a href="mailto:hello@neucore.io" class="nc-btn nc-btn--ghost" style="width:100%">Talk to us</a>
-        </div>
-      </div>
+    <div style="background:rgba(225, 29, 72, 0.04); border:1px solid rgba(225, 29, 72, 0.15); border-radius:16px; padding:36px; text-align:center; max-width:680px; margin:0 auto;" class="nc-reveal">
+      <div style="font-size:36px; margin-bottom:16px;">🔒</div>
+      <h4 style="font-size:20px; font-weight:700; color:#FFFFFF; margin-bottom:10px;">Coming Soon for Coaches</h4>
+      <p style="color:rgba(255,255,255,0.6); font-size:14px; line-height:1.6; margin-bottom:20px; max-width:500px; margin-left:auto; margin-right:auto;">
+        Sprint phase analytics, multi-axial force telemetry, and dynamic agility scores are undergoing closed validation. This preview track will remain locked.
+      </p>
+      <span style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; padding:4px 12px; border-radius:99px; background:rgba(225,29,72,0.12); color:#FB7185; border:1px solid rgba(225,29,72,0.2);">Preview Mode Locked</span>
     </div>
   </div>
 </section>
 
-<!-- ═══════════════════════════════ CTA ═══════════════════════════════ -->
-<section class="nc-cta-section" id="cta">
+<!-- ═══════════════════════════════ CTA (Section 7) ═══════════════════════════════ -->
+<section class="nc-cta-section" id="cta" style="background:#020408; position:relative; z-index:4; padding:80px 0;">
   <div class="nc-container">
-    <div class="nc-cta-card nc-reveal">
-      <div class="nc-cta-content">
-        <span class="nc-eyebrow">Get started</span>
-        <h2 class="nc-display nc-h2">The future of human performance.<br/><span class="nc-gradient-text">Run your first assessment today.</span></h2>
-        <p class="nc-lead">Join the elite teams, clinics, and longevity practices already running on NeuCore.</p>
-        <div class="nc-cta-buttons">
+    <div class="nc-cta-card nc-reveal" style="background:rgba(10,14,23,0.8); border:1px solid rgba(255,255,255,0.08); border-radius:20px; padding:60px 40px; text-align:center; max-width:800px; margin:0 auto;">
+      <div class="nc-cta-content" style="max-width:600px; margin:0 auto;">
+        <span class="nc-eyebrow">Get Started</span>
+        <h2 class="nc-display nc-h2" style="font-size: clamp(28px, 4vw, 40px); margin-bottom:16px;">The Future of Rehab Telemetry.</h2>
+        <p class="nc-lead" style="margin-bottom:32px;">Join the sports medicine centers, clinics, and performance coaches running client programs on NeuCore.</p>
+        <div style="display:flex; justify-content:center; gap:16px; flex-wrap:wrap;">
           <a href="#" data-visitor-trigger class="nc-btn nc-btn--primary nc-btn--lg">
             Start Assessment
             <svg class="nc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
           </a>
-          <a href="mailto:hello@neucore.io" class="nc-btn nc-btn--ghost nc-btn--lg">Talk to sales</a>
+          <a href="app.html?login=1" class="nc-btn nc-btn--ghost nc-btn--lg">Sign In</a>
         </div>
       </div>
     </div>
