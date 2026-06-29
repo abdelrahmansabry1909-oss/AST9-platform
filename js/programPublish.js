@@ -21,6 +21,9 @@
   let _program = null;     // the live, edited program object
   let _clientId = null;
   let _clientName = '';
+  let _containerId = null;
+  let _isDraft = false;
+  let _versionId = null;
   // Phase 6 — current published-program metadata for this client (mode +
   // revision + last-updated), loaded async so the coach sees live state.
   let _meta = { loaded: false, exists: false, mode: 'one_time', revision: 0, updatedAt: null, published: false, programId: null };
@@ -46,29 +49,32 @@
 
   // ── Public entry ──────────────────────────────────────────
   function render(opts = {}) {
-    _program    = opts.program || null;
-    _clientId   = opts.clientId || null;
-    _clientName = opts.clientName || '';
+    _program      = opts.program || null;
+    _clientId     = opts.clientId || null;
+    _clientName   = opts.clientName || '';
+    _containerId  = opts.containerId || 'program-review-panel';
+    _isDraft      = !!opts.isDraft;
+    _versionId    = opts.versionId || null;
     _selectedMode = null;   // resolved from this client's existing program in _loadMeta
     _changeNote   = '';
     _startMode    = 'now';  // Phase E1b-2 — default to immediate apply
     _startDate    = '';
-    const panel = document.getElementById(PANEL_ID);
+    const panel = document.getElementById(_containerId);
     if (!panel) return;
     if (!_program || (!_program.structure && !_program.workouts)) { panel.classList.add('hidden'); return; }
     // Ensure daily-routine tasks exist (older programs may lack them).
     if (!Array.isArray(_program.daily_routine_tasks)) _program.daily_routine_tasks = [];
     // Back-fill workouts[] for legacy single-workout programs.
     if (!Array.isArray(_program.workouts) || !_program.workouts.length) {
-      const s = _program.structure || { warmup: [], main: [], cooldown: [] };
-      _program.workouts = [{ id: 'A', label: 'Daily Workout',
-        warmup: s.warmup || [], main: s.main || [], cooldown: s.cooldown || [] }];
-      _program.split_label = _program.split_label || 'Same workout repeated';
+       const s = _program.structure || { warmup: [], main: [], cooldown: [] };
+       _program.workouts = [{ id: 'A', label: 'Daily Workout',
+         warmup: s.warmup || [], main: s.main || [], cooldown: s.cooldown || [] }];
+       _program.split_label = _program.split_label || 'Same workout repeated';
     }
     if (!Array.isArray(_program.schedule) || !_program.schedule.length) {
-      const days = _program.days_per_week || 1;
-      const ids  = _program.workouts.map((w) => w.id);
-      _program.schedule = Array.from({ length: days }, (_, i) => ids[i % ids.length]);
+       const days = _program.days_per_week || 1;
+       const ids  = _program.workouts.map((w) => w.id);
+       _program.schedule = Array.from({ length: days }, (_, i) => ids[i % ids.length]);
     }
     panel.classList.remove('hidden');
     _draw();
@@ -222,19 +228,36 @@
 
   // ── Draw ──────────────────────────────────────────────────
   function _draw() {
-    const panel = document.getElementById(PANEL_ID);
+    const panel = document.getElementById(_containerId || PANEL_ID);
     const p = _program;
+    
+    // Render distinct button groups depending on draft versus live assess
+    let actionButtons = '';
+    if (_isDraft) {
+      actionButtons = `
+        <button class="btn btn-primary" id="pp-publish">📤 Publish Draft</button>
+        <button class="btn btn-ghost" id="pp-save-draft">📥 Save Draft</button>
+        <button class="btn btn-ghost" id="pp-preview">👁 Preview client view</button>
+      `;
+    } else {
+      actionButtons = `
+        <button class="btn btn-primary" id="pp-publish">📤 Publish to Client</button>
+        <button class="btn btn-ghost" id="pp-save-draft">📥 Save as Draft</button>
+        <button class="btn btn-ghost" id="pp-copy">📋 Load from another client</button>
+        <button class="btn btn-ghost" id="pp-preview">👁 Preview client view</button>
+      `;
+    }
+
     panel.innerHTML = `
       <div class="card" style="margin-bottom:var(--sp-4)">
         <div class="card-header">
-          <span class="card-title">Review &amp; Publish to Client</span>
+          <span class="card-title">Review &amp; Program Details</span>
           <span class="badge" style="background:rgba(20,184,166,.14);color:var(--nc-teal);border:1px solid rgba(20,184,166,.3)">
             ${esc(p.phase || 'Program')} · ${esc(p.days_per_week || 3)} days/week${p.split_label ? ' · ' + esc(p.split_label) : ''}
           </span>
         </div>
         <div class="form-hint" style="margin-bottom:14px">
-          Edit anything below, then publish. The client sees the program in
-          <b>My Program</b> and the routine in their <b>Daily Routine</b> tracker.
+          Review or edit draft details. When ready, publish to push to the client workspace.
         </div>
 
         <div id="pp-mode"></div>
@@ -243,10 +266,7 @@
         <div id="pp-schedule" style="margin-top:18px"></div>
 
         <div style="display:flex;gap:10px;align-items:center;margin-top:20px;flex-wrap:wrap">
-          <button class="btn btn-primary" id="pp-publish">📤 Publish to Client</button>
-          <button class="btn btn-ghost" id="pp-copy">📋 Load from another client</button>
-          <button class="btn btn-ghost" id="pp-preview">👁 Preview client view</button>
-          <button class="btn btn-ghost" id="pp-revert">↺ Revert edits</button>
+          ${actionButtons}
           <span id="pp-status" style="font-size:12px;color:var(--text-tertiary)"></span>
         </div>
       </div>`;
@@ -257,14 +277,12 @@
     _drawSchedule();
     _syncPublishUi();
 
-    panel.querySelector('#pp-publish').addEventListener('click', _publish);
-    panel.querySelector('#pp-copy').addEventListener('click', _openCopyFrom);
+    panel.querySelector('#pp-publish').addEventListener('click', _openPublishModal);
+    panel.querySelector('#pp-save-draft').addEventListener('click', _saveDraftClick);
     panel.querySelector('#pp-preview').addEventListener('click', _preview);
-    panel.querySelector('#pp-revert').addEventListener('click', () => {
-      if (confirm('Revert all edits to the generated program?')) {
-        _toast('Re-generate to reset — edits kept for now.', 'info');
-      }
-    });
+    
+    const copyBtn = panel.querySelector('#pp-copy');
+    if (copyBtn) copyBtn.addEventListener('click', _openCopyFrom);
   }
 
   // ── Program structure editor (workout-split aware) ────────
@@ -1068,125 +1086,181 @@
     return out;
   }
 
-  // ── Publish ───────────────────────────────────────────────
-  async function _publish() {
-    const btn = document.getElementById('pp-publish');
-    const status = document.getElementById('pp-status');
-    if (!_clientId) {
-      _toast('No client selected — pick a client in the Client Info tab.', 'error');
-      return;
+  async function _saveDraftClick() {
+    if (_versionId) {
+      await _saveDraft();
+    } else {
+      await _saveNewDraft();
     }
-    if (typeof sb === 'undefined' || !sb) {
-      _toast('Not connected to the database.', 'error');
-      return;
-    }
+  }
 
-    // Phase 6 — resolve mode + change note for this publish (kept off the
-    // program jsonb; persisted to dedicated columns by the upsert below).
-    const mode = _currentMode();
-    const changeNote = ((document.getElementById('pp-change-note')?.value ?? _changeNote) || '').trim() || null;
+  async function _saveDraft() {
+    if (!_versionId) return;
+    const btn = document.getElementById('pp-save-draft');
+    const origHTML = btn ? btn.innerHTML : 'Save Draft';
+    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Saving...'; }
 
-    // ── Phase E1b-2 — resolve the effective timing for this publish ──
-    //   now  → version effective now + update the client_programs pointer
-    //   next → version effective now, pointer untouched (in-progress session
-    //          keeps its snapshot; the client's next session resolves the new
-    //          plan via resolveClientProgram)
-    //   date → scheduled version with a future effective_from; pointer untouched
-    //          (RLS hides it from the client until due)
-    let startMode = _startMode || 'now';
-    const canSchedule = !!(_meta.exists && _meta.published);
-    if (startMode !== 'now' && !canSchedule) {
-      if (startMode === 'date') { _toast('Publish a program first before scheduling a future change.', 'error'); return; }
-      startMode = 'now';   // 'next' with no current program is just an immediate publish
-    }
-    const now = new Date().toISOString();
-    let effectiveFrom = now;
-    let isScheduled = false;
-    const updatePointer = (startMode === 'now');
-    if (startMode === 'date') {
-      const d = _startDate ? new Date(_startDate + 'T00:00:00') : null;   // client-local start of day
-      if (!d || isNaN(d.getTime())) { _toast('Pick a valid start date.', 'error'); return; }
-      if (d.getTime() <= Date.now()) { _toast('Choose a future date for a scheduled change.', 'error'); return; }
-      effectiveFrom = d.toISOString();
-      isScheduled = true;
-    }
-
-    // Confirmations: apply-now to a one-time program replaces the live view;
-    // a scheduled change is gentler (current plan stays until the date).
-    if (updatePointer && mode === 'one_time' && _meta.exists && _meta.published) {
-      if (!confirm(`This replaces ${_clientName || 'the client'}'s current published program (revision ${_meta.revision}).\n\nThe new plan becomes what they see now. Completed workout history is preserved. Continue?`)) {
-        return;
-      }
-    } else if (isScheduled) {
-      if (!confirm(`Schedule this program to start on ${_fmtWhen(effectiveFrom)}?\n\n${_clientName || 'The client'} keeps their current plan until then. Completed workout history is preserved.`)) {
-        return;
-      }
-    }
-
-    // Re-id the routine tasks 0..N so the client tracker keys stay stable.
+    // Re-id tasks and link videos
     _program.daily_routine_tasks.forEach((t, i) => { t.id = i; });
+    try { await _snapshotVideos(_program); } catch {}
 
-    // Phase 13 — snapshot demo videos into the program before it is stored
-    // (preserves exercise_id + video_url + Link Demo rows inside the version).
-    let snap = { total: 0, linked: 0, matched: 0 };
-    try { snap = await _snapshotVideos(_program); }
-    catch (e) { console.warn('[publish] video snapshot skipped:', e?.message); }
-    console.info(`[publish] video snapshot — linked ${snap.linked}, name-matched ${snap.matched} of ${snap.total} exercise(s)`);
+    try {
+      const { error } = await sb.from('client_program_versions')
+        .update({ program: _program, updated_at: new Date().toISOString() })
+        .eq('id', _versionId);
+      if (error) throw error;
+      
+      _toast('Draft saved successfully.', 'success');
+      if (window.Dashboard?.reloadCurrentPrograms) window.Dashboard.reloadCurrentPrograms();
+    } catch (e) {
+      _toast('Failed to save draft: ' + e.message, 'error');
+    } finally {
+      if (btn) { btn.disabled = false; btn.innerHTML = origHTML; }
+    }
+  }
 
-    const origHTML = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner"></span> ' + (isScheduled ? 'Scheduling…' : 'Publishing…');
-    if (status) { status.textContent = ''; status.style.color = 'var(--text-tertiary)'; }
+  async function _saveNewDraft() {
+    const btn = document.getElementById('pp-save-draft');
+    const origHTML = btn ? btn.innerHTML : 'Save as Draft';
+    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Saving...'; }
+
+    // Re-id tasks and link videos
+    _program.daily_routine_tasks.forEach((t, i) => { t.id = i; });
+    try { await _snapshotVideos(_program); } catch {}
 
     let coachId = null;
     try { coachId = Auth.getUser()?.id || null; } catch {}
 
     try {
-      // Phase E1b-2 — every publish writes a version row (the timeline of record).
-      const verRes = await sb.from('client_program_versions').insert({
+      const { data, error } = await sb.from('client_program_versions').insert({
         client_id:         _clientId,
         coach_id:          coachId,
         program:           _program,
-        effective_from:    effectiveFrom,
-        status:            isScheduled ? 'scheduled' : 'active',
-        published:         true,
-        source_program_id: _meta.programId || null,
-        source_revision:   _meta.revision || null,
-        change_note:       changeNote,
+        published:         false,
+        status:            'draft',
+        change_note:       'Initial Draft',
         created_by:        coachId,
-        published_at:      now,
-      });
-      if (verRes.error) throw verRes.error;
+      }).select('id').single();
+      if (error) throw error;
 
-      // Apply-now also updates the live client_programs pointer + routine, and
-      // runs the substitution sweep — preserving the prior publish behavior.
-      // Scheduled / next-session versions intentionally leave the pointer in
-      // place (the serving overlay resolves the version when it is due).
-      if (updatePointer) {
-        const progRes = await sb.from('client_programs').upsert({
-          client_id: _clientId, coach_id: coachId,
-          program: _program, published: true, published_at: now, updated_at: now,
-          program_mode: mode, change_note: changeNote,   // Phase 6 — trigger versions it
+      _versionId = data.id;
+      _isDraft = true;
+      _toast('Program saved as draft successfully.', 'success');
+      
+      // Close modal if editing inside a modal, or refresh
+      if (window.Dashboard?.closeModal) window.Dashboard.closeModal('modal-program-edit');
+      const panel = document.getElementById(_containerId || PANEL_ID);
+      if (panel) panel.classList.add('hidden');
+
+      if (window.Dashboard?.reloadCurrentPrograms) window.Dashboard.reloadCurrentPrograms();
+    } catch (e) {
+      _toast('Failed to save draft: ' + e.message, 'error');
+    } finally {
+      if (btn) { btn.disabled = false; btn.innerHTML = origHTML; }
+    }
+  }
+
+  async function _openPublishModal() {
+    if (!_clientId) {
+      _toast('No client selected.', 'error');
+      return;
+    }
+    
+    // Save draft or insert draft first to obtain a stable version ID
+    let verId = _versionId;
+    if (!verId) {
+      // Re-id tasks and link videos
+      _program.daily_routine_tasks.forEach((t, i) => { t.id = i; });
+      try { await _snapshotVideos(_program); } catch {}
+      
+      let coachId = null;
+      try { coachId = Auth.getUser()?.id || null; } catch {}
+
+      try {
+        const { data, error } = await sb.from('client_program_versions').insert({
+          client_id:         _clientId,
+          coach_id:          coachId,
+          program:           _program,
+          published:         false,
+          status:            'draft',
+          change_note:       'Initial Draft',
+          created_by:        coachId,
+        }).select('id').single();
+        if (error) throw error;
+        
+        verId = data.id;
+        _versionId = verId;
+        _isDraft = true;
+      } catch (e) {
+        _toast('Failed to save program version: ' + e.message, 'error');
+        return;
+      }
+    } else {
+      // Update the current draft program content first
+      try {
+        const { error } = await sb.from('client_program_versions')
+          .update({ program: _program })
+          .eq('id', verId);
+        if (error) throw error;
+      } catch (e) {
+        _toast('Failed to save in-progress edits: ' + e.message, 'error');
+        return;
+      }
+    }
+
+    // Populate modal components in app.html
+    const p = _program;
+    document.getElementById('pub-client-name').textContent = _clientName || 'Client';
+    document.getElementById('pub-program-phase').textContent = p.phase || 'Phase 1';
+    
+    // Query active program status if we can
+    let activeStatus = 'No active program';
+    try {
+      const { data: activeRows } = await sb.from('client_program_versions')
+        .select('change_note')
+        .eq('client_id', _clientId)
+        .eq('status', 'active')
+        .limit(1);
+      if (activeRows && activeRows[0]) {
+        activeStatus = 'Active Program (' + (activeRows[0].change_note || 'Current Plan') + ')';
+      }
+    } catch {}
+    document.getElementById('pub-current-status').textContent = activeStatus;
+    document.getElementById('pub-change-note').value = '';
+
+    // Bind confirm action
+    const confirmBtn = document.getElementById('pub-confirm-btn');
+    confirmBtn.onclick = async () => {
+      const changeNote = document.getElementById('pub-change-note').value.trim();
+      const origHTML = confirmBtn.innerHTML;
+      confirmBtn.disabled = true;
+      confirmBtn.innerHTML = '<span class="spinner"></span> Publishing...';
+      
+      try {
+        // Atomic publish using the public.publish_program_version RPC
+        const { data: resId, error: rpcErr } = await sb.rpc('publish_program_version', {
+          p_version_id: verId,
+          p_change_note: changeNote || null
+        });
+        if (rpcErr) throw rpcErr;
+
+        // Sync client_routines tasks pointer
+        let coachId = null;
+        try { coachId = Auth.getUser()?.id || null; } catch {}
+        const now = new Date().toISOString();
+        
+        await sb.from('client_routines').upsert({
+          client_id: _clientId,
+          coach_id: coachId,
+          tasks: _program.daily_routine_tasks,
+          published: true,
+          published_at: now,
+          updated_at: now
         }, { onConflict: 'client_id' });
-        if (progRes.error) throw progRes.error;
 
-        const routRes = await sb.from('client_routines').upsert({
-          client_id: _clientId, coach_id: coachId,
-          tasks: _program.daily_routine_tasks, published: true, published_at: now, updated_at: now,
-        }, { onConflict: 'client_id' });
-        if (routRes.error) throw routRes.error;
-
-        // ── Feature 6 — republish sweep (Q2) ──────────────────────────
-        // Auto-close all active substitutions for this client when a new
-        // program is published. A stale (workout_key, exercise_index)
-        // substitution from the prior program could otherwise swap the
-        // wrong exercise in the new one. We set status='declined' so the
-        // existing tg_aer_notify_client trigger fires once per closed
-        // request, with body "Closed — Program Republished" per user spec.
-        // Non-fatal — publish has already succeeded.
+        // Feature 6 republish sweep — auto-close resolved exercise substitutions
         try {
-          const { data: closedRows, error: sweepErr } = await sb
-            .from('exercise_alternative_requests')
+          await sb.from('exercise_alternative_requests')
             .update({
               status:                 'declined',
               substitute_exercise_id: null,
@@ -1195,41 +1269,35 @@
             })
             .eq('client_id', _clientId)
             .eq('status',    'addressed')
-            .not('substitute_exercise_id', 'is', null)
-            .select('id');
-          if (sweepErr) {
-            console.warn('[publish] substitution sweep:', sweepErr.message);
-          } else if (closedRows && closedRows.length) {
-            console.info(`[publish] closed ${closedRows.length} active substitution(s) on republish`);
-          }
+            .not('substitute_exercise_id', 'is', null);
         } catch (sweepEx) {
-          console.warn('[publish] substitution sweep threw:', sweepEx?.message);
+          console.warn('[publish] substitution sweep failed:', sweepEx);
         }
-      }
 
-      const okMsg = isScheduled
-        ? `Scheduled — ${_clientName || 'the client'} starts the new plan ${_fmtWhen(effectiveFrom)}`
-        : startMode === 'next'
-          ? `Update saved — ${_clientName || 'the client'} sees it from their next session`
-          : mode === 'ongoing_manual'
-            ? `Live program updated — ${_clientName || 'the client'} sees it now`
-            : `Program published to ${_clientName || 'the client'}`;
-      if (status) { status.textContent = '✓ ' + okMsg; status.style.color = 'var(--lime, #16a34a)'; }
-      _toast(okMsg + ' ✓', 'success');
-    } catch (e) {
-      console.error('[publish] failed:', e);
-      let msg = e.message || e.code || 'unknown error';
-      if (e.code === '23505' || /duplicate key|unique/i.test(msg)) {
-        msg = 'a change is already scheduled for that time — pick another date';
+        _toast('Program published successfully!', 'success');
+        
+        if (window.Dashboard?.closeModal) {
+          window.Dashboard.closeModal('modal-program-publish');
+          window.Dashboard.closeModal('modal-program-edit');
+        }
+        
+        // Hide review panel
+        const panel = document.getElementById(_containerId || PANEL_ID);
+        if (panel) panel.classList.add('hidden');
+        
+        if (window.Dashboard?.reloadCurrentPrograms) window.Dashboard.reloadCurrentPrograms();
+      } catch (e) {
+        console.error('[publish] RPC invocation failed:', e);
+        _toast('Could not publish this program. Please refresh and try again.', 'error');
+      } finally {
+        confirmBtn.disabled = false;
+        confirmBtn.innerHTML = origHTML;
       }
-      if (status) { status.textContent = `Publish failed: ${msg}`; status.style.color = '#FCA5A5'; }
-      _toast('Publish failed: ' + msg, 'error');
-    } finally {
-      btn.disabled = false;
-      btn.innerHTML = origHTML;
-    }
-    _loadMeta(_clientId);   // refresh the mode/revision badge + scheduled list
+    };
+
+    if (window.Dashboard?.openModal) window.Dashboard.openModal('modal-program-publish');
   }
+
 
   // ── Client side ───────────────────────────────────────────
   //   The legacy stacked "My Program" renderer (renderClientProgram) was

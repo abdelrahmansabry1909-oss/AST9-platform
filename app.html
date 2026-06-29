@@ -1511,12 +1511,21 @@
     <div class="section" id="section-programs">
       <div class="page-header">
         <div class="page-header-left">
-          <h1 class="page-title">My <span class="accent">Programs</span></h1>
-          <p class="page-subtitle">All generated sessions</p>
+          <h1 class="page-title">Program <span class="accent">Workspace</span></h1>
+          <p class="page-subtitle">Manage client program drafts and version timelines</p>
         </div>
-        <!-- New Session button removed — use the sidebar's ✦ New Session at top. -->
       </div>
-      <div id="programs-list"></div>
+      
+      <div class="card" style="margin-bottom:20px; padding:16px;">
+        <div class="form-group" style="margin-bottom:0; max-width:320px;">
+          <label class="form-label" style="font-weight:700;">Select Client Workspace</label>
+          <select id="program-client-select" class="form-input" onchange="Dashboard.handleProgramClientChange(this.value)">
+            <option value="">— Select a Client —</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="programs-workspace"></div>
     </div>
 
     <!-- ── CLIENTS ── -->
@@ -3187,6 +3196,64 @@
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="Dashboard.closeModal('modal-transcript')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- R2C Program Editing Modals -->
+<div class="modal-overlay hidden" id="modal-program-edit">
+  <div class="modal" style="max-width:960px; width:90%; height:90vh; display:flex; flex-direction:column;">
+    <div class="modal-header">
+      <h3>Edit Program Draft</h3>
+      <button class="btn-icon" onclick="Dashboard.closeModal('modal-program-edit')">✕</button>
+    </div>
+    <div class="modal-body" style="flex:1; overflow-y:auto; padding:20px;">
+      <div id="program-edit-container"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="modal-program-publish">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header">
+      <h3>Publish Program Version</h3>
+      <button class="btn-icon" onclick="Dashboard.closeModal('modal-program-publish')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:13px; color:var(--text-secondary); margin-bottom:12px; line-height:1.6;">
+        <strong>Client:</strong> <span id="pub-client-name">—</span><br/>
+        <strong>Phase:</strong> <span id="pub-program-phase">—</span><br/>
+        <strong>Current Status:</strong> <span id="pub-current-status">—</span>
+      </div>
+      <div class="alert alert-warning" style="font-size:12px; margin-bottom:14px; padding:10px; border-radius:8px; background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.2); color:#b45309; line-height:1.4;">
+        ⚠️ <strong>Warning:</strong> publishing this version will make it the client’s current program.
+      </div>
+      <p style="font-size:12px; color:var(--text-tertiary); margin-bottom:14px; line-height:1.5;">
+        Publishing this version will make it the client’s current program. Previous active versions remain in coach history and past workout logs are not changed.
+      </p>
+      <div class="form-group">
+        <label class="form-label" for="pub-change-note">Change Note / Release Log</label>
+        <input type="text" id="pub-change-note" class="form-input" placeholder="e.g. Progression adjustment, volume decrease..."/>
+      </div>
+    </div>
+    <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:10px;">
+      <button class="btn btn-ghost" onclick="Dashboard.closeModal('modal-program-publish')">Cancel</button>
+      <button class="btn btn-primary" id="pub-confirm-btn">Confirm &amp; Publish</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="modal-program-preview">
+  <div class="modal" style="max-width:760px; width:90%;">
+    <div class="modal-header">
+      <h3 id="prev-modal-title">Program Preview</h3>
+      <button class="btn-icon" onclick="Dashboard.closeModal('modal-program-preview')">✕</button>
+    </div>
+    <div class="modal-body" style="max-height:70vh; overflow-y:auto; padding:20px;" id="prev-modal-body">
+      <!-- Preview loaded dynamically -->
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="Dashboard.closeModal('modal-program-preview')">Close</button>
     </div>
   </div>
 </div>

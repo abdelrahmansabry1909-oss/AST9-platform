@@ -2715,6 +2715,41 @@ body.nc-bright .sidebar .logout-icon:hover {
   margin-right: 0;
 }
 
+/* R2C Programs Workspace Timelines styling */
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  margin-right: -10px;
+  margin-left: -10px;
+}
+.col-8, .col-4 {
+  padding-right: 10px;
+  padding-left: 10px;
+  width: 100%;
+}
+@media (min-width: 901px) {
+  .col-8 {
+    flex: 0 0 66.666667%;
+    max-width: 66.666667%;
+  }
+  .col-4 {
+    flex: 0 0 33.333333%;
+    max-width: 33.333333%;
+  }
+}
+.badge-info {
+  background: rgba(91, 108, 255, 0.1);
+  color: var(--nc-indigo);
+  border: 1px solid rgba(91, 108, 255, 0.2);
+}
+.text-rose {
+  color: #f43f5e !important;
+}
+.text-rose:hover {
+  background: rgba(244, 63, 94, 0.08) !important;
+}
+
+
 
 
 
