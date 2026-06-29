@@ -1181,7 +1181,12 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
   }
 
   async function renderProgramsList() {
+    // Ensure selector is populated if it has only the placeholder
     const selectEl = document.getElementById('program-client-select');
+    if (selectEl && selectEl.options.length <= 1) {
+      await _populateClientSelects();
+    }
+
     if (selectEl && _selectedProgramClientId) {
       selectEl.value = _selectedProgramClientId;
     }
@@ -1197,26 +1202,31 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
     el.innerHTML = `<div style="text-align:center;padding:40px"><span class="spinner spinner-lg"></span></div>`;
     
     try {
-      const { data: clients, error } = await sb.from('profiles')
+      let q = sb.from('profiles')
         .select('id, full_name, email, current_phase')
         .eq('role', 'client')
         .order('full_name');
-        
+
+      if (Auth.isCoach && Auth.isCoach()) {
+        q = q.eq('assigned_coach', Auth.getUser()?.id);
+      }
+
+      const { data: clients, error } = await q;
       if (error) throw error;
       
       if (!clients || !clients.length) {
         el.innerHTML = `
-          <div class="empty-state">
-            <span class="empty-icon">👥</span>
-            <div class="empty-title">No clients found</div>
-            <p class="empty-desc">Add clients first in the Roster tab to begin program version management.</p>
+          <div class="empty-state" style="padding:40px 20px; text-align:center;">
+            <span class="empty-icon" style="font-size:24px; margin-bottom:8px; display:block;">👥</span>
+            <div class="empty-title" style="font-weight:600; color:var(--text-primary); margin-bottom:4px;">No clients found yet</div>
+            <p class="empty-desc" style="font-size:12px; color:var(--text-muted); margin-bottom:0;">Add a client first, then return here to build and publish programs.</p>
           </div>
         `;
         return;
       }
       
       const clientCards = await Promise.all(clients.map(async (c) => {
-        const name = c.full_name || c.email || 'Client';
+        const name = c.full_name || c.email || ('Client ' + c.id.substring(0, 8));
         
         // Find counts of drafts and active status for each client
         let activePlan = 'No active program';
@@ -1263,7 +1273,12 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
         </div>
       `;
     } catch (e) {
-      el.innerHTML = `<div class="alert alert-error">Failed to load roster overview: ${e.message}</div>`;
+      el.innerHTML = `
+        <div class="alert alert-error" style="padding:16px; border-radius:8px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2); color:#f87171; font-size:13px; text-align:center;">
+          Could not load Programs workspace. Please refresh and try again.
+        </div>
+      `;
+      console.error('Failed to load roster overview:', e);
     }
   }
 
@@ -1292,7 +1307,7 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
         .single();
       if (profileErr) throw profileErr;
       
-      const clientName = clientProfile.full_name || clientProfile.email || 'Client';
+      const clientName = clientProfile.full_name || clientProfile.email || ('Client ' + clientId.substring(0, 8));
 
       // 2. Query Client Program Versions
       const { data: versions, error: versionsErr } = await sb.from('client_program_versions')
@@ -1301,12 +1316,29 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
         .order('created_at', { ascending: false });
       if (versionsErr) throw versionsErr;
 
+      // If no program versions exist for this client, show the empty state with Create New Draft button.
+      if (!versions || !versions.length) {
+        el.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+            <h2 style="font-size:15px; font-weight:700; color:var(--text-primary); margin:0;">${clientName}'s Program Workspace</h2>
+            <button class="btn btn-primary btn-sm" onclick="Dashboard.createNewDraft('${clientId}')">+ Create New Draft</button>
+          </div>
+          <div class="empty-state" style="padding:40px 20px; text-align:center; border:1px dashed var(--border-subtle); border-radius:12px; background:var(--bg-card);">
+            <span class="empty-icon" style="font-size:24px; margin-bottom:8px; display:block;">📂</span>
+            <div class="empty-title" style="font-weight:600; color:var(--text-primary); margin-bottom:4px;">No program versions yet</div>
+            <p class="empty-desc" style="font-size:12px; color:var(--text-muted); margin-bottom:16px;">Create New Draft to start this client’s first program.</p>
+            <button class="btn btn-primary btn-sm" onclick="Dashboard.createNewDraft('${clientId}')">+ Create New Draft</button>
+          </div>
+        `;
+        return;
+      }
+
       // Group versions: Active, Drafts, History
       let activeVer = null;
       const drafts = [];
       const history = [];
 
-      (versions || []).forEach(v => {
+      versions.forEach(v => {
         if (v.published && v.status === 'active') {
           activeVer = v;
         } else if (!v.published || v.status === 'draft') {
@@ -1458,7 +1490,12 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
         </div>
       `;
     } catch (e) {
-      el.innerHTML = `<div class="alert alert-error">Failed to load workspace: ${e.message}</div>`;
+      el.innerHTML = `
+        <div class="alert alert-error" style="padding:16px; border-radius:8px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2); color:#f87171; font-size:13px; text-align:center;">
+          Could not load Programs workspace. Please refresh and try again.
+        </div>
+      `;
+      console.error('Error rendering program workspace:', e);
     }
   }
 
@@ -1725,54 +1762,65 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
 
   async function _populateClientSelects() {
     if (!Auth.isAdminOrCoach()) return;
-    const { data } = await sb.from('profiles')
-      .select('id, full_name, email, current_phase')
-      .eq('role','client').order('full_name');
-    if (!data) return;
+    try {
+      let q = sb.from('profiles')
+        .select('id, full_name, email, current_phase')
+        .eq('role', 'client')
+        .order('full_name');
+      
+      if (Auth.isCoach && Auth.isCoach()) {
+        q = q.eq('assigned_coach', Auth.getUser()?.id);
+      }
+      
+      const { data, error } = await q;
+      if (error) throw error;
+      if (!data) return;
 
-    // ns-save-client was removed — Generate now reads from ns-client-select.
-    ['ns-client-select','sub-client','pu-client','program-client-select'].forEach(id => {
-      const el = document.getElementById(id);
-      if (!el) return;
-      const placeholder = el.options[0];
-      el.innerHTML = '';
-      if (placeholder) el.appendChild(placeholder);
-      data.forEach(c => {
-        const opt = document.createElement('option');
-        opt.value = c.id;
-        opt.textContent = c.full_name || c.email;
-        opt.dataset.phase = c.current_phase || 'Phase 1';
-        el.appendChild(opt);
-      });
-    });
-
-    // Coach dropdown for Add Client — admin-only (BUG 4). A coach never picks
-    // the owning coach (their new clients auto-assign to them), so we hide the
-    // selector and show a short note instead.
-    const coachSel   = document.getElementById('ac-coach');
-    const coachGroup = document.getElementById('ac-coach-group');
-    const coachNote  = document.getElementById('ac-coach-note');
-    if (Auth.isAdmin && Auth.isAdmin()) {
-      if (coachGroup) coachGroup.style.display = '';
-      if (coachNote)  coachNote.style.display  = 'none';
-      const { data: coaches } = await sb.from('profiles')
-        .select('id, full_name, email').in('role',['coach','admin']);
-      if (coachSel && coaches) {
-        // Reset to the placeholder before repopulating so repeated refreshes
-        // (e.g. after creating a client) never duplicate the options.
-        const placeholder = coachSel.options[0];
-        coachSel.innerHTML = '';
-        if (placeholder) coachSel.appendChild(placeholder);
-        coaches.forEach(c => {
+      ['ns-client-select','sub-client','pu-client','program-client-select'].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const placeholder = el.options[0];
+        el.innerHTML = '';
+        if (placeholder) el.appendChild(placeholder);
+        data.forEach(c => {
           const opt = document.createElement('option');
           opt.value = c.id;
-          opt.textContent = c.full_name || c.email;
-          coachSel.appendChild(opt);
+          opt.textContent = c.full_name || c.email || ('Client ' + c.id.substring(0, 8));
+          opt.dataset.phase = c.current_phase || 'Phase 1';
+          el.appendChild(opt);
         });
+      });
+
+      // Coach dropdown for Add Client — admin-only (BUG 4). A coach never picks
+      // the owning coach (their new clients auto-assign to them), so we hide the
+      // selector and show a short note instead.
+      const coachSel   = document.getElementById('ac-coach');
+      const coachGroup = document.getElementById('ac-coach-group');
+      const coachNote  = document.getElementById('ac-coach-note');
+      if (Auth.isAdmin && Auth.isAdmin()) {
+        if (coachGroup) coachGroup.style.display = '';
+        if (coachNote)  coachNote.style.display  = 'none';
+        const { data: coaches } = await sb.from('profiles')
+          .select('id, full_name, email').in('role',['coach','admin']);
+        if (coachSel && coaches) {
+          // Reset to the placeholder before repopulating so repeated refreshes
+          // (e.g. after creating a client) never duplicate the options.
+          const placeholder = coachSel.options[0];
+          coachSel.innerHTML = '';
+          if (placeholder) coachSel.appendChild(placeholder);
+          coaches.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c.id;
+            opt.textContent = c.full_name || c.email;
+            coachSel.appendChild(opt);
+          });
+        }
+      } else {
+        if (coachGroup) coachGroup.style.display = 'none';
+        if (coachNote)  coachNote.style.display  = '';
       }
-    } else {
-      if (coachGroup) coachGroup.style.display = 'none';
-      if (coachNote)  coachNote.style.display  = '';
+    } catch (err) {
+      console.error('[Dashboard] Failed to populate client selects:', err);
     }
   }
 
