@@ -56,6 +56,20 @@
     return `${m}:${String(r).padStart(2,'0')}`;
   }
 
+  async function checkStaleSessions() {
+    if (typeof sb === 'undefined' || !sb) return;
+    try {
+      const { data, error } = await sb.rpc('expire_my_stale_workout_sessions');
+      if (error) {
+        console.warn('[WorkoutSession] Auto-expire check failed:', error.message);
+      } else if (data && data > 0) {
+        console.log(`[WorkoutSession] Stale sessions auto-expired count: ${data}`);
+      }
+    } catch (e) {
+      console.warn('[WorkoutSession] Fail-soft auto-expire check caught exception:', e);
+    }
+  }
+
   // ── 1. DATA LAYER ───────────────────────────────────────────────
 
   async function start({ clientId, programId = null, workoutKey, workoutLabel = '' }) {
@@ -146,6 +160,7 @@
 
   async function getActiveSession(clientId) {
     if (!clientId) return null;
+    await checkStaleSessions();
     const { data } = await sb.from('workout_sessions')
       .select('*').eq('client_id', clientId).eq('status', 'active')
       .order('started_at', { ascending: false }).limit(1).maybeSingle();
@@ -800,6 +815,8 @@
               ? `<span class="badge badge-active badge-dot">Completed</span>`
               : r.status === 'active'
               ? `<span class="badge badge-pending badge-dot">In progress</span>`
+              : r.end_reason === 'auto_finished_2h'
+              ? `<span class="badge badge-expired" style="background:rgba(239,68,68,0.08);color:#f87171;border:1px solid rgba(239,68,68,0.2)">Auto-finished after 2h</span>`
               : `<span class="badge badge-expired">Abandoned</span>`;
             return `
               <tr style="border-top:1px solid var(--border-subtle)">
@@ -840,6 +857,11 @@
           <span class="card-title">${esc(session.workout_label || ('Workout ' + session.workout_key))}</span>
           <span style="font-size:11px;color:var(--text-tertiary)">${esc(when)} · ${dur} · intensity ${session.intensity_rating ?? '—'}/10</span>
         </div>
+        ${session.end_reason === 'auto_finished_2h' ? `
+          <div style="margin: 0 16px 12px 16px; padding:10px 12px; border-radius:8px; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.2); font-size:12.5px; color:#f87171;">
+            ℹ️ This workout was auto-finished after 2 hours of inactivity.
+          </div>
+        ` : ''}
         ${session.session_notes ? `<div class="form-hint" style="margin-bottom:12px"><b>Notes:</b> ${esc(session.session_notes)}</div>` : ''}
         ${logs.length ? `
           <div style="display:flex;flex-direction:column;gap:10px">
@@ -864,7 +886,7 @@
   window.WorkoutSession = {
     // Data layer
     start, finish, abandon, logExercise,
-    getActiveSession, history, detail, summary,
+    getActiveSession, history, detail, summary, checkStaleSessions,
     // UI mount points
     mountWorkouts, mountCoachView,
     // Helpers (exposed for tests / dashboards)

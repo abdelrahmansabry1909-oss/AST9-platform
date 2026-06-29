@@ -235,29 +235,36 @@
     let actionButtons = '';
     if (_isDraft) {
       actionButtons = `
-        <button class="btn btn-primary" id="pp-publish">📤 Publish Draft</button>
-        <button class="btn btn-ghost" id="pp-save-draft">📥 Save Draft</button>
-        <button class="btn btn-ghost" id="pp-preview">👁 Preview client view</button>
+        <button class="btn btn-primary" id="pp-publish">📤 Publish to Client</button>
+        <button class="btn btn-ghost" id="pp-save-draft">📥 Save as Draft</button>
+        <button class="btn btn-ghost" id="pp-preview">👁 Client View</button>
       `;
     } else {
       actionButtons = `
         <button class="btn btn-primary" id="pp-publish">📤 Publish to Client</button>
         <button class="btn btn-ghost" id="pp-save-draft">📥 Save as Draft</button>
         <button class="btn btn-ghost" id="pp-copy">📋 Load from another client</button>
-        <button class="btn btn-ghost" id="pp-preview">👁 Preview client view</button>
+        <button class="btn btn-ghost" id="pp-preview">👁 Client View</button>
       `;
     }
 
-    panel.innerHTML = `
+    const bannerHtml = _isDraft ? `
+      <div class="alert alert-info" style="margin-bottom: 16px; border: 1px solid var(--border-subtle); background: var(--bg-card); display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: var(--nc-teal, #14B8A6); padding: 12px; border-radius: 8px;">
+        <span style="font-size: 16px;">ℹ️</span>
+        <span>You are editing a draft program. Publishing will replace the client’s current program.</span>
+      </div>
+    ` : '';
+
+    panel.innerHTML = bannerHtml + `
       <div class="card" style="margin-bottom:var(--sp-4)">
         <div class="card-header">
-          <span class="card-title">Review &amp; Program Details</span>
+          <span class="card-title">Program Workspace</span>
           <span class="badge" style="background:rgba(20,184,166,.14);color:var(--nc-teal);border:1px solid rgba(20,184,166,.3)">
             ${esc(p.phase || 'Program')} · ${esc(p.days_per_week || 3)} days/week${p.split_label ? ' · ' + esc(p.split_label) : ''}
           </span>
         </div>
         <div class="form-hint" style="margin-bottom:14px">
-          Review or edit draft details. When ready, publish to push to the client workspace.
+          Review or edit draft details. When ready, publish to push to the Client Program.
         </div>
 
         <div id="pp-mode"></div>

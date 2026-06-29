@@ -167,7 +167,7 @@ const ExerciseUI = (() => {
     let modal = document.getElementById('modal-ex-video');
     if (!modal) {
       document.body.insertAdjacentHTML('beforeend', `
-        <div class="modal-overlay hidden" id="modal-ex-video">
+        <div class="modal-overlay hidden" id="modal-ex-video" style="pointer-events: none;">
           <div class="modal" style="max-width:720px">
             <div class="modal-header">
               <h3 id="ex-video-title">Exercise</h3>
@@ -187,7 +187,12 @@ const ExerciseUI = (() => {
 
     const embedUrl = ExerciseLibrary.getEmbedUrl(videoUrl);
     document.getElementById('ex-video-title').textContent = name;
-    document.getElementById('ex-video-iframe').src = embedUrl || '';
+    const iframe = document.getElementById('ex-video-iframe');
+    if (iframe) iframe.src = embedUrl || '';
+    
+    // Release scroll lock and enable pointer events
+    document.body.style.overflow = 'hidden';
+    modal.style.pointerEvents = 'auto';
     modal.classList.remove('hidden');
   }
 
@@ -195,8 +200,14 @@ const ExerciseUI = (() => {
     const modal = document.getElementById('modal-ex-video');
     if (modal) {
       modal.classList.add('hidden');
+      modal.style.pointerEvents = 'none';
+      document.body.style.overflow = '';
+      
       const iframe = document.getElementById('ex-video-iframe');
       if (iframe) iframe.src = ''; // stop playback
+      
+      const videos = modal.querySelectorAll('video');
+      videos.forEach(v => { try { v.pause(); } catch(_) {} });
     }
   }
 

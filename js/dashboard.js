@@ -149,6 +149,11 @@ const Dashboard = (() => {
   ]);
 
   function showSection(id) {
+    if (typeof Auth !== 'undefined' && Auth.getRole?.() === 'client' && typeof WorkoutSession !== 'undefined' && WorkoutSession.checkStaleSessions) {
+      if (id === 'dashboard' || id === 'client-train') {
+        WorkoutSession.checkStaleSessions();
+      }
+    }
     // BUG 3 — capture the section we're leaving so we can tear down its
     // Community realtime subscriptions (below) instead of letting them linger.
     const _leavingSection = document.querySelector('.section.active')?.id || null;
@@ -1260,7 +1265,7 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
                 </div>
               </div>
             </div>
-            <button class="btn btn-ghost btn-sm" onclick="Dashboard.handleProgramClientChange('${c.id}')">Manage Workspace →</button>
+            <button class="btn btn-ghost btn-sm" onclick="Dashboard.handleProgramClientChange('${c.id}')">Manage Program →</button>
           </div>
         `;
       }));
@@ -1268,10 +1273,10 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
       el.innerHTML = `
         <div class="empty-state" style="margin-bottom:20px; padding:20px 0;">
           <span class="empty-icon">📂</span>
-          <div class="empty-title">Select a Client Workspace</div>
-          <p class="empty-desc">Select a client below or from the dropdown above to view version history, manage drafts, and publish programs.</p>
+          <div class="empty-title">Select Client Program</div>
+          <p class="empty-desc">Select a client below or from the dropdown above to view Version Timeline, manage Draft Programs, and publish Client Programs.</p>
         </div>
-        <div style="font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--text-tertiary); margin-bottom:10px;">Client Rosters</div>
+        <div style="font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--text-tertiary); margin-bottom:10px;">Client Program List</div>
         <div style="display:flex; flex-direction:column; gap:10px;">
           ${clientCards.join('')}
         </div>
@@ -1279,7 +1284,7 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
     } catch (e) {
       el.innerHTML = `
         <div class="alert alert-error" style="padding:16px; border-radius:8px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2); color:#f87171; font-size:13px; text-align:center;">
-          Could not load Programs workspace. Please refresh and try again.
+          Could not load Program Workspace. Please refresh and try again.
         </div>
       `;
       console.error('Failed to load roster overview:', e);
@@ -1363,17 +1368,22 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
       } else {
         const p = activeVer.program || {};
         const when = activeVer.published_at ? new Date(activeVer.published_at).toLocaleDateString() : '—';
+        let republishBtnHtml = '';
+        if (drafts.length > 0) {
+          republishBtnHtml = `<button class="btn btn-ghost btn-sm" onclick="Dashboard.publishDraftDirect('${drafts[0].id}', '${clientId}')">📤 Republish Latest Draft</button>`;
+        }
         activeCardHtml = `
           <div class="card" style="border-left:4px solid var(--nc-teal); background:var(--bg-card); padding:16px;">
             <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
               <div>
-                <span class="badge badge-success" style="background:rgba(20,184,166,0.1); color:var(--nc-teal); border:1px solid rgba(20,184,166,0.25);">Current Published</span>
+                <span class="badge badge-success" style="background:rgba(20,184,166,0.1); color:var(--nc-teal); border:1px solid rgba(20,184,166,0.25);">Current Published Program</span>
                 <h3 style="font-size:16px; font-weight:700; margin:6px 0 2px 0; color:var(--text-primary);">${p.phase || 'Phase 1'}</h3>
                 <div style="font-size:12px; color:var(--text-muted);">Published ${when} · ${p.days_per_week || 3} days/wk</div>
               </div>
-              <div style="display:flex; gap:6px;">
-                <button class="btn btn-ghost btn-sm" onclick="Dashboard.previewVersion('${activeVer.id}')">👁 View</button>
-                <button class="btn btn-ghost btn-sm" onclick="Dashboard.duplicateAsDraft('${activeVer.id}', '${clientId}')">📋 Duplicate as Draft</button>
+              <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                <button class="btn btn-ghost btn-sm" onclick="Dashboard.previewVersion('${activeVer.id}')">👁 View Client Version</button>
+                <button class="btn btn-ghost btn-sm" onclick="Dashboard.duplicateAsDraft('${activeVer.id}', '${clientId}')">📋 Revise as Draft</button>
+                ${republishBtnHtml}
               </div>
             </div>
             ${activeVer.change_note ? `
@@ -1406,7 +1416,7 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
                 </div>
               </div>
               <div style="display:flex; gap:6px;">
-                <button class="btn btn-primary btn-xs" onclick="Dashboard.publishDraftDirect('${d.id}', '${clientId}')">📤 Publish</button>
+                <button class="btn btn-primary btn-xs" onclick="Dashboard.publishDraftDirect('${d.id}', '${clientId}')">📤 Publish to Client</button>
                 <button class="btn btn-ghost btn-xs" onclick="Dashboard.editDraft('${d.id}', '${clientId}')">✏ Edit</button>
                 <button class="btn btn-ghost btn-xs text-rose" onclick="Dashboard.archiveDraft('${d.id}', '${clientId}')">🗄 Archive</button>
               </div>
@@ -1420,7 +1430,7 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
       if (!history.length) {
         historyHtml = `
           <div style="padding:16px; text-align:center; color:var(--text-tertiary); font-size:12.5px;">
-            No version history logs.
+            No timeline logs found yet.
           </div>
         `;
       } else {
@@ -1453,8 +1463,8 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
                 </div>
               </div>
               <div style="display:flex; gap:4px;">
-                <button class="btn btn-ghost btn-xs" onclick="Dashboard.previewVersion('${h.id}')">👁 View</button>
-                <button class="btn btn-ghost btn-xs" onclick="Dashboard.duplicateAsDraft('${h.id}', '${clientId}')">📋 Duplicate</button>
+                <button class="btn btn-ghost btn-xs" onclick="Dashboard.previewVersion('${h.id}')">👁 View Client Version</button>
+                <button class="btn btn-ghost btn-xs" onclick="Dashboard.duplicateAsDraft('${h.id}', '${clientId}')">📋 Revise as Draft</button>
               </div>
             </div>
           `;
@@ -1463,7 +1473,7 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
 
       el.innerHTML = `
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-          <h2 style="font-size:15px; font-weight:700; color:var(--text-primary); margin:0;">${clientName}'s Program Timeline</h2>
+          <h2 style="font-size:15px; font-weight:700; color:var(--text-primary); margin:0;">${clientName}'s Program Workspace</h2>
           <button class="btn btn-primary btn-sm" onclick="Dashboard.createNewDraft('${clientId}')">+ Create New Draft</button>
         </div>
 
@@ -1477,7 +1487,7 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
 
             <!-- Drafts -->
             <div>
-              <div style="font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--text-tertiary); margin-bottom:8px;">Drafts Workspace</div>
+              <div style="font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--text-tertiary); margin-bottom:8px;">Draft Program</div>
               ${draftsHtml}
             </div>
           </div>
@@ -1485,7 +1495,7 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
           <!-- History Timeline -->
           <div class="col-4">
             <div class="card" style="padding:16px; background:var(--bg-card);">
-              <div style="font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--text-tertiary); margin-bottom:12px;">Version History Timeline</div>
+              <div style="font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--text-tertiary); margin-bottom:12px;">Version Timeline</div>
               <div style="display:flex; flex-direction:column; max-height:450px; overflow-y:auto; padding-right:4px;">
                 ${historyHtml}
               </div>
@@ -1496,7 +1506,7 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
     } catch (e) {
       el.innerHTML = `
         <div class="alert alert-error" style="padding:16px; border-radius:8px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2); color:#f87171; font-size:13px; text-align:center;">
-          Could not load Programs workspace. Please refresh and try again.
+          Could not load Program Workspace. Please refresh and try again.
         </div>
       `;
       console.error('Error rendering program workspace:', e);
@@ -1542,7 +1552,7 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
       let coachId = null;
       try { coachId = Auth.getUser()?.id || null; } catch {}
       
-      const { error } = await sb.from('client_program_versions').insert({
+      const { data: newDraft, error } = await sb.from('client_program_versions').insert({
         client_id: clientId,
         coach_id: coachId,
         program: baseProgram,
@@ -1550,12 +1560,15 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
         status: 'draft',
         change_note: 'New Draft Created',
         created_by: coachId
-      });
+      }).select('id').single();
       
       if (error) throw error;
       
-      toast('New draft program created successfully.', 'success');
-      renderProgramsList();
+      toast('New draft program created successfully. Opening editor...', 'success');
+      await renderProgramsList();
+      if (newDraft && newDraft.id) {
+        await editDraft(newDraft.id, clientId);
+      }
     } catch (e) {
       toast('Failed to create draft: ' + e.message, 'error');
     }
@@ -1573,7 +1586,7 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
       let coachId = null;
       try { coachId = Auth.getUser()?.id || null; } catch {}
       
-      const { error: insertErr } = await sb.from('client_program_versions').insert({
+      const { data: newDraft, error: insertErr } = await sb.from('client_program_versions').insert({
         client_id: clientId,
         coach_id: coachId,
         program: ver.program,
@@ -1581,12 +1594,15 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
         status: 'draft',
         change_note: 'Duplicated Draft',
         created_by: coachId
-      });
+      }).select('id').single();
       
       if (insertErr) throw insertErr;
       
-      toast('Program duplicated as draft.', 'success');
-      renderProgramsList();
+      toast('Program duplicated as draft. Opening editor...', 'success');
+      await renderProgramsList();
+      if (newDraft && newDraft.id) {
+        await editDraft(newDraft.id, clientId);
+      }
     } catch (e) {
       toast('Failed to duplicate: ' + e.message, 'error');
     }
