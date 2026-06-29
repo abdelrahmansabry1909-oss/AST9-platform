@@ -11,6 +11,10 @@ const Dashboard = (() => {
   let _lastBundle = null;
   let _selectedProgramClientId = null;
 
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g,
+    c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c])
+  );
+
   // ═══════════════════════════════════════════════════════════
   //  SHELL / SIDEBAR
   // ═══════════════════════════════════════════════════════════
