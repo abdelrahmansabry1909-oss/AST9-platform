@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="css/mobile-shell.css"/>
   <link rel="stylesheet" href="css/client-theme.css"/>
   <!-- Phase G — premium identity + executive dashboard (loaded last; wins on tokens) -->
-  <link rel="stylesheet" href="css/neucore-premium.css"/>
+  <link rel="stylesheet" href="css/neucore-premium.css?v=20260629c"/>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><defs><linearGradient id='b' x1='0' y1='0' x2='40' y2='40' gradientUnits='userSpaceOnUse'><stop stop-color='%231A2748'/><stop offset='1' stop-color='%230A1024'/></linearGradient><linearGradient id='g' x1='10' y1='9' x2='30' y2='31' gradientUnits='userSpaceOnUse'><stop stop-color='%23F6E27A'/><stop offset='.5' stop-color='%23D4AF37'/><stop offset='1' stop-color='%23B8860B'/></linearGradient></defs><rect x='2' y='2' width='36' height='36' rx='11' fill='url(%23b)'/><path d='M13 28V13l14 14V12' fill='none' stroke='url(%23g)' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/><circle cx='27' cy='12' r='2.7' fill='%232DD4BF'/></svg>"/>
 </head>
 <body>
@@ -1512,13 +1512,13 @@
       <div class="page-header">
         <div class="page-header-left">
           <h1 class="page-title">Program <span class="accent">Workspace</span></h1>
-          <p class="page-subtitle">Manage client program drafts and version timelines</p>
+          <p class="page-subtitle">Manage client program drafts and Version Timelines</p>
         </div>
       </div>
       
       <div class="card" style="margin-bottom:20px; padding:16px;">
         <div class="form-group" style="margin-bottom:0; max-width:320px;">
-          <label class="form-label" style="font-weight:700;">Select Client Workspace</label>
+          <label class="form-label" style="font-weight:700;">Select Client Program</label>
           <select id="program-client-select" class="form-input" onchange="Dashboard.handleProgramClientChange(this.value)">
             <option value="">— Select a Client —</option>
           </select>
@@ -3204,7 +3204,7 @@
 <div class="modal-overlay hidden" id="modal-program-edit">
   <div class="modal" style="max-width:960px; width:90%; height:90vh; display:flex; flex-direction:column;">
     <div class="modal-header">
-      <h3>Edit Program Draft</h3>
+      <h3>Edit Draft Program</h3>
       <button class="btn-icon" onclick="Dashboard.closeModal('modal-program-edit')">✕</button>
     </div>
     <div class="modal-body" style="flex:1; overflow-y:auto; padding:20px;">
@@ -3859,7 +3859,7 @@ setInterval(() => { if (!document.hidden) _refreshApprovalsBadge(); }, 60_000);
 <script src="js/pdfExport.js?v=20260619a"></script>
 <script src="js/subscriptionService.js?v=20260622a"></script>
 <script src="js/auth.js?v=20260627b"></script>
-<script src="js/dashboard.js?v=20260629b"></script>
+<script src="js/dashboard.js?v=20260629c"></script>
 <script src="js/clients.js?v=20260619a"></script>
 <script src="js/subscriptions.js?v=20260614p6"></script>
 <script src="js/packages.js"></script>
@@ -3871,11 +3871,11 @@ setInterval(() => { if (!document.hidden) _refreshApprovalsBadge(); }, 60_000);
 <script src="js/dailyRoutine.js"></script>
 <script src="js/exerciseInstructions.js?v=20260619a"></script>
 <script src="js/exercisePicker.js?v=20260619a"></script>
-<script src="js/workoutSession.js?v=20260617b"></script>
+<script src="js/workoutSession.js?v=20260629c"></script>
 <script src="js/notificationsService.js?v=20260616a"></script>
 <script src="js/altExerciseRequest.js?v=20260601a"></script>
 <script src="js/progressionEngine.js?v=20260602a"></script>
-<script src="js/programPublish.js?v=20260624b"></script>
+<script src="js/programPublish.js?v=20260629c"></script>
 <script src="js/bodyMap3D.v2.js"></script>
 <!-- Phase 3 modules -->
 <script src="js/community.js?v=20260616d"></script>
@@ -3883,14 +3883,14 @@ setInterval(() => { if (!document.hidden) _refreshApprovalsBadge(); }, 60_000);
 <!-- Feature 7 — shared assessment→hologram loader (used by client dashboard + coach Recovery modal) -->
 <script src="js/assessmentSnapshot.js"></script>
 <script src="js/clientUtil.js"></script>
-<script src="js/clientProgram.js?v=20260619a"></script>
+<script src="js/clientProgram.js?v=20260629c"></script>
 <script src="js/clientDashboard.js"></script>
 <script src="js/clientTrain.js"></script>
 <script src="js/clientProgress.js"></script>
 <script src="js/clientCoach.js"></script>
 <script src="js/clientShell.js"></script>
 <script src="js/exerciseLibrary.js?v=20260619a"></script>
-<script src="js/exerciseUI.js?v=20260614p5"></script>
+<script src="js/exerciseUI.js?v=20260629c"></script>
 <script src="js/appointments.js?v=20260616a"></script>
 <script src="js/adminBusiness.js"></script>
 <script src="js/coachProfile.js"></script>

@@ -419,15 +419,15 @@
   function _groupSection(g, count, rowsHTML, open) {
     const gm = GROUP[g];
     return `
-      <div data-cp2-group="${g}">
+      <div data-cp2-group="${g}" style="margin-bottom:12px">
         <button type="button" data-cp2-group-toggle
           style="width:100%;display:flex;align-items:center;justify-content:space-between;background:transparent;border:0;
-                 cursor:pointer;padding:4px 2px;margin-bottom:8px;-webkit-tap-highlight-color:transparent">
-          <span style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:${gm.color}">
+                 cursor:pointer;padding:8px 2px;margin-bottom:8px;-webkit-tap-highlight-color:transparent;min-height:44px">
+          <span style="font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:${gm.color}">
             ${gm.label} <span style="color:var(--nc-text-muted,#64748B);font-weight:600">· ${count}</span></span>
-          <span data-cp2-group-chev style="font-size:12px;color:var(--nc-text-muted,#64748B);transition:transform .18s;${open ? 'transform:rotate(180deg)' : ''}">▾</span>
+          <span data-cp2-group-chev style="font-size:14px;color:var(--nc-text-muted,#64748B);transition:transform .18s;${open ? 'transform:rotate(180deg)' : ''}">▾</span>
         </button>
-        <div data-cp2-group-body class="${open ? '' : 'hidden'}" style="display:flex;flex-direction:column;gap:8px">${rowsHTML}</div>
+        <div data-cp2-group-body class="${open ? '' : 'hidden'}" style="display:flex;flex-direction:column;gap:12px">${rowsHTML}</div>
       </div>`;
   }
 
@@ -442,25 +442,25 @@
     const hasDetails = !!(ex.notes || ex.tempo || ex._substituteResponse || hasMedia || typeof AltExercise !== 'undefined');
     return `
       <div class="cp2-card" data-cp2-idx="${idx}"
-           style="border:1px solid var(--nc-border,rgba(255,255,255,.08));border-radius:14px;background:var(--nc-fill-1);padding:12px 14px">
-        <div style="display:flex;gap:12px;align-items:flex-start">
-          <span style="width:24px;height:24px;border-radius:50%;background:rgba(20,184,166,.12);border:1px solid rgba(20,184,166,.3);
-                       color:var(--nc-teal,#14B8A6);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;
+           style="border:1px solid var(--nc-border,rgba(255,255,255,.08));border-radius:16px;background:var(--nc-fill-1);padding:16px 18px;margin-bottom:12px">
+        <div style="display:flex;gap:14px;align-items:flex-start">
+          <span style="width:28px;height:28px;border-radius:50%;background:rgba(20,184,166,.12);border:1px solid rgba(20,184,166,.3);
+                       color:var(--nc-teal,#14B8A6);font-size:12.5px;font-weight:700;display:flex;align-items:center;justify-content:center;
                        flex-shrink:0;margin-top:1px">${idx + 1}</span>
           <div style="flex:1;min-width:0">
-            <div style="font-size:14px;font-weight:600;color:var(--nc-text-primary,#F8FAFC);line-height:1.35">${esc(ex.name || 'Exercise')}${sub}</div>
-            ${ex.rest ? `<div style="font-size:11.5px;color:var(--nc-text-muted,#64748B);margin-top:2px">rest ${esc(ex.rest)}</div>` : ''}
+            <div style="font-size:15px;font-weight:700;color:var(--nc-text-primary,#F8FAFC);line-height:1.35">${esc(ex.name || 'Exercise')}${sub}</div>
+            ${ex.rest ? `<div style="font-size:12px;color:var(--nc-text-muted,#64748B);margin-top:4px">rest ${esc(ex.rest)}</div>` : ''}
           </div>
-          ${setsReps ? `<div style="font-size:13px;font-weight:700;color:var(--nc-teal,#14B8A6);white-space:nowrap;margin-top:1px">${setsReps}</div>` : ''}
+          ${setsReps ? `<div style="font-size:14px;font-weight:700;color:var(--nc-teal,#14B8A6);white-space:nowrap;margin-top:1px">${setsReps}</div>` : ''}
         </div>
         ${hasDetails ? `
           <button type="button" data-cp2-toggle
-            style="margin-top:8px;background:transparent;border:0;color:var(--nc-text-secondary,#94A3B8);font-size:12px;font-weight:600;
-                   cursor:pointer;padding:4px 0;display:inline-flex;align-items:center;gap:6px;min-height:32px">
+            style="margin-top:12px;background:transparent;border:0;color:var(--nc-text-secondary,#94A3B8);font-size:13px;font-weight:600;
+                   cursor:pointer;padding:6px 0;display:inline-flex;align-items:center;gap:8px;min-height:44px">
             <span data-cp2-toggle-label>Show details</span>
-            <span data-cp2-chev style="font-size:11px;transition:transform .18s">▾</span>
+            <span data-cp2-chev style="font-size:12px;transition:transform .18s">▾</span>
           </button>
-          <div data-cp2-details class="hidden" style="margin-top:6px;border-top:1px solid var(--nc-border,rgba(255,255,255,.08));padding-top:10px">
+          <div data-cp2-details class="hidden" style="margin-top:8px;border-top:1px solid var(--nc-border,rgba(255,255,255,.08));padding-top:12px">
             ${_detailsInner(ex, m)}
           </div>` : ''}
       </div>`;
@@ -468,9 +468,9 @@
 
   function _detailsInner(ex, m) {
     return `
-      ${ex.notes ? `<div style="font-size:12.5px;line-height:1.55;color:var(--nc-text-secondary,#94A3B8);margin-bottom:8px;${_clampStyle(5)}">${esc(ex.notes)}</div>` : ''}
-      ${ex.tempo ? `<div style="font-size:11.5px;color:var(--nc-text-muted,#64748B);margin-bottom:8px">Tempo ${esc(ex.tempo)}</div>` : ''}
-      ${ex._substituteResponse ? `<div style="font-size:11.5px;color:var(--nc-teal,#14B8A6);margin-bottom:8px">Coach: ${esc(ex._substituteResponse)}</div>` : ''}
+      ${ex.notes ? `<div style="font-size:13px;line-height:1.55;color:var(--nc-text-secondary,#94A3B8);margin-bottom:8px;${_clampStyle(5)}">${esc(ex.notes)}</div>` : ''}
+      ${ex.tempo ? `<div style="font-size:12px;color:var(--nc-text-muted,#64748B);margin-bottom:8px">Tempo ${esc(ex.tempo)}</div>` : ''}
+      ${ex._substituteResponse ? `<div style="font-size:12px;color:var(--nc-teal,#14B8A6);margin-bottom:8px">Coach: ${esc(ex._substituteResponse)}</div>` : ''}
       ${_mediaBlock(m)}
       ${_altButton()}`;
   }
@@ -482,18 +482,19 @@
   }
 
   // ── Shared media + alt (browse cards AND execution steps) ────────
+  // CX4 — media block buttons refined to meet modern accessibility criteria.
   function _mediaBlock(m) {
     if (!m) return '';
     const hasVideo = !!m.video_url;
     const hasInstr = !!(typeof ExerciseInstructions !== 'undefined' && ExerciseInstructions.build(m).hasContent);
     if (!hasVideo && !hasInstr) return '';
     return `
-      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
-        ${hasVideo ? `<button type="button" data-cp2-preview class="btn btn-ghost btn-xs" style="padding:5px 11px;font-size:11px;min-height:32px">▶ Watch</button>` : ''}
-        ${hasInstr ? `<button type="button" data-cp2-info class="btn btn-ghost btn-xs" style="padding:5px 11px;font-size:11px;min-height:32px">ℹ How to</button>` : ''}
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+        ${hasVideo ? `<button type="button" data-cp2-preview class="btn btn-ghost" style="padding:10px 16px;font-size:13px;min-height:44px;border-radius:10px">▶ Watch Video</button>` : ''}
+        ${hasInstr ? `<button type="button" data-cp2-info class="btn btn-ghost" style="padding:10px 16px;font-size:13px;min-height:44px;border-radius:10px">ℹ Instructions</button>` : ''}
       </div>
-      <div data-cp2-video class="hidden" style="margin-bottom:8px;border:1px solid var(--nc-border,rgba(255,255,255,.08));border-radius:8px;overflow:hidden"></div>
-      <div data-cp2-instr class="hidden" style="margin-bottom:8px"></div>`;
+      <div data-cp2-video class="hidden" style="margin-bottom:12px;border:1px solid var(--nc-border,rgba(255,255,255,.08));border-radius:12px;overflow:hidden"></div>
+      <div data-cp2-instr class="hidden" style="margin-bottom:12px"></div>`;
   }
   function _altButton() {
     if (typeof AltExercise === 'undefined') return '';
@@ -744,30 +745,30 @@
     const sets = (log.sets && log.sets.length) ? log.sets : [{}];
     const rows = sets.map((s, i) => _setRow(s, i)).join('');
     return `
-      <div style="margin-top:16px;border:1px solid var(--nc-border,rgba(255,255,255,.08));border-radius:14px;padding:14px;background:rgba(20,184,166,.04)">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-          <span style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--nc-text-secondary,#94A3B8)">Log your sets</span>
-          <label style="display:flex;align-items:center;gap:7px;font-size:13px;color:var(--nc-text-secondary,#94A3B8);cursor:pointer">
-            <input type="checkbox" data-cp2-done ${log.completed ? 'checked' : ''} style="width:18px;height:18px">Done</label>
+      <div style="margin-top:18px;border:1px solid var(--nc-border,rgba(255,255,255,.08));border-radius:16px;padding:16px;background:rgba(20,184,166,.04)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <span style="font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--nc-text-secondary,#94A3B8)">Log your sets</span>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--nc-text-secondary,#94A3B8);cursor:pointer">
+            <input type="checkbox" data-cp2-done ${log.completed ? 'checked' : ''} style="width:20px;height:20px;accent-color:var(--nc-teal,#14B8A6)">Done</label>
         </div>
-        <div data-cp2-sets style="display:flex;flex-direction:column;gap:7px">${rows}</div>
+        <div data-cp2-sets style="display:flex;flex-direction:column;gap:10px">${rows}</div>
         <button type="button" data-cp2-add-set
-          style="margin-top:9px;background:transparent;border:0;color:var(--nc-teal,#14B8A6);font-size:12.5px;font-weight:600;cursor:pointer;padding:4px 0;min-height:32px">+ Add set</button>
+          style="margin-top:12px;background:transparent;border:0;color:var(--nc-teal,#14B8A6);font-size:13px;font-weight:600;cursor:pointer;padding:6px 0;min-height:44px">+ Add set</button>
         <input type="text" data-cp2-notes placeholder="Notes (optional)" class="form-input"
-               value="${esc(log.notes || '')}" style="margin-top:10px;width:100%;padding:10px;font-size:13px">
+               value="${esc(log.notes || '')}" style="margin-top:12px;width:100%;padding:12px;font-size:13.5px;min-height:44px;border-radius:10px">
       </div>`;
   }
   function _setRow(s, i) {
     const done = !!s.done;
     return `
-      <div data-cp2-set-row style="display:grid;grid-template-columns:26px 1fr 1fr 34px;gap:8px;align-items:center;${done ? 'opacity:.6' : ''}">
-        <span style="font-size:12px;color:var(--nc-text-muted,#64748B);font-weight:700;text-align:center">#${i + 1}</span>
+      <div data-cp2-set-row style="display:grid;grid-template-columns:26px 1fr 1fr 38px;gap:10px;align-items:center;${done ? 'opacity:.6' : ''}">
+        <span style="font-size:13px;color:var(--nc-text-muted,#64748B);font-weight:700;text-align:center">#${i + 1}</span>
         <input type="number" inputmode="numeric" min="0" step="1" placeholder="reps" data-cp2-reps
-               value="${s.reps != null ? esc(s.reps) : ''}" class="form-input" style="padding:10px;font-size:13px">
+               value="${s.reps != null ? esc(s.reps) : ''}" class="form-input" style="padding:10px;font-size:14.5px;min-height:44px;border-radius:10px;text-align:center">
         <input type="number" inputmode="decimal" min="0" step="0.5" placeholder="kg" data-cp2-weight
-               value="${s.weight != null ? esc(s.weight) : ''}" class="form-input" style="padding:10px;font-size:13px">
-        <label style="display:flex;align-items:center;justify-content:center;cursor:pointer" title="Mark set done">
-          <input type="checkbox" data-cp2-setdone ${done ? 'checked' : ''} style="width:20px;height:20px;accent-color:var(--nc-teal,#14B8A6)"></label>
+               value="${s.weight != null ? esc(s.weight) : ''}" class="form-input" style="padding:10px;font-size:14.5px;min-height:44px;border-radius:10px;text-align:center">
+        <label style="display:flex;align-items:center;justify-content:center;cursor:pointer;min-width:38px;min-height:44px" title="Mark set done">
+          <input type="checkbox" data-cp2-setdone ${done ? 'checked' : ''} style="width:22px;height:22px;accent-color:var(--nc-teal,#14B8A6)"></label>
       </div>`;
   }
   function _wireSetLogger() {
