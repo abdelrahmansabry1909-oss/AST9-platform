@@ -9,6 +9,7 @@ const Dashboard = (() => {
 
   // In-memory PDF handoff between Generate and Export buttons (per-tab).
   let _lastBundle = null;
+  let _selectedProgramClientId = null;
 
   // ═══════════════════════════════════════════════════════════
   //  SHELL / SIDEBAR
@@ -1174,54 +1175,547 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
   // coach sees their own + assigned-clients. Per Q-A1 the card links
   // to detail rather than rendering the inline AI narrative (the
   // narrative lives in sessions.output, not in client_programs).
+  function handleProgramClientChange(clientId) {
+    _selectedProgramClientId = clientId || null;
+    renderProgramsList();
+  }
+
   async function renderProgramsList() {
-    const el = document.getElementById('programs-list');
+    const selectEl = document.getElementById('program-client-select');
+    if (selectEl && _selectedProgramClientId) {
+      selectEl.value = _selectedProgramClientId;
+    }
+    
+    if (_selectedProgramClientId) {
+      await _renderClientProgramWorkspace(_selectedProgramClientId);
+      return;
+    }
+    
+    // Renders the overview grid of all clients
+    const el = document.getElementById('programs-workspace');
     if (!el) return;
     el.innerHTML = `<div style="text-align:center;padding:40px"><span class="spinner spinner-lg"></span></div>`;
-
-    const { data, error } = await sb.from('client_programs')
-      .select('id, client_id, published, published_at, '
-            + 'program, '   // pulled for phase + days_per_week meta
-            + 'client:profiles!client_programs_client_id_fkey(full_name, email, current_phase)')
-      .eq('published', true)
-      .order('published_at', { ascending: false });
-
-    if (error) {
-      el.innerHTML = _emptyState('⚠', 'Could not load programs', error.message);
-      return;
-    }
-    if (!data || !data.length) {
-      el.innerHTML = _emptyState(
-        '◈', 'No programs published yet',
-        'Run a new Assessment, generate a program, then publish it for your client.',
-        { label: '+ Assessment', onclick: "Dashboard.showSection('new-session')" });
-      return;
-    }
-
-    el.innerHTML = data.map((row) => {
-      const name  = row.client?.full_name || row.client?.email || '—';
-      const phase = row.program?.phase || row.client?.current_phase || 'Phase 1';
-      const days  = row.program?.days_per_week ? `${row.program.days_per_week} days/wk` : '';
-      const when  = row.published_at ? new Date(row.published_at).toLocaleDateString() : '';
-      const cid   = row.client_id;
-      return `
-        <div class="card card-hover" style="margin-bottom:12px">
-          <div class="flex items-center gap-3">
-            <div class="avatar" style="background:conic-gradient(from 180deg,var(--teal),var(--amber))">${(name||'?')[0].toUpperCase()}</div>
-            <div class="flex-1 truncate">
-              <div style="font-weight:600;font-size:14px">${name}</div>
-              <div style="font-size:12px;color:var(--text-tertiary)">Published ${when}${days ? ' · ' + days : ''}</div>
+    
+    try {
+      const { data: clients, error } = await sb.from('profiles')
+        .select('id, full_name, email, current_phase')
+        .eq('role', 'client')
+        .order('full_name');
+        
+      if (error) throw error;
+      
+      if (!clients || !clients.length) {
+        el.innerHTML = `
+          <div class="empty-state">
+            <span class="empty-icon">👥</span>
+            <div class="empty-title">No clients found</div>
+            <p class="empty-desc">Add clients first in the Roster tab to begin program version management.</p>
+          </div>
+        `;
+        return;
+      }
+      
+      const clientCards = await Promise.all(clients.map(async (c) => {
+        const name = c.full_name || c.email || 'Client';
+        
+        // Find counts of drafts and active status for each client
+        let activePlan = 'No active program';
+        let draftCount = 0;
+        try {
+          const { data: vers } = await sb.from('client_program_versions')
+            .select('published, status, change_note')
+            .eq('client_id', c.id);
+          
+          (vers || []).forEach(v => {
+            if (v.published && v.status === 'active') {
+              activePlan = 'Active (' + (v.change_note || 'Current Plan') + ')';
+            } else if (!v.published || v.status === 'draft') {
+              draftCount++;
+            }
+          });
+        } catch {}
+        
+        return `
+          <div class="card card-hover" style="margin-bottom:10px; padding:12px; display:flex; justify-content:space-between; align-items:center; background:var(--bg-card); border:1px solid var(--border-subtle);">
+            <div style="display:flex; align-items:center; gap:12px;">
+              <div class="avatar" style="background:conic-gradient(from 180deg,var(--nc-teal),var(--nc-indigo))">${(name||'?')[0].toUpperCase()}</div>
+              <div>
+                <div style="font-weight:600; font-size:13.5px; color:var(--text-primary);">${name}</div>
+                <div style="font-size:11.5px; color:var(--text-muted); margin-top:2px;">
+                  ${activePlan} ${draftCount > 0 ? ' · ' + draftCount + ' draft(s)' : ''}
+                </div>
+              </div>
             </div>
-            <span class="badge ${_phaseBadge(phase)}">${phase}</span>
-            <div style="display:flex;gap:6px">
-              <button class="btn btn-ghost btn-xs"
-                      onclick="window._wsPreselectClient='${cid}'; Dashboard.showSection('workout-history')">◐ Workouts</button>
-              <button class="btn btn-ghost btn-xs"
-                      onclick="window._notifParams={client_id:'${cid}'}; Dashboard.showSection('progression')">◭ Progression</button>
+            <button class="btn btn-ghost btn-sm" onclick="Dashboard.handleProgramClientChange('${c.id}')">Manage Workspace →</button>
+          </div>
+        `;
+      }));
+
+      el.innerHTML = `
+        <div class="empty-state" style="margin-bottom:20px; padding:20px 0;">
+          <span class="empty-icon">📂</span>
+          <div class="empty-title">Select a Client Workspace</div>
+          <p class="empty-desc">Select a client below or from the dropdown above to view version history, manage drafts, and publish programs.</p>
+        </div>
+        <div style="font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--text-tertiary); margin-bottom:10px;">Client Rosters</div>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          ${clientCards.join('')}
+        </div>
+      `;
+    } catch (e) {
+      el.innerHTML = `<div class="alert alert-error">Failed to load roster overview: ${e.message}</div>`;
+    }
+  }
+
+  async function _renderClientProgramWorkspace(clientId) {
+    const el = document.getElementById('programs-workspace');
+    if (!el) return;
+    
+    if (!clientId) {
+      el.innerHTML = `
+        <div class="empty-state" style="margin-top:20px;">
+          <span class="empty-icon">📂</span>
+          <div class="empty-title">Select a Client Workspace</div>
+          <p class="empty-desc">Choose a client from the dropdown above to manage drafts, scheduled versions, and publish logs.</p>
+        </div>
+      `;
+      return;
+    }
+
+    el.innerHTML = `<div style="text-align:center;padding:40px"><span class="spinner spinner-lg"></span></div>`;
+
+    try {
+      // 1. Fetch Client Profile details
+      const { data: clientProfile, error: profileErr } = await sb.from('profiles')
+        .select('full_name, email, current_phase')
+        .eq('id', clientId)
+        .single();
+      if (profileErr) throw profileErr;
+      
+      const clientName = clientProfile.full_name || clientProfile.email || 'Client';
+
+      // 2. Query Client Program Versions
+      const { data: versions, error: versionsErr } = await sb.from('client_program_versions')
+        .select('id, program, status, published, change_note, published_at, created_at')
+        .eq('client_id', clientId)
+        .order('created_at', { ascending: false });
+      if (versionsErr) throw versionsErr;
+
+      // Group versions: Active, Drafts, History
+      let activeVer = null;
+      const drafts = [];
+      const history = [];
+
+      (versions || []).forEach(v => {
+        if (v.published && v.status === 'active') {
+          activeVer = v;
+        } else if (!v.published || v.status === 'draft') {
+          drafts.push(v);
+        } else {
+          history.push(v);
+        }
+      });
+
+      // Render Active Program Card
+      let activeCardHtml = '';
+      if (!activeVer) {
+        activeCardHtml = `
+          <div style="padding:20px; text-align:center; color:var(--text-tertiary); border:1px dashed var(--border-subtle); border-radius:12px; background:var(--bg-card);">
+            No currently active published program for this client.
+          </div>
+        `;
+      } else {
+        const p = activeVer.program || {};
+        const when = activeVer.published_at ? new Date(activeVer.published_at).toLocaleDateString() : '—';
+        activeCardHtml = `
+          <div class="card" style="border-left:4px solid var(--nc-teal); background:var(--bg-card); padding:16px;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+              <div>
+                <span class="badge badge-success" style="background:rgba(20,184,166,0.1); color:var(--nc-teal); border:1px solid rgba(20,184,166,0.25);">Current Published</span>
+                <h3 style="font-size:16px; font-weight:700; margin:6px 0 2px 0; color:var(--text-primary);">${p.phase || 'Phase 1'}</h3>
+                <div style="font-size:12px; color:var(--text-muted);">Published ${when} · ${p.days_per_week || 3} days/wk</div>
+              </div>
+              <div style="display:flex; gap:6px;">
+                <button class="btn btn-ghost btn-sm" onclick="Dashboard.previewVersion('${activeVer.id}')">👁 View</button>
+                <button class="btn btn-ghost btn-sm" onclick="Dashboard.duplicateAsDraft('${activeVer.id}', '${clientId}')">📋 Duplicate as Draft</button>
+              </div>
+            </div>
+            ${activeVer.change_note ? `
+              <div style="padding:10px; border-radius:8px; background:var(--bg-raised); border:1px solid var(--border-subtle); font-size:12px; color:var(--text-secondary); line-height:1.4;">
+                <strong>Change Note:</strong> ${esc(activeVer.change_note)}
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }
+
+      // Render Drafts List
+      let draftsHtml = '';
+      if (!drafts.length) {
+        draftsHtml = `
+          <div style="padding:16px; text-align:center; color:var(--text-tertiary); font-size:12.5px;">
+            No draft programs in progress.
+          </div>
+        `;
+      } else {
+        draftsHtml = drafts.map(d => {
+          const p = d.program || {};
+          const created = d.created_at ? new Date(d.created_at).toLocaleDateString() : '—';
+          return `
+            <div class="card card-hover" style="margin-bottom:10px; padding:12px; display:flex; justify-content:space-between; align-items:center; background:var(--bg-card); border:1px solid var(--border-subtle);">
+              <div>
+                <div style="font-weight:600; font-size:13.5px; color:var(--text-primary);">${p.phase || 'Phase 1'} Draft</div>
+                <div style="font-size:11.5px; color:var(--text-muted); margin-top:2px;">
+                  Created ${created} · ${p.days_per_week || 3} days/wk
+                </div>
+              </div>
+              <div style="display:flex; gap:6px;">
+                <button class="btn btn-primary btn-xs" onclick="Dashboard.publishDraftDirect('${d.id}', '${clientId}')">📤 Publish</button>
+                <button class="btn btn-ghost btn-xs" onclick="Dashboard.editDraft('${d.id}', '${clientId}')">✏ Edit</button>
+                <button class="btn btn-ghost btn-xs text-rose" onclick="Dashboard.archiveDraft('${d.id}', '${clientId}')">🗄 Archive</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // Render History / Scheduled List
+      let historyHtml = '';
+      if (!history.length) {
+        historyHtml = `
+          <div style="padding:16px; text-align:center; color:var(--text-tertiary); font-size:12.5px;">
+            No version history logs.
+          </div>
+        `;
+      } else {
+        historyHtml = history.map(h => {
+          const p = h.program || {};
+          const dateStr = h.published_at ? new Date(h.published_at).toLocaleDateString() : '—';
+          
+          let badgeClass = 'badge-secondary';
+          let statusText = h.status;
+          if (h.status === 'superseded') {
+            badgeClass = 'badge-neutral';
+            statusText = 'Superseded';
+          } else if (h.status === 'archived') {
+            badgeClass = 'badge-neutral';
+            statusText = 'Archived';
+          } else if (h.status === 'scheduled') {
+            badgeClass = 'badge-info';
+            statusText = 'Scheduled';
+          }
+
+          return `
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border-subtle);">
+              <div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span class="badge ${badgeClass}" style="font-size:9.5px; padding:1px 5px;">${statusText}</span>
+                  <span style="font-weight:600; font-size:13px; color:var(--text-primary);">${p.phase || 'Phase 1'}</span>
+                </div>
+                <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">
+                  Published ${dateStr} ${h.change_note ? ' · ' + esc(h.change_note) : ''}
+                </div>
+              </div>
+              <div style="display:flex; gap:4px;">
+                <button class="btn btn-ghost btn-xs" onclick="Dashboard.previewVersion('${h.id}')">👁 View</button>
+                <button class="btn btn-ghost btn-xs" onclick="Dashboard.duplicateAsDraft('${h.id}', '${clientId}')">📋 Duplicate</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      el.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+          <h2 style="font-size:15px; font-weight:700; color:var(--text-primary); margin:0;">${clientName}'s Program Timeline</h2>
+          <button class="btn btn-primary btn-sm" onclick="Dashboard.createNewDraft('${clientId}')">+ Create New Draft</button>
+        </div>
+
+        <div class="row">
+          <div class="col-8" style="display:flex; flex-direction:column; gap:20px;">
+            <!-- Active Program -->
+            <div>
+              <div style="font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--text-tertiary); margin-bottom:8px;">Current Published Program</div>
+              ${activeCardHtml}
+            </div>
+
+            <!-- Drafts -->
+            <div>
+              <div style="font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--text-tertiary); margin-bottom:8px;">Drafts Workspace</div>
+              ${draftsHtml}
             </div>
           </div>
-        </div>`;
-    }).join('');
+
+          <!-- History Timeline -->
+          <div class="col-4">
+            <div class="card" style="padding:16px; background:var(--bg-card);">
+              <div style="font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--text-tertiary); margin-bottom:12px;">Version History Timeline</div>
+              <div style="display:flex; flex-direction:column; max-height:450px; overflow-y:auto; padding-right:4px;">
+                ${historyHtml}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    } catch (e) {
+      el.innerHTML = `<div class="alert alert-error">Failed to load workspace: ${e.message}</div>`;
+    }
+  }
+
+  async function createNewDraft(clientId) {
+    if (!clientId) return;
+    try {
+      // Find the latest version or current program to use as baseline
+      const { data: latest } = await sb.from('client_program_versions')
+        .select('program')
+        .eq('client_id', clientId)
+        .order('created_at', { ascending: false })
+        .limit(1);
+      
+      let baseProgram = null;
+      if (latest && latest[0]) {
+        baseProgram = latest[0].program;
+      } else {
+        // Fall back to client_programs pointer
+        const { data: cp } = await sb.from('client_programs')
+          .select('program')
+          .eq('client_id', clientId)
+          .maybeSingle();
+        if (cp) baseProgram = cp.program;
+      }
+      
+      // If still no program, create a default empty program structure
+      if (!baseProgram) {
+        baseProgram = {
+          phase: 'Phase 1',
+          days_per_week: 3,
+          split_label: 'Full Body Split',
+          workouts: [
+            { id: 'A', label: 'Workout A', warmup: [], main: [], cooldown: [] }
+          ],
+          schedule: ['A', 'A', 'A'],
+          daily_routine_tasks: []
+        };
+      }
+      
+      let coachId = null;
+      try { coachId = Auth.getUser()?.id || null; } catch {}
+      
+      const { error } = await sb.from('client_program_versions').insert({
+        client_id: clientId,
+        coach_id: coachId,
+        program: baseProgram,
+        published: false,
+        status: 'draft',
+        change_note: 'New Draft Created',
+        created_by: coachId
+      });
+      
+      if (error) throw error;
+      
+      toast('New draft program created successfully.', 'success');
+      renderProgramsList();
+    } catch (e) {
+      toast('Failed to create draft: ' + e.message, 'error');
+    }
+  }
+
+  async function duplicateAsDraft(versionId, clientId) {
+    if (!versionId) return;
+    try {
+      const { data: ver, error: fetchErr } = await sb.from('client_program_versions')
+        .select('program')
+        .eq('id', versionId)
+        .single();
+      if (fetchErr) throw fetchErr;
+      
+      let coachId = null;
+      try { coachId = Auth.getUser()?.id || null; } catch {}
+      
+      const { error: insertErr } = await sb.from('client_program_versions').insert({
+        client_id: clientId,
+        coach_id: coachId,
+        program: ver.program,
+        published: false,
+        status: 'draft',
+        change_note: 'Duplicated Draft',
+        created_by: coachId
+      });
+      
+      if (insertErr) throw insertErr;
+      
+      toast('Program duplicated as draft.', 'success');
+      renderProgramsList();
+    } catch (e) {
+      toast('Failed to duplicate: ' + e.message, 'error');
+    }
+  }
+
+  async function editDraft(versionId, clientId) {
+    if (!versionId) return;
+    try {
+      const { data: ver, error } = await sb.from('client_program_versions')
+        .select('program, client:profiles!client_program_versions_client_id_fkey(full_name, email)')
+        .eq('id', versionId)
+        .single();
+      if (error) throw error;
+      
+      const name = ver.client?.full_name || ver.client?.email || 'Client';
+      
+      // Load editor container inside modal
+      ProgramPublish.render({
+        program: ver.program,
+        clientId: clientId,
+        clientName: name,
+        isDraft: true,
+        versionId: versionId,
+        containerId: 'program-edit-container'
+      });
+      
+      openModal('modal-program-edit');
+    } catch (e) {
+      toast('Failed to load draft editor: ' + e.message, 'error');
+    }
+  }
+
+  async function publishDraftDirect(versionId, clientId) {
+    if (!versionId) return;
+    try {
+      const { data: ver, error } = await sb.from('client_program_versions')
+        .select('program, client:profiles!client_program_versions_client_id_fkey(full_name, email)')
+        .eq('id', versionId)
+        .single();
+      if (error) throw error;
+      
+      const name = ver.client?.full_name || ver.client?.email || 'Client';
+      
+      // Load into ProgramPublish silently so we can trigger the modal directly
+      ProgramPublish.render({
+        program: ver.program,
+        clientId: clientId,
+        clientName: name,
+        isDraft: true,
+        versionId: versionId,
+        containerId: 'program-edit-container'
+      });
+      
+      // Open modal trigger
+      const panel = document.getElementById('program-edit-container');
+      const pubBtn = panel ? panel.querySelector('#pp-publish') : null;
+      if (pubBtn) {
+        pubBtn.click();
+      }
+    } catch (e) {
+      toast('Failed to open publish modal: ' + e.message, 'error');
+    }
+  }
+
+  async function archiveDraft(versionId, clientId) {
+    if (!versionId) return;
+    if (!confirm('Archive this draft program? It will be moved to History.')) return;
+    try {
+      const { error } = await sb.from('client_program_versions')
+        .update({ status: 'archived', updated_at: new Date().toISOString() })
+        .eq('id', versionId);
+      if (error) throw error;
+      
+      toast('Draft archived.', 'success');
+      renderProgramsList();
+    } catch (e) {
+      toast('Failed to archive draft: ' + e.message, 'error');
+    }
+  }
+
+  async function previewVersion(versionId) {
+    if (!versionId) return;
+    const body = document.getElementById('prev-modal-body');
+    const title = document.getElementById('prev-modal-title');
+    if (!body || !title) return;
+    
+    body.innerHTML = '<div style="text-align:center;padding:40px"><span class="spinner"></span></div>';
+    title.textContent = 'Program Preview';
+    openModal('modal-program-preview');
+
+    try {
+      const { data: ver, error } = await sb.from('client_program_versions')
+        .select('program, change_note, status, published_at, client:profiles!client_program_versions_client_id_fkey(full_name, email)')
+        .eq('id', versionId)
+        .single();
+      if (error) throw error;
+      
+      const clientName = ver.client?.full_name || ver.client?.email || 'Client';
+      const p = ver.program || {};
+      const workouts = p.workouts || [];
+      const dailyTasks = p.daily_routine_tasks || [];
+      const when = ver.published_at ? new Date(ver.published_at).toLocaleString() : 'Unpublished (Draft)';
+      
+      title.textContent = `${clientName} — ${p.phase || 'Program'} Preview`;
+      
+      let workoutsHtml = '';
+      if (!workouts.length) {
+        workoutsHtml = '<p style="color:var(--text-tertiary);">No workouts structured.</p>';
+      } else {
+        workoutsHtml = workouts.map((wk, wi) => {
+          const wKey = wk.id || String.fromCharCode(65 + wi);
+          const name = wk.label || `Day ${wi + 1}`;
+          
+          const sectionHtml = (secName, list) => `
+            <div style="margin-top:10px;">
+              <strong style="font-size:11.5px; text-transform:uppercase; color:var(--nc-teal);">${secName}</strong>
+              <ul style="margin:5px 0 0 20px; padding:0; font-size:13px; line-height:1.5; color:var(--text-primary);">
+                ${list && list.length ? list.map(ex => `
+                  <li>
+                    <strong>${ex.name || 'Exercise'}</strong>
+                    ${ex.sets ? ` · ${ex.sets} sets` : ''}
+                    ${ex.reps ? ` · ${ex.reps}` : ''}
+                    ${ex.intensity ? ` · ${ex.intensity}` : ''}
+                    ${ex.rest ? ` · ${ex.rest} rest` : ''}
+                  </li>
+                `).join('') : '<li style="color:var(--text-muted)">Empty</li>'}
+              </ul>
+            </div>
+          `;
+          
+          return `
+            <div class="card" style="margin-bottom:12px; padding:12px; background:var(--bg-raised); border:1px solid var(--border-subtle);">
+              <div style="font-weight:700; font-size:13.5px; color:var(--text-primary); border-bottom:1px solid var(--border-subtle); padding-bottom:6px; margin-bottom:8px;">
+                ${name} (ID: ${wKey})
+              </div>
+              ${sectionHtml('Warmup', wk.warmup)}
+              ${sectionHtml('Conditioning', wk.main)}
+              ${sectionHtml('Cooldown', wk.cooldown)}
+            </div>
+          `;
+        }).join('');
+      }
+
+      let routineHtml = '';
+      if (!dailyTasks.length) {
+        routineHtml = '<p style="color:var(--text-tertiary);">No daily routine tasks.</p>';
+      } else {
+        routineHtml = `
+          <ul style="margin:5px 0 0 20px; padding:0; font-size:13px; line-height:1.5; color:var(--text-primary);">
+            ${dailyTasks.map(t => `<li><strong>${t.name}</strong>${t.note ? ` — ${t.note}` : ''}</li>`).join('')}
+          </ul>
+        `;
+      }
+
+      body.innerHTML = `
+        <div style="margin-bottom:14px; font-size:12.5px; color:var(--text-secondary); border-bottom:1px solid var(--border-subtle); padding-bottom:10px;">
+          <strong>Status:</strong> <span class="badge">${ver.status}</span><br/>
+          <strong>Updated:</strong> ${when}<br/>
+          <strong>Change Note:</strong> <em>${ver.change_note || 'None'}</em>
+        </div>
+        
+        <h4 style="margin-top:14px; margin-bottom:10px; font-size:14px; font-weight:700; color:var(--text-primary);">Program Split &amp; Workouts</h4>
+        ${workoutsHtml}
+        
+        <h4 style="margin-top:18px; margin-bottom:10px; font-size:14px; font-weight:700; color:var(--text-primary);">Daily Routine Tracker Tasks</h4>
+        ${routineHtml}
+      `;
+    } catch (e) {
+      body.innerHTML = `<div class="alert alert-error">Failed to load preview: ${e.message}</div>`;
+    }
   }
 
 
@@ -1237,7 +1731,7 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
     if (!data) return;
 
     // ns-save-client was removed — Generate now reads from ns-client-select.
-    ['ns-client-select','sub-client','pu-client'].forEach(id => {
+    ['ns-client-select','sub-client','pu-client','program-client-select'].forEach(id => {
       const el = document.getElementById(id);
       if (!el) return;
       const placeholder = el.options[0];
@@ -1548,6 +2042,14 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
     toast,
     emptyState: _emptyState,
     handleGlobalSearch,
+    handleProgramClientChange,
+    reloadCurrentPrograms: renderProgramsList,
+    createNewDraft,
+    duplicateAsDraft,
+    editDraft,
+    publishDraftDirect,
+    archiveDraft,
+    previewVersion,
   };
 
 })();
