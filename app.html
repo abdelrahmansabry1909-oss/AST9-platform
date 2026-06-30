@@ -118,6 +118,9 @@
       <div class="nc-login-meta" style="margin-top:6px">
         Forgot password? <span class="nc-link" onclick="UI.switchLoginTab('reset')">Reset it</span>
       </div>
+      <div class="nc-login-meta" style="margin-top:14px;border-top:1px solid rgba(255,255,255,0.08);padding-top:12px;font-size:12px;opacity:0.8">
+        Need to test another account? <a href="app.html?isolated=1" target="_blank" class="nc-link" style="text-decoration:underline">Open isolated test window</a>
+      </div>
     </div>
 
     <!-- CREATE COACH ACCOUNT -->
@@ -566,11 +569,11 @@
        admins, and desktop keep the sidebar untouched. Drives the
        existing Dashboard.showSection router via js/clientShell.js. ── -->
   <nav class="nc-tabbar" id="nc-tabbar" role="tablist" aria-label="Primary">
-    <button class="nc-tab" type="button" role="tab" data-tab="today"    aria-selected="true"><span class="nc-tab-ico" aria-hidden="true">◉</span>Today</button>
-    <button class="nc-tab" type="button" role="tab" data-tab="train"    aria-selected="false"><span class="nc-tab-ico" aria-hidden="true">◈</span>Train</button>
-    <button class="nc-tab" type="button" role="tab" data-tab="progress" aria-selected="false"><span class="nc-tab-ico" aria-hidden="true">◮</span>Progress</button>
-    <button class="nc-tab" type="button" role="tab" data-tab="coach"    aria-selected="false"><span class="nc-tab-ico" aria-hidden="true">♥</span>Coach</button>
-    <button class="nc-tab" type="button" role="tab" data-tab="more"     aria-selected="false"><span class="nc-tab-ico" aria-hidden="true">⋯</span>More</button>
+    <button class="nc-tab" type="button" role="tab" data-tab="today"    aria-selected="true"><svg class="nc-client-svg-ico" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>Today</button>
+    <button class="nc-tab" type="button" role="tab" data-tab="train"    aria-selected="false"><svg class="nc-client-svg-ico" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M9 14h6M9 10h6M9 18h6"></path></svg>Train</button>
+    <button class="nc-tab" type="button" role="tab" data-tab="progress" aria-selected="false"><svg class="nc-client-svg-ico" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>Progress</button>
+    <button class="nc-tab" type="button" role="tab" data-tab="coach"    aria-selected="false"><svg class="nc-client-svg-ico" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>Coach</button>
+    <button class="nc-tab" type="button" role="tab" data-tab="more"     aria-selected="false"><svg class="nc-client-svg-ico" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>More</button>
   </nav>
 
   <div class="nc-sheet" id="nc-more-sheet" role="dialog" aria-modal="true" aria-label="More">
@@ -580,21 +583,21 @@
       <div class="nc-sheet-title">More</div>
 
       <div class="nc-sheet-group">Recovery</div>
-      <button class="nc-sheet-link" type="button" data-section="my-graph"><span class="nc-sheet-ico" aria-hidden="true">↟</span>Advanced Insights</button>
-      <button class="nc-sheet-link" type="button" data-section="client-progress" data-open="history"><span class="nc-sheet-ico" aria-hidden="true">◷</span>Assessment History</button>
-      <button class="nc-sheet-link" type="button" data-section="client-progress" data-open="report"><span class="nc-sheet-ico" aria-hidden="true">◔</span>Recovery Reports</button>
+      <button class="nc-sheet-link" type="button" data-section="my-graph"><svg class="nc-client-svg-ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:8px"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"></polygon><line x1="12" y1="22" x2="12" y2="12"></line><line x1="12" y1="12" x2="22" y2="5.5"></line><line x1="12" y1="12" x2="2" y2="5.5"></line><polyline points="2 8.5 12 12 22 8.5"></polyline><polyline points="2 15.5 12 12 22 15.5"></polyline></svg>Advanced Insights</button>
+      <button class="nc-sheet-link" type="button" data-section="client-progress" data-open="history"><svg class="nc-client-svg-ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:8px"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>Assessment History</button>
+      <button class="nc-sheet-link" type="button" data-section="client-progress" data-open="report"><svg class="nc-client-svg-ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:8px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>Recovery Reports</button>
 
       <div class="nc-sheet-group">Wellness</div>
-      <button class="nc-sheet-link" type="button" data-section="nutrition-plan"><span class="nc-sheet-ico" aria-hidden="true">◴</span>Nutrition</button>
+      <button class="nc-sheet-link" type="button" data-section="nutrition-plan"><svg class="nc-client-svg-ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:8px"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>Nutrition</button>
 
       <div class="nc-sheet-group">Resources</div>
-      <button class="nc-sheet-link" type="button" data-section="case-studies"><span class="nc-sheet-ico" aria-hidden="true">◧</span>Case Studies</button>
-      <button class="nc-sheet-link" type="button" data-section="community"><span class="nc-sheet-ico" aria-hidden="true">◈</span>Community</button>
-      <button class="nc-sheet-link" type="button" data-section="services"><span class="nc-sheet-ico" aria-hidden="true">✦</span>Services</button>
+      <button class="nc-sheet-link" type="button" data-section="case-studies"><svg class="nc-client-svg-ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:8px"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>Case Studies</button>
+      <button class="nc-sheet-link" type="button" data-section="community"><svg class="nc-client-svg-ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:8px"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>Community</button>
+      <button class="nc-sheet-link" type="button" data-section="services"><svg class="nc-client-svg-ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:8px"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>Services</button>
 
       <div class="nc-sheet-group">Account</div>
-      <button class="nc-sheet-link" type="button" data-section="client-settings"><span class="nc-sheet-ico" aria-hidden="true">◎</span>Settings</button>
-      <button class="nc-sheet-link" type="button" data-section="__logout"><span class="nc-sheet-ico" aria-hidden="true">⏻</span>Sign Out</button>
+      <button class="nc-sheet-link" type="button" data-section="client-settings"><svg class="nc-client-svg-ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:8px"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>Settings</button>
+      <button class="nc-sheet-link" type="button" data-section="__logout"><svg class="nc-client-svg-ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:8px"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>Sign Out</button>
     </div>
   </div>
 
@@ -603,10 +606,38 @@
 
     <!-- Desktop top bar -->
     <div class="nc-topbar">
-      <div class="nc-topbar-left">
+      <div class="nc-topbar-left" style="display:flex;align-items:center">
+        <!-- Client Desktop Brand Logo -->
+        <div class="nc-topbar-brand" style="display:none;align-items:center;gap:10px;margin-right:24px">
+          <span class="nc-sidebar-mark nc-brandmark-glow" aria-hidden="true" style="width:32px;height:32px;display:inline-block">
+            <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="NeuCore" style="width:100%;height:100%">
+              <defs>
+                <linearGradient id="ncRoyalTopbar" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#1A2748"/><stop offset="1" stop-color="#0A1024"/></linearGradient>
+                <linearGradient id="ncRoyalTopbarG" x1="10" y1="9" x2="30" y2="31" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#F6E27A"/><stop offset=".5" stop-color="#D4AF37"/><stop offset="1" stop-color="#B8860B"/></linearGradient>
+              </defs>
+              <rect x="1.5" y="1.5" width="37" height="37" rx="11" fill="url(#ncRoyalTopbar)"/>
+              <rect x="2.5" y="2.5" width="35" height="35" rx="10" fill="none" stroke="url(#ncRoyalTopbarG)" stroke-width="1" opacity=".75"/>
+              <path d="M13 28V13l14 14V12" fill="none" stroke="url(#ncRoyalTopbarG)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="27" cy="12" r="2.6" fill="#2DD4BF"/>
+              <circle cx="27" cy="12" r="5" fill="none" stroke="#2DD4BF" stroke-width="1" opacity=".5"/>
+            </svg>
+          </span>
+          <span style="font-family:'Space Grotesk','Inter',sans-serif;font-weight:700;font-size:16px;letter-spacing:-0.01em;color:var(--nc-text-primary,#F8FAFC)">NEU<span style="color:#14B8A6">CORE</span></span>
+        </div>
+
         <div class="nc-topbar-search">
           <span class="search-icon">🔍</span>
           <input type="text" id="global-search-input" placeholder="Search clients, programs, or telemetry..." oninput="Dashboard.handleGlobalSearch(this.value)"/>
+        </div>
+
+        <!-- Client Desktop Top Navigation -->
+        <div class="nc-desktop-client-nav" style="display:none;align-items:center;gap:8px;margin-left:8px">
+          <button class="nc-desktop-nav-btn active" onclick="Dashboard.showSection('dashboard')" data-tab="dashboard">Today</button>
+          <button class="nc-desktop-nav-btn" onclick="Dashboard.showSection('client-train')" data-tab="client-train">Training Plan</button>
+          <button class="nc-desktop-nav-btn" onclick="Dashboard.showSection('client-progress')" data-tab="client-progress">Progress</button>
+          <button class="nc-desktop-nav-btn" onclick="Dashboard.showSection('client-coach')" data-tab="client-coach">Coach</button>
         </div>
       </div>
       <div class="nc-topbar-right">
