@@ -201,6 +201,7 @@ const ExerciseUI = (() => {
     if (iframe) iframe.src = embedUrl || '';
     
     // Release scroll lock and enable pointer events
+    modal.style.removeProperty('display');
     document.body.style.overflow = 'hidden';
     modal.style.pointerEvents = 'auto';
     modal.classList.remove('hidden');
@@ -211,6 +212,7 @@ const ExerciseUI = (() => {
     if (modal) {
       modal.classList.add('hidden');
       modal.style.pointerEvents = 'none';
+      modal.style.setProperty('display', 'none', 'important');
       document.body.style.overflow = '';
       
       const iframe = document.getElementById('ex-video-iframe');
