@@ -167,11 +167,16 @@ const ExerciseUI = (() => {
     let modal = document.getElementById('modal-ex-video');
     if (!modal) {
       document.body.insertAdjacentHTML('beforeend', `
-        <div class="modal-overlay hidden" id="modal-ex-video" style="pointer-events: none;">
-          <div class="modal" style="max-width:720px">
-            <div class="modal-header">
+        <div class="modal-overlay hidden" id="modal-ex-video" style="pointer-events: none; z-index: 9999;">
+          <div class="modal" style="max-width:720px; position:relative">
+            <button class="modal-close-btn" onclick="ExerciseUI.closeVideoModal()" 
+                    style="position:absolute;top:12px;right:12px;width:44px;height:44px;border-radius:50%;
+                           background:rgba(15,23,42,0.85);border:1px solid rgba(255,255,255,0.15);
+                           color:#F8FAFC;font-size:20px;display:flex;align-items:center;justify-content:center;
+                           cursor:pointer;z-index:1010;transition:all 0.2s;-webkit-tap-highlight-color:transparent"
+                    aria-label="Close video">✕</button>
+            <div class="modal-header" style="padding-right:60px">
               <h3 id="ex-video-title">Exercise</h3>
-              <button class="btn-icon" onclick="ExerciseUI.closeVideoModal()">✕</button>
             </div>
             <div class="modal-body" style="padding:0">
               <div id="ex-video-container" style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;background:#000">
@@ -183,6 +188,11 @@ const ExerciseUI = (() => {
         </div>`);
       modal = document.getElementById('modal-ex-video');
       modal.addEventListener('click', e => { if (e.target === modal) closeVideoModal(); });
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+          closeVideoModal();
+        }
+      });
     }
 
     const embedUrl = ExerciseLibrary.getEmbedUrl(videoUrl);

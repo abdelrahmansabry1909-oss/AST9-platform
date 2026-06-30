@@ -168,7 +168,7 @@
   async function render(container, opts = {}) {
     const host = typeof container === 'string' ? document.querySelector(container) : container;
     if (!host) return;
-    host.innerHTML = `<div style="max-width:520px;margin:0 auto">${ClientUtil.skeleton(120)}<div style="height:10px"></div>${ClientUtil.skeleton(74)}<div style="height:10px"></div>${ClientUtil.skeleton(74)}</div>`;
+    host.innerHTML = `<div class="nc-client-container">${ClientUtil.skeleton(120)}<div style="height:10px"></div>${ClientUtil.skeleton(74)}<div style="height:10px"></div>${ClientUtil.skeleton(74)}</div>`;
 
     if (typeof ProgramPublish === 'undefined' || !ProgramPublish.resolveClientProgram) {
       ClientUtil.errorState(host, 'Program module not available', () => render(host, opts));
@@ -237,14 +237,14 @@
     if (res.reason === 'no-auth') { host.innerHTML = _calm('Sign in to view your program.'); return; }
     if (res.reason === 'no-db')   { host.innerHTML = _calm('Not connected. Check your connection and try again.'); return; }
     // empty
-    host.innerHTML = `<div style="max-width:520px;margin:0 auto"><div style="border:1px solid var(--nc-border,rgba(255,255,255,.08));
+    host.innerHTML = `<div class="nc-client-container"><div style="border:1px solid var(--nc-border,rgba(255,255,255,.08));
       border-radius:var(--nc-r-lg,16px);background:var(--nc-fill-1);padding:26px 18px;text-align:center">
       <div style="font-size:26px;line-height:1" aria-hidden="true">◈</div>
       <div style="font-size:15px;font-weight:700;color:var(--nc-text-primary,#F8FAFC);margin-top:10px">No plan yet</div>
       <p style="font-size:13px;color:var(--nc-text-secondary,#94A3B8);margin-top:6px;line-height:1.5">Your coach hasn't published your training plan yet. It will show up here as soon as it's ready.</p>
     </div></div>`;
   }
-  const _calm = (msg) => `<div style="max-width:520px;margin:0 auto"><div style="border:1px solid var(--nc-border,rgba(255,255,255,.08));
+  const _calm = (msg) => `<div class="nc-client-container"><div style="border:1px solid var(--nc-border,rgba(255,255,255,.08));
     border-radius:var(--nc-r-lg,16px);background:var(--nc-fill-1);padding:22px 18px;text-align:center;
     font-size:13px;color:var(--nc-text-secondary,#94A3B8)">${esc(msg)}</div></div>`;
 
@@ -254,13 +254,13 @@
     S.view = 'overview';
     const cards = S.schedule.map((id, i) => _dayCard(id, i)).join('');
     S.host.innerHTML = `
-      <div style="max-width:520px;margin:0 auto">
+      <div class="nc-client-container">
         <div style="margin:2px 2px 14px">
           <div style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--nc-text-muted,#64748B)">Your plan</div>
           <div style="font-size:19px;font-weight:800;letter-spacing:-.01em;color:var(--nc-text-primary,#F8FAFC);margin-top:2px">${esc(S.p.phase || 'Training Program')}</div>
           <div style="font-size:12.5px;color:var(--nc-text-secondary,#94A3B8);margin-top:2px">${S.schedule.length} day${S.schedule.length === 1 ? '' : 's'} this week${S.p.split_label ? ' · ' + esc(S.p.split_label) : ''}</div>
         </div>
-        <div style="display:flex;flex-direction:column;gap:10px">${cards}</div>
+        <div class="cp-day-grid" style="display:flex;flex-direction:column;gap:10px">${cards}</div>
         ${(S.p.exclusions && S.p.exclusions.length) ? `
           <div style="margin-top:14px;padding:11px 14px;border-radius:var(--nc-r-lg,16px);background:rgba(244,63,94,.08);
                       border:1px solid rgba(244,63,94,.22);font-size:12px;color:#F5426C">
@@ -324,10 +324,10 @@
       }).join('');
 
     S.host.innerHTML = `
-      <div style="max-width:520px;margin:0 auto">
+      <div class="nc-client-container">
         <button type="button" data-cp2-back
           style="display:inline-flex;align-items:center;gap:6px;background:transparent;border:0;cursor:pointer;
-                 color:var(--nc-text-secondary,#94A3B8);font-size:13px;font-weight:600;padding:6px 2px;min-height:44px">‹ Plan</button>
+                 color:var(--nc-text-secondary,#94A3B8);font-size:13px;font-weight:600;padding:6px 2px;min-height:44px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:2px"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>Back to plan</button>
 
         <div style="margin-top:4px">
           <div style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--nc-text-muted,#64748B)">Day ${i + 1}</div>
@@ -340,7 +340,7 @@
                    padding:14px 20px;cursor:pointer;font-size:16px;font-weight:700;
                    box-shadow:var(--nc-shadow-teal,0 0 40px rgba(20,184,166,.18));-webkit-tap-highlight-color:transparent;
                    ${total ? '' : 'opacity:.5;cursor:not-allowed'}">
-            ${canWrite ? '▶ Start Workout' : '▶ Preview Workout'}
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> ${canWrite ? 'Start Workout' : 'Preview Workout'}
           </button>
         </div>
 
@@ -425,9 +425,9 @@
                  cursor:pointer;padding:8px 2px;margin-bottom:8px;-webkit-tap-highlight-color:transparent;min-height:44px">
           <span style="font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:${gm.color}">
             ${gm.label} <span style="color:var(--nc-text-muted,#64748B);font-weight:600">· ${count}</span></span>
-          <span data-cp2-group-chev style="font-size:14px;color:var(--nc-text-muted,#64748B);transition:transform .18s;${open ? 'transform:rotate(180deg)' : ''}">▾</span>
+          <span data-cp2-group-chev style="font-size:14px;color:var(--nc-text-muted,#64748B);transition:transform .18s;display:flex;align-items:center;${open ? 'transform:rotate(180deg)' : ''}"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
         </button>
-        <div data-cp2-group-body class="${open ? '' : 'hidden'}" style="display:flex;flex-direction:column;gap:12px">${rowsHTML}</div>
+        <div data-cp2-group-body class="${open ? '' : 'hidden'}" class="cp-ex-grid" style="display:flex;flex-direction:column;gap:12px">${rowsHTML}</div>
       </div>`;
   }
 
@@ -458,7 +458,7 @@
             style="margin-top:12px;background:transparent;border:0;color:var(--nc-text-secondary,#94A3B8);font-size:13px;font-weight:600;
                    cursor:pointer;padding:6px 0;display:inline-flex;align-items:center;gap:8px;min-height:44px">
             <span data-cp2-toggle-label>Show details</span>
-            <span data-cp2-chev style="font-size:12px;transition:transform .18s">▾</span>
+            <span data-cp2-chev style="font-size:12px;transition:transform .18s;display:flex;align-items:center"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
           </button>
           <div data-cp2-details class="hidden" style="margin-top:8px;border-top:1px solid var(--nc-border,rgba(255,255,255,.08));padding-top:12px">
             ${_detailsInner(ex, m)}
@@ -478,7 +478,8 @@
   function _subBadge(ex) {
     return `<span title="Originally: ${esc(ex._substitutedFrom)}${ex._substituteResponse ? ' — ' + esc(ex._substituteResponse) : ''}"
       style="display:inline-flex;align-items:center;gap:4px;margin-left:6px;padding:1px 7px;border-radius:999px;font-size:10px;font-weight:600;
-             background:rgba(20,184,166,.14);color:var(--nc-teal,#14B8A6);border:1px solid rgba(20,184,166,.35);cursor:help;vertical-align:1px">🔄 Substituted</span>`;
+             background:rgba(20,184,166,.14);color:var(--nc-teal,#14B8A6);border:1px solid rgba(20,184,166,.35);cursor:help;vertical-align:1px">
+             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="margin-right:3px;vertical-align:-1px"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>Substituted</span>`;
   }
 
   // ── Shared media + alt (browse cards AND execution steps) ────────
@@ -490,15 +491,15 @@
     if (!hasVideo && !hasInstr) return '';
     return `
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
-        ${hasVideo ? `<button type="button" data-cp2-preview class="btn btn-ghost" style="padding:10px 16px;font-size:13px;min-height:44px;border-radius:10px">▶ Watch Video</button>` : ''}
-        ${hasInstr ? `<button type="button" data-cp2-info class="btn btn-ghost" style="padding:10px 16px;font-size:13px;min-height:44px;border-radius:10px">ℹ Instructions</button>` : ''}
+        ${hasVideo ? `<button type="button" data-cp2-preview class="btn btn-ghost" style="padding:10px 16px;font-size:13px;min-height:44px;border-radius:10px;display:inline-flex;align-items:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>Watch Video</button>` : ''}
+        ${hasInstr ? `<button type="button" data-cp2-info class="btn btn-ghost" style="padding:10px 16px;font-size:13px;min-height:44px;border-radius:10px;display:inline-flex;align-items:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>Instructions</button>` : ''}
       </div>
       <div data-cp2-video class="hidden" style="margin-bottom:12px;border:1px solid var(--nc-border,rgba(255,255,255,.08));border-radius:12px;overflow:hidden"></div>
       <div data-cp2-instr class="hidden" style="margin-bottom:12px"></div>`;
   }
   function _altButton() {
     if (typeof AltExercise === 'undefined') return '';
-    return `<button type="button" data-cp2-alt class="btn btn-ghost btn-xs" style="padding:5px 11px;font-size:11px;min-height:32px">⇄ Request alternative</button>`;
+    return `<button type="button" data-cp2-alt class="btn btn-ghost btn-xs" style="padding:5px 11px;font-size:11px;min-height:32px;display:inline-flex;align-items:center"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px"><polyline points="16 3 21 8 16 13"></polyline><line x1="21" y1="8" x2="9" y2="8"></line><polyline points="8 21 3 16 8 11"></polyline><line x1="3" y1="16" x2="15" y2="16"></line></svg>Request alternative</button>`;
   }
   function _wireMedia(scope, m) {
     if (!m) return;
@@ -584,11 +585,11 @@
     const sessionPct = total ? (doneCount / total) * 100 : 0;
     const showTimer = !e.readOnly && e.startedAt;
     S.host.innerHTML = `
-      <div style="max-width:520px;margin:0 auto">
+      <div class="nc-client-container">
         <div style="display:flex;align-items:center;gap:14px">
           <button type="button" data-cp2-exit
             style="display:inline-flex;align-items:center;gap:6px;background:transparent;border:0;cursor:pointer;
-                   color:var(--nc-text-secondary,#94A3B8);font-size:13px;font-weight:600;padding:6px 2px;min-height:44px;flex:none">‹ Day</button>
+                   color:var(--nc-text-secondary,#94A3B8);font-size:13px;font-weight:600;padding:6px 2px;min-height:44px;flex:none"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:2px"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>Back to day</button>
           ${ClientUtil.progressRing(sessionPct, 48, 4)}
           <div style="flex:1;min-width:0">
             <div style="font-size:13px;font-weight:700;color:var(--nc-text-primary,#F8FAFC)">Exercise ${e.step + 1} of ${total}</div>
@@ -625,11 +626,13 @@
           <button type="button" data-cp2-prev ${e.step === 0 ? 'disabled' : ''}
             style="flex:1;min-height:54px;border-radius:var(--nc-r-lg,16px);border:1px solid var(--nc-border,rgba(255,255,255,.12));
                    background:transparent;color:var(--nc-text-primary,#F8FAFC);font-size:14px;font-weight:600;cursor:pointer;
-                   ${e.step === 0 ? 'opacity:.4;cursor:not-allowed' : ''}">‹ Previous</button>
+                   display:inline-flex;align-items:center;justify-content:center;gap:6px;
+                   ${e.step === 0 ? 'opacity:.4;cursor:not-allowed' : ''}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>Previous</button>
           <button type="button" data-cp2-next
             style="flex:2;min-height:54px;border-radius:var(--nc-r-lg,16px);border:0;background:var(--nc-teal,#14B8A6);color:#052e2b;
-                   font-size:15px;font-weight:700;cursor:pointer;box-shadow:var(--nc-shadow-teal,0 0 30px rgba(20,184,166,.16))">
-            ${last ? (e.readOnly ? 'Done ✓' : 'Finish ▸') : 'Next ›'}</button>
+                   font-size:15px;font-weight:700;cursor:pointer;box-shadow:var(--nc-shadow-teal,0 0 30px rgba(20,184,166,.16));
+                   display:inline-flex;align-items:center;justify-content:center;gap:6px">
+            ${last ? (e.readOnly ? 'Done <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left:4px"><polyline points="20 6 9 17 4 12"></polyline></svg>' : 'Finish <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left:4px"><polyline points="9 18 15 12 9 6"></polyline></svg>') : 'Next <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left:4px"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>'}</button>
         </div>
 
         ${(!e.readOnly && e.sessionId) ? `
@@ -825,7 +828,7 @@
     const e = S.exec;
     if (e.readOnly || !e.sessionId) {
       S.host.innerHTML = `
-        <div style="max-width:520px;margin:0 auto;text-align:center;padding-top:14px">
+        <div class="nc-client-container" style="text-align:center;padding-top:14px">
           <div style="font-size:38px" aria-hidden="true">✓</div>
           <div style="font-size:21px;font-weight:800;color:var(--nc-text-primary,#F8FAFC);margin-top:8px">That's the session</div>
           <div style="font-size:13.5px;color:var(--nc-text-secondary,#94A3B8);margin-top:6px">You browsed every exercise. Renew with your coach to log your sets.</div>
@@ -838,7 +841,7 @@
     }
 
     S.host.innerHTML = `
-      <div style="max-width:520px;margin:0 auto;text-align:center;padding-top:8px">
+      <div class="nc-client-container" style="text-align:center;padding-top:8px">
         <div style="width:52px;height:52px;margin:0 auto;border-radius:50%;background:rgba(20,184,166,.12);
              border:1px solid rgba(20,184,166,.4);display:flex;align-items:center;justify-content:center;
              font-size:24px;color:var(--nc-teal,#14B8A6)" aria-hidden="true">✓</div>
@@ -855,10 +858,10 @@
         <div style="display:flex;gap:10px;margin-top:18px">
           <button type="button" data-cp2-back-steps style="flex:1;min-height:54px;border-radius:var(--nc-r-lg,16px);
                   border:1px solid var(--nc-border,rgba(255,255,255,.12));background:transparent;color:var(--nc-text-primary,#F8FAFC);
-                  font-size:14px;font-weight:600;cursor:pointer">‹ Back</button>
+                  font-size:14px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>Back</button>
           <button type="button" data-cp2-finish style="flex:2;min-height:54px;border-radius:var(--nc-r-lg,16px);border:0;
                   background:var(--nc-teal,#14B8A6);color:#052e2b;font-size:15px;font-weight:700;cursor:pointer;
-                  box-shadow:var(--nc-shadow-teal,0 0 30px rgba(20,184,166,.16))">Finish &amp; Save</button>
+                  box-shadow:var(--nc-shadow-teal,0 0 30px rgba(20,184,166,.16));display:inline-flex;align-items:center;justify-content:center;gap:6px">Finish &amp; Save</button>
         </div>
       </div>`;
 
@@ -905,7 +908,7 @@
     const mins = Math.round((summary.elapsedSec || 0) / 60);
     const timeLine = mins >= 1 ? `${mins} min` : 'a few minutes';
     S.host.innerHTML = `
-      <div style="max-width:520px;margin:0 auto;text-align:center;padding-top:18px">
+      <div class="nc-client-container" style="text-align:center;padding-top:18px">
         <div style="width:72px;height:72px;margin:0 auto;border-radius:50%;background:rgba(20,184,166,.12);
              border:1px solid rgba(20,184,166,.45);display:flex;align-items:center;justify-content:center;
              box-shadow:0 0 44px rgba(20,184,166,.22);font-size:32px;color:var(--nc-teal,#14B8A6)" aria-hidden="true">✓</div>

@@ -77,6 +77,12 @@ const Dashboard = (() => {
     const topbarName = document.getElementById('topbar-user-name');
     if (topbarName) topbarName.textContent = (p?.full_name || p?.email || 'Coach').split(' ')[0];
 
+    if (role === 'client') {
+      const tbUser = document.querySelector('.nc-topbar-user');
+      if (tbUser) tbUser.setAttribute('onclick', "Dashboard.showSection('client-settings')");
+      if (topbarName) topbarName.textContent = (p?.full_name || p?.email || 'Client').split(' ')[0];
+    }
+
     loadDashboardStats();
     _populateClientSelects();
     setService('rehab');
@@ -184,6 +190,11 @@ const Dashboard = (() => {
     const navItem = document.getElementById('nav-' + id);
     if (section) section.classList.add('active');
     if (navItem)  navItem.classList.add('active');
+
+    // Update client desktop navigation active states
+    document.querySelectorAll('.nc-desktop-nav-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.tab === id || (id === 'client-dashboard' && btn.dataset.tab === 'dashboard'));
+    });
 
     // Lazy-load section data
     const loaders = {

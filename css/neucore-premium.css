@@ -2763,6 +2763,127 @@ body.nc-bright .sidebar .logout-icon:hover {
   }
 }
 
+/* ── CLIENT DESKTOP & PORTAL REDESIGN ────────────────────────── */
+
+/* Mobile bottom tab bar active icon state */
+.nc-tab.active .nc-client-svg-ico {
+  color: var(--nc-teal, #14B8A6);
+  transform: scale(1.1);
+}
+
+/* Desktop Top Bar Navigation Menu styling */
+.nc-desktop-nav-btn {
+  background: transparent;
+  border: 0;
+  border-radius: var(--nc-r-md, 8px);
+  color: var(--nc-text-secondary, #94A3B8);
+  font-size: 13.5px;
+  font-weight: 600;
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: all 180ms ease;
+  min-height: 38px;
+}
+.nc-desktop-nav-btn:hover {
+  color: var(--nc-text-primary, #F8FAFC);
+  background: rgba(255, 255, 255, 0.04);
+}
+.nc-desktop-nav-btn.active {
+  color: var(--nc-teal, #14B8A6);
+  background: rgba(20, 184, 166, 0.08);
+}
+
+/* Reset max-width wrapper styles inside clientProgram templates */
+.nc-client-container {
+  width: 100%;
+  max-width: 520px; /* mobile default */
+  margin: 0 auto;
+  padding: 6px 4px 8px;
+}
+
+/* Scoped overrides for non-approved client dashboard, progress, train, coach */
+body.nc-client #section-client-dashboard .cd-today,
+body.nc-client #section-client-progress > div:first-child,
+body.nc-client #section-client-train > div:first-child,
+body.nc-client #section-client-coach > div:first-child {
+  max-width: 100% !important;
+  margin: 0 auto !important;
+}
+
+@media (min-width: 769px) {
+  /* Hide coach sidebar completely for clients */
+  body.nc-client #sidebar {
+    display: none !important;
+  }
+  /* Remove sidebar margin on content */
+  body.nc-client .main-content {
+    margin-left: 0 !important;
+    padding: 32px 48px !important;
+  }
+  /* Hide search bar and show brand logo + top navigation menu */
+  body.nc-client .nc-topbar-search {
+    display: none !important;
+  }
+  body.nc-client .nc-topbar-brand {
+    display: flex !important;
+  }
+  body.nc-client .nc-desktop-client-nav {
+    display: flex !important;
+  }
+
+  /* Expand wrappers to full width grid on desktop */
+  .nc-client-container,
+  body.nc-client #section-client-progress > div:first-child,
+  body.nc-client #section-client-train > div:first-child,
+  body.nc-client #section-client-coach > div:first-child {
+    max-width: 1200px !important;
+    padding: 24px 16px !important;
+  }
+
+  /* Two-column layout grid for client dashboard */
+  body.nc-client #section-client-dashboard .cd-today {
+    display: grid !important;
+    grid-template-columns: 1.2fr 0.8fr !important;
+    grid-template-rows: auto auto auto !important;
+    gap: 32px !important;
+    max-width: 1200px !important;
+    padding: 24px 16px !important;
+  }
+  body.nc-client #section-client-dashboard .cd-today > div:first-child {
+    grid-column: 1 / span 2;
+  }
+  body.nc-client #cd-dial {
+    grid-column: 1;
+    grid-row: 2 / span 2;
+  }
+  body.nc-client #cd-cta {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  body.nc-client #cd-pulse {
+    grid-column: 1;
+    grid-row: 4;
+  }
+  body.nc-client #cd-attention {
+     grid-column: 2;
+     grid-row: 3;
+  }
+
+  /* Multi-column grid for weekly training days list */
+  body.nc-client .cp-day-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)) !important;
+    gap: 20px !important;
+  }
+
+  /* Multi-column grid for exercise list inside training day */
+  body.nc-client .cp-ex-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)) !important;
+    gap: 20px !important;
+  }
+}
+
 
 
 
