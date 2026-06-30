@@ -1,7 +1,7 @@
 // vite.config.js
 // Multi-page build for AST9 Health Hub.
 //
-//   - index.html  → public marketing landing page
+//   - index.html  → public marketing landing page (now powered by React + Tailwind)
 //   - app.html    → authenticated SPA shell (the dashboard)
 //
 // Both pages live at the repo root. Vite's default is to build only
@@ -17,11 +17,17 @@
 // unaffected.
 
 import { defineConfig } from 'vite';
-import { resolve }      from 'path';
+import react from '@vitejs/plugin-react';
+import { resolve } from 'path';
 import { cpSync, existsSync } from 'node:fs';
 
 export default defineConfig(({ command }) => ({
   base: command === 'build' ? '/AST9_HUB/' : '/',
+  resolve: {
+    alias: {
+      '@': resolve(__dirname, './src'),
+    },
+  },
   build: {
     outDir:        'dist',
     emptyOutDir:   true,
@@ -33,6 +39,7 @@ export default defineConfig(({ command }) => ({
     },
   },
   plugins: [
+    react(),
     {
       // Vite only bundles ES-module scripts (`<script type="module">`).
       // The 28 classic `<script src="js/*.js">` tags in app.html — the
