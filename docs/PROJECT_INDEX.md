@@ -72,6 +72,8 @@ root) and the `.claude/skills/ast9-*` guard pack for the enforced detail.
 | [KNOWN_LIMITATIONS.md](KNOWN_LIMITATIONS.md) | Honest current limitations |
 | [TECH_STACK.md](TECH_STACK.md) | Languages, technologies, file groupings |
 | [REPO_MAP.md](REPO_MAP.md) | Repository structure map |
+| [INCIDENT_RESPONSE.md](INCIDENT_RESPONSE.md) | Incident playbook: severity levels, rollback, health checks, owner notification |
+| [RUNBOOK.md](RUNBOOK.md) | Quick ops cheat-sheet: `ops_health_snapshot()`, deploy/asset checks, cron health |
 
 ## 7. Canonical deep-dive docs (repo root — pre-existing, not duplicated here)
 
