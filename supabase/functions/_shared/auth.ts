@@ -69,11 +69,12 @@ export function corsHeaders(req: Request): Record<string, string> {
   }
   return {
     'Access-Control-Allow-Origin': allowOrigin,
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     // supabase-js attaches x-client-info (and, in recent versions,
     // x-supabase-api-version) to every functions.invoke() call; both must be
     // allow-listed or the browser preflight fails for ALL browser callers.
-    'Access-Control-Allow-Headers': 'authorization, content-type, apikey, x-client-info, x-supabase-api-version, x-cron-secret',
+    // x-cron-secret / x-ops-health-secret gate the system/ops endpoints.
+    'Access-Control-Allow-Headers': 'authorization, content-type, apikey, x-client-info, x-supabase-api-version, x-cron-secret, x-ops-health-secret',
     'Vary': 'Origin',
   }
 }
@@ -144,6 +145,27 @@ export async function requireCron(req: Request, sb: SupabaseClient): Promise<voi
   if (error) {
     console.error('[edge] verify_cron_secret failed:', error.message)
     throw new HttpError(500, 'cron secret verification failed')
+  }
+  if (ok !== true) throw new HttpError(401, 'Forbidden')
+}
+
+// ── requireOpsHealth — gate for the ops-health monitoring endpoint ──
+//  Same shape as requireCron but for the ops-health check: the caller
+//  (a scheduled GitHub Action) proves itself with the x-ops-health-secret
+//  header, validated against the SINGLE source of truth — the Supabase
+//  Vault secret 'ops_health_secret' — via the verify_ops_health_secret()
+//  RPC (revoked from client roles, so a service-role client is required).
+//  The provided secret is NEVER logged, echoed, or returned; only a boolean
+//  leaves the DB. Distinct from cron_secret so the two blast radii stay
+//  isolated.
+export async function requireOpsHealth(req: Request, sb: SupabaseClient): Promise<void> {
+  const got = req.headers.get('x-ops-health-secret') ?? ''
+  if (!got) throw new HttpError(401, 'Forbidden')
+  const { data: ok, error } = await sb.rpc('verify_ops_health_secret', { p_secret: got })
+  if (error) {
+    // Log only the RPC error message — never the provided secret.
+    console.error('[edge] verify_ops_health_secret failed:', error.message)
+    throw new HttpError(500, 'ops-health secret verification failed')
   }
   if (ok !== true) throw new HttpError(401, 'Forbidden')
 }

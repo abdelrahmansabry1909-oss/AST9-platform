@@ -78,26 +78,32 @@ Confirm the expected `?v=` token is live (stale token = CDN/browser cache; see
 
 ---
 
-## Proposed (NOT built yet): automated cron health-check Action
+## Automated cron health-check (P1C edge function built; P1D Action pending)
 
 An automated schedule that calls the health snapshot and alerts on failure is
-**deferred** until a secure call strategy is approved, because a GitHub Action must
-**never** hold the Supabase `service_role` key, and `ops_health_snapshot()` requires
-an authenticated **admin** caller.
+built in two safe layers so a GitHub Action never holds the Supabase
+`service_role` key or an admin JWT.
 
-**Recommended future design (for approval):**
-- Add a small gated edge function `ops-health` that:
-  - requires a bespoke header secret (proposed name only: `OPS_HEALTH_SECRET`),
-    validated like the existing cron gate (Vault-backed, never plaintext),
-  - internally reads the safe snapshot and returns only the safe JSON.
-- The scheduled GitHub Action holds **only** `OPS_HEALTH_SECRET` as a repo secret
-  (never `service_role`, never an admin JWT), calls the edge function, and **fails
-  the run** (email) when `overall_healthy` is false.
+**Layer 1 — edge function `ops-health` (P1C, built):** `supabase/functions/ops-health/index.ts`.
+- Deploy with `verify_jwt = false` (server-to-server; the header secret is the gate).
+- Requires header `x-ops-health-secret`, validated in-DB against the Vault secret
+  `ops_health_secret` via `verify_ops_health_secret()` (never plaintext here).
+- Reads the safe snapshot via the service-role-only `ops_health_snapshot_system()`
+  (the admin `ops_health_snapshot()` is never called) and returns only compact,
+  safe JSON: `{ ok, overall_healthy, generated_at, hard_fails[], warnings[] }`.
+- Never logs/echoes/returns the secret, `service_role` key, headers, bodies, Vault
+  values, cron commands, or user/health data.
 
-**Why edge-function-wrapper over direct RPC from CI:** the RPC needs an admin
-identity; minting/storing an admin JWT in CI is unsafe. A dedicated secret-gated
+**Layer 2 — scheduled GitHub Action (P1D, NOT built yet):** holds **only**
+`OPS_HEALTH_SECRET` as a repo secret (never `service_role`, never an admin JWT),
+calls the edge function on a schedule, and **fails the run** (native email) when
+`ok` is false.
+
+**Why edge-function-wrapper over direct RPC from CI:** the admin RPC needs an admin
+identity; minting/storing an admin JWT in CI is unsafe. The dedicated secret-gated
 edge function keeps CI's credential to a single-purpose, revocable token.
 
-**Required secret names only (no values, do not create yet):** `OPS_HEALTH_SECRET`
-(edge + GitHub Actions repo secret). Reuse the existing Vault pattern; no new
+**Secret names (values live only in Vault + GitHub, never in the repo):**
+`ops_health_secret` (Supabase Vault) and `OPS_HEALTH_SECRET` (GitHub Actions repo
+secret) must hold the same value. Reuses the existing Vault pattern; no new
 `service_role` exposure.
