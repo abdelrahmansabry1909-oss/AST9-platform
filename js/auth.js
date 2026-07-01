@@ -90,6 +90,19 @@ const Auth = (() => {
     }
   }
 
+  // Thrown by login/init when the user must accept the CURRENT required legal
+  // documents before entering the app. The UI catches this code and shows the
+  // #screen-legal-required gate (fail-closed) instead of the dashboard. Unlike
+  // the subscription gate, this does NOT sign the user out — the live session is
+  // deliberately kept so record_legal_acceptance() (which needs auth.uid()) can
+  // run when the user accepts.
+  class LegalAcceptanceRequiredError extends Error {
+    constructor() {
+      super('Legal acceptance required');
+      this.code = 'LEGAL_ACCEPTANCE_REQUIRED';
+    }
+  }
+
   function _gateClient(state) {
     const s = state?.effective_status || 'none';
     // active + grace get through. Everything else is blocked.
@@ -162,6 +175,27 @@ const Auth = (() => {
     return true;
   }
 
+  // ── Legal acceptance gate (post-auth, all roles) ────────────
+  // Fail-CLOSED: entry is blocked unless the user has already accepted the
+  // CURRENT required legal documents (checked server-side via the RPC). ANY
+  // error — network, RPC, missing session — is treated as "not confirmed" and
+  // also blocks, so the user lands on the retry-able #screen-legal-required gate
+  // and NEVER on the dashboard. Role-neutral (admin/coach/client). Does NOT sign
+  // the user out: the live session is required for record_legal_acceptance().
+  // Callers run this as the FINAL step, after the subscription decision, so a
+  // definitively inactive client still gets the subscription screen first.
+  async function _gateLegal() {
+    if (!_user?.id) throw new LegalAcceptanceRequiredError();
+    let accepted = false;
+    try {
+      accepted = await hasAcceptedCurrentLegal(_user.id);
+    } catch (e) {
+      console.warn('[auth] legal acceptance check failed (fail-closed):', e.message);
+      throw new LegalAcceptanceRequiredError();
+    }
+    if (!accepted) throw new LegalAcceptanceRequiredError();
+  }
+
   // ── Login ────────────────────────────────────────────────────
   async function login(email, password) {
     // A paused/cold Supabase project can take 30–90s to wake on the first
@@ -220,9 +254,13 @@ const Auth = (() => {
           throw new SubscriptionInactiveError(state);
         }
       }
+      // Legal acceptance gate — final step, all roles, after the subscription
+      // decision above. Fail-closed; keeps the session alive (no sign-out).
+      await _gateLegal();
       return _profile;
     } catch(e) {
       if (e?.code === 'SUBSCRIPTION_INACTIVE') throw e;
+      if (e?.code === 'LEGAL_ACCEPTANCE_REQUIRED') throw e;
       if (e?.code === 'EMAIL_NOT_CONFIRMED') throw e;
       if (e.message.includes('timed out')) {
         throw new Error('Unable to connect to authentication server. The server may be waking up from pause - please wait a moment and try again.');
@@ -267,19 +305,26 @@ const Auth = (() => {
         if (_profile.role === 'client') {
           const state = await _refreshSubscriptionState(session.user.id);
           // Transient read failure on a returning session — keep the valid
-          // session in the app (read-only via canWrite) instead of bouncing.
-          if (state?.effective_status === 'unknown') return _profile;
-          if (!_gateClient(state)) {
+          // session read-only (via canWrite) and fall through to the legal gate
+          // below; do NOT bounce. Only a definitively inactive subscription
+          // blocks here with the dedicated inactive screen.
+          if (state?.effective_status !== 'unknown' && !_gateClient(state)) {
             await _gateSignOut();
             _user = null; _profile = null;
             throw new SubscriptionInactiveError(state);
           }
         }
+        // Legal acceptance gate — final step, all roles, after the subscription
+        // decision above. Fail-closed; keeps the session alive (no sign-out).
+        await _gateLegal();
         return _profile;
       }
       return null;
     } catch(e) {
       if (e?.code === 'SUBSCRIPTION_INACTIVE') throw e;
+      // Must re-throw so app.html can show the legal gate. Returning null here
+      // would bounce a valid, authenticated user to the marketing landing.
+      if (e?.code === 'LEGAL_ACCEPTANCE_REQUIRED') throw e;
       console.error('Auth init error:', e.message);
       return null;
     }
@@ -389,8 +434,9 @@ const Auth = (() => {
     signUpCoach, resendVerification,
     // Demo:
     loginAsGuest,
-    // Error type (UI compares e.code === 'SUBSCRIPTION_INACTIVE'):
+    // Error types (UI compares e.code):
     SubscriptionInactiveError,
+    LegalAcceptanceRequiredError,
   };
 })();
 

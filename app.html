@@ -3889,7 +3889,7 @@ setInterval(() => { if (!document.hidden) _refreshApprovalsBadge(); }, 60_000);
 <script src="js/lib/jspdf.umd.min.js"></script>
 <script src="js/pdfExport.js?v=20260619a"></script>
 <script src="js/subscriptionService.js?v=20260622a"></script>
-<script src="js/auth.js?v=20260627b"></script>
+<script src="js/auth.js?v=20260701b"></script>
 <script src="js/dashboard.js?v=20260629c"></script>
 <script src="js/clients.js?v=20260619a"></script>
 <script src="js/subscriptions.js?v=20260614p6"></script>
@@ -4098,6 +4098,10 @@ const UI = {
       btn.innerHTML = 'Sign In'; btn.disabled = false;
       if (e?.code === 'SUBSCRIPTION_INACTIVE') {
         UI._showSubscriptionInactive(e.state);
+        return;
+      }
+      if (e?.code === 'LEGAL_ACCEPTANCE_REQUIRED') {
+        UI._showLegalGate();
         return;
       }
       if (e?.code === 'EMAIL_NOT_CONFIRMED') {
@@ -4392,6 +4396,12 @@ if (typeof Auth !== 'undefined') {
       UI._showSubscriptionInactive(e.state);
       return;
     }
+    if (e?.code === 'LEGAL_ACCEPTANCE_REQUIRED') {
+      // Authenticated but has not accepted current legal docs — show the gate,
+      // never bounce to landing (that was the old regression).
+      if (typeof UI !== 'undefined') UI._showLegalGate();
+      return;
+    }
     if (e?.code === 'EMAIL_NOT_CONFIRMED') {
       UI._showVerifyEmail(e.email);
       return;
@@ -4459,6 +4469,12 @@ if (typeof UI !== 'undefined') {
         const gate = document.getElementById('screen-legal-required');
         if (gate) gate.classList.add('hidden');
         UI._showSubscriptionInactive(e.state);
+        return;
+      }
+      // Defensive: if re-routing still reports acceptance not yet confirmed,
+      // stay on the gate (fail closed) rather than proceeding to the dashboard.
+      if (e?.code === 'LEGAL_ACCEPTANCE_REQUIRED') {
+        _err('We couldn’t confirm your acceptance. Please try again.');
         return;
       }
       // Stay on the gate (fail closed) and show a user-safe message; technical
