@@ -118,7 +118,7 @@
 
       _showStep('success');
     } catch (err) {
-      console.error('[Visitor] survey submit failed:', err);
+      console.error('[Visitor] survey submit failed:', err?.message || String(err));
       _showError(err.message || 'Something went wrong. Please try again.');
     } finally {
       submitBtn.disabled    = false;

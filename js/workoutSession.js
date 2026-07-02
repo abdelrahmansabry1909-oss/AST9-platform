@@ -66,7 +66,7 @@
         console.log(`[WorkoutSession] Stale sessions auto-expired count: ${data}`);
       }
     } catch (e) {
-      console.warn('[WorkoutSession] Fail-soft auto-expire check caught exception:', e);
+      console.warn('[WorkoutSession] Fail-soft auto-expire check caught exception:', e?.message || String(e));
     }
   }
 
