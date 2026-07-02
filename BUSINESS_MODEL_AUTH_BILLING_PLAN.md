@@ -6,6 +6,21 @@
 Pulse, assessment architecture, client subscription gate. No fake payments, no
 plain-password storage, no frontend-only enforcement.
 
+**Payments lane progress (added post-plan):**
+- **P2A — provider decision (done, read-only):** **Paymob-first**, on a
+  **provider-neutral** DB foundation, keeping **manual** (admin-assign) mode.
+  Rationale: Stripe does not support Egypt-domiciled businesses (verified against
+  `stripe.com/global`); Paymob supports EGP + local rails, recurring, HMAC-verified
+  webhooks, and tokenization. MVP flow = **coach-package-first** (client-access
+  payments deferred to P2G).
+- **P2B — provider-neutral DB foundation (this change):** adds `payment_events`
+  (idempotency + audit ledger), provider-neutral columns on `coach_subscriptions`,
+  and the service-role-only `apply_paid_coach_package_period_system()` RPC. **No
+  provider code, no SDK, no Edge Function, no live keys.** Payments remain
+  **webhook-authoritative**; the frontend / a checkout redirect never grants access.
+  Next: **P2C** Paymob webhook edge fn, **P2D** checkout UI (owner must create a
+  Paymob account first).
+
 ---
 
 ## 0. Central architectural finding (read this first)
