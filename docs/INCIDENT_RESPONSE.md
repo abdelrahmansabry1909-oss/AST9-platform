@@ -44,7 +44,7 @@
 - **GitHub Pages deploy status** — Actions tab / `gh run list`.
 - **Supabase Edge Function logs** — Supabase dashboard (short retention).
 - **Automated cron health-check** — the `Ops Health Check` GitHub Action (P1D) runs every 6h and emails the owner on failure (unreachable / non-200 / unhealthy). See [RUNBOOK.md](RUNBOOK.md).
-- **Frontend error monitoring** — a Sentry errors-only shell (P1E-3, `js/monitoring.js`) is wired but **INERT** (`window.SENTRY_DSN = ''`) until the owner flips the DSN live; it emits nothing while blank. See [RUNBOOK.md](RUNBOOK.md) "Frontend error monitoring". **Edge** error monitoring (Sentry) remains deferred.
+- **Frontend error monitoring** — a Sentry errors-only shell (P1E-3/P1E-4, `js/monitoring.js`) is **LIVE** as of P1E-4: `window.SENTRY_DSN` holds the real `ast9-frontend` EU browser DSN and the shell sends scrubbed error events (fail-open, no user identity, strict `beforeSend`). **Instant kill switch** = disable the DSN client key in the Sentry UI (Settings → Client Keys); repo-level disable = `window.SENTRY_DSN = ''` (needs PR + deploy + reload). Run the raw-envelope smoke after deploy. See [RUNBOOK.md](RUNBOOK.md) "Frontend error monitoring". **Edge** error monitoring (Sentry) remains deferred.
 
 ---
 
