@@ -37,3 +37,16 @@ Non-blocking and expected; do not chase it green. See [NOT_A_BUG.md](NOT_A_BUG.m
 `package.json` defines only Vite scripts (`dev`/`build`/`preview`); there is no
 markdownlint/prettier dev dependency. Docs are reviewed manually against the
 `clean-code-guard` / documentation-quality standards rather than by a linter.
+
+## L8 — Browser smoke suite covers public flows only (built output)
+The Playwright smoke net (P1F-1 — `tests/smoke/`, `.github/workflows/smoke-tests.yml`)
+runs Chromium against the **built** bundle served at the production base `/AST9_HUB/`
+(via `tests/smoke/serve-dist.mjs`), so dev-only (`vite serve`) breakage is out of
+scope. **Public** specs (landing, boot router / PR#53 bounce guard, login screen,
+the 6 legal pages, Sentry-boot safety) always run. **Authenticated** specs
+(coach/client login) self-skip unless the `AST9_E2E_*` secrets are configured
+(see [NOT_A_BUG.md](NOT_A_BUG.md) #4). Deeper scenarios — the **inactive-client
+subscription gate** and the **video-modal close regression** — are deliberately NOT
+automated yet: they couple to mutable/real prod data and would make CI cry wolf, so
+they remain **manual smoke** until a staging-backed seeded account (non-real data)
+exists.

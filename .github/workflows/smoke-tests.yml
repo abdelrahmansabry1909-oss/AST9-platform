@@ -1,0 +1,58 @@
+# Browser smoke tests (Playwright, Chromium) — Phase P1F-1.
+# Public specs (landing, boot router, login screen, legal pages, Sentry-boot
+# safety) always run. Authenticated specs self-skip unless the AST9_E2E_*
+# secrets are present (fork PRs get none -> clean skip). The build is produced
+# and served by Playwright's webServer (see playwright.config.ts), so there is
+# no separate build step here.
+
+name: Smoke Tests
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [ main ]
+
+# Least privilege: only read the repo.
+permissions:
+  contents: read
+
+# Cancel superseded runs on the same ref.
+concurrency:
+  group: smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    name: Playwright smoke (Chromium)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Run smoke tests
+        env:
+          # Authenticated specs self-skip when absent; public specs always run.
+          AST9_E2E_COACH_EMAIL: ${{ secrets.AST9_E2E_COACH_EMAIL }}
+          AST9_E2E_COACH_PASSWORD: ${{ secrets.AST9_E2E_COACH_PASSWORD }}
+          AST9_E2E_CLIENT_EMAIL: ${{ secrets.AST9_E2E_CLIENT_EMAIL }}
+          AST9_E2E_CLIENT_PASSWORD: ${{ secrets.AST9_E2E_CLIENT_PASSWORD }}
+        run: npm run test:smoke
+      # Public-project artifacts only carry public pages; the authenticated
+      # project runs with trace/screenshot/video OFF, so no user data or
+      # credentials can appear in uploaded artifacts.
+      - name: Upload Playwright report on failure
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 5

@@ -194,3 +194,37 @@ exists** (adblock → zero envelopes → vacuous green).
     SDK version changes — with no test framework, this checklist **is** the
     regression suite. A DSN-blank run should show only the static bundle fetch and
     **no** ingest traffic.
+
+---
+
+## Browser smoke tests (Playwright) — P1F-1
+
+A minimal Chromium smoke net lives in `tests/smoke/` (`@playwright/test`). It runs
+against the **built** bundle served at the production base `/AST9_HUB/` by a
+dependency-free static server (`tests/smoke/serve-dist.mjs` — `vite preview` can't
+serve the base, which is only set on `build`).
+
+```bash
+npm run test:smoke          # all projects (authenticated self-skip without creds)
+npm run test:smoke:public   # public project only (no credentials needed)
+```
+
+**Public project** (always runs, no creds): landing loads + brand; boot router
+(bare `app.html` → redirects to landing; `app.html?login=1` → stays — the PR#53
+bounce guard); login screen renders + overlay clears; all 6 legal pages 200; Sentry
+shell initializes without breaking boot. A console/`pageerror` guard fails on any
+uncaught error or non-benign `console.error` (tight allow-list: favicon, Sentry
+ingest — which is also route-stubbed).
+
+**Authenticated project** (credential-gated): coach + client login reach the app
+without a landing bounce. **Skips cleanly** unless these env/secrets are set:
+`AST9_E2E_COACH_EMAIL`, `AST9_E2E_COACH_PASSWORD`, `AST9_E2E_CLIENT_EMAIL`,
+`AST9_E2E_CLIENT_PASSWORD`. This project runs with **trace/screenshot/video OFF**
+so the login password (auth POST body) and post-login client data never reach disk;
+CI uploads artifacts only on failure (public project only). Not covered here (manual
+until a staging seeded account exists): inactive-client subscription gate,
+video-modal close regression — see [KNOWN_LIMITATIONS.md](KNOWN_LIMITATIONS.md) #L8.
+
+**CI:** `.github/workflows/smoke-tests.yml` (`workflow_dispatch` + PRs to `main`;
+`permissions: contents: read`). The Sentry **privacy** raw-envelope smoke above is a
+separate check (it verifies scrubbing, not app boot) and stays owner/harness-run.

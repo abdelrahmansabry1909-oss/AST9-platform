@@ -4,6 +4,12 @@ node_modules/
 # Vite build output
 dist/
 
+# Playwright smoke-test artifacts (never commit — traces/reports)
+test-results/
+playwright-report/
+blob-report/
+.playwright/
+
 # Local environment + secrets
 .env
 .env.local
