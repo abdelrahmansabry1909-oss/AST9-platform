@@ -6,6 +6,16 @@
 <meta name="description" content="NeuCore — AI biomechanics, movement intelligence, and neuro-performance optimization. An AST9 Solution."/>
 <title>NeuCore — An AST9 Solution</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<!-- ── Error monitoring (P1E-3) ──────────────────────────────────────
+     Pinned, SRI-locked, errors-only Sentry browser bundle — NO Loader,
+     NO tracing/replay/profiling. INERT until window.SENTRY_DSN is set:
+     js/monitoring.js no-ops on a blank DSN or a missing Sentry global and
+     fails open, so a blocked/failed CDN never breaks boot. -->
+<script src="https://browser.sentry-cdn.com/10.63.0/bundle.min.js"
+        integrity="sha384-DK4NLLOVDh6BGBXQ48eIAFQ6DET3Y3pPMh/1xZBluw9YlZC9d51bMNXIerBn9sQM"
+        crossorigin="anonymous"></script>
+<script>window.SENTRY_DSN = '';</script>
+<script src="js/monitoring.js?v=20260702a"></script>
   <link rel="stylesheet" href="css/styles.css"/>
   <link rel="stylesheet" href="css/styles_holographic.css"/>
   <link rel="stylesheet" href="css/neucore-design-system.css"/>

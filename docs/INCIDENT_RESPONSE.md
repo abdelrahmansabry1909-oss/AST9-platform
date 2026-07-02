@@ -43,7 +43,8 @@
 - **Cron & edge dispatch health** — `select public.ops_health_snapshot();` (owner-only; added in P1A). Reports missing/inactive/stale jobs and a best-effort recent edge-HTTP summary. **Why it matters:** a cron job can log `succeeded` (dispatch) while the edge function returned 401/500 — this snapshot surfaces both the dispatch timing and the recent HTTP status.
 - **GitHub Pages deploy status** — Actions tab / `gh run list`.
 - **Supabase Edge Function logs** — Supabase dashboard (short retention).
-- Frontend/edge error monitoring (Sentry) and an automated cron health-check Action are **planned** (P1B / later), not yet in place.
+- **Automated cron health-check** — the `Ops Health Check` GitHub Action (P1D) runs every 6h and emails the owner on failure (unreachable / non-200 / unhealthy). See [RUNBOOK.md](RUNBOOK.md).
+- **Frontend error monitoring** — a Sentry errors-only shell (P1E-3, `js/monitoring.js`) is wired but **INERT** (`window.SENTRY_DSN = ''`) until the owner flips the DSN live; it emits nothing while blank. See [RUNBOOK.md](RUNBOOK.md) "Frontend error monitoring". **Edge** error monitoring (Sentry) remains deferred.
 
 ---
 
