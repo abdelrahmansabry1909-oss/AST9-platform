@@ -336,7 +336,7 @@ const Subscriptions = (() => {
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body:    JSON.stringify({ type, client_id: clientId, ...extra }),
       });
-    } catch (e) { console.warn('Email send error:', e); }
+    } catch (e) { console.warn('Email send error:', e?.message || String(e)); }
   }
 
   function _esc(s) {

@@ -249,7 +249,7 @@
           state.saving = false;
           state.savedAt = new Date();
         } catch (e) {
-          console.error('[dailyRoutine] save failed:', e);
+          console.error('[dailyRoutine] save failed:', e?.message || String(e));
           state.saving = false;
           state.savedAt = 'error';
         }
@@ -432,7 +432,7 @@
       }
       const { data } = await q.order('full_name', { ascending: true });
       clients = data || [];
-    } catch (e) { console.warn('[dailyRoutine] client load failed:', e); }
+    } catch (e) { console.warn('[dailyRoutine] client load failed:', e?.message || String(e)); }
 
     host.innerHTML = `
       <div class="dr-coach">

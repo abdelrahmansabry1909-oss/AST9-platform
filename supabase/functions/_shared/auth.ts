@@ -44,7 +44,7 @@ export class HttpError extends Error {
   // Convert any thrown value into a CORS-aware JSON Response.
   static toResponse(req: Request, e: unknown): Response {
     if (e instanceof HttpError) return json(req, e.status, { error: e.message })
-    console.error('[edge] unhandled error:', e)
+    console.error('[edge] unhandled error:', e instanceof Error ? e.message : String(e))
     return json(req, 500, { error: 'Internal error' })
   }
 }

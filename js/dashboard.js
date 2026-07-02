@@ -883,7 +883,7 @@ Keep output clean, structured, and professionally precise.`;
           throw new Error(upstream || 'AI returned no narrative text');
         }
       } catch(aiErr) {
-        console.warn('AI narrative unavailable:', aiErr?.message || aiErr);
+        console.warn('AI narrative unavailable:', aiErr?.message || String(aiErr));
         aiUnavailable = true;
         // Local fallback narrative built from engine output — keeps the
         // PDF and Programs view useful even when AI is down. Coach knows
@@ -921,7 +921,7 @@ Keep output clean, structured, and professionally precise.`;
 
     } catch(e) {
       toast('Generation failed: ' + e.message, 'error');
-      console.error(e);
+      console.error('[dashboard] generation failed:', e?.message || String(e));
     } finally {
       btn.innerHTML = origHTML;
       btn.disabled = false;
@@ -1027,7 +1027,7 @@ Keep output clean, structured, and professionally precise.`;
             { label: 'Additional Notes',      value: s.free_form_notes },
           ].filter(r => r.value != null && r.value !== '');
         }
-      } catch (e) { console.warn('[pdf] subjective pull failed:', e); }
+      } catch (e) { console.warn('[pdf] subjective pull failed:', e?.message || String(e)); }
     }
 
     return {
@@ -1063,7 +1063,7 @@ Keep output clean, structured, and professionally precise.`;
       NeuPDF.exportReport(data);
       toast('Professional PDF exported ✓', 'success');
     } catch (e) {
-      console.error('[pdf] export failed:', e);
+      console.error('[pdf] export failed:', e?.message || String(e));
       toast('PDF export failed: ' + (e.message || 'unknown error'), 'error');
     } finally {
       if (btn) { btn.disabled = false; btn.innerHTML = origHTML; }
@@ -1298,7 +1298,7 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
           Could not load Program Workspace. Please refresh and try again.
         </div>
       `;
-      console.error('Failed to load roster overview:', e);
+      console.error('Failed to load roster overview:', e?.message || String(e));
     }
   }
 
@@ -1520,7 +1520,7 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
           Could not load Program Workspace. Please refresh and try again.
         </div>
       `;
-      console.error('Error rendering program workspace:', e);
+      console.error('Error rendering program workspace:', e?.message || String(e));
     }
   }
 
@@ -1851,7 +1851,7 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
         if (coachNote)  coachNote.style.display  = '';
       }
     } catch (err) {
-      console.error('[Dashboard] Failed to populate client selects:', err);
+      console.error('[Dashboard] Failed to populate client selects:', err?.message || String(err));
     }
   }
 
@@ -1954,7 +1954,7 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ type: 'phase_upgrade', client_id: clientId, new_phase: confirmedPhase, message })
       });
-    } catch(e) { console.warn('Email send failed:', e); }
+    } catch(e) { console.warn('Email send failed:', e?.message || String(e)); }
 
     toast(`Client upgraded to ${confirmedPhase}! 🎉`, 'success');
     showCelebration(confirmedPhase);

@@ -1278,7 +1278,7 @@
             .eq('status',    'addressed')
             .not('substitute_exercise_id', 'is', null);
         } catch (sweepEx) {
-          console.warn('[publish] substitution sweep failed:', sweepEx);
+          console.warn('[publish] substitution sweep failed:', sweepEx?.message || String(sweepEx));
         }
 
         _toast('Program published successfully!', 'success');
@@ -1294,7 +1294,7 @@
         
         if (window.Dashboard?.reloadCurrentPrograms) window.Dashboard.reloadCurrentPrograms();
       } catch (e) {
-        console.error('[publish] RPC invocation failed:', e);
+        console.error('[publish] RPC invocation failed:', e?.message || String(e));
         _toast('Could not publish this program. Please refresh and try again.', 'error');
       } finally {
         confirmBtn.disabled = false;

@@ -152,7 +152,7 @@ serve(async (req) => {
     let sent = 0
     for (const r of toSend) {
       const d = describe(r)
-      if (!d.recipients.length) { console.warn('[pulse-alerts] no recipient for', r.client_id); continue }
+      if (!d.recipients.length) { console.warn('[pulse-alerts] skipping 1 client: no recipient resolved'); continue }
       for (const rcpt of d.recipients) {
         const { error: nErr } = await sb.rpc('notify', {
           p_recipient_id: rcpt,
