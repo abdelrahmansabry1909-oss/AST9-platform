@@ -112,3 +112,78 @@ edge function keeps CI's credential to a single-purpose, revocable token.
 `ops_health_secret` (Supabase Vault) and `OPS_HEALTH_SECRET` (GitHub Actions repo
 secret) must hold the same value. Reuses the existing Vault pattern; no new
 `service_role` exposure.
+
+---
+
+## Frontend error monitoring (Sentry) — P1E-3
+
+A frontend **errors-only** Sentry shell lives in `js/monitoring.js`, loaded from
+`app.html` via a pinned, SRI-locked bundle from `browser.sentry-cdn.com`. It is
+**INERT** until the owner sets a real DSN — with `window.SENTRY_DSN = ''` it
+initializes nothing and makes **zero** ingest calls.
+
+**Design (do not weaken without owner + privacy review):**
+- Pinned `@sentry/browser` **10.63.0** errors-only bundle, `integrity=` (SRI) +
+  `crossorigin`. **No** Sentry Loader (the Loader bakes the DSN into its URL and
+  cannot ship inert). **No** Session Replay / tracing / profiling — that code is
+  not even in the bundle.
+- **Fail-open:** a blocked/failed CDN, an undefined `Sentry`, or an init error
+  never breaks boot. Adblockers commonly block `browser.sentry-cdn.com` and
+  `*.ingest.sentry.io` — expected and harmless; **never** read "no Sentry events"
+  as "no errors" (ops-health remains the uptime source of truth).
+- **No user identity:** never `setUser`; no id/email. Tags limited to
+  `{ role, feature_area, app_version }`.
+- **All breadcrumbs off** (console/dom/fetch/xhr/history) + `maxBreadcrumbs:0`.
+- **`beforeSend` scrubber** deletes `user`/`extra`/request headers/cookies/data/
+  query_string, strips query+hash from the request URL and every stack-frame URL,
+  allow-lists tags, and redacts emails/phones/UUIDs/JWTs/tokens/`Key(…)=(…)`/
+  `DETAIL:`/PostgREST `eq.<val>` filters **before** truncating. If the scrubber
+  throws it returns `null` (drops the event) — never leaks raw.
+- **Server-side** Sentry scrubbing (Prevent-Store-IP, sensitive fields, Allowed
+  Domains) is a **required second net**, not optional.
+
+**Going live (later, owner-approved):** set `window.SENTRY_DSN` in `app.html` to
+the real browser DSN (public by design) and bump the `js/monitoring.js?v=` token;
+verify the live `?v=` actually updated before running the smoke.
+
+**Kill switches:**
+- **Emergency / instant (zero-deploy):** disable the DSN **client key** in the
+  Sentry UI (Settings → Client Keys). Ingest rejects immediately; the SDK fails
+  silently; the app is unaffected (fail-open).
+- **Repo-level:** set `window.SENTRY_DSN = ''` — goes inert, but needs a PR +
+  Pages deploy + page **reload** (already-open tabs keep their client until
+  reload). Use the UI key-disable for anything urgent.
+
+Do **not** claim HIPAA/GDPR compliance anywhere.
+
+### Smoke checklist (seeded disposable account; inspect the RAW envelope, not the Sentry UI)
+
+Grep the **raw outbound envelope** (network payload, or a temporary `beforeSend`
+console-mirror) — the Sentry UI applies its own server-side scrubbing and hides
+what you actually sent. Every "absent" check must first assert **the envelope
+exists** (adblock → zero envelopes → vacuous green).
+
+1. DSN blank → app boots; **zero** requests to any `*.ingest.sentry.io` host and
+   zero envelopes.
+2. Sentry CDN/script blocked → app boots (fail-open; `typeof Sentry` guard).
+3. DSN set → a synthetic thrown `Error` is captured (envelope exists).
+4. Envelope-exists precondition asserted before every absence check below.
+5. Seeded email / UUID / name **absent** from the envelope.
+6. Redaction markers **present**: `[email]`, `[uuid]`, `DETAIL: [redacted]`.
+7. `Key (email)=(seed@x.test)` → redacted.
+8. `DETAIL: …` text → redacted.
+9. Request URL query/hash stripped.
+10. Stack-frame `filename`/`abs_path` query/hash stripped.
+11. `event.user` absent.
+12. `event.extra` absent.
+13. Breadcrumbs empty/absent.
+14. No `Authorization` / `apikey` / `sb-` / `access_token` / `refresh_token`.
+15. `#access_token=fake.jwt.value` in the URL hash does **not** appear.
+16. Object-reason unhandled rejection → **dropped** by `ignoreErrors`
+    ('Non-Error promise rejection captured'), OR if forced via
+    `Sentry.captureException(obj)`, no object fields present.
+17. Adblocker blocks Sentry → app still boots. Remove the synthetic trigger after
+    testing. Re-run this whole checklist whenever `js/monitoring.js` or the pinned
+    SDK version changes — with no test framework, this checklist **is** the
+    regression suite. A DSN-blank run should show only the static bundle fetch and
+    **no** ingest traffic.
