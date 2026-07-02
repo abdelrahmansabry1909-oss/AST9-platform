@@ -27,7 +27,19 @@
   'use strict';
 
   // Keep in sync with the js/monitoring.js?v= token in app.html.
-  var APP_VERSION = '20260702a';
+  var APP_VERSION = '20260702b';
+
+  // ── envFromHost(): derive the Sentry environment from the hostname so
+  //  localhost / preview builds never report as 'production' now the DSN
+  //  is live. Fail-safe to 'preview' on any error. ──────────────────
+  function envFromHost() {
+    try {
+      var h = (window.location && window.location.hostname) || '';
+      if (h === 'abdelrahmansabry1909-oss.github.io') return 'production';
+      if (h === 'localhost' || h === '127.0.0.1') return 'development';
+      return 'preview';
+    } catch (_e) { return 'preview'; }
+  }
 
   // ── scrub(): redact sensitive substrings, THEN truncate ─────────
   //  Order matters — most specific patterns first so a broad rule never
@@ -122,7 +134,7 @@
 
       S.init({
         dsn: dsn,
-        environment: 'production',
+        environment: envFromHost(),
         release: 'ast9-frontend@' + APP_VERSION,
         sendDefaultPii: false,
         sampleRate: 1.0,
@@ -147,7 +159,8 @@
           'Failed to fetch',
           'Load failed',
           'Script error.',
-          'Non-Error promise rejection captured'
+          'Non-Error promise rejection captured',  // SDK ≤ v7 wording
+          'Object captured as promise rejection'    // SDK v8+/v10 wording
         ],
         denyUrls: [
           /^chrome-extension:\/\//i,

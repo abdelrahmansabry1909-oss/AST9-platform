@@ -115,12 +115,16 @@ secret) must hold the same value. Reuses the existing Vault pattern; no new
 
 ---
 
-## Frontend error monitoring (Sentry) — P1E-3
+## Frontend error monitoring (Sentry) — P1E-3 / P1E-4
 
 A frontend **errors-only** Sentry shell lives in `js/monitoring.js`, loaded from
-`app.html` via a pinned, SRI-locked bundle from `browser.sentry-cdn.com`. It is
-**INERT** until the owner sets a real DSN — with `window.SENTRY_DSN = ''` it
-initializes nothing and makes **zero** ingest calls.
+`app.html` via a pinned, SRI-locked bundle from `browser.sentry-cdn.com`. As of
+**P1E-4 the DSN is LIVE** — `window.SENTRY_DSN` holds the real `ast9-frontend`
+**EU** browser DSN, so the shell now sends scrubbed error events. Setting
+`window.SENTRY_DSN = ''` reverts it to fully **inert** (zero ingest calls). The
+`environment` tag is hostname-derived: `production` only on
+`abdelrahmansabry1909-oss.github.io`, `development` on localhost/127.0.0.1,
+`preview` otherwise.
 
 **Design (do not weaken without owner + privacy review):**
 - Pinned `@sentry/browser` **10.63.0** errors-only bundle, `integrity=` (SRI) +
@@ -142,9 +146,12 @@ initializes nothing and makes **zero** ingest calls.
 - **Server-side** Sentry scrubbing (Prevent-Store-IP, sensitive fields, Allowed
   Domains) is a **required second net**, not optional.
 
-**Going live (later, owner-approved):** set `window.SENTRY_DSN` in `app.html` to
-the real browser DSN (public by design) and bump the `js/monitoring.js?v=` token;
-verify the live `?v=` actually updated before running the smoke.
+**Live (P1E-4, owner-approved):** `window.SENTRY_DSN` in `app.html` holds the real
+EU browser DSN (public by design), the `js/monitoring.js?v=` token is bumped to
+`20260702b`, and `ignoreErrors` includes the SDK-v10 `Object captured as promise
+rejection` wording. **Run the raw-envelope smoke (below) after every deploy** and
+verify the live `?v=` token actually updated before trusting Sentry. Edge Sentry
+remains deferred.
 
 **Kill switches:**
 - **Emergency / instant (zero-deploy):** disable the DSN **client key** in the
