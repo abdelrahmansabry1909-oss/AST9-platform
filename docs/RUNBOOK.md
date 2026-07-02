@@ -94,10 +94,15 @@ built in two safe layers so a GitHub Action never holds the Supabase
 - Never logs/echoes/returns the secret, `service_role` key, headers, bodies, Vault
   values, cron commands, or user/health data.
 
-**Layer 2 — scheduled GitHub Action (P1D, NOT built yet):** holds **only**
-`OPS_HEALTH_SECRET` as a repo secret (never `service_role`, never an admin JWT),
-calls the edge function on a schedule, and **fails the run** (native email) when
-`ok` is false.
+**Layer 2 — scheduled GitHub Action (P1D, built):** `.github/workflows/ops-health.yml`
+(`Ops Health Check`). Runs every 6h (`0 */6 * * *`) + `workflow_dispatch`; least
+privilege (`permissions: contents: read`). Holds **only** `OPS_HEALTH_SECRET` as a
+repo secret (never `service_role`, never an admin JWT), sends it as the
+`x-ops-health-secret` header, and **fails the run** (native GitHub email) when the
+endpoint is unreachable, non-200, returns invalid JSON, reports `ok != true`, or
+lists any `hard_fails`. The secret is never echoed; only safe summaries print.
+Scheduled/manual runs activate after the file is on `main`; the **first run also
+proves** the GitHub↔Vault secret pair matches (200 = match; 401 = re-sync).
 
 **Why edge-function-wrapper over direct RPC from CI:** the admin RPC needs an admin
 identity; minting/storing an admin JWT in CI is unsafe. The dedicated secret-gated

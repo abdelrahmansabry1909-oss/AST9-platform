@@ -1,0 +1,110 @@
+# Automated production health check for the secret-gated `ops-health` Edge
+# Function (Phase P1D). Calls the endpoint on a schedule with the
+# x-ops-health-secret header (from the OPS_HEALTH_SECRET repo secret) and
+# FAILS the run — GitHub then emails the owner — when the endpoint is
+# unreachable, non-200, returns invalid JSON, reports ok != true, or lists any
+# hard_fails.
+#
+# Secret handling: OPS_HEALTH_SECRET is read only via the `secrets` context into
+# a step env var and passed as a request header. It is never echoed, and GitHub
+# masks it in logs. Only safe summaries (jobname + reason, warning strings) are
+# printed — the endpoint guarantees no secrets/user data in its payload.
+#
+# Note: scheduled + manual runs activate only after this file is on the default
+# branch (main). The first run also serves as the definitive proof that the
+# GitHub OPS_HEALTH_SECRET matches the Supabase Vault ops_health_secret
+# (200 = match; 401 = mismatch → re-sync the pair).
+
+name: Ops Health Check
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Every 6 hours. Catches a stopped hourly job within ~one interval-plus and
+    # a stalled daily job within 6h. Tighten later if needed.
+    - cron: '0 */6 * * *'
+
+# Least privilege: this workflow only reads the repo and calls an external URL.
+permissions:
+  contents: read
+
+# Don't let overlapping runs pile up.
+concurrency:
+  group: ops-health
+  cancel-in-progress: false
+
+jobs:
+  check:
+    name: Check ops-health endpoint
+    runs-on: ubuntu-latest
+    env:
+      OPS_HEALTH_URL: https://byquokhcbagofshsclfy.supabase.co/functions/v1/ops-health
+    steps:
+      - name: Call ops-health and evaluate
+        env:
+          # Read once from the repo secret; never printed. GitHub masks it.
+          OPS_HEALTH_SECRET: ${{ secrets.OPS_HEALTH_SECRET }}
+        run: |
+          set -uo pipefail
+
+          if [ -z "${OPS_HEALTH_SECRET:-}" ]; then
+            echo "::error::OPS_HEALTH_SECRET repository secret is not set."
+            exit 1
+          fi
+
+          # Call the endpoint. Body → file; HTTP status captured separately so we
+          # can evaluate it ourselves. The secret is sent as a header from an env
+          # var and is never echoed. "000" marks an unreachable endpoint.
+          http_code="$(curl -sS -m 30 \
+            -o response.json \
+            -w '%{http_code}' \
+            -X GET \
+            -H "x-ops-health-secret: ${OPS_HEALTH_SECRET}" \
+            "${OPS_HEALTH_URL}" || echo '000')"
+
+          echo "HTTP status: ${http_code}"
+
+          if [ "${http_code}" = "000" ]; then
+            echo "::error::ops-health endpoint unreachable (no HTTP response / timeout)."
+            exit 1
+          fi
+          if [ "${http_code}" = "401" ]; then
+            echo "::error::ops-health returned 401 — GitHub OPS_HEALTH_SECRET does not match the Supabase Vault ops_health_secret. Re-sync the secret pair."
+            exit 1
+          fi
+          if [ "${http_code}" != "200" ]; then
+            echo "::error::ops-health returned HTTP ${http_code} (expected 200)."
+            exit 1
+          fi
+
+          # Validate JSON (do NOT dump the raw body — print only structured fields).
+          if ! jq -e . response.json >/dev/null 2>&1; then
+            echo "::error::ops-health returned invalid JSON."
+            exit 1
+          fi
+
+          ok="$(jq -r '.ok' response.json)"
+          overall="$(jq -r '.overall_healthy' response.json)"
+          generated_at="$(jq -r '.generated_at' response.json)"
+          hard_fail_count="$(jq -r '(.hard_fails // []) | length' response.json)"
+          warn_count="$(jq -r '(.warnings // []) | length' response.json)"
+
+          echo "overall_healthy=${overall}  ok=${ok}  generated_at=${generated_at}"
+          echo "hard_fails=${hard_fail_count}  warnings=${warn_count}"
+
+          # Safe summaries only (jobname + reason / warning strings are non-sensitive).
+          if [ "${hard_fail_count}" != "0" ]; then
+            echo "Hard fails:"
+            jq -r '.hard_fails[] | "  - \(.jobname): \(.reason)"' response.json
+          fi
+          if [ "${warn_count}" != "0" ]; then
+            echo "Warnings:"
+            jq -r '.warnings[] | "  - \(.)"' response.json
+          fi
+
+          if [ "${ok}" != "true" ] || [ "${hard_fail_count}" != "0" ]; then
+            echo "::error::ops-health reports unhealthy (ok=${ok}, hard_fails=${hard_fail_count})."
+            exit 1
+          fi
+
+          echo "OK — ops-health reports all monitored cron jobs healthy."
