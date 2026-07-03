@@ -22,8 +22,15 @@ Terms / consent / disclaimer copy is not finalized and must be reviewed by a law
 before any public launch. Acceptance must also be **backend-persisted** (decision
 D3 in [DECISIONS.md](DECISIONS.md)) — currently not implemented.
 
-## L4 — Payment integration not implemented
-Billing/packages exist as a foundation, but live payment processing is not wired.
+## L4 — Payment integration not implemented (provider-neutral DB foundation laid)
+Billing/packages exist as a foundation, and as of **P2B** a provider-neutral
+payments DB foundation is in place (`payment_events` idempotency ledger,
+provider-neutral columns on `coach_subscriptions`, and the service-role-only
+`apply_paid_coach_package_period_system()` RPC). **No payment provider is live
+yet** — no Paymob/Stripe code, SDK, Edge Function, or keys. Manual (admin-assign)
+billing still works and remains the fallback. Payments are **webhook-authoritative**
+by design: the frontend / a checkout redirect never grants access. Paymob
+integration is the next phase (P2C/P2D) and needs an owner-created provider account.
 See root `BUSINESS_MODEL_AUTH_BILLING_PLAN.md`.
 
 ## L5 — Athletic Performance is not production-ready

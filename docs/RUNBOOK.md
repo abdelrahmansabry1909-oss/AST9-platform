@@ -228,3 +228,42 @@ video-modal close regression — see [KNOWN_LIMITATIONS.md](KNOWN_LIMITATIONS.md
 **CI:** `.github/workflows/smoke-tests.yml` (`workflow_dispatch` + PRs to `main`;
 `permissions: contents: read`). The Sentry **privacy** raw-envelope smoke above is a
 separate check (it verifies scrubbing, not app boot) and stays owner/harness-run.
+
+---
+
+## Payments — provider-neutral DB foundation (P2B)
+
+The payments lane is **DB-foundation only** so far. **No payment provider is live**
+— no Paymob/Stripe code, SDK, Edge Function, or keys. Manual (admin-assign) billing
+via `admin_set_coach_package()` still works and remains the fallback.
+
+**What P2B added (migration `20260702000000_provider_neutral_payments_foundation`):**
+- `public.payment_events` — idempotency + audit ledger. `UNIQUE(provider,
+  provider_event_id)` is the idempotency key. Stores a **scrubbed summary only** —
+  never the raw webhook body, card data, tokens, or secrets. Admin-read via RLS;
+  writes come from the service role (webhook/RPC), which bypasses RLS.
+- `coach_subscriptions` provider-neutral columns: `provider` (`manual`|`paymob`|
+  `stripe`, default `manual`), `provider_customer_id`, `provider_subscription_id`,
+  `current_period_end`, `cancel_at_period_end`, `last_payment_status`,
+  `billing_currency`.
+- `public.apply_paid_coach_package_period_system(...)` — **service-role-only**
+  RPC (SECURITY DEFINER, search_path pinned, EXECUTE revoked from
+  public/anon/authenticated). The future verified webhook calls it to apply a paid
+  coach-package period; idempotent via `payment_events`.
+
+**Design invariants (do not weaken):**
+- **Webhook-authoritative.** Access is granted ONLY by a verified provider webhook
+  (which calls the service-role RPC) or by an admin RPC. The frontend / a Checkout
+  **redirect never activates access.**
+- **HMAC verification** happens in the (future) edge function BEFORE the RPC is
+  called; the RPC itself handles no secrets.
+- **Idempotent.** Replayed webhooks (same `provider, provider_event_id`) are a
+  no-op — the period is never extended twice.
+- **No raw payloads / card data** stored anywhere; only a scrubbed summary.
+- No HIPAA / GDPR / PCI compliance is claimed.
+
+**Apply / rollback (owner-approved separate phase — NOT applied by the PR):**
+apply via MCP `apply_migration` (name `provider_neutral_payments_foundation`);
+rollback = `supabase/migrations/rollbacks/20260702000000_provider_neutral_payments_foundation_down.sql`.
+Next: **P2C** (Paymob webhook edge fn) / **P2D** (checkout UI) — both need an
+owner-created Paymob account first.
