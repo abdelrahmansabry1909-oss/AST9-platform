@@ -23,6 +23,18 @@ const Dashboard = (() => {
     const p = Auth.getProfile();
     const role = Auth.getRole();
 
+    // Role-exclusive shell class — set deterministically from the role BEFORE
+    // any section renders. This (a) removes the boot flash where a client
+    // briefly rendered the coach shell because `nc-client` was only added
+    // afterwards by the optional ClientShell.init(), and (b) no longer depends
+    // on that module loading. Mutually exclusive, so a stale class from a prior
+    // state can never leak the wrong shell. CSS keys off `nc-client`; the
+    // `nc-coach`/`nc-admin` hooks are inert today (no rule targets them).
+    document.body.classList.remove('nc-client', 'nc-coach', 'nc-admin');
+    document.body.classList.add(
+      role === 'client' ? 'nc-client' : role === 'admin' ? 'nc-admin' : 'nc-coach'
+    );
+
     // Wordmark
     document.getElementById('sb-avatar-char').textContent = (p?.full_name || p?.email || '?')[0].toUpperCase();
     document.getElementById('sb-user-name').textContent = p?.full_name || p?.email || '–';
