@@ -57,17 +57,24 @@ const Dashboard = (() => {
       ctxEl.textContent = `${greet} · ${dateStr}`;
     }
 
-    // Role-based nav visibility
-    document.querySelectorAll('.role-coach-admin').forEach(el => {
-      el.style.display = Auth.isAdminOrCoach() ? '' : 'none';
-    });
-    document.querySelectorAll('.role-admin-only').forEach(el => {
-      el.style.display = Auth.isAdmin() ? '' : 'none';
-    });
+    // Role-based nav visibility.
+    // NOTE: nav items carry BOTH a role class and `rehab-only`, and the
+    // service-switcher rule `body.service-rehab .rehab-only { display: flex
+    // !important }` (neucore-premium.css) OVERRIDES a plain inline `display:none`
+    // — which was silently leaking wrong-role items (a coach seeing client/admin
+    // nav, a client seeing coach nav). So HIDE with an inline `!important`
+    // (inline important wins over an external important), and SHOW by removing
+    // the inline rule so the service rule governs (matches the old `display=''`).
+    const setRoleVisibility = (selector, visible) => {
+      document.querySelectorAll(selector).forEach(el => {
+        if (visible) el.style.removeProperty('display');
+        else el.style.setProperty('display', 'none', 'important');
+      });
+    };
+    setRoleVisibility('.role-coach-admin', Auth.isAdminOrCoach());
+    setRoleVisibility('.role-admin-only', Auth.isAdmin());
     // Phase 3 — clients only see "My Graph"; coaches/admins use the Graph Builder
-    document.querySelectorAll('.role-client-only').forEach(el => {
-      el.style.display = (Auth.getRole() === 'client') ? '' : 'none';
-    });
+    setRoleVisibility('.role-client-only', Auth.getRole() === 'client');
 
     // Update Service Switcher label for coaches
     const switcherAthleticBtn = document.getElementById('switcher-athletic');
