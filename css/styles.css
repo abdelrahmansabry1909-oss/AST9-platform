@@ -1,52 +1,57 @@
 /* ═══════════════════════════════════════════════════════════════
-   AST9 ELITE COACHING PLATFORM — DESIGN SYSTEM v2
-   Aesthetic: Premium Dark Fitness SaaS · Noir + Electric Lime
-   Font: Cabinet Grotesk (display) + Satoshi (body) + JetBrains Mono
+   AST9 ELITE CLINICAL PLATFORM — DESIGN SYSTEM v3
+   Aesthetic: Premium Dark Clinical SaaS · Teal + Cyan + Gold
+   Font: Space Grotesk (display) + Inter (body) + JetBrains Mono
 ═══════════════════════════════════════════════════════════════ */
 
-@import url('https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@800,700,500,400&f[]=satoshi@700,500,400,300&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap');
 
 /* ── TOKENS ─────────────────────────────────────────────────── */
 :root {
-  /* Backgrounds */
-  --bg-void:    #060709;
-  --bg-base:    #0b0d12;
-  --bg-surface: #10131a;
-  --bg-raised:  #161b24;
-  --bg-overlay: #1c2230;
+  /* Backgrounds (Deep Space Dark & Royal Navy Surfaces) */
+  --bg-void:    #03060b;
+  --bg-base:    #050b11;
+  --bg-surface: #0c121e;
+  --bg-raised:  #111a29;
+  --bg-overlay: #172236;
   --bg-hover:   rgba(255,255,255,0.025);
 
-  /* Borders */
-  --border-subtle: rgba(255,255,255,0.05);
-  --border-default: rgba(255,255,255,0.08);
-  --border-strong:  rgba(255,255,255,0.14);
+  /* Borders (Soft Teal-tinted borders) */
+  --border-subtle:  rgba(20, 184, 166, 0.05);
+  --border-default: rgba(20, 184, 166, 0.09);
+  --border-strong:  rgba(20, 184, 166, 0.15);
 
-  /* Brand */
-  --lime:       #c8f04a;
-  --lime-dim:   #a8d038;
-  --lime-glow:  rgba(200,240,74,0.15);
-  --lime-ghost: rgba(200,240,74,0.06);
+  /* Brand Remapping (Electric Lime to Biomechanical Teal) */
+  --lime:       #14b8a6;
+  --lime-dim:   #0e9384;
+  --lime-glow:  rgba(20, 184, 166, 0.15);
+  --lime-ghost: rgba(20, 184, 166, 0.06);
 
   /* Semantic accents */
-  --teal:       #3df5c1;
-  --teal-glow:  rgba(61,245,193,0.12);
-  --amber:      #f5c842;
-  --amber-glow: rgba(245,200,66,0.12);
-  --rose:       #f5426c;
-  --rose-glow:  rgba(245,66,108,0.12);
-  --blue:       #4290f5;
-  --blue-glow:  rgba(66,144,245,0.12);
+  --teal:       #2dd4bf;
+  --teal-glow:  rgba(45, 212, 191, 0.12);
+  --amber:      #eab308;
+  --amber-glow: rgba(234, 179, 8, 0.12);
+  --rose:       #f43f5e;
+  --rose-glow:  rgba(244, 63, 94, 0.12);
+  --blue:       #3b82f6;
+  --blue-glow:  rgba(59, 130, 246, 0.12);
+
+  /* Telemetry Extra Accentuation */
+  --cyan:       #67e8f9;
+  --cyan-glow:  rgba(103, 232, 249, 0.16);
+  --gold:       #d4af37;
+  --gold-glow:  rgba(212, 175, 55, 0.12);
 
   /* Text */
-  --text-primary:   #f0f2f7;
-  --text-secondary: #7a8399;
-  --text-tertiary:  #3d4558;
-  --text-inverse:   #060709;
+  --text-primary:   #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-tertiary:  #64748b;
+  --text-inverse:   #03060b;
 
   /* Typography */
-  --font-display: 'Cabinet Grotesk', 'Syne', sans-serif;
-  --font-body:    'Satoshi', 'DM Sans', sans-serif;
+  --font-display: 'Space Grotesk', 'Inter', sans-serif;
+  --font-body:    'Inter', system-ui, -apple-system, sans-serif;
   --font-mono:    'JetBrains Mono', monospace;
 
   /* Spacing scale */
