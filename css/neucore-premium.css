@@ -25,8 +25,8 @@
    the previous Space Grotesk; Inter stays the body face. Numerals go
    tabular so KPI values and stats align like a ledger. */
 :root {
-  --nc-font-display: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
-  --font-display:    'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+  --nc-font-display: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+  --font-display:    'Space Grotesk', 'Inter', system-ui, sans-serif;
 
   /* Theme-adaptive surface primitives (dark defaults). Client modules
      consume these instead of hardcoded white-alpha so they read on both
