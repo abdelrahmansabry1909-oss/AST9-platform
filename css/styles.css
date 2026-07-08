@@ -5815,10 +5815,10 @@ tbody td:first-child { color: var(--text-primary); font-weight: 500; }
 #loading-overlay {
   position: fixed; inset: 0; z-index: 9999;
   display: flex; align-items: center; justify-content: center;
-  background: #020408 !important;
+  background: #03060b !important;
   background-image:
-    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(45, 212, 191, 0.08), transparent 70%),
-    radial-gradient(circle 800px at 50% 50%, rgba(56, 189, 248, 0.04), transparent 60%) !important;
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(20, 184, 166, 0.15), transparent 70%),
+    radial-gradient(circle 800px at 50% 50%, rgba(103, 232, 249, 0.05), transparent 60%) !important;
   overflow: hidden;
   transition: opacity 400ms cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
@@ -5826,8 +5826,8 @@ tbody td:first-child { color: var(--text-primary); font-weight: 500; }
 .nc-loader-grid {
   position: absolute; inset: 0;
   background-image:
-    linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+    linear-gradient(rgba(20, 184, 166, 0.012) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(20, 184, 166, 0.012) 1px, transparent 1px);
   background-size: 40px 40px;
   mask-image: radial-gradient(circle 400px at 50% 50%, #000, transparent);
   -webkit-mask-image: radial-gradient(circle 400px at 50% 50%, #000, transparent);
@@ -5855,17 +5855,17 @@ tbody td:first-child { color: var(--text-primary); font-weight: 500; }
 
 .nc-loader-mark {
   width: 52px; height: 52px;
-  filter: drop-shadow(0 8px 24px rgba(56, 189, 248, 0.25)) !important;
+  filter: drop-shadow(0 8px 24px rgba(20, 184, 166, 0.25)) !important;
   animation: nc-loader-pulse 2s ease-in-out infinite alternate;
 }
 @keyframes nc-loader-pulse {
-  from { transform: scale(1); filter: drop-shadow(0 8px 24px rgba(56, 189, 248, 0.2)); }
-  to { transform: scale(1.03); filter: drop-shadow(0 12px 32px rgba(56, 189, 248, 0.35)); }
+  from { transform: scale(1); filter: drop-shadow(0 8px 24px rgba(20, 184, 166, 0.2)); }
+  to { transform: scale(1.03); filter: drop-shadow(0 12px 32px rgba(20, 184, 166, 0.35)); }
 }
 
 .nc-loader-word {
-  font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
-  font-size: 28px; font-weight: 800; letter-spacing: 0.12em;
+  font-family: var(--font-display) !important;
+  font-size: 28px; font-weight: 700; letter-spacing: 0.12em;
   color: #F8FAFC; line-height: 1;
 }
 
@@ -5885,7 +5885,7 @@ tbody td:first-child { color: var(--text-primary); font-weight: 500; }
   content: '';
   display: block; height: 100%;
   width: 50%;
-  background: linear-gradient(90deg, #38BDF8, #2DD4BF);
+  background: linear-gradient(90deg, var(--lime), var(--cyan));
   border-radius: 999px;
   animation: loader-sweep-fast 1.2s infinite cubic-bezier(0.25, 1, 0.5, 1);
   position: absolute; left: 0; top: 0;
