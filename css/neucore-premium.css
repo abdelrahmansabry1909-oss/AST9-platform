@@ -2161,34 +2161,42 @@ body.service-athletic .nc-ai-chip::before {
    Cinematic clinical dashboard aesthetic matching core app.
 ═══════════════════════════════════════════════════════════════ */
 
-#screen-login.nc-login {
-  background: #020408 !important;
+.nc-login {
+  background: #050b11 !important;
   background-image:
-    radial-gradient(ellipse 60% 40% at 0% 0%, rgba(56, 189, 248, 0.12), transparent 70%),
-    radial-gradient(circle 800px at 70% 30%, rgba(14, 165, 233, 0.06), transparent 70%),
-    radial-gradient(circle 600px at 20% 80%, rgba(45, 212, 191, 0.05), transparent 70%) !important;
-  position: relative;
-  overflow: hidden;
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(20, 184, 166, 0.15), transparent 70%),
+    radial-gradient(ellipse 60% 40% at 100% 30%, rgba(103, 232, 249, 0.08), transparent 70%),
+    radial-gradient(ellipse 70% 50% at 0% 70%, rgba(212, 175, 55, 0.04), transparent 70%) !important;
+  font-family: var(--font-display) !important;
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 1000 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 24px !important;
+  overflow: hidden !important;
 }
 
-/* Add absolute grid overlay behind cards */
-#screen-login.nc-login::before {
-  content: '';
-  position: absolute; inset: 0;
+/* Unified absolute grid overlay behind cards for all gate panels */
+.nc-login::before {
+  content: '' !important;
+  position: absolute !important;
+  inset: 0 !important;
   background-image:
-    linear-gradient(rgba(255,255,255,0.012) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.012) 1px, transparent 1px) !important;
-  background-size: 40px 40px !important;
-  mask-image: radial-gradient(circle 500px at 50% 50%, #000 30%, transparent 100%);
-  -webkit-mask-image: radial-gradient(circle 500px at 50% 50%, #000 30%, transparent 100%) !important;
-  pointer-events: none;
-  z-index: 1;
+    linear-gradient(rgba(20, 184, 166, 0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(20, 184, 166, 0.015) 1px, transparent 1px) !important;
+  background-size: 48px 48px !important;
+  mask-image: radial-gradient(circle 600px at 50% 50%, #000 30%, transparent 100%) !important;
+  -webkit-mask-image: radial-gradient(circle 600px at 50% 50%, #000 30%, transparent 100%) !important;
+  pointer-events: none !important;
+  z-index: 1 !important;
 }
 
 .nc-login-card {
-  z-index: 2;
-  background: rgba(10, 14, 23, 0.8) !important;
-  border: 1px solid rgba(255, 255, 255, 0.09) !important;
+  z-index: 2 !important;
+  background: rgba(12, 18, 30, 0.75) !important;
+  border: 1px solid rgba(20, 184, 166, 0.12) !important;
   box-shadow: 
     0 4px 24px rgba(0, 0, 0, 0.6), 
     0 24px 80px rgba(0, 0, 0, 0.85),
@@ -2196,15 +2204,21 @@ body.service-athletic .nc-ai-chip::before {
   backdrop-filter: blur(32px) saturate(180%) !important;
   -webkit-backdrop-filter: blur(32px) saturate(180%) !important;
   border-radius: 20px !important;
+  position: relative !important;
 }
 
 .nc-login-card::before {
-  background: linear-gradient(90deg, #38BDF8, #2DD4BF) !important;
+  content: '' !important;
+  position: absolute !important;
+  top: 0 !important; left: 0 !important; right: 0 !important;
+  height: 2px !important;
+  background: linear-gradient(90deg, var(--lime), var(--cyan), var(--gold)) !important;
+  border-radius: 20px 20px 0 0 !important;
 }
 
 .nc-login-input {
-  background: rgba(2, 4, 8, 0.65) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: rgba(3, 6, 11, 0.7) !important;
+  border: 1px solid rgba(20, 184, 166, 0.12) !important;
   color: #F8FAFC !important;
   border-radius: 8px !important;
   font-size: 14px !important;
@@ -2212,9 +2226,9 @@ body.service-athletic .nc-ai-chip::before {
 }
 
 .nc-login-input:focus {
-  border-color: #38BDF8 !important;
-  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.18), inset 0 1px 2px rgba(0, 0, 0, 0.4) !important;
-  background: rgba(2, 4, 8, 0.8) !important;
+  border-color: var(--cyan) !important;
+  box-shadow: 0 0 0 3px rgba(103, 232, 249, 0.18), inset 0 1px 2px rgba(0, 0, 0, 0.4) !important;
+  background: rgba(3, 6, 11, 0.85) !important;
 }
 
 .nc-login-tab {
@@ -2226,29 +2240,29 @@ body.service-athletic .nc-ai-chip::before {
 
 .nc-login-tab.active {
   background: transparent !important;
-  border-bottom-color: #38BDF8 !important;
-  color: #38BDF8 !important;
+  border-bottom-color: var(--lime) !important;
+  color: var(--lime) !important;
   box-shadow: none !important;
 }
 
 .nc-login-submit {
-  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
-  color: #FFFFFF !important;
-  font-weight: 600 !important;
+  background: linear-gradient(135deg, var(--lime-dim) 0%, var(--lime) 100%) !important;
+  color: #03060b !important;
+  font-weight: 700 !important;
   border-radius: 8px !important;
-  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+  box-shadow: 0 4px 12px rgba(20, 184, 166, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 .nc-login-submit:hover:not(:disabled) {
-  background: linear-gradient(135deg, #0369a1 0%, #075985 100%) !important;
+  background: linear-gradient(135deg, var(--lime) 0%, var(--cyan) 100%) !important;
   transform: translateY(-1.5px) !important;
-  box-shadow: 0 6px 18px rgba(2, 132, 199, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 0 6px 18px rgba(20, 184, 166, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
 }
 
 .nc-login-submit:active:not(:disabled) {
   transform: translateY(0.5px) !important;
-  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.15) !important;
+  box-shadow: 0 2px 6px rgba(20, 184, 166, 0.15) !important;
 }
 
 /* ── EXECUTIVE SHELL & DASHBOARD REDESIGN OVERRIDES ── */

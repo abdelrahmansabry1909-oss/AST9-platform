@@ -75,3 +75,24 @@ To prevent risky medical claims, always adhere to the following terminology map:
 ### Onboarding Gateway (CTA)
 * Landing page buttons must never offer clinical self-assessments to anonymous guests. Use onboarding calls like *Explore Platform* or *Enter Platform* rather than *Start Assessment*.
 
+---
+
+## 7. Authentication & Access Gate Layouts
+
+### Visual Themes
+* **Background:** Deep space base (`#050b11`) overlayed with thin telemetry coordinate lines and soft cyan/teal glows.
+* **Containers:** Glassmorphic layout primitives utilizing borders (`rgba(20, 184, 166, 0.12)`) and top highlight borders (`linear-gradient` using brand variables).
+* **Typography:** Space Grotesk for wordmarks and headers, Inter for labels and confirm checklists.
+
+### Preservation Selector Guardrails
+To prevent breaking public automated tests, developers must never delete or rename the following selectors:
+* `#screen-login` (takes over screen for auth gateway)
+* `#login-form-signin` (login form container)
+* `#login-email` & `#login-password` (credential input tags)
+* `#login-btn` (form submit trigger)
+* `#nc-login-tab-signin` (login tab toggle selector)
+* `#loading-overlay` (app workspace loader takeover overlay)
+* `#screen-legal-required` (legal agreements consent gateway)
+* `#screen-subscription-inactive` (subscription gating takeover panel)
+
+
