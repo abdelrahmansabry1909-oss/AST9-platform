@@ -59,3 +59,19 @@ This document defines the visual guidelines, design tokens, typography, containe
 >   * `nc-client`, `nc-coach`, `nc-admin`
 > * Do not add overriding `display: ... !important` tags.
 > * Maintain Sentry telemetry tracking.
+
+---
+
+## 6. Landing Page Layout & Wording Safeguards
+
+### Copywriting Wording Guardrails
+To prevent risky medical claims, always adhere to the following terminology map:
+* **PROHIBITED:** *diagnose*, *cure*, *treatment guarantee*, *patient*, *medical-grade*, *clinically proven*, *guaranteed recovery*.
+* **APPROVED:** *objective movement tracking*, *coach-led rehab workflows*, *progress visibility*, *program delivery*, *load tolerance*, *movement quality*, *training adherence*, *performance telemetry*, *rehab operating system*.
+
+### Visual Mockups
+* All telemetry data (e.g., knee extension deficit, pain rating level, symmetry balance) displayed in public illustrations must be labeled clearly as illustrative demo metrics. Do not display clinical diagnostic claims.
+
+### Onboarding Gateway (CTA)
+* Landing page buttons must never offer clinical self-assessments to anonymous guests. Use onboarding calls like *Explore Platform* or *Enter Platform* rather than *Start Assessment*.
+
