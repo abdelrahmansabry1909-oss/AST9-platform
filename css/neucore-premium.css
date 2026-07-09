@@ -2161,7 +2161,11 @@ body.service-athletic .nc-ai-chip::before {
    Cinematic clinical dashboard aesthetic matching core app.
 ═══════════════════════════════════════════════════════════════ */
 
-.nc-login {
+/* Scoped to :not(.hidden) so the app's `.hidden { display:none !important }`
+   still hides #screen-login (class "hidden nc-login") after auth. Without this
+   guard, the `display:flex !important` below pins the login screen permanently
+   over the app and no one can enter — the PR #108 login-outage regression. */
+.nc-login:not(.hidden) {
   background: #050b11 !important;
   background-image:
     radial-gradient(ellipse 80% 50% at 50% -10%, rgba(20, 184, 166, 0.15), transparent 70%),
