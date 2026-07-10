@@ -16,6 +16,33 @@ Verification legend:
 
 ---
 
+## Client access subscriptions
+
+### Phase A — Admin/coach subscription management
+- **Date:** 2026-07-10 · branch `feat/client-subscription-management`
+- **What:** An admin **or the client's assigned coach** can now create/edit a
+  client access subscription (custom label `plan_name`, custom months 1–60,
+  dates, notes, active/pending status) via two `SECURITY DEFINER` RPCs —
+  `create_client_subscription()` and `update_client_subscription()` — that check
+  `is_admin() OR profiles.assigned_coach = auth.uid()` in SQL. **Table RLS is
+  unchanged** (direct writes stay admin-only via `subscriptions_admin_write`);
+  coaches never write the table directly. Widened the old `plan IN (3,6,12)`
+  CHECK to `plan BETWEEN 1 AND 60`, added an `end_date > start_date` CHECK, and a
+  `plan_name` column (≤80 chars). Manual client-access management — no payment
+  provider; unrelated to `coach_subscriptions` billing/slots.
+- **Files:** `supabase/migrations/20260710000000_client_subscription_management.sql`,
+  `supabase/rollbacks/20260710000000_client_subscription_management_down.sql`,
+  `js/subscriptionService.js`, `js/subscriptions.js`, `app.html` (subscription
+  modals + New-Subscription button role).
+- **Verification:** DB-verified — 10-scenario impersonated, rolled-back matrix
+  (admin ✓, assigned coach ✓, other coach ✗, client ✗, months-range ✓,
+  plan_name persist ✓; zero test rows left). Advisor `0028`/anon clean (explicit
+  anon `EXECUTE` revoked, matching `reactivate_subscription`). `node --check` +
+  `npm run build` green; boot smoke: modal fields present, no console errors.
+  Owner authenticated smoke pending (no creds in this environment).
+
+---
+
 ## Program versioning
 
 ### E1b-1 — Program versions foundation
