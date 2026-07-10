@@ -95,4 +95,9 @@ To prevent breaking public automated tests, developers must never delete or rena
 * `#screen-legal-required` (legal agreements consent gateway)
 * `#screen-subscription-inactive` (subscription gating takeover panel)
 
+### Layout Scoping & Visibility Rules
+* **Strict Scoping:** All custom `.nc-login`, `.nc-login-card`, `.nc-login-input`, `.nc-login-tab`, and `.nc-login-submit` visual overrides must be scoped strictly to `#screen-login` (e.g., `#screen-login.nc-login:not(.hidden)` or `#screen-login .nc-login-card`).
+* **Hidden State Safety:** Generic styling must never override the `.hidden` class. When `#screen-login` has class `.hidden`, its computed display must evaluate to `none` to prevent it from overlaying the active app dashboard after user sign-in.
+
+
 

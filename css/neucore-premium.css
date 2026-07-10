@@ -2161,11 +2161,7 @@ body.service-athletic .nc-ai-chip::before {
    Cinematic clinical dashboard aesthetic matching core app.
 ═══════════════════════════════════════════════════════════════ */
 
-/* Scoped to :not(.hidden) so the app's `.hidden { display:none !important }`
-   still hides #screen-login (class "hidden nc-login") after auth. Without this
-   guard, the `display:flex !important` below pins the login screen permanently
-   over the app and no one can enter — the PR #108 login-outage regression. */
-.nc-login:not(.hidden) {
+#screen-login.nc-login:not(.hidden) {
   background: #050b11 !important;
   background-image:
     radial-gradient(ellipse 80% 50% at 50% -10%, rgba(20, 184, 166, 0.15), transparent 70%),
@@ -2182,8 +2178,12 @@ body.service-athletic .nc-ai-chip::before {
   overflow: hidden !important;
 }
 
+#screen-login.nc-login.hidden {
+  display: none !important;
+}
+
 /* Unified absolute grid overlay behind cards for all gate panels */
-.nc-login::before {
+#screen-login.nc-login::before {
   content: '' !important;
   position: absolute !important;
   inset: 0 !important;
@@ -2197,7 +2197,7 @@ body.service-athletic .nc-ai-chip::before {
   z-index: 1 !important;
 }
 
-.nc-login-card {
+#screen-login .nc-login-card {
   z-index: 2 !important;
   background: rgba(12, 18, 30, 0.75) !important;
   border: 1px solid rgba(20, 184, 166, 0.12) !important;
@@ -2211,7 +2211,7 @@ body.service-athletic .nc-ai-chip::before {
   position: relative !important;
 }
 
-.nc-login-card::before {
+#screen-login .nc-login-card::before {
   content: '' !important;
   position: absolute !important;
   top: 0 !important; left: 0 !important; right: 0 !important;
@@ -2220,7 +2220,7 @@ body.service-athletic .nc-ai-chip::before {
   border-radius: 20px 20px 0 0 !important;
 }
 
-.nc-login-input {
+#screen-login .nc-login-input {
   background: rgba(3, 6, 11, 0.7) !important;
   border: 1px solid rgba(20, 184, 166, 0.12) !important;
   color: #F8FAFC !important;
@@ -2229,27 +2229,27 @@ body.service-athletic .nc-ai-chip::before {
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
-.nc-login-input:focus {
+#screen-login .nc-login-input:focus {
   border-color: var(--cyan) !important;
   box-shadow: 0 0 0 3px rgba(103, 232, 249, 0.18), inset 0 1px 2px rgba(0, 0, 0, 0.4) !important;
   background: rgba(3, 6, 11, 0.85) !important;
 }
 
-.nc-login-tab {
+#screen-login .nc-login-tab {
   border-bottom: 2px solid rgba(255, 255, 255, 0.04) !important;
   color: rgba(255, 255, 255, 0.4) !important;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
   font-weight: 600 !important;
 }
 
-.nc-login-tab.active {
+#screen-login .nc-login-tab.active {
   background: transparent !important;
   border-bottom-color: var(--lime) !important;
   color: var(--lime) !important;
   box-shadow: none !important;
 }
 
-.nc-login-submit {
+#screen-login .nc-login-submit {
   background: linear-gradient(135deg, var(--lime-dim) 0%, var(--lime) 100%) !important;
   color: #03060b !important;
   font-weight: 700 !important;
@@ -2258,13 +2258,13 @@ body.service-athletic .nc-ai-chip::before {
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
-.nc-login-submit:hover:not(:disabled) {
+#screen-login .nc-login-submit:hover:not(:disabled) {
   background: linear-gradient(135deg, var(--lime) 0%, var(--cyan) 100%) !important;
   transform: translateY(-1.5px) !important;
   box-shadow: 0 6px 18px rgba(20, 184, 166, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
 }
 
-.nc-login-submit:active:not(:disabled) {
+#screen-login .nc-login-submit:active:not(:disabled) {
   transform: translateY(0.5px) !important;
   box-shadow: 0 2px 6px rgba(20, 184, 166, 0.15) !important;
 }
