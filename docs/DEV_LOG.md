@@ -34,12 +34,33 @@ Verification legend:
   `supabase/rollbacks/20260710000000_client_subscription_management_down.sql`,
   `js/subscriptionService.js`, `js/subscriptions.js`, `app.html` (subscription
   modals + New-Subscription button role).
-- **Verification:** DB-verified — 10-scenario impersonated, rolled-back matrix
+- **Verification:** DB-verified — impersonated, rolled-back role matrix
   (admin ✓, assigned coach ✓, other coach ✗, client ✗, months-range ✓,
-  plan_name persist ✓; zero test rows left). Advisor `0028`/anon clean (explicit
-  anon `EXECUTE` revoked, matching `reactivate_subscription`). `node --check` +
-  `npm run build` green; boot smoke: modal fields present, no console errors.
-  Owner authenticated smoke pending (no creds in this environment).
+  plan_name persist ✓, direct coach table write blocked by RLS ✓; zero test
+  rows left). Advisor `0028`/anon clean (explicit anon `EXECUTE` revoked,
+  matching `reactivate_subscription`). `node --check` + `npm run build` green;
+  boot smoke: modal fields present, no console errors. Owner authenticated
+  smoke pending (no creds in this environment).
+- **Secondary review (Fable 5, advisory) + fixes:** Fable flagged a **blocker**
+  and a **major** that Claude confirmed against local evidence and fixed in the
+  same PR:
+  - `update_client_subscription` originally accepted `status='cancelled'`, but
+    `v_client_subscription_state` (in `20260530202308_subscription_grace.sql`)
+    has **no `cancelled` branch** → a future-dated cancelled row read as
+    `active` and kept write access. Fix: **drop `cancelled`** from the accepted
+    statuses (it was never offered in the UI; the effective-state view is left
+    untouched — the latent gap is now unreachable and logged in
+    [KNOWN_LIMITATIONS.md](KNOWN_LIMITATIONS.md)).
+  - Coach could set `expired`/`cancelled` via the edit RPC (End is admin-only).
+    Fix: **only an admin may set `expired`**; coaches are limited to
+    active/pending (RPC-enforced; the `es-status` picker hides `expired` for
+    non-admins).
+  - Minor fixes folded in: derive the create end-date **after** the range check
+    (friendly error, not date-overflow); require the target to be `role='client'`;
+    cap `notes` at 2000 chars; add the missing `.select()` honesty guard to
+    `activate()`. Re-verified (real non-admin coach: create ✓, update
+    active/pending ✓, set-expired ✗, set-cancelled ✗, foreign client ✗; admin
+    expire ✓; months-overflow → friendly ✓; non-client target ✗; zero rows left).
 
 ---
 

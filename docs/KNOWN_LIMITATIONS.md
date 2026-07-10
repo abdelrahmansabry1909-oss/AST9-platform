@@ -57,3 +57,15 @@ subscription gate** and the **video-modal close regression** — are deliberatel
 automated yet: they couple to mutable/real prod data and would make CI cry wolf, so
 they remain **manual smoke** until a staging-backed seeded account (non-real data)
 exists.
+
+## L9 — `v_client_subscription_state` has no `cancelled` branch (latent, currently unreachable)
+The effective-state view (`20260530202308_subscription_grace.sql`) maps `pending`
+and `expired` explicitly, then falls through to date logic. A subscription row with
+`status='cancelled'` **and** a future `end_date` would therefore read as
+`effective_status='active'` and retain write access. No supported write path sets
+`cancelled`: the create/edit RPCs (`create_client_subscription` /
+`update_client_subscription`, Phase A) reject it, `reactivate`/`activate` set
+`active`, and `expireNow` sets `expired`. So the gap is **unreachable today**. If a
+future feature needs a `cancelled` state, add a `WHEN status='cancelled'` branch
+(→ `expired`/`none`) to the view **in the same change**. Surfaced by the Fable 5
+secondary review of Phase A.

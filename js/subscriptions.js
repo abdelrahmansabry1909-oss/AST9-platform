@@ -237,8 +237,11 @@ const Subscriptions = (() => {
   }
 
   async function activate(subId, clientId, plan, start, end) {
-    const { error } = await sb.from('subscriptions').update({ status: 'active' }).eq('id', subId);
+    // .select() keeps the outcome honest: an RLS-silenced 0-row update must not
+    // produce a success toast (direct writes are admin-only).
+    const { data, error } = await sb.from('subscriptions').update({ status: 'active' }).eq('id', subId).select('id');
     if (error) { Dashboard.toast(error.message, 'error'); return; }
+    if (!data || !data.length) { Dashboard.toast('No permission to activate subscriptions', 'error'); return; }
     await _sendEmail('subscription_activated', clientId, { plan, start, end });
     Dashboard.toast('Subscription activated!', 'success');
     SubscriptionService?.clearCache?.(clientId);
@@ -291,6 +294,11 @@ const Subscriptions = (() => {
     set('es-plan', s.plan); set('es-grace', s.grace_days ?? 7);
     set('es-start', s.start_date); set('es-end', s.end_date); set('es-status', s.status || 'active');
     set('es-notes', s.notes || '');
+    // Only an admin may end (expire) access; coaches get active/pending only.
+    // The RPC enforces this server-side too — this just matches the picker to it.
+    const isAdmin = (typeof Auth !== 'undefined' && Auth.isAdmin && Auth.isAdmin());
+    const expOpt = document.querySelector('#es-status option[value="expired"]');
+    if (expOpt) { expOpt.hidden = !isAdmin; expOpt.disabled = !isAdmin; }
     document.getElementById('modal-edit-subscription')?.classList.remove('hidden');
   }
 
