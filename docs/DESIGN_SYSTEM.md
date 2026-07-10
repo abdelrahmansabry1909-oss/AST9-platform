@@ -80,9 +80,9 @@ To prevent risky medical claims, always adhere to the following terminology map:
 ## 7. Authentication & Access Gate Layouts
 
 ### Visual Themes
-* **Background:** Deep space base (`#050b11`) overlayed with thin telemetry coordinate lines and soft cyan/teal glows.
-* **Containers:** Glassmorphic layout primitives utilizing borders (`rgba(20, 184, 166, 0.12)`) and top highlight borders (`linear-gradient` using brand variables).
-* **Typography:** Space Grotesk for wordmarks and headers, Inter for labels and confirm checklists.
+* **Background:** Royal NeuCore visual direction utilizing midnight (`#050814`) / royal navy (`#0B1430`) bases, overlayed with a heavily reduced/soft coordinate grid and subtle sapphire (`#102A56`) secondary glows.
+* **Containers:** Glassmorphic layout primitives utilizing gold border highlights (`rgba(212, 175, 55, 0.22)`) and top highlight borders (`linear-gradient` using gold accent variables).
+* **Typography:** Plus Jakarta Sans for wordmarks and headers, Inter for labels and body text, establishing a premium medical-performance identity.
 
 ### Preservation Selector Guardrails
 To prevent breaking public automated tests, developers must never delete or rename the following selectors:
