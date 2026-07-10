@@ -9,29 +9,29 @@
 /* ── DESIGN TOKENS ──────────────────────────────────────────── */
 :root {
   /* Core palette — Royal Premium (royal-navy surfaces, parity with the app) */
-  --nc-bg-primary:   #0A1126;
-  --nc-bg-secondary: #0F1830;
-  --nc-bg-elevated:  #16213E;
-  --nc-bg-card:      rgba(20, 31, 58, 0.62);
+  --nc-bg-primary:   #050814;
+  --nc-bg-secondary: #0B1430;
+  --nc-bg-elevated:  #102A56;
+  --nc-bg-card:      rgba(11, 20, 48, 0.62);
 
   /* Brand accents */
-  --nc-teal:         #14B8A6;
-  --nc-teal-glow:    rgba(20, 184, 166, 0.18);
-  --nc-cyan:         #67E8F9;
-  --nc-cyan-glow:    rgba(103, 232, 249, 0.16);
+  --nc-teal:         #D4AF37;
+  --nc-teal-glow:    rgba(212, 175, 55, 0.18);
+  --nc-cyan:         #F6E27A;
+  --nc-cyan-glow:    rgba(246, 226, 122, 0.16);
   --nc-gold:         #D4AF37;
   --nc-gold-soft:    rgba(212, 175, 55, 0.12);
-  --nc-champagne:    #F6E27A;
+  --nc-champagne:    #F8F5EA;
 
   /* Text */
-  --nc-text-primary:   #F8FAFC;
-  --nc-text-secondary: #94A3B8;
-  --nc-text-muted:     #64748B;
+  --nc-text-primary:   #F8F5EA;
+  --nc-text-secondary: #AAB2C5;
+  --nc-text-muted:     #6E7787;
 
   /* Borders */
-  --nc-border:        rgba(255, 255, 255, 0.08);
-  --nc-border-strong: rgba(255, 255, 255, 0.14);
-  --nc-border-glow:   rgba(20, 184, 166, 0.3);
+  --nc-border:        rgba(212, 175, 55, 0.12);
+  --nc-border-strong: rgba(212, 175, 55, 0.22);
+  --nc-border-glow:   rgba(212, 175, 55, 0.3);
 
   /* Typography — Phase G2 parity with the app (Plus Jakarta display) */
   --nc-font-display: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
@@ -191,7 +191,7 @@ button { font: inherit; cursor: pointer; border: none; background: none; color: 
 .nc-text-muted { color: var(--nc-text-secondary); }
 
 .nc-gradient-text {
-  background: linear-gradient(135deg, #F8FAFC 0%, #67E8F9 50%, #14B8A6 100%);
+  background: linear-gradient(135deg, #F8F5EA 0%, #F6E27A 50%, #D4AF37 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -257,14 +257,14 @@ button { font: inherit; cursor: pointer; border: none; background: none; color: 
 .nc-btn--lg { padding: 16px 30px; font-size: 16px; }
 
 .nc-btn--primary {
-  background: linear-gradient(135deg, #14B8A6 0%, #0EA5E9 100%);
-  color: #04141A;
-  box-shadow: 0 12px 32px rgba(20,184,166,0.32), 0 0 0 1px rgba(255,255,255,0.08) inset;
+  background: linear-gradient(135deg, var(--nc-gold) 0%, #B89020 100%) !important;
+  color: #050814 !important;
+  box-shadow: 0 12px 32px rgba(212, 175, 55, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.08) inset !important;
 }
 
 .nc-btn--primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 18px 48px rgba(20,184,166,0.42), 0 0 0 1px rgba(255,255,255,0.12) inset;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 18px 48px rgba(212, 175, 55, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.12) inset !important;
 }
 
 .nc-btn--ghost {

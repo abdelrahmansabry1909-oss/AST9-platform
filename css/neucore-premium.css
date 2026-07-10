@@ -2162,7 +2162,16 @@ body.service-athletic .nc-ai-chip::before {
 ═══════════════════════════════════════════════════════════════ */
 
 #screen-login.nc-login:not(.hidden) {
-  background: #03060b !important;
+  --royal-midnight: #050814;
+  --royal-navy: #0B1430;
+  --royal-sapphire: #102A56;
+  --royal-gold: #D4AF37;
+  --royal-gold-soft: #F6E27A;
+  --royal-ivory: #F8F5EA;
+  --royal-muted: #AAB2C5;
+  --royal-border: rgba(212, 175, 55, 0.22);
+
+  background: var(--royal-midnight) !important;
   font-family: var(--font-display) !important;
   position: fixed !important;
   inset: 0 !important;
@@ -2195,10 +2204,10 @@ body.service-athletic .nc-ai-chip::before {
 
 #screen-login .nc-login-hero-side {
   display: none !important;
-  background: #03060b !important;
+  background: linear-gradient(135deg, var(--royal-midnight) 0%, var(--royal-navy) 100%) !important;
   position: relative !important;
   overflow: hidden !important;
-  border-right: 1px solid rgba(20, 184, 166, 0.1) !important;
+  border-right: 1px solid var(--royal-border) !important;
   padding: 64px !important;
   flex-direction: column !important;
   justify-content: center !important;
@@ -2216,7 +2225,7 @@ body.service-athletic .nc-ai-chip::before {
   align-items: center !important;
   justify-content: center !important;
   padding: 24px !important;
-  background: #050b11 !important;
+  background: var(--royal-midnight) !important;
   position: relative !important;
 }
 
@@ -2229,12 +2238,12 @@ body.service-athletic .nc-ai-chip::before {
   font-family: var(--font-mono) !important;
   font-size: 11px !important;
   font-weight: 600 !important;
-  color: var(--cyan) !important;
+  color: var(--royal-gold-soft) !important;
   text-transform: uppercase !important;
   letter-spacing: 0.15em !important;
-  padding: 6px 12px !important;
-  background: rgba(103, 232, 249, 0.08) !important;
-  border: 1px solid rgba(103, 232, 249, 0.2) !important;
+  padding: 6px 14px !important;
+  background: rgba(212, 175, 55, 0.08) !important;
+  border: 1px solid var(--royal-border) !important;
   border-radius: 99px !important;
   display: inline-block !important;
   margin-bottom: 24px !important;
@@ -2244,22 +2253,23 @@ body.service-athletic .nc-ai-chip::before {
   font-family: var(--font-display) !important;
   font-size: clamp(28px, 4.5vw, 42px) !important;
   font-weight: 700 !important;
-  color: #ffffff !important;
-  line-height: 1.25 !important;
+  color: var(--royal-ivory) !important;
+  line-height: 1.3 !important;
   letter-spacing: -0.02em !important;
   margin-bottom: 36px !important;
   max-width: 520px !important;
 }
 
 #screen-login .nc-login-telemetry-box {
-  background: rgba(12, 18, 30, 0.4) !important;
-  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  background: rgba(11, 20, 48, 0.5) !important;
+  border: 1px solid var(--royal-border) !important;
   border-radius: 16px !important;
   padding: 24px !important;
   width: 100% !important;
   max-width: 380px !important;
-  backdrop-filter: blur(8px) !important;
-  -webkit-backdrop-filter: blur(8px) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
 }
 
 #screen-login .nc-login-telemetry-header {
@@ -2268,9 +2278,9 @@ body.service-athletic .nc-ai-chip::before {
   align-items: center !important;
   font-family: var(--font-mono) !important;
   font-size: 11px !important;
-  color: var(--gold) !important;
+  color: var(--royal-gold) !important;
   letter-spacing: 0.1em !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.15) !important;
   padding-bottom: 12px !important;
   margin-bottom: 16px !important;
 }
@@ -2278,16 +2288,16 @@ body.service-athletic .nc-ai-chip::before {
 #screen-login .nc-login-status-dot {
   width: 6px !important;
   height: 6px !important;
-  background: var(--lime) !important;
+  background: var(--royal-gold) !important;
   border-radius: 50% !important;
-  box-shadow: 0 0 8px var(--lime) !important;
+  box-shadow: 0 0 8px var(--royal-gold) !important;
 }
 
 #screen-login .nc-login-telemetry-row {
   display: flex !important;
   justify-content: space-between !important;
   font-size: 13px !important;
-  color: rgba(255, 255, 255, 0.7) !important;
+  color: var(--royal-muted) !important;
   margin-bottom: 10px !important;
 }
 
@@ -2296,7 +2306,7 @@ body.service-athletic .nc-ai-chip::before {
 }
 
 #screen-login .nc-login-telemetry-row strong {
-  color: #ffffff !important;
+  color: var(--royal-ivory) !important;
   font-weight: 600 !important;
 }
 
@@ -2305,49 +2315,53 @@ body.service-athletic .nc-ai-chip::before {
   position: absolute !important;
   inset: 0 !important;
   background-image:
-    linear-gradient(rgba(20, 184, 166, 0.015) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(20, 184, 166, 0.015) 1px, transparent 1px) !important;
-  background-size: 48px 48px !important;
-  mask-image: radial-gradient(circle 600px at 50% 50%, #000 30%, transparent 100%) !important;
-  -webkit-mask-image: radial-gradient(circle 600px at 50% 50%, #000 30%, transparent 100%) !important;
+    linear-gradient(rgba(212, 175, 55, 0.005) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(212, 175, 55, 0.005) 1px, transparent 1px) !important;
+  background-size: 64px 64px !important;
+  mask-image: radial-gradient(circle 500px at 50% 50%, #000 40%, transparent 100%) !important;
+  -webkit-mask-image: radial-gradient(circle 500px at 50% 50%, #000 40%, transparent 100%) !important;
   pointer-events: none !important;
   z-index: 1 !important;
+  opacity: 0.5 !important;
 }
 
 #screen-login .nc-login-glow {
   position: absolute !important;
-  width: 500px !important;
-  height: 500px !important;
+  width: 600px !important;
+  height: 600px !important;
   border-radius: 50% !important;
-  filter: blur(100px) !important;
+  filter: blur(140px) !important;
   pointer-events: none !important;
   z-index: 2 !important;
+  opacity: 0.6 !important;
 }
 
 #screen-login .nc-login-glow--teal {
-  top: -180px !important;
-  left: -120px !important;
-  background: radial-gradient(circle, rgba(20, 184, 166, 0.2), transparent 70%) !important;
+  top: -10% !important;
+  left: -10% !important;
+  background: radial-gradient(circle, var(--royal-sapphire), transparent 70%) !important;
 }
 
 #screen-login .nc-login-glow--cyan {
-  bottom: -180px !important;
-  right: -120px !important;
-  background: radial-gradient(circle, rgba(103, 232, 249, 0.12), transparent 70%) !important;
+  bottom: -10% !important;
+  right: -10% !important;
+  background: radial-gradient(circle, rgba(16, 42, 86, 0.5), transparent 70%) !important;
 }
 
 #screen-login .nc-login-card {
   z-index: 2 !important;
-  background: rgba(12, 18, 30, 0.75) !important;
-  border: 1px solid rgba(20, 184, 166, 0.12) !important;
+  background: rgba(11, 20, 48, 0.6) !important;
+  border: 1px solid var(--royal-border) !important;
   box-shadow: 
-    0 4px 24px rgba(0, 0, 0, 0.6), 
-    0 24px 80px rgba(0, 0, 0, 0.85),
+    0 8px 32px rgba(0, 0, 0, 0.5), 
+    0 24px 80px rgba(0, 0, 0, 0.7),
     inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
-  backdrop-filter: blur(32px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(32px) saturate(180%) !important;
+  backdrop-filter: blur(32px) saturate(140%) !important;
+  -webkit-backdrop-filter: blur(32px) saturate(140%) !important;
   border-radius: 20px !important;
   position: relative !important;
+  width: 100% !important;
+  max-width: 420px !important;
 }
 
 #screen-login .nc-login-card::before {
@@ -2355,57 +2369,82 @@ body.service-athletic .nc-ai-chip::before {
   position: absolute !important;
   top: 0 !important; left: 0 !important; right: 0 !important;
   height: 2px !important;
-  background: linear-gradient(90deg, var(--lime), var(--cyan), var(--gold)) !important;
+  background: linear-gradient(90deg, var(--royal-gold), var(--royal-gold-soft), var(--royal-gold)) !important;
   border-radius: 20px 20px 0 0 !important;
 }
 
 #screen-login .nc-login-input {
-  background: rgba(3, 6, 11, 0.7) !important;
-  border: 1px solid rgba(20, 184, 166, 0.12) !important;
-  color: #F8FAFC !important;
+  background: rgba(5, 8, 20, 0.7) !important;
+  border: 1px solid var(--royal-border) !important;
+  color: var(--royal-ivory) !important;
   border-radius: 8px !important;
   font-size: 14px !important;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 #screen-login .nc-login-input:focus {
-  border-color: var(--cyan) !important;
-  box-shadow: 0 0 0 3px rgba(103, 232, 249, 0.18), inset 0 1px 2px rgba(0, 0, 0, 0.4) !important;
-  background: rgba(3, 6, 11, 0.85) !important;
+  border-color: var(--royal-gold) !important;
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15), inset 0 1px 2px rgba(0, 0, 0, 0.4) !important;
+  background: rgba(5, 8, 20, 0.85) !important;
 }
 
 #screen-login .nc-login-tab {
-  border-bottom: 2px solid rgba(255, 255, 255, 0.04) !important;
-  color: rgba(255, 255, 255, 0.4) !important;
+  border-bottom: 2px solid rgba(212, 175, 55, 0.08) !important;
+  color: var(--royal-muted) !important;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
   font-weight: 600 !important;
 }
 
 #screen-login .nc-login-tab.active {
   background: transparent !important;
-  border-bottom-color: var(--lime) !important;
-  color: var(--lime) !important;
+  border-bottom-color: var(--royal-gold) !important;
+  color: var(--royal-gold) !important;
   box-shadow: none !important;
 }
 
 #screen-login .nc-login-submit {
-  background: linear-gradient(135deg, var(--lime-dim) 0%, var(--lime) 100%) !important;
-  color: #03060b !important;
+  background: linear-gradient(135deg, var(--royal-gold) 0%, #B89020 100%) !important;
+  color: #050814 !important;
   font-weight: 700 !important;
   border-radius: 8px !important;
-  box-shadow: 0 4px 12px rgba(20, 184, 166, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 #screen-login .nc-login-submit:hover:not(:disabled) {
-  background: linear-gradient(135deg, var(--lime) 0%, var(--cyan) 100%) !important;
+  background: linear-gradient(135deg, var(--royal-gold-soft) 0%, var(--royal-gold) 100%) !important;
   transform: translateY(-1.5px) !important;
-  box-shadow: 0 6px 18px rgba(20, 184, 166, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 0 6px 18px rgba(212, 175, 55, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
 }
 
 #screen-login .nc-login-submit:active:not(:disabled) {
   transform: translateY(0.5px) !important;
-  box-shadow: 0 2px 6px rgba(20, 184, 166, 0.15) !important;
+  box-shadow: 0 2px 6px rgba(212, 175, 55, 0.1) !important;
+}
+
+#screen-login .nc-login-headline {
+  color: var(--royal-ivory) !important;
+}
+
+#screen-login .nc-login-headline-sub {
+  color: var(--royal-muted) !important;
+}
+
+#screen-login .nc-login-label {
+  color: var(--royal-gold-soft) !important;
+}
+
+#screen-login .nc-login-meta {
+  color: var(--royal-muted) !important;
+}
+
+#screen-login .nc-link {
+  color: var(--royal-gold) !important;
+  font-weight: 600 !important;
+}
+
+#screen-login .nc-link:hover {
+  color: var(--royal-gold-soft) !important;
 }
 
 /* ── EXECUTIVE SHELL & DASHBOARD REDESIGN OVERRIDES ── */
