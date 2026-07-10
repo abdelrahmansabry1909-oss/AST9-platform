@@ -103,3 +103,12 @@ Verification legend:
   Documentation only — no app/source/migration/RLS/auth changes.
 - **Files:** `docs/*.md` (new).
 - **Verification:** N/A (docs only).
+
+---
+
+## Phase P-FE-3 — Premium Login Redesign
+- **Date:** 2026-07-10
+- **What:** Rebuilt the NeuCore login page to implement a premium FitExpert-inspired split-screen design. Includes a left clinical rehab hero side (collapsing on mobile) with illustrative/demo telemetry metrics, and a centered login card on the right side. All selectors are scoped to `#screen-login` and `.hidden` visibility behaviors are secured.
+- **Files:** `app.html`, `css/neucore-premium.css`, `docs/DESIGN_SYSTEM.md`, `docs/DEV_LOG.md`.
+- **Verification:** Computed display validated (visible = `block`, hidden = `none`), mobile responsiveness (390px) checked, no console errors, and Vite build passes.
+
