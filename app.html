@@ -66,153 +66,179 @@
 
 <!-- ═══════════════════════ LOGIN — NeuCore redesign ═══════════════════════ -->
 <div id="screen-login" class="hidden nc-login">
-  <div class="nc-login-grid"></div>
-  <div class="nc-login-glow nc-login-glow--teal"></div>
-  <div class="nc-login-glow nc-login-glow--cyan"></div>
-
-  <!-- Reliability Sweep / H1: legacy "Back to NeuCore" link removed
-       (used to point at index.html — the deprecated AST9 shell).
-       Active app.html is the only shell; nothing to go "back" to. -->
-
-
-  <div class="nc-login-card">
-    <div class="nc-login-brand">
-      <span class="nc-login-mark nc-brandmark-glow" aria-hidden="true">
-        <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="NeuCore">
-          <defs>
-            <linearGradient id="ncRoyalLg" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
-              <stop stop-color="#0f172a"/><stop offset="1" stop-color="#020617"/>
-            </linearGradient>
-            <linearGradient id="ncRoyalLgG" x1="10" y1="9" x2="30" y2="31" gradientUnits="userSpaceOnUse">
-              <stop stop-color="#38BDF8"/><stop offset=".5" stop-color="#0EA5E9"/><stop offset="1" stop-color="#0284c7"/>
-            </linearGradient>
-          </defs>
-          <rect x="1.5" y="1.5" width="37" height="37" rx="11" fill="url(#ncRoyalLg)"/>
-          <rect x="2.5" y="2.5" width="35" height="35" rx="10" fill="none" stroke="url(#ncRoyalLgG)" stroke-width="1" opacity=".75"/>
-          <path d="M13 28V13l14 14V12" fill="none" stroke="url(#ncRoyalLgG)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
-          <circle cx="27" cy="12" r="2.6" fill="#2DD4BF"/>
-          <circle cx="27" cy="12" r="5" fill="none" stroke="#2DD4BF" stroke-width="1" opacity=".5"/>
-        </svg>
-      </span>
-      <div>
-        <div class="nc-login-wordmark">NEU<span style="color:#38BDF8">CORE</span></div>
-        <div class="nc-login-tagline">Movement Operating System</div>
-      </div>
-    </div>
-
-    <h1 class="nc-login-headline" id="nc-login-headline">Welcome back.</h1>
-    <p class="nc-login-headline-sub" id="nc-login-headline-sub">Sign in to your NeuCore intelligence platform.</p>
-
-    <div class="nc-login-tabs">
-      <button class="nc-login-tab active" id="nc-login-tab-signin" onclick="UI.switchLoginTab('signin')">Sign In</button>
-      <button class="nc-login-tab" id="nc-login-tab-reset" onclick="UI.switchLoginTab('reset')">Reset Password</button>
-    </div>
-
-    <div id="login-error" class="nc-login-error hidden"></div>
-
-    <!-- SIGN IN -->
-    <div id="login-form-signin">
-      <div class="nc-login-field">
-        <label class="nc-login-label" for="login-email">Email Address</label>
-        <input id="login-email" type="email" class="nc-login-input" placeholder="your@email.com" autocomplete="email"/>
-      </div>
-      <div class="nc-login-field">
-        <label class="nc-login-label" for="login-password">Password</label>
-        <input id="login-password" type="password" class="nc-login-input" placeholder="••••••••" autocomplete="current-password"/>
-      </div>
-      <button id="login-btn" class="nc-login-submit" onclick="UI.handleLogin()">Sign In</button>
-
-      <div class="nc-login-meta">
-        New coach? <span class="nc-link" onclick="UI.switchLoginTab('signup')">Create your account →</span>
-      </div>
-      <div class="nc-login-meta" style="margin-top:6px">
-        Forgot password? <span class="nc-link" onclick="UI.switchLoginTab('reset')">Reset it</span>
-      </div>
-      <div class="nc-login-meta" style="margin-top:14px;border-top:1px solid rgba(255,255,255,0.08);padding-top:12px;font-size:12px;opacity:0.8">
-        Need to test another account? <a href="app.html?isolated=1" target="_blank" class="nc-link" style="text-decoration:underline">Open isolated test window</a>
-      </div>
-    </div>
-
-    <!-- CREATE COACH ACCOUNT -->
-    <div id="login-form-signup" class="hidden">
-      <div class="nc-login-field">
-        <label class="nc-login-label" for="su-name">Full name</label>
-        <input id="su-name" type="text" class="nc-login-input" placeholder="Jane Coach" autocomplete="name"/>
-      </div>
-      <div class="nc-login-field">
-        <label class="nc-login-label" for="su-email">Email address</label>
-        <input id="su-email" type="email" class="nc-login-input" placeholder="you@domain.com" autocomplete="email"/>
-      </div>
-      <div class="nc-login-field">
-        <label class="nc-login-label" for="su-email2">Confirm email</label>
-        <input id="su-email2" type="email" class="nc-login-input" placeholder="you@domain.com"/>
-      </div>
-      <div class="nc-login-field">
-        <label class="nc-login-label" for="su-phone">Mobile number</label>
-        <input id="su-phone" type="tel" class="nc-login-input" placeholder="+1 555 123 4567" autocomplete="tel"/>
-      </div>
-      <div class="nc-login-field">
-        <label class="nc-login-label" for="su-country">Country</label>
-        <select id="su-country" class="nc-login-input"><option value="">Select your country…</option></select>
-      </div>
-      <div class="nc-login-field">
-        <label class="nc-login-label" for="su-password">Password</label>
-        <input id="su-password" type="password" class="nc-login-input" placeholder="••••••••" autocomplete="new-password" oninput="UI._suStrength()"/>
-        <div style="margin-top:8px">
-          <div style="height:6px;border-radius:99px;background:rgba(255,255,255,0.12);overflow:hidden">
-            <div id="su-strength-bar" style="height:100%;width:0;background:#f43f5e;transition:width .3s ease,background .3s ease"></div>
+  <div class="nc-login-split-container">
+    
+    <!-- Left Hero Side -->
+    <div class="nc-login-hero-side">
+      <div class="nc-login-grid"></div>
+      <div class="nc-login-glow nc-login-glow--teal"></div>
+      <div class="nc-login-glow nc-login-glow--cyan"></div>
+      <div class="nc-login-hero-content">
+        <div class="nc-login-hero-tag">Clinical Rehab OS</div>
+        <h2 class="nc-login-hero-title">Precision movement intelligence and telemetry.</h2>
+        <div class="nc-login-telemetry-box">
+          <div class="nc-login-telemetry-header">
+            <span>LIVE JOINT STREAM</span>
+            <span class="nc-login-status-dot"></span>
           </div>
-          <div id="su-strength-label" style="font-size:11px;color:rgba(255,255,255,0.55);margin-top:5px">Use 8+ characters with upper, lower, number &amp; symbol.</div>
+          <div class="nc-login-telemetry-row">
+            <span>ROM Deficit</span>
+            <strong>-12° Knee Extension</strong>
+          </div>
+          <div class="nc-login-telemetry-row">
+            <span>Pain Score</span>
+            <strong>2/10 Discomfort</strong>
+          </div>
+          <div class="nc-login-telemetry-row">
+            <span>Adherence</span>
+            <strong>94% Target Load</strong>
+          </div>
         </div>
-      </div>
-      <div class="nc-login-field">
-        <label class="nc-login-label" for="su-password2">Confirm password</label>
-        <input id="su-password2" type="password" class="nc-login-input" placeholder="••••••••" autocomplete="new-password"/>
-      </div>
-      
-      <!-- Legal acceptance — ONE final required checkbox (R1C-Auth-Gate-2). -->
-      <div class="nc-login-field" style="margin-top:20px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 18px;">
-        <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: rgba(255,255,255,0.4); margin-bottom: 12px;">Legal Agreement</div>
-
-        <div style="display: flex; gap: 8px; align-items: flex-start; margin-bottom: 10px;">
-          <input type="checkbox" id="su-agree-legal" style="margin-top: 3px; cursor: pointer;" required />
-          <label for="su-agree-legal" style="font-size: 12px; color: rgba(255,255,255,0.65); line-height: 1.5; cursor: pointer; user-select: none;">
-            I have read and agree to the
-            <a href="legal/terms.html" target="_blank" style="color: var(--teal, #2DD4BF); text-decoration: none;">Terms of Service</a>,
-            <a href="legal/privacy.html" target="_blank" style="color: var(--teal, #2DD4BF); text-decoration: none;">Privacy Policy</a>,
-            <a href="legal/medical-disclaimer.html" target="_blank" style="color: var(--teal, #2DD4BF); text-decoration: none;">Medical Disclaimer</a>, and
-            <a href="legal/health-data-consent.html" target="_blank" style="color: var(--teal, #2DD4BF); text-decoration: none;">Consent to Process Health/Rehab Data</a>.
-            <span style="color: #f43f5e;">*</span>
-          </label>
-        </div>
-
-        <div style="font-size: 11px; color: rgba(255,255,255,0.45); line-height: 1.5; padding-left: 24px;">
-          See also our
-          <a href="legal/refund-policy.html" target="_blank" style="color: var(--teal, #2DD4BF); text-decoration: none;">Refund Policy</a> and
-          <a href="legal/cookie-policy.html" target="_blank" style="color: var(--teal, #2DD4BF); text-decoration: none;">Cookie Policy</a>.
-        </div>
-      </div>
-      
-      <button id="su-btn" class="nc-login-submit" onclick="if (typeof UI !== 'undefined' && UI.validateLegalCheckboxes && UI.validateLegalCheckboxes()) { UI.handleCoachSignup(); } else if (typeof UI === 'undefined' || !UI.validateLegalCheckboxes) { UI.handleCoachSignup(); }">Create coach account</button>
-      <div class="nc-login-meta">
-        Already have an account? <span class="nc-link" onclick="UI.switchLoginTab('signin')">← Back to Sign In</span>
       </div>
     </div>
+    
+    <!-- Right Form Side -->
+    <div class="nc-login-form-side">
+      <div class="nc-login-card">
+        <div class="nc-login-brand">
+          <span class="nc-login-mark nc-brandmark-glow" aria-hidden="true">
+            <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="NeuCore">
+              <defs>
+                <linearGradient id="ncRoyalLg" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#0f172a"/><stop offset="1" stop-color="#020617"/>
+                </linearGradient>
+                <linearGradient id="ncRoyalLgG" x1="10" y1="9" x2="30" y2="31" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#38BDF8"/><stop offset=".5" stop-color="#0EA5E9"/><stop offset="1" stop-color="#0284c7"/>
+                </linearGradient>
+              </defs>
+              <rect x="1.5" y="1.5" width="37" height="37" rx="11" fill="url(#ncRoyalLg)"/>
+              <rect x="2.5" y="2.5" width="35" height="35" rx="10" fill="none" stroke="url(#ncRoyalLgG)" stroke-width="1" opacity=".75"/>
+              <path d="M13 28V13l14 14V12" fill="none" stroke="url(#ncRoyalLgG)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="27" cy="12" r="2.6" fill="#2DD4BF"/>
+              <circle cx="27" cy="12" r="5" fill="none" stroke="#2DD4BF" stroke-width="1" opacity=".5"/>
+            </svg>
+          </span>
+          <div>
+            <div class="nc-login-wordmark">NEU<span style="color:#38BDF8">CORE</span></div>
+            <div class="nc-login-tagline">Movement Operating System</div>
+          </div>
+        </div>
 
-    <!-- RESET -->
-    <div id="login-form-reset" class="hidden">
-      <p style="font-size:13px;color:var(--text-secondary);margin-bottom:18px;line-height:1.6">
-        Enter your email and we'll send a reset link to your inbox.
-      </p>
-      <div class="nc-login-field">
-        <label class="nc-login-label" for="reset-email">Email Address</label>
-        <input id="reset-email" type="email" class="nc-login-input" placeholder="your@email.com"/>
-      </div>
-      <button id="reset-btn" class="nc-login-submit" onclick="UI.handlePasswordReset()">Send Reset Link</button>
-      <div class="nc-login-meta">
-        <span class="nc-link" onclick="UI.switchLoginTab('signin')">← Back to Sign In</span>
+        <h1 class="nc-login-headline" id="nc-login-headline">Welcome back.</h1>
+        <p class="nc-login-headline-sub" id="nc-login-headline-sub">Sign in to your NeuCore intelligence platform.</p>
+
+        <div class="nc-login-tabs">
+          <button class="nc-login-tab active" id="nc-login-tab-signin" onclick="UI.switchLoginTab('signin')">Sign In</button>
+          <button class="nc-login-tab" id="nc-login-tab-reset" onclick="UI.switchLoginTab('reset')">Reset Password</button>
+        </div>
+
+        <div id="login-error" class="nc-login-error hidden"></div>
+
+        <!-- SIGN IN -->
+        <div id="login-form-signin">
+          <div class="nc-login-field">
+            <label class="nc-login-label" for="login-email">Email Address</label>
+            <input id="login-email" type="email" class="nc-login-input" placeholder="your@email.com" autocomplete="email"/>
+          </div>
+          <div class="nc-login-field">
+            <label class="nc-login-label" for="login-password">Password</label>
+            <input id="login-password" type="password" class="nc-login-input" placeholder="••••••••" autocomplete="current-password"/>
+          </div>
+          <button id="login-btn" class="nc-login-submit" onclick="UI.handleLogin()">Sign In</button>
+
+          <div class="nc-login-meta">
+            New coach? <span class="nc-link" onclick="UI.switchLoginTab('signup')">Create your account →</span>
+          </div>
+          <div class="nc-login-meta" style="margin-top:6px">
+            Forgot password? <span class="nc-link" onclick="UI.switchLoginTab('reset')">Reset it</span>
+          </div>
+          <div class="nc-login-meta" style="margin-top:14px;border-top:1px solid rgba(255,255,255,0.08);padding-top:12px;font-size:12px;opacity:0.8">
+            Need to test another account? <a href="app.html?isolated=1" target="_blank" class="nc-link" style="text-decoration:underline">Open isolated test window</a>
+          </div>
+        </div>
+
+        <!-- CREATE COACH ACCOUNT -->
+        <div id="login-form-signup" class="hidden">
+          <div class="nc-login-field">
+            <label class="nc-login-label" for="su-name">Full name</label>
+            <input id="su-name" type="text" class="nc-login-input" placeholder="Jane Coach" autocomplete="name"/>
+          </div>
+          <div class="nc-login-field">
+            <label class="nc-login-label" for="su-email">Email address</label>
+            <input id="su-email" type="email" class="nc-login-input" placeholder="you@domain.com" autocomplete="email"/>
+          </div>
+          <div class="nc-login-field">
+            <label class="nc-login-label" for="su-email2">Confirm email</label>
+            <input id="su-email2" type="email" class="nc-login-input" placeholder="you@domain.com"/>
+          </div>
+          <div class="nc-login-field">
+            <label class="nc-login-label" for="su-phone">Mobile number</label>
+            <input id="su-phone" type="tel" class="nc-login-input" placeholder="+1 555 123 4567" autocomplete="tel"/>
+          </div>
+          <div class="nc-login-field">
+            <label class="nc-login-label" for="su-country">Country</label>
+            <select id="su-country" class="nc-login-input"><option value="">Select your country…</option></select>
+          </div>
+          <div class="nc-login-field">
+            <label class="nc-login-label" for="su-password">Password</label>
+            <input id="su-password" type="password" class="nc-login-input" placeholder="••••••••" autocomplete="new-password" oninput="UI._suStrength()"/>
+            <div style="margin-top:8px">
+              <div style="height:6px;border-radius:99px;background:rgba(255,255,255,0.12);overflow:hidden">
+                <div id="su-strength-bar" style="height:100%;width:0;background:#f43f5e;transition:width .3s ease,background .3s ease"></div>
+              </div>
+              <div id="su-strength-label" style="font-size:11px;color:rgba(255,255,255,0.55);margin-top:5px">Use 8+ characters with upper, lower, number &amp; symbol.</div>
+            </div>
+          </div>
+          <div class="nc-login-field">
+            <label class="nc-login-label" for="su-password2">Confirm password</label>
+            <input id="su-password2" type="password" class="nc-login-input" placeholder="••••••••" autocomplete="new-password"/>
+          </div>
+          
+          <div class="nc-login-field" style="margin-top:20px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 18px;">
+            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: rgba(255,255,255,0.4); margin-bottom: 12px;">Legal Agreement</div>
+
+            <div style="display: flex; gap: 8px; align-items: flex-start; margin-bottom: 10px;">
+              <input type="checkbox" id="su-agree-legal" style="margin-top: 3px; cursor: pointer;" required />
+              <label for="su-agree-legal" style="font-size: 12px; color: rgba(255,255,255,0.65); line-height: 1.5; cursor: pointer; user-select: none;">
+                I have read and agree to the
+                <a href="legal/terms.html" target="_blank" style="color: var(--teal, #2DD4BF); text-decoration: none;">Terms of Service</a>,
+                <a href="legal/privacy.html" target="_blank" style="color: var(--teal, #2DD4BF); text-decoration: none;">Privacy Policy</a>,
+                <a href="legal/medical-disclaimer.html" target="_blank" style="color: var(--teal, #2DD4BF); text-decoration: none;">Medical Disclaimer</a>, and
+                <a href="legal/health-data-consent.html" target="_blank" style="color: var(--teal, #2DD4BF); text-decoration: none;">Consent to Process Health/Rehab Data</a>.
+                <span style="color: #f43f5e;">*</span>
+              </label>
+            </div>
+
+            <div style="font-size: 11px; color: rgba(255,255,255,0.45); line-height: 1.5; padding-left: 24px;">
+              See also our
+              <a href="legal/refund-policy.html" target="_blank" style="color: var(--teal, #2DD4BF); text-decoration: none;">Refund Policy</a> and
+              <a href="legal/cookie-policy.html" target="_blank" style="color: var(--teal, #2DD4BF); text-decoration: none;">Cookie Policy</a>.
+            </div>
+          </div>
+          
+          <button id="su-btn" class="nc-login-submit" onclick="if (typeof UI !== 'undefined' && UI.validateLegalCheckboxes && UI.validateLegalCheckboxes()) { UI.handleCoachSignup(); } else if (typeof UI === 'undefined' || !UI.validateLegalCheckboxes) { UI.handleCoachSignup(); }">Create coach account</button>
+          <div class="nc-login-meta">
+            Already have an account? <span class="nc-link" onclick="UI.switchLoginTab('signin')">← Back to Sign In</span>
+          </div>
+        </div>
+
+        <!-- RESET -->
+        <div id="login-form-reset" class="hidden">
+          <p style="font-size:13px;color:var(--text-secondary);margin-bottom:18px;line-height:1.6">
+            Enter your email and we'll send a reset link to your inbox.
+          </p>
+          <div class="nc-login-field">
+            <label class="nc-login-label" for="reset-email">Email Address</label>
+            <input id="reset-email" type="email" class="nc-login-input" placeholder="your@email.com"/>
+          </div>
+          <button id="reset-btn" class="nc-login-submit" onclick="UI.handlePasswordReset()">Send Reset Link</button>
+          <div class="nc-login-meta">
+            <span class="nc-link" onclick="UI.switchLoginTab('signin')">← Back to Sign In</span>
+          </div>
+        </div>
       </div>
     </div>
+    
   </div>
 </div>
 
