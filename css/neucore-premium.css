@@ -3086,66 +3086,67 @@ body.nc-client #section-client-coach > div:first-child {
 }
 
 /* ─────────────────────────────────────────────────────────────
-   Royal NeuCore authenticated shell overrides
-   - Scopes navy/midnight/gold/ivory styling to the logged-in shell
+   Porcelain Emerald authenticated shell overrides
+   - Scopes warm porcelain canvas (#FAF8F2) & warm ivory panels (#FFFFFF) to the logged-in shell
+   - Utilizes luxurious emerald green (#047857) as the brand accent
    - Preserves semantic warning/danger colors (rose/amber/green)
-   - Eliminates bright/porcelain fills in favor of dark gold elegance
+   - Retains restrained royal gold (#D4AF37) for premium highlights
    ───────────────────────────────────────────────────────────── */
 
 body.nc-bright {
-  /* Royal NeuCore color variables mapped inside app shell scope */
-  --nc-bg-primary:    #050814 !important;   /* midnight canvas base */
-  --nc-bg-secondary:  #0B1430 !important;   /* royal navy panels */
-  --nc-bg-elevated:   #102A56 !important;   /* deep sapphire containers */
-  --nc-bg-card:       rgba(11, 20, 48, 0.6) !important; /* royal navy glass */
+  /* Porcelain Emerald color variables mapped inside app shell scope */
+  --nc-bg-primary:    #FAF8F2 !important;   /* porcelain canvas base */
+  --nc-bg-secondary:  #FFFFFF !important;   /* warm ivory panels */
+  --nc-bg-elevated:   #FFFCF5 !important;   /* elevated warm ivory */
+  --nc-bg-card:       #FFFFFF !important;
 
-  --nc-text-primary:   #F8F5EA !important;  /* ivory text */
-  --nc-text-secondary: #AAB2C5 !important;  /* muted blue-gray */
-  --nc-text-muted:     #6E7787 !important;
+  --nc-text-primary:   #071326 !important;  /* deep royal navy ink */
+  --nc-text-secondary: #526070 !important;  /* muted slate */
+  --nc-text-muted:     #8A96A3 !important;
 
-  --nc-border:        rgba(212, 175, 55, 0.12) !important; /* gold border */
-  --nc-border-strong: rgba(212, 175, 55, 0.22) !important;
+  --nc-border:        rgba(4, 120, 87, 0.08) !important;  /* subtle emerald hairline */
+  --nc-border-strong: rgba(4, 120, 87, 0.16) !important;
 
-  --nc-shadow-sm:   0 1px 2px rgba(0, 0, 0, 0.3) !important;
-  --nc-shadow-md:   0 8px 24px rgba(0, 0, 0, 0.4) !important;
-  --nc-shadow-lg:   0 20px 60px rgba(0, 0, 0, 0.55) !important;
-  --nc-shadow-card: 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+  --nc-shadow-sm:   0 1px 2px rgba(7, 19, 38, 0.03) !important;
+  --nc-shadow-md:   0 8px 24px rgba(7, 19, 38, 0.04), 0 2px 6px rgba(7, 19, 38, 0.03) !important;
+  --nc-shadow-lg:   0 20px 48px rgba(7, 19, 38, 0.06), 0 4px 12px rgba(7, 19, 38, 0.04) !important;
+  --nc-shadow-card: 0 1px 3px rgba(7, 19, 38, 0.02), 0 8px 24px rgba(7, 19, 38, 0.04) !important;
 
-  --nc-glass-bg:     rgba(11, 20, 48, 0.6) !important;
-  --nc-glass-border: rgba(212, 175, 55, 0.18) !important;
+  --nc-glass-bg:     rgba(255, 255, 255, 0.85) !important;
+  --nc-glass-border: rgba(4, 120, 87, 0.08) !important;
 
-  /* Accent overrides - map main indigo/teal states to royal gold */
-  --nc-indigo:        #D4AF37 !important;
-  --nc-indigo-ink:    #B89020 !important;
-  --nc-indigo-soft:   rgba(212, 175, 55, 0.08) !important;
-  --nc-violet:        #F6E27A !important;
-  --nc-violet-soft:   rgba(246, 226, 122, 0.08) !important;
-  --nc-lavender:      #102A56 !important;
-  --nc-amber-soft:    rgba(212, 175, 55, 0.10) !important;
+  /* Accent overrides - map main brand actions to luxurious emerald */
+  --nc-indigo:        #047857 !important; /* luxurious emerald */
+  --nc-indigo-ink:    #065f46 !important;
+  --nc-indigo-soft:   rgba(4, 120, 87, 0.06) !important;
+  --nc-violet:        #10B981 !important; /* bright emerald */
+  --nc-violet-soft:   rgba(16, 185, 129, 0.06) !important;
+  --nc-lavender:      #EEF8F4 !important;
+  --nc-amber-soft:    rgba(212, 175, 55, 0.08) !important;
 
   /* Legacy layout token mappings */
-  --bg-void:    #050814 !important;
-  --bg-base:    #050814 !important;
-  --bg-surface: #0B1430 !important;
-  --bg-raised:  #102A56 !important;
-  --bg-overlay: #102A56 !important;
-  --bg-hover:   rgba(255, 255, 255, 0.02) !important;
+  --bg-void:    #FAF8F2 !important;
+  --bg-base:    #FAF8F2 !important;
+  --bg-surface: #FFFFFF !important;
+  --bg-raised:  #FFFCF5 !important;
+  --bg-overlay: #FFFFFF !important;
+  --bg-hover:   rgba(4, 120, 87, 0.025) !important;
 
-  --border-subtle:  rgba(212, 175, 55, 0.08) !important;
-  --border-default: rgba(212, 175, 55, 0.12) !important;
-  --border-strong:  rgba(212, 175, 55, 0.22) !important;
+  --border-subtle:  rgba(4, 120, 87, 0.05) !important;
+  --border-default: rgba(4, 120, 87, 0.08) !important;
+  --border-strong:  rgba(4, 120, 87, 0.16) !important;
 
-  --text-primary:   #F8F5EA !important;
-  --text-secondary: #AAB2C5 !important;
-  --text-tertiary:  #6E7787 !important;
+  --text-primary:   #071326 !important;
+  --text-secondary: #526070 !important;
+  --text-tertiary:  #8A96A3 !important;
 
-  --lime:           #D4AF37 !important;
-  --lime-dim:       #B89020 !important;
-  --lime-glow:      rgba(212, 175, 55, 0.15) !important;
-  --lime-ghost:     rgba(212, 175, 55, 0.06) !important;
+  --lime:           #047857 !important;
+  --lime-dim:       #065f46 !important;
+  --lime-glow:      rgba(4, 120, 87, 0.10) !important;
+  --lime-ghost:     rgba(4, 120, 87, 0.04) !important;
 
-  --teal:           #D4AF37 !important;
-  --teal-glow:      rgba(212, 175, 55, 0.15) !important;
+  --teal:           #047857 !important;
+  --teal-glow:      rgba(4, 120, 87, 0.10) !important;
 
   background: var(--nc-bg-primary) !important;
 }
@@ -3153,8 +3154,8 @@ body.nc-bright {
 /* Base body background override (soft gradient treatment) */
 body.nc-bright {
   background:
-    radial-gradient(120% 80% at 100% -10%, rgba(16, 42, 86, 0.12) 0%, transparent 60%),
-    radial-gradient(90% 60% at -10% 0%, rgba(212, 175, 55, 0.03) 0%, transparent 50%),
+    radial-gradient(120% 80% at 100% -10%, rgba(16, 185, 129, 0.04) 0%, transparent 60%),
+    radial-gradient(90% 60% at -10% 0%, rgba(212, 175, 55, 0.02) 0%, transparent 50%),
     var(--nc-bg-primary) !important;
   background-attachment: fixed !important;
   color: var(--nc-text-primary) !important;
@@ -3163,8 +3164,8 @@ body.nc-bright {
 /* 1. Sidebar Styling */
 body.nc-bright .sidebar {
   background: var(--nc-bg-secondary) !important;
-  border-right: 1px solid var(--nc-border) !important;
-  box-shadow: 6px 0 24px rgba(0, 0, 0, 0.4) !important;
+  border-right: 1px solid rgba(4, 120, 87, 0.08) !important;
+  box-shadow: 1px 0 12px rgba(7, 19, 38, 0.02) !important;
 }
 body.nc-bright .sidebar::before {
   opacity: 0 !important; /* Hide old highlights */
@@ -3175,14 +3176,14 @@ body.nc-bright .sidebar .nc-sidebar-wordmark {
   color: var(--nc-text-primary) !important;
 }
 body.nc-bright .sidebar .nc-sidebar-wordmark .nc-sidebar-mark {
-  filter: drop-shadow(0 2px 8px rgba(212, 175, 55, 0.3)) !important;
+  filter: drop-shadow(0 2px 8px rgba(4, 120, 87, 0.2)) !important;
 }
 body.nc-bright .sidebar .nc-sidebar-wordmark .w-ast {
   color: var(--nc-text-primary) !important;
 }
 body.nc-bright .sidebar .nc-sidebar-wordmark .w-9 {
   color: var(--nc-indigo) !important;
-  text-shadow: 0 0 12px rgba(212, 175, 55, 0.4) !important;
+  text-shadow: 0 0 12px rgba(4, 120, 87, 0.15) !important;
 }
 
 /* Sidebar Navigation Items */
@@ -3192,13 +3193,14 @@ body.nc-bright .sidebar .nav-item {
   transition: all 0.25s var(--nc-ease) !important;
 }
 body.nc-bright .sidebar .nav-item:hover {
-  background: rgba(255, 255, 255, 0.015) !important;
+  background: rgba(4, 120, 87, 0.02) !important;
   color: var(--nc-text-primary) !important;
 }
 body.nc-bright .sidebar .nav-item.active {
-  background: rgba(212, 175, 55, 0.06) !important;
+  background: rgba(4, 120, 87, 0.05) !important;
   color: var(--nc-indigo) !important;
   border-left-color: var(--nc-indigo) !important;
+  font-weight: 600 !important;
 }
 body.nc-bright .sidebar .nav-item-icon {
   color: var(--nc-text-secondary) !important;
@@ -3207,39 +3209,41 @@ body.nc-bright .sidebar .nav-item.active .nav-item-icon {
   color: var(--nc-indigo) !important;
 }
 body.nc-bright .sidebar .nav-section {
-  color: var(--nc-indigo) !important;
+  color: var(--nc-text-muted) !important;
   font-weight: 700 !important;
   letter-spacing: 0.1em !important;
+  opacity: 0.8 !important;
 }
 
 /* User Profile card inside sidebar */
 body.nc-bright .sidebar .user-card {
-  background: rgba(5, 8, 20, 0.4) !important;
+  background: rgba(250, 248, 242, 0.6) !important;
   border: 1px solid var(--nc-border) !important;
 }
 body.nc-bright .sidebar .user-name {
   color: var(--nc-text-primary) !important;
 }
 body.nc-bright .sidebar .user-role-tag {
-  background: rgba(212, 175, 55, 0.1) !important;
+  background: rgba(4, 120, 87, 0.06) !important;
   color: var(--nc-indigo) !important;
-  border: 1px solid rgba(212, 175, 55, 0.2) !important;
+  border: 1px solid rgba(4, 120, 87, 0.12) !important;
 }
 
 /* Service switcher controls */
 body.nc-bright .nc-service-switcher {
-  background: rgba(5, 8, 20, 0.5) !important;
+  background: rgba(250, 248, 242, 0.8) !important;
   border: 1px solid var(--nc-border) !important;
 }
 body.nc-bright .nc-service-switcher .switcher-btn.active {
-  background: var(--nc-bg-elevated) !important;
+  background: #FFFFFF !important;
   color: var(--nc-indigo) !important;
+  box-shadow: 0 2px 6px rgba(7, 19, 38, 0.04) !important;
 }
 
 /* 2. Topbar / Header Styling */
 body.nc-bright .topbar {
-  background: rgba(11, 20, 48, 0.4) !important;
-  border-bottom: 1px solid var(--nc-border) !important;
+  background: rgba(255, 255, 255, 0.85) !important;
+  border-bottom: 1px solid rgba(4, 120, 87, 0.08) !important;
   backdrop-filter: blur(20px) !important;
   -webkit-backdrop-filter: blur(20px) !important;
 }
@@ -3266,13 +3270,13 @@ body.nc-bright .nc-section-head {
 /* Eyebrow indicator */
 body.nc-bright .nc-dash-eyebrow::before {
   background: var(--nc-indigo) !important;
-  box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.15) !important;
+  box-shadow: 0 0 0 4px rgba(4, 120, 87, 0.12) !important;
 }
 body.nc-bright .nc-dash-eyebrow {
   color: var(--nc-indigo) !important;
 }
 
-/* 3. Card Overrides - expensive glass styling */
+/* 3. Card Overrides - warm ivory & subtle green hairline borders */
 body.nc-bright .card,
 body.nc-bright .stat-card,
 body.nc-bright .neu-card {
@@ -3282,7 +3286,7 @@ body.nc-bright .neu-card {
 }
 body.nc-bright .card::before,
 body.nc-bright .stat-card::before {
-  box-shadow: inset 0 1px 0 rgba(212, 175, 55, 0.08) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
 }
 
 /* Interactive Card Hovers */
@@ -3290,7 +3294,7 @@ body.nc-bright .stat-card:hover,
 body.nc-bright .card-hover:hover,
 body.nc-bright .neu-card--interactive:hover {
   border-color: var(--nc-border-strong) !important;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5), 0 0 12px rgba(212, 175, 55, 0.1) !important;
+  box-shadow: 0 12px 32px rgba(7, 19, 38, 0.05), 0 0 1px rgba(4, 120, 87, 0.1) !important;
 }
 
 /* KPI/Stat Card visual values */
@@ -3312,7 +3316,7 @@ body.nc-bright .nc-card-eyebrow {
 body.nc-bright table.table th,
 body.nc-bright .table-header,
 body.nc-bright .nc-table th {
-  background: rgba(11, 20, 48, 0.5) !important;
+  background: rgba(250, 248, 242, 0.5) !important;
   color: var(--nc-text-primary) !important;
   border-bottom: 2px solid var(--nc-border) !important;
 }
@@ -3323,14 +3327,14 @@ body.nc-bright .nc-table td {
 }
 body.nc-bright table.table tr:hover td,
 body.nc-bright .nc-table tr:hover td {
-  background: rgba(255, 255, 255, 0.01) !important;
+  background: rgba(4, 120, 87, 0.015) !important;
 }
 
 /* Buttons / inputs inside auth shell */
 body.nc-bright .btn-primary,
 body.nc-bright .btn-teal {
   background: linear-gradient(135deg, var(--nc-indigo) 0%, var(--nc-indigo-ink) 100%) !important;
-  color: #050814 !important;
+  color: #FFFFFF !important;
 }
 body.nc-bright .btn-primary:hover,
 body.nc-bright .btn-teal:hover {
@@ -3339,16 +3343,17 @@ body.nc-bright .btn-teal:hover {
 body.nc-bright .btn-ghost {
   border: 1px solid var(--nc-border) !important;
   color: var(--nc-text-primary) !important;
+  background: transparent !important;
 }
 body.nc-bright .btn-ghost:hover {
-  background: rgba(255, 255, 255, 0.03) !important;
+  background: rgba(4, 120, 87, 0.04) !important;
 }
 
 /* Inputs fields inside dashboard */
 body.nc-bright input,
 body.nc-bright select,
 body.nc-bright textarea {
-  background: rgba(5, 8, 20, 0.6) !important;
+  background: #FFFFFF !important;
   border: 1px solid var(--nc-border) !important;
   color: var(--nc-text-primary) !important;
 }
@@ -3356,12 +3361,12 @@ body.nc-bright input:focus,
 body.nc-bright select:focus,
 body.nc-bright textarea:focus {
   border-color: var(--nc-indigo) !important;
-  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.15) !important;
+  box-shadow: 0 0 0 2px rgba(4, 120, 87, 0.1) !important;
 }
 
 /* Subscriptions progress elements override inside app shell */
 body.nc-bright .progress-bar {
-  background: rgba(255, 255, 255, 0.05) !important;
+  background: rgba(4, 120, 87, 0.06) !important;
 }
 body.nc-bright .progress-fill:not(.danger):not(.warning) {
   background: var(--nc-indigo) !important;
@@ -3369,14 +3374,14 @@ body.nc-bright .progress-fill:not(.danger):not(.warning) {
 
 /* Quick Action button triggers */
 body.nc-bright .nc-quick-btn {
-  background: var(--nc-bg-elevated) !important;
+  background: #FFFFFF !important;
   border: 1px solid var(--nc-border) !important;
   color: var(--nc-text-primary) !important;
   transition: all 0.2s var(--nc-ease) !important;
 }
 body.nc-bright .nc-quick-btn:hover {
   border-color: var(--nc-border-strong) !important;
-  background: rgba(255, 255, 255, 0.02) !important;
+  background: rgba(4, 120, 87, 0.02) !important;
   transform: translateY(-1px) !important;
 }
 body.nc-bright .nc-quick-btn-icon {
@@ -3385,5 +3390,5 @@ body.nc-bright .nc-quick-btn-icon {
 
 /* Soften telemetry grids */
 body.nc-bright .nc-dash-grid {
-  opacity: 0.3 !important;
+  opacity: 0.15 !important;
 }

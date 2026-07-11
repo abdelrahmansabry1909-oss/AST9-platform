@@ -166,9 +166,8 @@ Verification legend:
 - **Files:** `css/landing.css`, `docs/DEV_LOG.md`.
 - **Verification:** Built successfully (`npm run build`), captured desktop and mobile screenshots (390px/375px), verified zero horizontal overflow, and confirmed Sign In button is fully reachable.
 
-### Logged-in Dashboard Royal NeuCore Visual Polish
-- **Date:** 2026-07-11 · branch `feat/royal-dashboard-platform-polish`
-
-- **What:** Transitioned the authenticated dashboard and platform shell components (sidebar, topbar, cards, tables, inputs, and quick action panels) to the Royal NeuCore theme. Scopes all overrides strictly under parent classes (`body.nc-bright`, `.sidebar`, `.topbar`, `.card`) at the end of `css/neucore-premium.css` to prevent regressions. Preserves semantic success/warning/error colors.
+### Logged-in Dashboard Porcelain Emerald Visual Polish
+- **Date:** 2026-07-11 · branch `feat/porcelain-emerald-dashboard-polish`
+- **What:** Redesigned the authenticated dashboard and platform shell components (sidebar, topbar, cards, tables, inputs, and quick action panels) to a premium Porcelain Bright Royal visual theme with Luxurious Emerald brand accents. Overrides are strictly scoped under parent selectors (`body.nc-bright`, `.sidebar`, `.topbar`, `.card`) at the end of `css/neucore-premium.css`. Preserves semantic success/warning/error colors.
 - **Files:** `css/neucore-premium.css`, `docs/DESIGN_SYSTEM.md`, `docs/DEV_LOG.md`.
-- **Verification:** Built successfully (`npm run build`), executed Playwright visual checks validating that the dashboard, Programs page, and Subscriptions page load and navigate correctly without errors. Generated desktop and mobile (390px/375px) screenshots of the polished dashboard interface.
+- **Verification:** Built successfully (`npm run build`), executed Playwright visual checks validating that the dashboard, Programs page, and Subscriptions page load and navigate correctly without errors. Generated desktop and mobile (390px/375px) screenshots of the polished porcelain emerald dashboard interface.
