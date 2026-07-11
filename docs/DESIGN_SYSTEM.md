@@ -80,9 +80,9 @@ To prevent risky medical claims, always adhere to the following terminology map:
 ## 7. Authentication & Access Gate Layouts
 
 ### Visual Themes
-* **Background:** Deep space base (`#050b11`) overlayed with thin telemetry coordinate lines and soft cyan/teal glows.
-* **Containers:** Glassmorphic layout primitives utilizing borders (`rgba(20, 184, 166, 0.12)`) and top highlight borders (`linear-gradient` using brand variables).
-* **Typography:** Space Grotesk for wordmarks and headers, Inter for labels and confirm checklists.
+* **Background:** Royal NeuCore visual direction utilizing midnight (`#050814`) / royal navy (`#0B1430`) bases, overlayed with a heavily reduced/soft coordinate grid and subtle sapphire (`#102A56`) secondary glows.
+* **Containers:** Glassmorphic layout primitives utilizing gold border highlights (`rgba(212, 175, 55, 0.22)`) and top highlight borders (`linear-gradient` using gold accent variables).
+* **Typography:** Plus Jakarta Sans for wordmarks and headers, Inter for labels and body text, establishing a premium medical-performance identity.
 
 ### Preservation Selector Guardrails
 To prevent breaking public automated tests, developers must never delete or rename the following selectors:
@@ -97,7 +97,12 @@ To prevent breaking public automated tests, developers must never delete or rena
 
 ### Layout Scoping & Visibility Rules
 * **Strict Scoping:** All custom `.nc-login`, `.nc-login-card`, `.nc-login-input`, `.nc-login-tab`, and `.nc-login-submit` visual overrides must be scoped strictly to `#screen-login` (e.g., `#screen-login.nc-login:not(.hidden)` or `#screen-login .nc-login-card`).
+* **Split Layout:** Desktop viewports use a 1.15fr / 0.85fr grid container (`.nc-login-split-container`) containing a left hero panel (`.nc-login-hero-side`) and right form card panel (`.nc-login-form-side`). On viewports `< 900px`, the left hero collapses to ensure a mobile-first focused form layout.
 * **Hidden State Safety:** Generic styling must never override the `.hidden` class. When `#screen-login` has class `.hidden`, its computed display must evaluate to `none` to prevent it from overlaying the active app dashboard after user sign-in.
+
+### Mock Telemetry & Clinical Safety Rules
+* **Illustrative Wording:** Hero telemetry visuals must be clearly labeled as `DEMO TELEMETRY` and feature a footer disclaimer stating `Illustrative metrics only`.
+* **No Diagnostic Claims:** No diagnostic assertions, treatment claims, or real-time patient assessment indicators should be displayed on marketing or login gates. All metrics are illustrative telemetry only.
 
 
 
