@@ -108,14 +108,15 @@ To prevent breaking public automated tests, developers must never delete or rena
 
 ## 8. Logged-in Dashboard & Shell Layouts
 
-### Royal NeuCore Theme
-* **Visual Direction:** A premium medical-performance SaaS feel, replacing the flat bright/porcelain layout without breaking the underlying layout variables.
-* **Canvas Backdrop:** Midnight `#050814` canvas mapped to `body.nc-bright`.
-* **Sidebar & Panels:** Solid Royal Navy `#0B1430` backgrounds with gold highlights (`rgba(212, 175, 55, 0.12)`).
-* **Elevated Surfaces:** Deep Sapphire `#102A56` for inner cards, tables, and buttons.
-* **Card Backings:** Royal Navy Glass `rgba(11, 20, 48, 0.6)` with gold hairline borders and soft gold highlights.
-* **Typography:** Ivory text `#F8F5EA` for primary titles/labels, and muted blue-gray `#AAB2C5` for secondary elements.
+### Porcelain Emerald Theme
+* **Visual Direction:** A bright, clean, premium medical-performance SaaS feel, upgrading the bright theme with luxurious emerald green accents.
+* **Canvas Backdrop:** Porcelain `#FAF8F2` or `#F7F5EF` canvas mapped to `body.nc-bright`.
+* **Sidebar & Panels:** Warm Ivory `#FFFFFF` or `#FFFCF5` backgrounds with subtle emerald borders and soft shadows.
+* **Elevated Surfaces:** Warm Ivory `#FFFFFF` or soft ivory tint.
+* **Card Backings:** Warm Ivory `#FFFFFF` or `#FFFCF5` with thin emerald borders and soft drop shadows.
+* **Typography:** Deep Royal Navy `#071326` (high contrast, premium ink) for primary headings and labels, and Muted Slate `#526070` for secondary text.
+* **Brand Accent Colors**: Luxurious Emerald `#047857` (CTA buttons, active items), with Bright Emerald `#10B981` and Soft Emerald Glow `rgba(16, 185, 129, 0.14)`. Restrained royal gold `#D4AF37` is used lightly for premium highlights.
 
 ### Scoped Overrides Guardrails
 * To prevent regression on other modules (Athletic mode, subscription forms, program builder, etc.), all dashboard visual changes are scoped under parent layout classes (e.g. `body.nc-bright`, `.sidebar`, `.topbar`, `.card`, and `.nc-dash-grid`).
-* All semantic warning/danger colors (rose/red for errors, amber for warnings, green for positive success logs) must remain untouched. Gold is reserved strictly for premium brand styling.
+* All semantic warning/danger colors (rose/red for errors, amber for warnings, green/emerald for positive success logs) must remain untouched. Primary brand emerald is reserved strictly for main brand accents/CTAs.
