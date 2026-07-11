@@ -3101,11 +3101,11 @@ body.nc-bright {
   --nc-bg-card:       #FFFFFF !important;
 
   --nc-text-primary:   #071326 !important;  /* deep royal navy ink */
-  --nc-text-secondary: #526070 !important;  /* muted slate */
-  --nc-text-muted:     #8A96A3 !important;
+  --nc-text-secondary: #384456 !important;  /* graphite slate */
+  --nc-text-muted:     #5A6578 !important;  /* dark readable muted text */
 
-  --nc-border:        rgba(4, 120, 87, 0.08) !important;  /* subtle emerald hairline */
-  --nc-border-strong: rgba(4, 120, 87, 0.16) !important;
+  --nc-border:        rgba(4, 120, 87, 0.14) !important;  /* luxurious emerald hairline */
+  --nc-border-strong: rgba(4, 120, 87, 0.24) !important;
 
   --nc-shadow-sm:   0 1px 2px rgba(7, 19, 38, 0.03) !important;
   --nc-shadow-md:   0 8px 24px rgba(7, 19, 38, 0.04), 0 2px 6px rgba(7, 19, 38, 0.03) !important;
@@ -3113,11 +3113,11 @@ body.nc-bright {
   --nc-shadow-card: 0 1px 3px rgba(7, 19, 38, 0.02), 0 8px 24px rgba(7, 19, 38, 0.04) !important;
 
   --nc-glass-bg:     rgba(255, 255, 255, 0.85) !important;
-  --nc-glass-border: rgba(4, 120, 87, 0.08) !important;
+  --nc-glass-border: rgba(4, 120, 87, 0.14) !important;
 
   /* Accent overrides - map main brand actions to luxurious emerald */
   --nc-indigo:        #047857 !important; /* luxurious emerald */
-  --nc-indigo-ink:    #065f46 !important;
+  --nc-indigo-ink:    #065F46 !important; /* strong emerald */
   --nc-indigo-soft:   rgba(4, 120, 87, 0.06) !important;
   --nc-violet:        #10B981 !important; /* bright emerald */
   --nc-violet-soft:   rgba(16, 185, 129, 0.06) !important;
@@ -3132,16 +3132,16 @@ body.nc-bright {
   --bg-overlay: #FFFFFF !important;
   --bg-hover:   rgba(4, 120, 87, 0.025) !important;
 
-  --border-subtle:  rgba(4, 120, 87, 0.05) !important;
-  --border-default: rgba(4, 120, 87, 0.08) !important;
-  --border-strong:  rgba(4, 120, 87, 0.16) !important;
+  --border-subtle:  rgba(4, 120, 87, 0.06) !important;
+  --border-default: rgba(4, 120, 87, 0.14) !important;
+  --border-strong:  rgba(4, 120, 87, 0.24) !important;
 
   --text-primary:   #071326 !important;
-  --text-secondary: #526070 !important;
-  --text-tertiary:  #8A96A3 !important;
+  --text-secondary: #384456 !important;
+  --text-tertiary:  #5A6578 !important;
 
   --lime:           #047857 !important;
-  --lime-dim:       #065f46 !important;
+  --lime-dim:       #065F46 !important;
   --lime-glow:      rgba(4, 120, 87, 0.10) !important;
   --lime-ghost:     rgba(4, 120, 87, 0.04) !important;
 
@@ -3164,7 +3164,7 @@ body.nc-bright {
 /* 1. Sidebar Styling */
 body.nc-bright .sidebar {
   background: var(--nc-bg-secondary) !important;
-  border-right: 1px solid rgba(4, 120, 87, 0.08) !important;
+  border-right: 1px solid rgba(4, 120, 87, 0.14) !important;
   box-shadow: 1px 0 12px rgba(7, 19, 38, 0.02) !important;
 }
 body.nc-bright .sidebar::before {
@@ -3243,7 +3243,7 @@ body.nc-bright .nc-service-switcher .switcher-btn.active {
 /* 2. Topbar / Header Styling */
 body.nc-bright .topbar {
   background: rgba(255, 255, 255, 0.85) !important;
-  border-bottom: 1px solid rgba(4, 120, 87, 0.08) !important;
+  border-bottom: 1px solid rgba(4, 120, 87, 0.14) !important;
   backdrop-filter: blur(20px) !important;
   -webkit-backdrop-filter: blur(20px) !important;
 }
@@ -3349,19 +3349,67 @@ body.nc-bright .btn-ghost:hover {
   background: rgba(4, 120, 87, 0.04) !important;
 }
 
-/* Inputs fields inside dashboard */
+/* Scoped premium input/select/textarea styling across the app shell */
+body.nc-bright .form-input,
+body.nc-bright .neu-input,
+body.nc-bright .neu-textarea,
+body.nc-bright .neu-select,
 body.nc-bright input,
 body.nc-bright select,
 body.nc-bright textarea {
   background: #FFFFFF !important;
-  border: 1px solid var(--nc-border) !important;
-  color: var(--nc-text-primary) !important;
+  color: #071326 !important;
+  border: 1px solid rgba(4, 120, 87, 0.2) !important;
+  border-radius: 8px !important;
+  padding: 10px 14px !important;
+  font-family: var(--nc-font-body) !important;
+  font-size: 13.5px !important;
+  width: 100% !important;
+  height: 42px !important; /* Fixed height for clean vertical alignment and no clipping */
+  box-sizing: border-box !important;
+  opacity: 1 !important;
+  line-height: normal !important;
 }
+
+/* Specific overrides for textarea height (should not be restricted to 42px) */
+body.nc-bright textarea,
+body.nc-bright .neu-textarea {
+  height: auto !important;
+  min-height: 88px !important;
+}
+
+/* Placeholder styling */
+body.nc-bright .form-input::placeholder,
+body.nc-bright .neu-input::placeholder,
+body.nc-bright input::placeholder,
+body.nc-bright textarea::placeholder {
+  color: #6B7585 !important;
+  opacity: 0.8 !important;
+}
+
+/* Premium Focus States */
+body.nc-bright .form-input:focus,
+body.nc-bright .neu-input:focus,
+body.nc-bright .neu-textarea:focus,
+body.nc-bright .neu-select:focus,
 body.nc-bright input:focus,
 body.nc-bright select:focus,
 body.nc-bright textarea:focus {
-  border-color: var(--nc-indigo) !important;
-  box-shadow: 0 0 0 2px rgba(4, 120, 87, 0.1) !important;
+  outline: none !important;
+  border-color: #047857 !important;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.18) !important;
+  background: #FFFFFF !important;
+}
+
+/* Select element layout alignment */
+body.nc-bright select.form-input,
+body.nc-bright select {
+  padding-right: 32px !important;
+  appearance: none !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%23047857'%3E%3Cpath fill-rule='evenodd' d='M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06z' clip-rule='evenodd'/%3E%3C/svg%3E") !important;
+  background-position: right 12px center !important;
+  background-repeat: no-repeat !important;
+  background-size: 18px !important;
 }
 
 /* Subscriptions progress elements override inside app shell */
@@ -3388,7 +3436,69 @@ body.nc-bright .nc-quick-btn-icon {
   color: var(--nc-indigo) !important;
 }
 
-/* Soften telemetry grids */
-body.nc-bright .nc-dash-grid {
-  opacity: 0.15 !important;
+/* 5. Objective Assessment Premium Polish */
+body.nc-bright .neucore-assess-layout {
+  gap: 24px !important;
+}
+body.nc-bright .assess-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)) !important;
+  gap: 24px !important;
+  opacity: 1 !important;
+}
+body.nc-bright #tab-objective {
+  opacity: 1 !important;
+}
+
+/* Card backing - Porcelain/Ivory */
+body.nc-bright #tab-objective .card {
+  background: #FFFFFF !important;
+  border: 1px solid rgba(4, 120, 87, 0.14) !important;
+  border-radius: 16px !important;
+  padding: 24px !important;
+  box-shadow: 0 1px 3px rgba(7, 19, 38, 0.02), 0 8px 24px rgba(7, 19, 38, 0.03) !important;
+  opacity: 1 !important;
+}
+
+/* Heading - Deep Royal Navy */
+body.nc-bright #tab-objective .assess-section-head {
+  color: #071326 !important;
+  font-family: var(--nc-font-display) !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  margin-bottom: 20px !important;
+  border-bottom: 1px solid rgba(4, 120, 87, 0.08) !important;
+  padding-bottom: 8px !important;
+  letter-spacing: -0.01em !important;
+}
+
+/* Labels - Deep Royal Navy and clearly readable */
+body.nc-bright #tab-objective .form-label {
+  color: #384456 !important;
+  font-weight: 600 !important;
+  font-size: 11px !important;
+  margin-bottom: 8px !important;
+  letter-spacing: 0.05em !important;
+}
+
+/* Input spacing and rows */
+body.nc-bright #tab-objective .input-row {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 16px !important;
+  margin-bottom: 16px !important;
+}
+body.nc-bright #tab-objective .form-group {
+  margin-bottom: 16px !important;
+}
+body.nc-bright #tab-objective .form-group:last-child {
+  margin-bottom: 0 !important;
+}
+
+/* Hints - Muted Slate but readable */
+body.nc-bright #tab-objective .form-hint {
+  color: #5A6578 !important;
+  font-size: 11.5px !important;
+  margin-top: 6px !important;
+  font-weight: 500 !important;
 }

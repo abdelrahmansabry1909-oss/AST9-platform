@@ -120,3 +120,10 @@ To prevent breaking public automated tests, developers must never delete or rena
 ### Scoped Overrides Guardrails
 * To prevent regression on other modules (Athletic mode, subscription forms, program builder, etc.), all dashboard visual changes are scoped under parent layout classes (e.g. `body.nc-bright`, `.sidebar`, `.topbar`, `.card`, and `.nc-dash-grid`).
 * All semantic warning/danger colors (rose/red for errors, amber for warnings, green/emerald for positive success logs) must remain untouched. Primary brand emerald is reserved strictly for main brand accents/CTAs.
+
+### Objective Assessment Readability & Inputs
+* **High Contrast Values:** Numerical result inputs (`.form-input` or `input[type="number"]`) must be fully readable with text color `#071326` on a pure white `#FFFFFF` or `#FFFCF5` background.
+* **Readable Secondary Text:** Placeholders must have a high contrast muted slate color `#6B7585` for clear readability.
+* **Vertical Display Safeguards:** Inputs must have a fixed height of `42px` with `box-sizing: border-box` to prevent vertical text clipping. Active input fields must never have opacity below `1`.
+* **Focus States:** Focused inputs must present an emerald outline `#047857` with an emerald ring glow `rgba(16, 185, 129, 0.18)`.
+* **Visual Polish:** Cards inside the Objective Assessment workspace utilize ivory backings, deep navy headers, and spacious padding to maintain a clean clinical ledger layout.
