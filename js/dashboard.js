@@ -1360,13 +1360,13 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
         el.innerHTML = `
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
             <h2 style="font-size:15px; font-weight:700; color:var(--text-primary); margin:0;">${clientName}'s Program Workspace</h2>
-            <button class="btn btn-primary btn-sm" onclick="Dashboard.createNewDraft('${clientId}')">+ Create New Draft</button>
+            <button class="btn btn-primary btn-sm" onclick="Dashboard.createBlankDraft('${clientId}')">+ Build New Program</button>
           </div>
           <div class="empty-state" style="padding:40px 20px; text-align:center; border:1px dashed var(--border-subtle); border-radius:12px; background:var(--bg-card);">
             <span class="empty-icon" style="font-size:24px; margin-bottom:8px; display:block;">📂</span>
             <div class="empty-title" style="font-weight:600; color:var(--text-primary); margin-bottom:4px;">No program versions yet</div>
-            <p class="empty-desc" style="font-size:12px; color:var(--text-muted); margin-bottom:16px;">Create New Draft to start this client’s first program.</p>
-            <button class="btn btn-primary btn-sm" onclick="Dashboard.createNewDraft('${clientId}')">+ Create New Draft</button>
+            <p class="empty-desc" style="font-size:12px; color:var(--text-muted); margin-bottom:16px;">Build New Program to start this client’s first program.</p>
+            <button class="btn btn-primary btn-sm" onclick="Dashboard.createBlankDraft('${clientId}')">+ Build New Program</button>
           </div>
         `;
         return;
@@ -1411,8 +1411,8 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
                 <div style="font-size:12px; color:var(--text-muted);">Published ${when} · ${p.days_per_week || 3} days/wk</div>
               </div>
               <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                <button class="btn btn-primary btn-sm" onclick="Dashboard.editCurrentProgram('${clientId}', '${activeVer.id}')">✏ Edit Current Program</button>
                 <button class="btn btn-ghost btn-sm" onclick="Dashboard.previewVersion('${activeVer.id}')">👁 View Client Version</button>
-                <button class="btn btn-ghost btn-sm" onclick="Dashboard.duplicateAsDraft('${activeVer.id}', '${clientId}')">📋 Revise as Draft</button>
                 ${republishBtnHtml}
               </div>
             </div>
@@ -1504,7 +1504,7 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
       el.innerHTML = `
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
           <h2 style="font-size:15px; font-weight:700; color:var(--text-primary); margin:0;">${clientName}'s Program Workspace</h2>
-          <button class="btn btn-primary btn-sm" onclick="Dashboard.createNewDraft('${clientId}')">+ Create New Draft</button>
+          <button class="btn btn-primary btn-sm" onclick="Dashboard.createBlankDraft('${clientId}')">+ Build New Program</button>
         </div>
 
         <div class="row">
@@ -1543,67 +1543,102 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
     }
   }
 
-  async function createNewDraft(clientId) {
-    if (!clientId) return;
+  // Change-note markers used to tell the two draft workflows apart without a
+  // schema change. The publish flow overwrites change_note with the coach's real
+  // note, so these never linger past publish.
+  const EDIT_DRAFT_NOTE  = 'Editing current program';
+  const BLANK_DRAFT_NOTE = 'New blank program';
+
+  // Insert one draft version row and return its id. RLS (cpv_write) restricts
+  // this to admin or the client's assigned coach; a client cannot insert.
+  async function _createDraftVersion(clientId, program, changeNote) {
+    let coachId = null;
+    try { coachId = Auth.getUser()?.id || null; } catch {}
+    const { data, error } = await sb.from('client_program_versions').insert({
+      client_id:  clientId,
+      coach_id:   coachId,
+      program,
+      published:  false,
+      status:     'draft',
+      change_note: changeNote,
+      created_by: coachId,
+    }).select('id').single();
+    if (error) throw error;
+    return data.id;
+  }
+
+  // Edit Current Program — clone the client's ACTIVE published version into a
+  // draft and open it in the editor. Never mutates client_programs.program; the
+  // live program only changes when the draft is published via the RPC.
+  // Dup-guard: if an edit-of-current draft is already in progress, reopen the
+  // newest one instead of spawning a duplicate on repeated clicks.
+  async function editCurrentProgram(clientId, activeVersionId) {
+    if (!clientId || !activeVersionId) return;
     try {
-      // Find the latest version or current program to use as baseline
-      const { data: latest } = await sb.from('client_program_versions')
-        .select('program')
+      const { data: existing } = await sb.from('client_program_versions')
+        .select('id')
         .eq('client_id', clientId)
+        .eq('status', 'draft')
+        .eq('published', false)
+        .eq('change_note', EDIT_DRAFT_NOTE)
         .order('created_at', { ascending: false })
         .limit(1);
-      
-      let baseProgram = null;
-      if (latest && latest[0]) {
-        baseProgram = latest[0].program;
-      } else {
-        // Fall back to client_programs pointer
-        const { data: cp } = await sb.from('client_programs')
-          .select('program')
-          .eq('client_id', clientId)
-          .maybeSingle();
-        if (cp) baseProgram = cp.program;
+      if (existing && existing[0]) {
+        toast('Reopening your in-progress edit of the current program.', 'info');
+        await editDraft(existing[0].id, clientId);
+        return;
       }
-      
-      // If still no program, create a default empty program structure
-      if (!baseProgram) {
-        baseProgram = {
-          phase: 'Phase 1',
-          days_per_week: 3,
-          split_label: 'Full Body Split',
-          workouts: [
-            { id: 'A', label: 'Workout A', warmup: [], main: [], cooldown: [] }
-          ],
-          schedule: ['A', 'A', 'A'],
-          daily_routine_tasks: []
-        };
-      }
-      
-      let coachId = null;
-      try { coachId = Auth.getUser()?.id || null; } catch {}
-      
-      const { data: newDraft, error } = await sb.from('client_program_versions').insert({
-        client_id: clientId,
-        coach_id: coachId,
-        program: baseProgram,
-        published: false,
-        status: 'draft',
-        change_note: 'New Draft Created',
-        created_by: coachId
-      }).select('id').single();
-      
-      if (error) throw error;
-      
-      toast('New draft program created successfully. Opening editor...', 'success');
+      // Clone the active published version's program into a fresh draft.
+      const { data: active, error: fetchErr } = await sb.from('client_program_versions')
+        .select('program')
+        .eq('id', activeVersionId)
+        .single();
+      if (fetchErr) throw fetchErr;
+      const draftId = await _createDraftVersion(clientId, active.program, EDIT_DRAFT_NOTE);
+      toast('Editing a copy of the current program. Publishing will make it live.', 'success');
       await renderProgramsList();
-      if (newDraft && newDraft.id) {
-        await editDraft(newDraft.id, clientId);
-      }
+      await editDraft(draftId, clientId);
     } catch (e) {
-      toast('Failed to create draft: ' + e.message, 'error');
+      toast('Failed to open the current program for editing: ' + e.message, 'error');
     }
   }
 
+  // Build New Program — start from a blank scaffold (does NOT clone the active
+  // program). Draft-only until explicitly published.
+  async function createBlankDraft(clientId) {
+    if (!clientId) return;
+    try {
+      // Guard against accidental duplicate drafts from repeated clicks.
+      const { data: anyDraft } = await sb.from('client_program_versions')
+        .select('id')
+        .eq('client_id', clientId)
+        .eq('status', 'draft')
+        .eq('published', false)
+        .limit(1);
+      if (anyDraft && anyDraft[0]) {
+        if (!confirm('This client already has a draft in progress. Start a separate blank program anyway?')) return;
+      }
+      const blankProgram = {
+        phase: 'Phase 1',
+        days_per_week: 3,
+        split_label: 'Full Body Split',
+        workouts: [
+          { id: 'A', label: 'Workout A', warmup: [], main: [], cooldown: [] }
+        ],
+        schedule: ['A', 'A', 'A'],
+        daily_routine_tasks: []
+      };
+      const draftId = await _createDraftVersion(clientId, blankProgram, BLANK_DRAFT_NOTE);
+      toast('Blank program draft created. Opening editor...', 'success');
+      await renderProgramsList();
+      await editDraft(draftId, clientId);
+    } catch (e) {
+      toast('Failed to create blank draft: ' + e.message, 'error');
+    }
+  }
+
+  // Revise a specific (usually historical) version into a new draft. Used by the
+  // History list; distinct from editing the single current program.
   async function duplicateAsDraft(versionId, clientId) {
     if (!versionId) return;
     try {
@@ -1612,27 +1647,10 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
         .eq('id', versionId)
         .single();
       if (fetchErr) throw fetchErr;
-      
-      let coachId = null;
-      try { coachId = Auth.getUser()?.id || null; } catch {}
-      
-      const { data: newDraft, error: insertErr } = await sb.from('client_program_versions').insert({
-        client_id: clientId,
-        coach_id: coachId,
-        program: ver.program,
-        published: false,
-        status: 'draft',
-        change_note: 'Duplicated Draft',
-        created_by: coachId
-      }).select('id').single();
-      
-      if (insertErr) throw insertErr;
-      
+      const draftId = await _createDraftVersion(clientId, ver.program, 'Revised from a previous version');
       toast('Program duplicated as draft. Opening editor...', 'success');
       await renderProgramsList();
-      if (newDraft && newDraft.id) {
-        await editDraft(newDraft.id, clientId);
-      }
+      await editDraft(draftId, clientId);
     } catch (e) {
       toast('Failed to duplicate: ' + e.message, 'error');
     }
@@ -2142,7 +2160,8 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
     handleGlobalSearch,
     handleProgramClientChange,
     reloadCurrentPrograms: renderProgramsList,
-    createNewDraft,
+    editCurrentProgram,
+    createBlankDraft,
     duplicateAsDraft,
     editDraft,
     publishDraftDirect,

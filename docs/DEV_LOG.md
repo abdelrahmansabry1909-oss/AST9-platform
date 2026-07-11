@@ -66,6 +66,36 @@ Verification legend:
 
 ## Program versioning
 
+### Phase B — Edit Current Program (coach workflow)
+- **Date:** 2026-07-11 · branch `feat/edit-current-program`
+- **What:** Gave coaches an obvious **Edit Current Program** button on the active
+  program card that clones the client's active published version into a draft and
+  opens the existing `ProgramPublish` editor — it never mutates
+  `client_programs.program`. Split the old, misleadingly-named `createNewDraft`
+  (which silently cloned the latest program) into two clear paths:
+  `editCurrentProgram(clientId, activeVersionId)` (clone active → draft, with a
+  dup-guard that reopens an in-progress edit draft instead of spawning duplicates)
+  and `createBlankDraft(clientId)` (blank scaffold — "**Build New Program**";
+  confirms before a second concurrent draft). Save = draft only (`_saveDraft`);
+  Publish still routes through the atomic `publish_program_version()` RPC
+  (supersede prior active + update the single `client_programs` pointer + append a
+  `client_program_revisions` snapshot). `duplicateAsDraft` retained for the
+  History "Revise as Draft" action. A shared `_createDraftVersion` helper de-dups
+  the insert logic.
+- **Files:** `js/dashboard.js` only (product logic). **No** `programPublish.js`
+  change (the editor already saved-draft/published correctly); **no** `app.html`
+  change (reused `modal-program-edit`).
+- **DB/RLS:** **none — no migration.** Reused the existing `client_program_versions`
+  RLS (`cpv_write` = admin/assigned-coach; `cpv_select` exposes only the client's
+  active-published version, hiding drafts) and `publish_program_version()` authz
+  (`is_admin() OR coach_id=self OR assigned_coach=self`).
+- **Verification:** `node --check` (`dashboard.js`, `programPublish.js`) +
+  `npm run build` green; boot smoke (new fns wired, `createNewDraft` gone, no
+  console errors). **Product-safety matrix — impersonated, rolled back, zero rows:**
+  client insert draft ✗, client sees draft = 0 rows, client self-publish = 0 rows
+  changed, client publish via RPC ✗, assigned coach insert draft ✓ (rows=1), other
+  coach foreign draft ✗. Owner authenticated UI smoke pending (no creds in env).
+
 ### E1b-1 — Program versions foundation
 - **Date:** 2026-06-24 · **PR #59** · merge `5f9ccc6` (`e769acd`)
 - **What:** New `client_program_versions` table + RLS (client served due-only,
