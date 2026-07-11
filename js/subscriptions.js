@@ -101,6 +101,7 @@ const Subscriptions = (() => {
         : (daysLeft <= 7 && isActive) ? 'danger' : '';
 
       const isAdmin = (typeof Auth !== 'undefined' && Auth.isAdmin && Auth.isAdmin());
+      const isCoachOrAdmin = (typeof Auth !== 'undefined' && Auth.isAdminOrCoach && Auth.isAdminOrCoach());
       const reactivateBtn = (isExpired || isGrace)
         ? `<button class="btn btn-teal btn-xs" onclick="Subscriptions.reactivate('${_esc(s.client_id)}', ${parseInt(s.plan) || 3})">↺ Reactivate</button>`
         : '';
@@ -115,7 +116,11 @@ const Subscriptions = (() => {
             </div>
           </div>
         </td>
-        <td style="font-weight:600">${s.plan} months</td>
+        <td style="font-weight:600">
+          ${s.plan_name
+            ? `<div>${_esc(s.plan_name)}</div><div style="font-size:11px;color:var(--text-tertiary);font-weight:400">${s.plan} months</div>`
+            : `${s.plan} months`}
+        </td>
         <td style="font-size:12px;color:var(--text-secondary)">${s.start_date}</td>
         <td style="font-size:12px;color:var(--text-secondary)">${s.end_date}</td>
         <td>${statusBadge}</td>
@@ -132,8 +137,8 @@ const Subscriptions = (() => {
           <div style="display:flex;gap:6px;flex-wrap:wrap">
             ${(isPending && isAdmin) ? `<button class="btn btn-teal btn-xs" onclick="Subscriptions.activate('${_esc(s.id)}','${_esc(s.client_id)}','${_esc(s.plan)}','${_esc(s.start_date)}','${_esc(s.end_date)}')">Activate</button>` : ''}
             ${reactivateBtn}
+            ${isCoachOrAdmin ? `<button class="btn btn-ghost btn-xs" onclick="Subscriptions.openEdit('${s.id}')" title="Edit label/plan/dates/status">✎ Edit</button>` : ''}
             ${isAdmin ? `
-            <button class="btn btn-ghost btn-xs" onclick="Subscriptions.openEdit('${s.id}')" title="Edit plan/dates/status">✎ Edit</button>
             ${isActive ? `<button class="btn btn-ghost btn-xs" onclick="Subscriptions.expireNow('${s.id}')" title="End this subscription now">⏸ End</button>` : ''}
             <button class="btn btn-rose btn-xs" onclick="Subscriptions.remove('${s.id}')" title="Delete record">✕</button>` : ''}
           </div>
@@ -185,55 +190,58 @@ const Subscriptions = (() => {
   }
 
   async function submit() {
-    // BUG 5 — creating a subscription is admin-only (subscriptions_admin_write).
-    // The "+ New Subscription" button is hidden from coaches; this is the honest
-    // backstop if it's ever reached — fail clearly, never fake success.
-    if (!(typeof Auth !== 'undefined' && Auth.isAdmin && Auth.isAdmin())) {
-      Dashboard.toast('Only admins can create subscriptions', 'error');
-      return;
+    // Create goes through the SECURITY DEFINER create_client_subscription()
+    // RPC, which authorizes admin OR the client's assigned coach in SQL. The
+    // table stays admin-only for direct writes; coaches never write it directly.
+    if (typeof SubscriptionService === 'undefined') {
+      Dashboard.toast('SubscriptionService not loaded', 'error'); return;
     }
     const clientId = document.getElementById('sub-client')?.value;
-    const plan     = document.getElementById('sub-plan')?.value;
+    const planName = document.getElementById('sub-plan-name')?.value || '';
+    const months   = parseInt(document.getElementById('sub-plan')?.value, 10);
     const start    = document.getElementById('sub-start')?.value;
     const end      = document.getElementById('sub-end')?.value;
     const activate = document.getElementById('sub-activate')?.value;
     const notes    = document.getElementById('sub-notes')?.value || '';
 
-    if (!clientId || !start || !end) {
-      Dashboard.toast('Please select a client and set dates', 'error'); return;
+    if (!clientId || !start) {
+      Dashboard.toast('Please select a client and a start date', 'error'); return;
+    }
+    if (!Number.isFinite(months) || months < 1 || months > 60) {
+      Dashboard.toast('Plan must be 1–60 months', 'error'); return;
+    }
+    if (end && end <= start) {
+      Dashboard.toast('End date must be after the start date', 'error'); return;
     }
 
+    const status = activate === 'immediate' ? 'active' : 'pending';
     const btn = document.getElementById('sub-submit-btn');
     _setBtnLoading(btn);
-
-    const { error } = await sb.from('subscriptions').insert({
-      client_id:  clientId,
-      plan:       parseInt(plan),
-      start_date: start,
-      end_date:   end,
-      status:     activate === 'immediate' ? 'active' : 'pending',
-      notes,
-      created_by: Auth.getUser()?.id,
-    }).select().single();
-
-    _resetBtn(btn);
-
-    if (error) { Dashboard.toast(error.message, 'error'); return; }
-
-    if (activate === 'immediate') {
-      await _sendEmail('subscription_activated', clientId, { plan, start, end });
-    }
-
-    Dashboard.toast('Subscription created!', 'success');
-    Dashboard.closeModal('modal-add-subscription');
-    document.getElementById('sub-notes').value = '';
-    SubscriptionService?.clearCache?.(clientId);
-    loadAll();
+    try {
+      await SubscriptionService.createSubscription({
+        clientId, planName, months, startDate: start,
+        endDate: end || null, status, notes,
+      });
+      if (status === 'active') {
+        await _sendEmail('subscription_activated', clientId, { plan: months, start, end });
+      }
+      Dashboard.toast('Subscription created!', 'success');
+      Dashboard.closeModal('modal-add-subscription');
+      const n = document.getElementById('sub-notes'); if (n) n.value = '';
+      const pn = document.getElementById('sub-plan-name'); if (pn) pn.value = '';
+      SubscriptionService?.clearCache?.(clientId);
+      loadAll();
+    } catch (e) {
+      Dashboard.toast(e.message || 'Could not create subscription', 'error');
+    } finally { _resetBtn(btn); }
   }
 
   async function activate(subId, clientId, plan, start, end) {
-    const { error } = await sb.from('subscriptions').update({ status: 'active' }).eq('id', subId);
+    // .select() keeps the outcome honest: an RLS-silenced 0-row update must not
+    // produce a success toast (direct writes are admin-only).
+    const { data, error } = await sb.from('subscriptions').update({ status: 'active' }).eq('id', subId).select('id');
     if (error) { Dashboard.toast(error.message, 'error'); return; }
+    if (!data || !data.length) { Dashboard.toast('No permission to activate subscriptions', 'error'); return; }
     await _sendEmail('subscription_activated', clientId, { plan, start, end });
     Dashboard.toast('Subscription activated!', 'success');
     SubscriptionService?.clearCache?.(clientId);
@@ -282,28 +290,41 @@ const Subscriptions = (() => {
     const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v == null ? '' : v; };
     const who = document.getElementById('es-client');
     if (who) who.textContent = `Client: ${s.profiles?.full_name || s.profiles?.email || '—'}`;
+    set('es-plan-name', s.plan_name || '');
     set('es-plan', s.plan); set('es-grace', s.grace_days ?? 7);
     set('es-start', s.start_date); set('es-end', s.end_date); set('es-status', s.status || 'active');
+    set('es-notes', s.notes || '');
+    // Only an admin may end (expire) access; coaches get active/pending only.
+    // The RPC enforces this server-side too — this just matches the picker to it.
+    const isAdmin = (typeof Auth !== 'undefined' && Auth.isAdmin && Auth.isAdmin());
+    const expOpt = document.querySelector('#es-status option[value="expired"]');
+    if (expOpt) { expOpt.hidden = !isAdmin; expOpt.disabled = !isAdmin; }
     document.getElementById('modal-edit-subscription')?.classList.remove('hidden');
   }
 
   async function submitEdit() {
     if (!_editSubId) return;
+    // Edit goes through update_client_subscription() (admin OR assigned coach,
+    // enforced in SQL). RPC errors surface honestly — no silent success.
+    if (typeof SubscriptionService === 'undefined') {
+      Dashboard.toast('SubscriptionService not loaded', 'error'); return;
+    }
     const gv = (id) => document.getElementById(id)?.value ?? '';
+    const planName = gv('es-plan-name');
     const plan  = parseInt(gv('es-plan'), 10);
     const grace = parseInt(gv('es-grace'), 10);
     const start = gv('es-start'), end = gv('es-end'), status = gv('es-status');
-    if (!Number.isFinite(plan) || plan < 1 || plan > 36) { Dashboard.toast('Plan must be 1–36 months', 'error'); return; }
+    const notes = gv('es-notes');
+    if (!Number.isFinite(plan) || plan < 1 || plan > 60) { Dashboard.toast('Plan must be 1–60 months', 'error'); return; }
     if (!Number.isFinite(grace) || grace < 0 || grace > 60) { Dashboard.toast('Grace days must be 0–60', 'error'); return; }
     if (!start || !end || end <= start) { Dashboard.toast('End date must be after the start date', 'error'); return; }
     const btn = document.getElementById('es-submit-btn');
     _setBtnLoading(btn);
     try {
-      const { data, error } = await sb.from('subscriptions')
-        .update({ plan, grace_days: grace, start_date: start, end_date: end, status })
-        .eq('id', _editSubId).select('id');
-      if (error) throw new Error(error.message);
-      if (!data || !data.length) throw new Error('No permission to edit subscriptions');
+      await SubscriptionService.updateSubscription({
+        subId: _editSubId, planName, months: plan, startDate: start,
+        endDate: end, status, notes, graceDays: grace,
+      });
       Dashboard.toast('Subscription updated', 'success');
       Dashboard.closeModal('modal-edit-subscription');
       _editSubId = null;

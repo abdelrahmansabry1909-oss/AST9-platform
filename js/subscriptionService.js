@@ -127,8 +127,8 @@
   // so the permission check (assigned_coach OR admin) lives in SQL.
   async function reactivate(clientId, { months = 3, startDate = null, notes = null } = {}) {
     if (!clientId) throw new Error('clientId required');
-    if (![3, 6, 12].includes(months)) {
-      throw new Error(`unsupported plan: ${months}`);
+    if (!Number.isInteger(months) || months < 1 || months > 60) {
+      throw new Error('Months must be a whole number between 1 and 60');
     }
     const { data, error } = await sb.rpc('reactivate_subscription', {
       p_client_id: clientId,
@@ -140,6 +140,57 @@
     // Invalidate cache so subsequent reads pick up the new row.
     _cache.delete(clientId);
     return data;                       // new subscription id
+  }
+
+  // ── Create a client access subscription — admin + assigned coach ──
+  // Delegates to the SECURITY DEFINER create_client_subscription() RPC so
+  // the permission check (assigned_coach OR admin) lives in SQL, not the UI.
+  async function createSubscription({
+    clientId, planName = null, months, startDate = null,
+    endDate = null, status = 'active', notes = null,
+  } = {}) {
+    if (!clientId) throw new Error('clientId required');
+    if (!Number.isInteger(months) || months < 1 || months > 60) {
+      throw new Error('Months must be a whole number between 1 and 60');
+    }
+    const { data, error } = await sb.rpc('create_client_subscription', {
+      p_client_id: clientId,
+      p_plan_name: planName,
+      p_months:    months,
+      p_start:     startDate,
+      p_end:       endDate,
+      p_status:    status,
+      p_notes:     notes,
+    });
+    if (error) throw new Error(error.message || 'Could not create subscription');
+    _cache.delete(clientId);
+    return data;                       // new subscription id
+  }
+
+  // ── Edit a client access subscription — admin + assigned coach ────
+  // Delegates to update_client_subscription() (same SQL authz check).
+  async function updateSubscription({
+    subId, planName = null, months, startDate, endDate,
+    status, notes = null, graceDays = null,
+  } = {}) {
+    if (!subId) throw new Error('subId required');
+    if (!Number.isInteger(months) || months < 1 || months > 60) {
+      throw new Error('Months must be a whole number between 1 and 60');
+    }
+    const { data, error } = await sb.rpc('update_client_subscription', {
+      p_subscription_id: subId,
+      p_plan_name:       planName,
+      p_months:          months,
+      p_start:           startDate,
+      p_end:             endDate,
+      p_status:          status,
+      p_notes:           notes,
+      p_grace_days:      graceDays,
+    });
+    if (error) throw new Error(error.message || 'Could not update subscription');
+    // A client id isn't passed here; clear all cached state to be safe.
+    _cache.clear();
+    return data;                       // subscription id
   }
 
   // ── Filter helper for coach dashboard ───────────────────────────
@@ -157,6 +208,7 @@
   window.SubscriptionService = {
     getEffectiveState, listAllStates,
     canWrite, formatPill, reactivate, filterRows,
+    createSubscription, updateSubscription,
     clearCache, peekCache,
     STATUSES,
   };
