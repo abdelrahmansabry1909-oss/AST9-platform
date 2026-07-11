@@ -104,5 +104,18 @@ To prevent breaking public automated tests, developers must never delete or rena
 * **Illustrative Wording:** Hero telemetry visuals must be clearly labeled as `DEMO TELEMETRY` and feature a footer disclaimer stating `Illustrative metrics only`.
 * **No Diagnostic Claims:** No diagnostic assertions, treatment claims, or real-time patient assessment indicators should be displayed on marketing or login gates. All metrics are illustrative telemetry only.
 
+---
 
+## 8. Logged-in Dashboard & Shell Layouts
 
+### Royal NeuCore Theme
+* **Visual Direction:** A premium medical-performance SaaS feel, replacing the flat bright/porcelain layout without breaking the underlying layout variables.
+* **Canvas Backdrop:** Midnight `#050814` canvas mapped to `body.nc-bright`.
+* **Sidebar & Panels:** Solid Royal Navy `#0B1430` backgrounds with gold highlights (`rgba(212, 175, 55, 0.12)`).
+* **Elevated Surfaces:** Deep Sapphire `#102A56` for inner cards, tables, and buttons.
+* **Card Backings:** Royal Navy Glass `rgba(11, 20, 48, 0.6)` with gold hairline borders and soft gold highlights.
+* **Typography:** Ivory text `#F8F5EA` for primary titles/labels, and muted blue-gray `#AAB2C5` for secondary elements.
+
+### Scoped Overrides Guardrails
+* To prevent regression on other modules (Athletic mode, subscription forms, program builder, etc.), all dashboard visual changes are scoped under parent layout classes (e.g. `body.nc-bright`, `.sidebar`, `.topbar`, `.card`, and `.nc-dash-grid`).
+* All semantic warning/danger colors (rose/red for errors, amber for warnings, green for positive success logs) must remain untouched. Gold is reserved strictly for premium brand styling.
