@@ -115,9 +115,10 @@ GRANT EXECUTE ON FUNCTION public.create_client_subscription(uuid, text, integer,
 
 -- 5. RPC: edit an existing client access subscription. ────────────
 --    Derives the client from the subscription, then the same authz.
---    Status is constrained to the existing valid set so an admin can
---    still expire/cancel via edit (no regression), while the feature UI
---    exposes active/pending.
+--    Status is limited to active/pending/expired. 'cancelled' is intentionally
+--    rejected because v_client_subscription_state has no 'cancelled' branch
+--    (a future-dated cancelled row would read as active and keep write access);
+--    only admins may set 'expired', so coaches are limited to active/pending.
 CREATE OR REPLACE FUNCTION public.update_client_subscription(
   p_subscription_id uuid,
   p_plan_name text,
