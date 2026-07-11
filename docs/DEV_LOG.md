@@ -207,3 +207,9 @@ Verification legend:
 - **What:** Refined the authenticated app shell, sidebar, header, and dashboard components using the FitExpert dashboard structure as a style reference. Applied a flat, clean SaaS theme with bright porcelain canvas (`#F8F9F9`), crisp white panels (`#FFFFFF`), very high-contrast comfortable typography (`#181C32` primary text, `#4B5565` secondary text, `#7E8299` muted text), and flatter card borders (`rgba(24, 28, 50, 0.06)`) and flat shadows while retaining AST9's medical emerald accents selectively.
 - **Files:** `css/neucore-premium.css`, `docs/DESIGN_SYSTEM.md`, `docs/DEV_LOG.md`.
 - **Verification:** Built successfully (`npm run build`), ran Playwright visual verification asserting container opacities evaluate to `1` and filled Objective Assessment inputs are fully visible and not clipped.
+
+### FitExpert-Inspired Dashboard Layout & Sidebar Polish
+- **Date:** 2026-07-11 · branch `feat/fitexpert-dashboard-layout-polish`
+- **What:** Reorganized the authenticated dashboard layout and sidebar to match the FitExpert dashboard structure while preserving the porcelain-emerald theme. Restored a clear "Dashboard" page header. Refined the first fold to feature a wide welcome card with integrated workflow steps on the left and a compact Client Overview roster card on the right. Moved the KPI row below the first fold and simplified its card styles to be flat. Expanded the desktop sidebar to a wider (`220px`), non-collapsing sidebar displaying text labels next to icons. Polished general cards and Objective Assessment cards to use thin borders (`rgba(24, 28, 50, 0.06)`), minimal shadows, and cleaner section spacing.
+- **Files:** `css/neucore-premium.css`, `docs/DESIGN_SYSTEM.md`, `docs/DEV_LOG.md`, `app.html`.
+- **Verification:** Built successfully (`npm run build`), ran Playwright visual checks asserting welcome cards, wide sidebar width (220px), client roster placement, and input fields remain fully functional and visible.

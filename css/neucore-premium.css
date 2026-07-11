@@ -3499,7 +3499,254 @@ body.nc-bright #tab-objective .form-group:last-child {
 /* Hints - Muted Slate but readable */
 body.nc-bright #tab-objective .form-hint {
   color: var(--nc-text-muted) !important;
-  font-size: 11.5px !important;
-  margin-top: 6px !important;
+  font-size: 11px !important;
+  margin-top: 4px !important;
   font-weight: 500 !important;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   FitExpert-inspired Layout and Sidebar refinements
+   ───────────────────────────────────────────────────────────── */
+
+/* 1. Desktop Sidebar Expansion (Wider & Non-collapsing) */
+@media (min-width: 901px) {
+  body.nc-bright .sidebar {
+    width: 220px !important;
+    transition: none !important;
+  }
+  body.nc-bright .main-content {
+    margin-left: 220px !important;
+  }
+  body.nc-bright .sidebar .nc-sidebar-wordmark > span:not(.nc-sidebar-mark),
+  body.nc-bright .sidebar .nc-sidebar-sub,
+  body.nc-bright .sidebar .nav-section,
+  body.nc-bright .sidebar .nav-item > *:not(.nav-item-icon):not(.nav-badge),
+  body.nc-bright .sidebar .user-details,
+  body.nc-bright .sidebar .logout-icon,
+  body.nc-bright .sidebar #notif-bell {
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: flex !important;
+  }
+  body.nc-bright .sidebar .nav-section {
+    display: block !important;
+  }
+  body.nc-bright .sidebar .user-card {
+    justify-content: space-between !important;
+    padding: 8px 12px !important;
+  }
+  body.nc-bright .sidebar .nav-item {
+    padding: 10px 16px !important;
+    justify-content: flex-start !important;
+    gap: 12px !important;
+  }
+}
+
+/* 2. First Fold Rework (Welcome Card left, Client Overview right) */
+body.nc-bright .nc-dash-first-fold {
+  display: grid !important;
+  grid-template-columns: 1.2fr 0.8fr !important;
+  gap: 24px !important;
+  margin-bottom: 24px !important;
+}
+
+@media (max-width: 1080px) {
+  body.nc-bright .nc-dash-first-fold {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+body.nc-bright .nc-dash-welcome-panel {
+  display: flex !important;
+  flex-direction: column !important;
+  padding: 32px !important;
+  background: #FFFFFF !important;
+  border-radius: 12px !important;
+  border: 1px solid var(--nc-border) !important;
+  box-shadow: var(--nc-shadow-card) !important;
+  position: relative !important;
+}
+
+body.nc-bright .nc-dash-welcome-panel .nc-dash-eyebrow {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.08em !important;
+  color: var(--nc-indigo) !important;
+  margin-bottom: 8px !important;
+}
+
+body.nc-bright .nc-dash-welcome-panel .welcome-heading {
+  font-size: 26px !important;
+  font-weight: 700 !important;
+  color: var(--nc-text-primary) !important;
+  margin-bottom: 12px !important;
+  letter-spacing: -0.02em !important;
+  line-height: 1.2 !important;
+}
+
+body.nc-bright .nc-dash-welcome-panel .welcome-text {
+  font-size: 14px !important;
+  color: var(--nc-text-secondary) !important;
+  line-height: 1.6 !important;
+  margin-bottom: 24px !important;
+  max-width: 520px !important;
+}
+
+/* Integrated quickstart bar inside welcome card */
+body.nc-bright .nc-quickstart-bar-integrated {
+  margin-top: auto !important;
+  padding-top: 20px !important;
+  border-top: 1px dashed var(--nc-border) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+}
+
+body.nc-bright .nc-quickstart-bar-integrated .nc-quickstart-title {
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  color: var(--nc-text-primary) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+}
+
+body.nc-bright .nc-quickstart-bar-integrated .nc-quickstart-steps-integrated {
+  display: flex !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 12px !important;
+}
+
+body.nc-bright .nc-quickstart-bar-integrated .step-item {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: var(--nc-text-secondary) !important;
+  cursor: pointer !important;
+  transition: color 0.15s ease !important;
+}
+
+body.nc-bright .nc-quickstart-bar-integrated .step-item:hover {
+  color: var(--nc-indigo) !important;
+}
+
+body.nc-bright .nc-quickstart-bar-integrated .step-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 22px !important;
+  height: 22px !important;
+  background: rgba(4, 120, 87, 0.06) !important;
+  color: var(--nc-indigo) !important;
+  border-radius: 9999px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+}
+
+body.nc-bright .nc-quickstart-bar-integrated .step-arrow {
+  color: var(--nc-text-muted) !important;
+  font-weight: 600 !important;
+}
+
+/* 3. Status Banner and Header simplification */
+body.nc-bright #section-dashboard .nc-status-banner {
+  background: #FFFFFF !important;
+  border: 1px solid var(--nc-border) !important;
+  padding: 10px 16px !important;
+  border-radius: 8px !important;
+  margin-bottom: 24px !important;
+  box-shadow: var(--nc-shadow-sm) !important;
+}
+body.nc-bright #section-dashboard .nc-status-banner .nc-status-banner-content {
+  color: var(--nc-text-secondary) !important;
+  font-size: 12.5px !important;
+  font-weight: 500 !important;
+}
+
+/* 4. KPI row and Card Flat styling */
+body.nc-bright #section-dashboard .nc-kpi-grid {
+  gap: 20px !important;
+  margin-bottom: 24px !important;
+}
+body.nc-bright #section-dashboard .nc-kpi {
+  background: #FFFFFF !important;
+  border: 1px solid var(--nc-border) !important;
+  border-radius: 10px !important;
+  padding: 16px 20px !important;
+  box-shadow: var(--nc-shadow-sm) !important;
+}
+body.nc-bright #section-dashboard .nc-kpi::before {
+  display: none !important; /* Flat card appearance */
+}
+body.nc-bright #section-dashboard .nc-kpi-value {
+  font-size: 24px !important;
+  font-weight: 700 !important;
+  margin-top: 4px !important;
+  color: var(--nc-text-primary) !important;
+}
+body.nc-bright #section-dashboard .nc-kpi-sub {
+  font-size: 11px !important;
+  color: var(--nc-text-muted) !important;
+  margin-top: 2px !important;
+}
+body.nc-bright #section-dashboard .nc-kpi-top {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  color: var(--nc-text-secondary) !important;
+}
+body.nc-bright #section-dashboard .nc-kpi-top svg {
+  color: var(--nc-text-muted) !important;
+}
+body.nc-bright #section-dashboard .nc-kpi-label {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+}
+
+/* 5. General Card Polish */
+body.nc-bright #section-dashboard .card,
+body.nc-bright #section-dashboard .nc-panel,
+body.nc-bright #section-dashboard .stat-card {
+  border-radius: 12px !important;
+  padding: 24px !important;
+  background: #FFFFFF !important;
+  border: 1px solid var(--nc-border) !important;
+  box-shadow: var(--nc-shadow-card) !important;
+}
+body.nc-bright #section-dashboard .nc-panel::before,
+body.nc-bright #section-dashboard .card::before,
+body.nc-bright #section-dashboard .stat-card::before {
+  display: none !important;
+}
+body.nc-bright #section-dashboard .nc-section-head {
+  margin-bottom: 18px !important;
+  border-bottom: 1px solid rgba(24, 28, 50, 0.04) !important;
+  padding-bottom: 12px !important;
+}
+
+/* 6. Objective Assessment Polish */
+body.nc-bright #tab-objective .card {
+  background: #FFFFFF !important;
+  border: 1px solid var(--nc-border) !important;
+  border-radius: 12px !important;
+  padding: 24px !important;
+  box-shadow: var(--nc-shadow-card) !important;
+  opacity: 1 !important;
+}
+body.nc-bright #tab-objective .assess-section-head {
+  color: var(--nc-text-primary) !important;
+  border-bottom: 1px solid rgba(24, 28, 50, 0.06) !important;
+  padding-bottom: 10px !important;
+  margin-bottom: 20px !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+}
+body.nc-bright #tab-objective .form-label {
+  color: var(--nc-text-secondary) !important;
+  font-size: 11.5px !important;
+  font-weight: 600 !important;
+  margin-bottom: 6px !important;
 }
