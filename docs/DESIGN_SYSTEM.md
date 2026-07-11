@@ -108,22 +108,21 @@ To prevent breaking public automated tests, developers must never delete or rena
 
 ## 8. Logged-in Dashboard & Shell Layouts
 
-### Porcelain Emerald Theme
-* **Visual Direction:** A bright, clean, premium medical-performance SaaS feel, upgrading the bright theme with luxurious emerald green accents.
-* **Canvas Backdrop:** Porcelain `#FAF8F2` or `#F7F5EF` canvas mapped to `body.nc-bright`.
-* **Sidebar & Panels:** Warm Ivory `#FFFFFF` or `#FFFCF5` backgrounds with subtle emerald borders and soft shadows.
-* **Elevated Surfaces:** Warm Ivory `#FFFFFF` or soft ivory tint.
-* **Card Backings:** Warm Ivory `#FFFFFF` or `#FFFCF5` with thin emerald borders and soft drop shadows.
-* **Typography:** Deep Royal Navy `#071326` (high contrast, premium ink) for primary headings and labels, and Muted Slate `#526070` for secondary text.
-* **Brand Accent Colors**: Luxurious Emerald `#047857` (CTA buttons, active items), with Bright Emerald `#10B981` and Soft Emerald Glow `rgba(16, 185, 129, 0.14)`. Restrained royal gold `#D4AF37` is used lightly for premium highlights.
+### Porcelain Emerald Theme (FitExpert-inspired)
+* **Visual Direction:** A clean, flat, premium SaaS dashboard visual aesthetic with high-contrast comfortable typography, minimal glows, and crisp white surfaces.
+* **Canvas Backdrop:** Bright porcelain `#F8F9F9` mapped to `body.nc-bright`.
+* **Sidebar & Header:** Clean white `#FFFFFF` layout components with very subtle dark borders (`rgba(24, 28, 50, 0.06)`) and minimal flat shadows, creating a compact and professional density.
+* **Card Backings:** Flat white `#FFFFFF` surfaces with very subtle borders (`rgba(24, 28, 50, 0.06)`) and flat minimal shadows (`--nc-shadow-card`), avoiding heavy/glowy dropshadows.
+* **Typography:** Deep Slate/Navy-black `#181C32` for primary headings, comfortable slate-gray `#4B5565` for secondary body text, and muted gray `#7E8299` for muted labels.
+* **Brand Accent Colors**: Selective emerald green `#047857` (active indicators, primary CTAs), with soft accent `#18A058` and soft active background `rgba(4, 120, 87, 0.06)`. Restrained royal gold `#D4AF37` is used lightly for premium highlights.
 
 ### Scoped Overrides Guardrails
 * To prevent regression on other modules (Athletic mode, subscription forms, program builder, etc.), all dashboard visual changes are scoped under parent layout classes (e.g. `body.nc-bright`, `.sidebar`, `.topbar`, `.card`, and `.nc-dash-grid`).
 * All semantic warning/danger colors (rose/red for errors, amber for warnings, green/emerald for positive success logs) must remain untouched. Primary brand emerald is reserved strictly for main brand accents/CTAs.
 
 ### Objective Assessment Readability & Inputs
-* **High Contrast Values:** Numerical result inputs (`.form-input` or `input[type="number"]`) must be fully readable with text color `#071326` on a pure white `#FFFFFF` or `#FFFCF5` background.
-* **Readable Secondary Text:** Placeholders must have a high contrast muted slate color `#6B7585` for clear readability.
+* **High Contrast Values:** Numerical result inputs (`.form-input` or `input[type="number"]`) must be fully readable with text color `#181C32` on a pure white `#FFFFFF` background.
+* **Readable Secondary Text:** Placeholders must have a high contrast muted slate color `#7E8299` for clear readability.
 * **Vertical Display Safeguards:** Inputs must have a fixed height of `42px` with `box-sizing: border-box` to prevent vertical text clipping. Active input fields must never have opacity below `1`.
 * **Focus States:** Focused inputs must present an emerald outline `#047857` with an emerald ring glow `rgba(16, 185, 129, 0.18)`.
-* **Visual Polish:** Cards inside the Objective Assessment workspace utilize ivory backings, deep navy headers, and spacious padding to maintain a clean clinical ledger layout.
+* **Visual Polish:** Cards inside the Objective Assessment workspace utilize white backings, deep navy headers, and spacious padding to maintain a clean clinical ledger layout.
