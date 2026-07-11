@@ -3087,9 +3087,9 @@ body.nc-client #section-client-coach > div:first-child {
 
 /* ─────────────────────────────────────────────────────────────
    FitExpert-inspired Porcelain Emerald overrides
-   - Scopes crisp porcelain canvas (#F8F9F9) & white panels (#FFFFFF) to the logged-in shell
-   - Utilizes strong emerald green (#047857) as the brand accent
-   - Enforces very high contrast typography (#181C32, #333639, #5E6278)
+   - Scopes clean porcelain canvas (#F8F9F9) & white panels (#FFFFFF) to the logged-in shell
+   - Utilizes strong emerald green (#047857) selectively as the brand accent
+   - Enforces high contrast, comfortable typography (#181C32, #4B5565, #7E8299)
    - Minimizes glows and heavy drop-shadows for a flat, modern SaaS feel
    - Preserves semantic warning/danger colors (rose/amber/green)
    - Retains restrained royal gold (#D4AF37) for premium highlights
@@ -3103,26 +3103,26 @@ body.nc-bright {
   --nc-bg-card:       #FFFFFF !important;
 
   --nc-text-primary:   #181C32 !important;  /* dark primary text */
-  --nc-text-secondary: #333639 !important;  /* secondary dark text */
-  --nc-text-muted:     #5E6278 !important;  /* muted slate gray */
+  --nc-text-secondary: #4B5565 !important;  /* secondary comfortable text */
+  --nc-text-muted:     #7E8299 !important;  /* muted comfortable slate */
 
-  --nc-border:        rgba(24, 28, 50, 0.07) !important;  /* subtle dark slate hairline */
+  --nc-border:        rgba(24, 28, 50, 0.06) !important;  /* subtle dark slate hairline */
   --nc-border-strong: rgba(24, 28, 50, 0.12) !important;
 
-  --nc-shadow-sm:   0 1px 2px rgba(24, 28, 50, 0.02) !important;
-  --nc-shadow-md:   0 4px 12px rgba(24, 28, 50, 0.03) !important;
-  --nc-shadow-lg:   0 8px 24px rgba(24, 28, 50, 0.04) !important;
-  --nc-shadow-card: 0 1px 3px rgba(24, 28, 50, 0.02), 0 4px 16px rgba(24, 28, 50, 0.03) !important;
+  --nc-shadow-sm:   0 1px 2px rgba(24, 28, 50, 0.015) !important;
+  --nc-shadow-md:   0 3px 8px rgba(24, 28, 50, 0.02) !important;
+  --nc-shadow-lg:   0 8px 18px rgba(24, 28, 50, 0.02) !important;
+  --nc-shadow-card: 0 1px 2px rgba(24, 28, 50, 0.015), 0 3px 8px rgba(24, 28, 50, 0.02) !important;
 
   --nc-glass-bg:     rgba(255, 255, 255, 0.95) !important;
-  --nc-glass-border: rgba(24, 28, 50, 0.07) !important;
+  --nc-glass-border: rgba(24, 28, 50, 0.06) !important;
 
   /* Accent overrides - map main brand actions to luxurious emerald */
   --nc-indigo:        #047857 !important; /* luxurious emerald */
-  --nc-indigo-ink:    #065F46 !important; /* strong emerald */
+  --nc-indigo-ink:    #035E43 !important; /* strong emerald hover */
   --nc-indigo-soft:   rgba(4, 120, 87, 0.06) !important;
-  --nc-violet:        #10B981 !important; /* bright emerald */
-  --nc-violet-soft:   rgba(16, 185, 129, 0.06) !important;
+  --nc-violet:        #18A058 !important; /* soft emerald accent */
+  --nc-violet-soft:   rgba(24, 160, 88, 0.06) !important;
   --nc-lavender:      #EEF8F4 !important;
   --nc-amber-soft:    rgba(212, 175, 55, 0.08) !important;
 
@@ -3132,28 +3132,28 @@ body.nc-bright {
   --bg-surface: #FFFFFF !important;
   --bg-raised:  #FFFFFF !important;
   --bg-overlay: #FFFFFF !important;
-  --bg-hover:   rgba(24, 28, 50, 0.015) !important;
+  --bg-hover:   rgba(24, 28, 50, 0.01) !important;
 
-  --border-subtle:  rgba(24, 28, 50, 0.04) !important;
-  --border-default: rgba(24, 28, 50, 0.07) !important;
+  --border-subtle:  rgba(24, 28, 50, 0.03) !important;
+  --border-default: rgba(24, 28, 50, 0.06) !important;
   --border-strong:  rgba(24, 28, 50, 0.12) !important;
 
   --text-primary:   #181C32 !important;
-  --text-secondary: #333639 !important;
-  --text-tertiary:  #5E6278 !important;
+  --text-secondary: #4B5565 !important;
+  --text-tertiary:  #7E8299 !important;
 
   --lime:           #047857 !important;
-  --lime-dim:       #065F46 !important;
-  --lime-glow:      rgba(4, 120, 87, 0.08) !important;
-  --lime-ghost:     rgba(4, 120, 87, 0.03) !important;
+  --lime-dim:       #035E43 !important;
+  --lime-glow:      rgba(4, 120, 87, 0.05) !important;
+  --lime-ghost:     rgba(4, 120, 87, 0.02) !important;
 
   --teal:           #047857 !important;
-  --teal-glow:      rgba(4, 120, 87, 0.08) !important;
+  --teal-glow:      rgba(4, 120, 87, 0.05) !important;
 
   background: var(--nc-bg-primary) !important;
 }
 
-/* Base body background override (soft gradient treatment) */
+/* Base body background override */
 body.nc-bright {
   background: var(--nc-bg-primary) !important;
   color: var(--nc-text-primary) !important;
@@ -3174,7 +3174,7 @@ body.nc-bright .sidebar .nc-sidebar-wordmark {
   color: var(--nc-text-primary) !important;
 }
 body.nc-bright .sidebar .nc-sidebar-wordmark .nc-sidebar-mark {
-  filter: drop-shadow(0 1px 4px rgba(4, 120, 87, 0.15)) !important;
+  filter: drop-shadow(0 1px 4px rgba(4, 120, 87, 0.1)) !important;
 }
 body.nc-bright .sidebar .nc-sidebar-wordmark .w-ast {
   color: var(--nc-text-primary) !important;
@@ -3195,7 +3195,7 @@ body.nc-bright .sidebar .nav-item:hover {
   color: var(--nc-text-primary) !important;
 }
 body.nc-bright .sidebar .nav-item.active {
-  background: rgba(4, 120, 87, 0.05) !important;
+  background: rgba(4, 120, 87, 0.06) !important; /* Soft emerald active background */
   color: var(--nc-indigo) !important;
   border-left-color: var(--nc-indigo) !important;
   font-weight: 600 !important;
@@ -3360,7 +3360,7 @@ body.nc-bright select,
 body.nc-bright textarea {
   background: #FFFFFF !important;
   color: #181C32 !important;
-  border: 1px solid rgba(24, 28, 50, 0.15) !important;
+  border: 1px solid rgba(24, 28, 50, 0.12) !important; /* Softer, subtle grey border close to FitExpert */
   border-radius: 8px !important;
   padding: 10px 14px !important;
   font-family: var(--nc-font-body) !important;
@@ -3384,7 +3384,7 @@ body.nc-bright .form-input::placeholder,
 body.nc-bright .neu-input::placeholder,
 body.nc-bright input::placeholder,
 body.nc-bright textarea::placeholder {
-  color: #5E6278 !important;
+  color: #7E8299 !important;
   opacity: 0.85 !important;
 }
 
