@@ -388,6 +388,12 @@ button { font: inherit; cursor: pointer; border: none; background: none; color: 
   }
 }
 
+@media (max-width: 480px) {
+  .nc-nav-cta .nc-btn--primary {
+    display: none !important;
+  }
+}
+
 /* ── HERO ───────────────────────────────────────────────────── */
 .nc-hero {
   position: relative;
