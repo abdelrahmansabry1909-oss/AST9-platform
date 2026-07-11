@@ -1365,7 +1365,7 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
           <div class="empty-state" style="padding:40px 20px; text-align:center; border:1px dashed var(--border-subtle); border-radius:12px; background:var(--bg-card);">
             <span class="empty-icon" style="font-size:24px; margin-bottom:8px; display:block;">📂</span>
             <div class="empty-title" style="font-weight:600; color:var(--text-primary); margin-bottom:4px;">No program versions yet</div>
-            <p class="empty-desc" style="font-size:12px; color:var(--text-muted); margin-bottom:16px;">Create New Draft to start this client’s first program.</p>
+            <p class="empty-desc" style="font-size:12px; color:var(--text-muted); margin-bottom:16px;">Build New Program to start this client’s first program.</p>
             <button class="btn btn-primary btn-sm" onclick="Dashboard.createBlankDraft('${clientId}')">+ Build New Program</button>
           </div>
         `;
