@@ -160,3 +160,9 @@ Verification legend:
 - **Files:** `app.html`, `index.html`, `css/landing.css`, `css/neucore-premium.css`, `docs/DESIGN_SYSTEM.md`, `docs/DEV_LOG.md`.
 - **Verification:** Computed display validated (visible = `block`, hidden = `none`), viewports (390px) checked, no console errors, and Vite build passes.
 
+### Mobile Navbar Responsive Cleanup (P-FE-3 Follow-up)
+- **Date:** 2026-07-11
+- **What:** Fixed a mobile responsive overflow issue where the "Explore Platform" nav CTA was overflowing the viewport on narrow screens (e.g. 375px). Modified the landing page layout to hide the primary navbar CTA on mobile devices (width <= 480px) to prevent layout breakages while keeping the "Sign In" button fully visible and reachable.
+- **Files:** `css/landing.css`, `docs/DEV_LOG.md`.
+- **Verification:** Built successfully (`npm run build`), captured desktop and mobile screenshots (390px/375px), verified zero horizontal overflow, and confirmed Sign In button is fully reachable.
+
