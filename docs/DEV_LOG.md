@@ -18,6 +18,20 @@ Verification legend:
 
 ## NeuCore movement scoring
 
+### Gait Simulation Loop & Simulator Shell Polish
+- **Date:** 2026-07-12 · branch `feat/gait-loop-and-simulator-shell-polish`
+- **What:** Refined the NeuCore Movement Simulation to fix gait animation jumps/reversals and polish the simulator shell:
+  1. Cyclic phase interpolation between the last frame (`terminal_swing`) and first frame (`loading_response`) for a seamless animation loop.
+  2. Treadmill root motion centered in the viewport with depth position.z = 0 and yaw rotation.y = 0.
+  3. Frame-delta clamp (`Math.min(rawDt, 0.05)`) and explicit RAF handle ownership to prevent frame skips and duplicate RAF chains.
+  4. Scoped simulator styling under `#neucore-gait-container` using the bright porcelain/emerald theme, removing global CSS leaks and removing `!important` from the gait toolbar display declaration.
+  5. Refactored the phase timeline strip to use clean semantic selectors and highlight active (emerald), moderate (amber), and severe (red) states.
+  6. Implemented a horizontal worst-phase card rail on mobile (< 480px) with scroll snapping, hidden connector lines, and zero card overlaps.
+  7. Corrected the Stop click handler during analysis to clear the overlay, reset bones to neutral, and restore the overview camera.
+  8. Integrated with the non-recursive ScoringEngine and verified legacy composite score remains at `82.2%`.
+- **Files:** `css/neucore-premium.css`, `src/neucore/gait/GaitAnalysisPage.js`, `src/neucore/gait/GaitPhaseStrip.js`, `src/neucore/gait/PhaseAnalysisOverlay.js`, `src/neucore/simulation/MovementSimulator.js`, `docs/DESIGN_SYSTEM.md`, `docs/DEV_LOG.md`, `docs/ISSUE_LOG.md`.
+- **Verification:** Built successfully (`npm run build`). Verified the 17-point regression checklist using a Playwright script: no overlapping cards, no horizontal document overflow at 390px/375px, Stop/Resume transitions work correctly, and all six unit tests pass.
+
 ### Fix — recursive composite score ("Score unavailable")
 - **Date:** 2026-07-12 · branch `fix/neucore-scoring-composite-recursion`
 - **What:** `ScoringEngine.fullScores()` ⇄ `_composite()` recursed infinitely
