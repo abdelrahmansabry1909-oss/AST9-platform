@@ -16,6 +16,33 @@ Verification legend:
 
 ---
 
+## NeuCore movement scoring
+
+### Fix — recursive composite score ("Score unavailable")
+- **Date:** 2026-07-12 · branch `fix/neucore-scoring-composite-recursion`
+- **What:** `ScoringEngine.fullScores()` ⇄ `_composite()` recursed infinitely
+  (`RangeError`), which `GaitAnalysisPage` caught and rendered as "Score
+  unavailable" in the Movement Simulation. Fixed by computing the four component
+  scores **once** in `fullScores()` and passing them into a non-recursive
+  `_composite(rom, control, force, neurology)` (default params preserve the
+  arg-less `phaseRecommendation()` call). The arithmetic mean, null filtering,
+  every normalization value, the phase thresholds, field names, weights, and
+  recommendations are all **unchanged**.
+- **Files:** `src/neucore/scoring/ScoringEngine.js`,
+  `tests/unit/scoring-engine-composite.test.js` (new), `docs/ISSUE_LOG.md` (#7).
+  No DB/RLS/auth/CSS/HTML/program-generation change.
+- **Verification:** `node --check`; `node --test` (6/6 pass — no-recursion,
+  normative-finite, null-filtering mean, empty case, phase thresholds 80/60/40 +
+  referral, numeric-for-Movement-Simulation); `npm run build` green;
+  `git diff --check` clean. Owner visual confirm of numeric scores in the live
+  Movement Simulation pending.
+- **Discovered (deferred):** `'Insufficient data'` is currently unreachable because
+  `_neurologyScore()` returns 0 (not null) with no balance data (`null - 0 → 0`) —
+  a clinical-algorithm change, out of scope for this fix. See
+  [ISSUE_LOG.md](ISSUE_LOG.md) #7.
+
+---
+
 ## Client access subscriptions
 
 ### Phase A — Admin/coach subscription management

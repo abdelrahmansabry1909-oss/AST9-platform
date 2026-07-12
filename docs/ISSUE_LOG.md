@@ -73,3 +73,32 @@
   and [KNOWN_LIMITATIONS.md](KNOWN_LIMITATIONS.md).
 - **Verified:** Backend behavior verified by impersonated SQL; UI verified by owner.
 - **Remaining:** Owner manual smoke remains the system of record for save flows.
+
+## 7. Movement composite score "Score unavailable" (infinite recursion)
+- **Symptoms:** The Movement Simulation / gait panel showed "Score unavailable"
+  instead of numeric scores.
+- **Root cause:** `ScoringEngine.fullScores()` called `_composite()`, and
+  `_composite()` called `fullScores()` again → infinite recursion → `RangeError`
+  (max call stack), which `GaitAnalysisPage` caught and rendered as
+  "Score unavailable".
+- **Fix:** `fix/neucore-scoring-composite-recursion` — compute the four component
+  scores once in `fullScores()` and pass them into
+  `_composite(rom, control, force, neurology)` (default params keep the arg-less
+  `phaseRecommendation()` call working). No recursion; the arithmetic mean, null
+  filtering, normalization values, phase thresholds, field names, weights, and
+  recommendations are all unchanged.
+- **Verified:** `node --check`;
+  `node --test tests/unit/scoring-engine-composite.test.js` (6/6 pass:
+  no-recursion, normative-finite, null-filtering mean, empty-case, phase
+  thresholds 80/60/40 + referral, numeric-for-Movement-Simulation);
+  `npm run build` green; `git diff --check` clean.
+- **Discovered (deferred, out of scope):** with no balance data,
+  `_neurologyScore()` returns `Math.max(0, _avg([]) - painPenalty)`, and `null - 0`
+  coerces to `0`, so `neurology_score` is `0` (never null). The composite is
+  therefore never null and the `'Insufficient data'` recommendation branch is
+  **unreachable** — an empty assessment resolves to `Phase 1 — Foundation`
+  (referral). Making `'Insufficient data'` reachable would change a clinical
+  algorithm, which this recursion fix deliberately does **not** touch. Flagged for
+  a separate owner decision.
+- **Remaining:** Owner visual confirm the Movement Simulation panel now shows
+  numeric scores in the live app.

@@ -5,12 +5,20 @@ export class ScoringEngine {
   }
 
   fullScores() {
+    // Compute the four component scores once, then derive the composite from
+    // those values. _composite() used to call fullScores(), which called
+    // _composite() again — infinite recursion (RangeError, surfaced as
+    // "Score unavailable"). Passing the components in breaks the cycle.
+    const rom_score       = this._romScore();
+    const control_score   = this._controlScore();
+    const force_score     = this._forceScore();
+    const neurology_score = this._neurologyScore();
     return {
-      rom_score:       this._romScore(),
-      control_score:   this._controlScore(),
-      force_score:     this._forceScore(),
-      neurology_score: this._neurologyScore(),
-      composite_score: this._composite(),
+      rom_score,
+      control_score,
+      force_score,
+      neurology_score,
+      composite_score: this._composite(rom_score, control_score, force_score, neurology_score),
     };
   }
 
@@ -62,10 +70,17 @@ export class ScoringEngine {
     return Math.max(0, this._avg(vals) - painPenalty);
   }
 
-  _composite() {
-    const s = this.fullScores();
-    const scores = [s.rom_score, s.control_score, s.force_score, s.neurology_score]
-      .filter(v => v != null);
+  // Arithmetic mean of the four component scores (null values excluded).
+  // Callers that already have the components (fullScores) pass them in;
+  // phaseRecommendation() calls with no args and the defaults recompute them.
+  // Either way this never calls fullScores(), so there is no recursion.
+  _composite(
+    rom       = this._romScore(),
+    control   = this._controlScore(),
+    force     = this._forceScore(),
+    neurology = this._neurologyScore(),
+  ) {
+    const scores = [rom, control, force, neurology].filter(v => v != null);
     if (!scores.length) return null;
     return Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
   }
