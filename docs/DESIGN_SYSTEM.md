@@ -126,8 +126,11 @@ To prevent breaking public automated tests, developers must never delete or rena
 * All semantic warning/danger colors (rose/red for errors, amber for warnings, green/emerald for positive success logs) must remain untouched. Primary brand emerald is reserved strictly for main brand accents/CTAs.
 
 ### Objective Assessment Readability & Inputs
-* **High Contrast Values:** Numerical result inputs (`.form-input` or `input[type="number"]`) must be fully readable with text color `#181C32` on a pure white `#FFFFFF` background.
+* **High Contrast Values:** Numerical result inputs (`.form-input` or `input[type="number"]` or `select`) must be fully readable with text color `#181C32` on a pure white `#FFFFFF` background. Input values are centered with no spinner arrows for optimal density.
+* **Input Sizes:** Fixed input height of `44px` with a minimum width of `60px` to prevent squeezing. Horizontal padding is constrained to `8px 10px` to prevent typed numbers from being clipped or hidden.
+* **Responsive Grid/Tables:** Hip and shoulder assessment tables enforce a minimum width of `480px` on their grids, allowing horizontal swiping/scrolling via `overflow-x: auto` on narrow cards instead of squeezing inputs.
 * **Readable Secondary Text:** Placeholders must have a high contrast muted slate color `#7E8299` for clear readability.
-* **Vertical Display Safeguards:** Inputs must have a fixed height of `42px` with `box-sizing: border-box` to prevent vertical text clipping. Active input fields must never have opacity below `1`.
-* **Focus States:** Focused inputs must present an emerald outline `#047857` with an emerald ring glow `rgba(16, 185, 129, 0.18)`.
+* **Focus States:** Focused inputs must present an emerald outline `#047857` with an emerald ring glow `rgba(4, 120, 87, 0.12)`.
+* **Pain Scale Sliders:** Range sliders utilize a visible gradient from green to dark red (`linear-gradient(to right, #22C55E 0%, #EAB308 40%, #F97316 60%, #EF4444 80%, #991B1B 100%)`). The slider thumb is styled as a white circle with a `2px` emerald border and a subtle elevation shadow.
+* **Skeleton Canvas Zone Rails:** Side zone names/chips (`.zone-rail`, `.zone-chip`) are hidden in the Objective Tab to focus purely on the 3D anatomical model.
 * **Visual Polish:** Cards inside the Objective Assessment workspace utilize white backings, deep navy headers, and spacious padding to maintain a clean clinical ledger layout with minimal heavy outlines.
