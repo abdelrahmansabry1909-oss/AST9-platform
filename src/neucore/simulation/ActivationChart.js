@@ -33,27 +33,40 @@ export class ActivationChart {
   }
 
   _buildDOM() {
+    const isBright = document.body.classList.contains('nc-bright');
+    const wrapBg = isBright ? '#FFFFFF' : 'rgba(5,13,26,0.92)';
+    const wrapBorder = isBright ? '1px solid rgba(24, 28, 50, 0.08)' : '0.5px solid rgba(0,212,255,0.2)';
+    const wrapShadow = isBright ? 'var(--nc-shadow-card)' : 'none';
+    const labelColor = isBright ? '#181C32' : 'inherit';
+    const subColor = isBright ? '#7E8299' : 'rgba(0,212,255,0.6)';
+    const indicatorBorder = isBright ? '1px solid rgba(4, 120, 87, 0.2)' : '0.5px solid rgba(0,212,255,0.4)';
+    const indicatorColor = isBright ? '#047857' : '#00D4FF';
+    const indicatorBg = isBright ? 'rgba(4, 120, 87, 0.06)' : 'rgba(0,212,255,0.08)';
+    const normLegendText = isBright ? '#4B5565' : 'rgba(0,212,255,0.6)';
+    const normLegendBar = isBright ? 'rgba(4, 120, 87, 0.15)' : '#00D4FF44';
+    const clientLegendText = isBright ? '#4B5565' : 'rgba(255,45,120,0.7)';
+
     this.container.innerHTML = `
       <div class="activation-chart-wrap" style="
-        background:rgba(5,13,26,0.92);border:0.5px solid rgba(0,212,255,0.2);
+        background:${wrapBg};border:${wrapBorder};box-shadow:${wrapShadow};
         border-radius:12px;padding:16px;backdrop-filter:blur(16px);
       ">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
           <div>
-            <div class="nc-label">Muscle Activation</div>
-            <div style="font-size:12px;color:rgba(0,212,255,0.6)">Source: Neumann 3rd Ed.</div>
+            <div class="nc-label" style="color:${labelColor}">Muscle Activation</div>
+            <div style="font-size:12px;color:${subColor}">Source: Neumann 3rd Ed.</div>
           </div>
           <div id="phase-indicator" style="
             font-size:11px;font-weight:500;padding:4px 12px;border-radius:99px;
-            border:0.5px solid rgba(0,212,255,0.4);color:#00D4FF;background:rgba(0,212,255,0.08);
+            border:${indicatorBorder};color:${indicatorColor};background:${indicatorBg};
           ">—</div>
         </div>
         <canvas id="activation-canvas" height="280"></canvas>
         <div style="display:flex;gap:16px;margin-top:12px;flex-wrap:wrap">
-          <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(0,212,255,0.6)">
-            <div style="width:16px;height:4px;background:#00D4FF44;border-radius:2px"></div>Normative
+          <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:${normLegendText}">
+            <div style="width:16px;height:4px;background:${normLegendBar};border-radius:2px"></div>Normative
           </div>
-          <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(255,45,120,0.7)">
+          <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:${clientLegendText}">
             <div style="width:16px;height:4px;background:#FF2D78;border-radius:2px"></div>Client
           </div>
         </div>
@@ -66,16 +79,23 @@ export class ActivationChart {
   }
 
   _initChart() {
+    const isBright = document.body.classList.contains('nc-bright');
     const labels     = CHART_MUSCLES.map(m => m.label);
     const normData   = CHART_MUSCLES.map(m => this.activation[m.key]?.mid_stance?.normative ?? 0);
     const actualData = CHART_MUSCLES.map(m => this.activation[m.key]?.mid_stance?.actual   ?? 0);
+
+    const normBg = isBright ? 'rgba(4, 120, 87, 0.08)' : 'rgba(0,212,255,0.15)';
+    const normBorder = isBright ? 'rgba(4, 120, 87, 0.35)' : 'rgba(0,212,255,0.5)';
+    const gridColor = isBright ? 'rgba(24, 28, 50, 0.06)' : 'rgba(0,212,255,0.06)';
+    const tickColor = isBright ? '#4B5565' : 'rgba(0,212,255,0.55)';
+    const titleColor = isBright ? '#4B5565' : 'rgba(0,212,255,0.5)';
 
     this.chart = new Chart(this._canvas, {
       type: 'bar',
       data: {
         labels,
         datasets: [
-          { label:'Normative %MVIC', data:normData,   backgroundColor:'rgba(0,212,255,0.15)', borderColor:'rgba(0,212,255,0.5)', borderWidth:1, borderRadius:3 },
+          { label:'Normative %MVIC', data:normData,   backgroundColor:normBg, borderColor:normBorder, borderWidth:1, borderRadius:3 },
           { label:'Client %MVIC',    data:actualData, backgroundColor:CHART_MUSCLES.map(m => m.color+'CC'), borderColor:CHART_MUSCLES.map(m => m.color), borderWidth:1, borderRadius:3 },
         ],
       },
@@ -85,8 +105,11 @@ export class ActivationChart {
         plugins: {
           legend: { display: false },
           tooltip: {
-            backgroundColor:'rgba(5,13,26,0.95)', borderColor:'rgba(0,212,255,0.3)', borderWidth:1,
-            titleColor:'#00D4FF', bodyColor:'rgba(200,240,255,0.8)',
+            backgroundColor: isBright ? '#FFFFFF' : 'rgba(5,13,26,0.95)',
+            borderColor: isBright ? 'rgba(24, 28, 50, 0.08)' : 'rgba(0,212,255,0.3)',
+            borderWidth: 1,
+            titleColor: isBright ? '#047857' : '#00D4FF',
+            bodyColor: isBright ? '#4B5565' : 'rgba(200,240,255,0.8)',
             callbacks: {
               afterBody: (items) => {
                 const muscle = CHART_MUSCLES[items[0].dataIndex];
@@ -98,12 +121,12 @@ export class ActivationChart {
           },
         },
         scales: {
-          x: { grid:{ color:'rgba(0,212,255,0.06)' }, ticks:{ color:'rgba(0,212,255,0.55)', font:{ size:10 } } },
+          x: { grid:{ color:gridColor }, ticks:{ color:tickColor, font:{ size:10 } } },
           y: {
             min:0, max:100,
-            grid:{ color:'rgba(0,212,255,0.06)' },
-            ticks:{ color:'rgba(0,212,255,0.55)', font:{ size:10 }, callback:v => v+'%' },
-            title:{ display:true, text:'%MVIC', color:'rgba(0,212,255,0.5)', font:{ size:11 } },
+            grid:{ color:gridColor },
+            ticks:{ color:tickColor, font:{ size:10 }, callback:v => v+'%' },
+            title:{ display:true, text:'%MVIC', color:titleColor, font:{ size:11 } },
           },
         },
       },
@@ -133,17 +156,25 @@ export class ActivationChart {
 
     if (!affected.length) { this._notesEl.innerHTML = ''; return; }
 
+    const isBright = document.body.classList.contains('nc-bright');
+    const labelColor = isBright ? '#181C32' : 'inherit';
+    const noteColor = isBright ? '#4B5565' : 'rgba(200,240,255,0.7)';
+    const noteBorder = isBright ? '0.5px solid rgba(24, 28, 50, 0.06)' : '0.5px solid rgba(0,212,255,0.08)';
+
     this._notesEl.innerHTML = `
-      <div class="nc-label" style="margin-bottom:6px">Notable this phase</div>
-      ${affected.map(m => `
-        <div style="font-size:11px;color:rgba(200,240,255,0.7);padding:4px 0;
-                   border-bottom:0.5px solid rgba(0,212,255,0.08);display:flex;gap:8px">
-          <span style="min-width:60px;font-weight:500;color:${m.delta < 0 ? '#FF2D78' : '#00FF88'}">
-            ${m.label} ${m.delta > 0 ? '+' : ''}${m.delta}%
-          </span>
-          <span>${m.reason}</span>
-        </div>
-      `).join('')}
+      <div class="nc-label" style="margin-bottom:6px;color:${labelColor}">Notable this phase</div>
+      ${affected.map(m => {
+        const deltaColor = m.delta < 0 ? '#FF2D78' : (isBright ? '#18A058' : '#00FF88');
+        return `
+          <div style="font-size:11px;color:${noteColor};padding:4px 0;
+                     border-bottom:${noteBorder};display:flex;gap:8px">
+            <span style="min-width:60px;font-weight:500;color:${deltaColor}">
+              ${m.label} ${m.delta > 0 ? '+' : ''}${m.delta}%
+            </span>
+            <span>${m.reason}</span>
+          </div>
+        `;
+      }).join('')}
     `;
   }
 

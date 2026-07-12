@@ -3866,3 +3866,178 @@ body.nc-bright #tab-objective .rom-input {
   text-align: center !important;
   opacity: 1 !important;
 }
+
+/* 7. Gait Analysis & Movement Simulation Polish (Bright mode) */
+body.nc-bright .gait-page {
+  background: #FFFFFF !important;
+  border: 1px solid rgba(24, 28, 50, 0.06) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 1px 2px rgba(24, 28, 50, 0.015), 0 3px 8px rgba(24, 28, 50, 0.02) !important;
+  color: #181C32 !important;
+}
+
+body.nc-bright .gait-page .gait-header div[style*="rgba(0,212,255,0.5)"] {
+  color: var(--nc-text-muted) !important;
+}
+
+body.nc-bright .gait-page .gait-header div[style*="rgba(200,240,255,0.95)"] {
+  color: var(--nc-text-primary) !important;
+  font-family: var(--nc-font-display) !important;
+}
+
+body.nc-bright .gait-page #sim-canvas-wrap {
+  background: #050D1A !important; /* Keep dark for 3D skeleton contrast */
+  border: 1px solid rgba(24, 28, 50, 0.08) !important;
+}
+
+body.nc-bright .gait-page #gait-strip-wrap {
+  background: #FFFFFF !important;
+  border: 1px solid rgba(24, 28, 50, 0.08) !important;
+}
+
+body.nc-bright .gait-page #gait-strip-wrap .nc-label {
+  color: var(--nc-text-primary) !important;
+}
+
+body.nc-bright .gait-page #deficit-cards > div {
+  background: #F8F9F9 !important;
+  border: 1px solid rgba(24, 28, 50, 0.06) !important;
+}
+
+body.nc-bright .gait-page #deficit-cards > div div[style*="color:rgba(200,240,255,0.9)"] {
+  color: var(--nc-text-secondary) !important;
+}
+
+body.nc-bright .gait-page #deficit-cards > div div[style*="color:rgba(0,212,255,0.55)"] {
+  color: var(--nc-text-muted) !important;
+}
+
+/* Score summary colors */
+body.nc-bright .gait-page #score-summary {
+  background: #F8F9F9 !important;
+  border: 1px solid rgba(24, 28, 50, 0.06) !important;
+  color: #181C32 !important;
+}
+
+body.nc-bright .gait-page #score-summary .nc-label {
+  color: var(--nc-text-primary) !important;
+}
+
+body.nc-bright .gait-page #score-summary div[style*="color:rgba(0,212,255,0.5)"] {
+  color: var(--nc-text-muted) !important;
+}
+
+/* Specific score values mapping to clinical/brand colors */
+body.nc-bright .gait-page #score-summary div[style*="color:#00D4FF"] {
+  color: #047857 !important; /* ROM: Emerald */
+}
+body.nc-bright .gait-page #score-summary div[style*="color:#00FFF0"] {
+  color: #10B981 !important; /* Control: Soft Emerald */
+}
+body.nc-bright .gait-page #score-summary div[style*="color:#FACC15"] {
+  color: #F59E0B !important; /* Force: Amber */
+}
+body.nc-bright .gait-page #score-summary div[style*="color:#FF6B6B"] {
+  color: #EF4444 !important; /* Neurology: Red */
+}
+
+/* Composite recommendation */
+body.nc-bright .gait-page #score-summary div[style*="color:rgba(0,212,255,0.55)"] {
+  color: var(--nc-text-secondary) !important;
+}
+
+/* Worst case panel (bottom, soft warm warning card) */
+body.nc-bright .gait-page #worst-case-panel {
+  background: #FEF2F2 !important; /* Soft warm danger background */
+  border: 1px solid #FCA5A5 !important;
+}
+
+body.nc-bright .gait-page #worst-case-panel div[style*="color:#FF2D78"] {
+  color: #991B1B !important; /* Dark warning red */
+}
+
+body.nc-bright .gait-page #worst-case-panel #worst-case-content > div {
+  background: #FFFFFF !important;
+  border: 1px solid #FEE2E2 !important;
+  color: #181C32 !important;
+}
+
+body.nc-bright .gait-page #worst-case-panel #worst-case-content div[style*="rgba(200,240,255,0.9)"] {
+  color: var(--nc-text-secondary) !important;
+}
+
+body.nc-bright .gait-page #worst-case-panel #worst-case-content div[style*="rgba(0,212,255,0.5)"] {
+  color: var(--nc-text-muted) !important;
+}
+
+/* Premium light/emerald overrides for simulation toolbar buttons */
+body.nc-bright #neucore-gait-container .nc-toolbar-btn {
+  background: #FFFFFF !important;
+  border: 1px solid rgba(24, 28, 50, 0.12) !important;
+  color: #4B5565 !important;
+  box-shadow: none !important;
+}
+
+body.nc-bright #neucore-gait-container .nc-toolbar-btn:hover {
+  background: rgba(4, 120, 87, 0.06) !important;
+  border-color: #047857 !important;
+  color: #047857 !important;
+}
+
+body.nc-bright #neucore-gait-container #btn-sim-start,
+body.nc-bright #neucore-gait-container #btn-resume {
+  border-color: #18A058 !important;
+  color: #18A058 !important;
+}
+
+body.nc-bright #neucore-gait-container #btn-analyze {
+  border-color: #F59E0B !important;
+  color: #F59E0B !important;
+}
+
+body.nc-bright #neucore-gait-container #btn-worst-case {
+  border-color: #EF4444 !important;
+  color: #EF4444 !important;
+}
+body.nc-bright #neucore-gait-container #btn-worst-case:hover {
+  background: #FEF2F2 !important;
+  color: #EF4444 !important;
+}
+
+/* Layout button styling for #movement-analysis-btn */
+#movement-analysis-btn {
+  margin-bottom: 12px !important;
+  width: 280px !important;
+}
+
+/* Bright mode styling overrides */
+body.nc-bright #movement-analysis-btn {
+  background: #047857 !important;
+  color: #FFFFFF !important;
+  border: none !important;
+  font-weight: 600 !important;
+  transition: background-color 0.15s ease, transform 0.15s ease !important;
+}
+body.nc-bright #movement-analysis-btn:hover {
+  background: #065F46 !important;
+  transform: translateY(-1px) !important;
+}
+body.nc-bright #movement-analysis-btn:active {
+  transform: translateY(1px) !important;
+}
+
+/* Dark mode styling overrides */
+body:not(.nc-bright) #movement-analysis-btn {
+  background: #047857 !important;
+  color: #FFFFFF !important;
+  border: none !important;
+  font-weight: 600 !important;
+  transition: background-color 0.15s ease, transform 0.15s ease !important;
+}
+body:not(.nc-bright) #movement-analysis-btn:hover {
+  background: #065F46 !important;
+  transform: translateY(-1px) !important;
+}
+body:not(.nc-bright) #movement-analysis-btn:active {
+  transform: translateY(1px) !important;
+}

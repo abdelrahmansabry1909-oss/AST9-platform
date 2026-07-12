@@ -1539,12 +1539,17 @@
 
         <!-- Generate button -->
         <div style="text-align:center;margin-bottom:var(--sp-6)">
-          <button class="btn btn-primary btn-xl" id="generate-btn" onclick="Dashboard.generateProgram()">
-            ⚡ Generate Program
+          <button class="btn btn-xl" id="movement-analysis-btn">
+            📊 Run Movement Analysis
           </button>
-          <button class="btn btn-ghost btn-xl" id="build-manual-btn" onclick="Dashboard.buildManualProgram()" style="margin-left:10px">
-            ✎ Build Manually
-          </button>
+          <div style="display:flex;justify-content:center;gap:10px">
+            <button class="btn btn-primary btn-xl" id="generate-btn" onclick="Dashboard.generateProgram()">
+              ⚡ Generate Program
+            </button>
+            <button class="btn btn-ghost btn-xl" id="build-manual-btn" onclick="Dashboard.buildManualProgram()">
+              ✎ Build Manually
+            </button>
+          </div>
           <div style="font-size:12px;color:var(--text-tertiary);margin-top:8px">
             Generate runs the AI engines · Build Manually opens a blank program builder
           </div>

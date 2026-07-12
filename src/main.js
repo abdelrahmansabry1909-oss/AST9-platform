@@ -201,23 +201,116 @@ function _initObjectiveSidebar() {
   if (objTab.classList.contains('active')) initSide();
 }
 
-// ── 3. Generate button → GaitAnalysisPage ────────────────────────
-function _initGenerateButton() {
-  const btn = document.getElementById('generate-btn');
-  if (!btn) return;
+// Helper to get active client
+function _getActiveClient() {
+  const sel  = document.getElementById('ns-client-select');
+  const id   = sel?.value || null;
+  const name = (sel && sel.selectedIndex > 0) ? sel.options[sel.selectedIndex].textContent.trim() : '';
+  return { id, name };
+}
 
-  // Capture phase: fires before the existing onclick="Dashboard.generateProgram()"
-  btn.addEventListener('click', () => {
-    const assessment  = _collectAssessment();
-    const gaitWrap    = document.getElementById('neucore-gait-container');
-    if (!gaitWrap) return;
+// Generate assessment signature to detect client/form value changes
+function _getAssessmentSignature() {
+  const client = _getActiveClient();
+  const legacyAssessment = typeof ScoringEngine !== 'undefined' ? ScoringEngine.readForm() : {};
+  const neucoreAssessment = _collectAssessment();
+  return `${client.id}:${JSON.stringify(legacyAssessment)}:${JSON.stringify(neucoreAssessment)}`;
+}
 
+// Reusable function to run movement analysis
+function runMovementAnalysis() {
+  const client = _getActiveClient();
+  if (!client.id) {
+    if (typeof Dashboard !== 'undefined' && Dashboard.toast) {
+      Dashboard.toast('Please start a client session first.', 'error');
+    } else {
+      alert('Please start a client session first.');
+    }
+    return false;
+  }
+
+  const legacyAssessment = typeof ScoringEngine !== 'undefined' ? ScoringEngine.readForm() : {};
+  const neucoreAssessment = _collectAssessment();
+
+  // Run local engines (calculate & render)
+  if (typeof ScoringEngine !== 'undefined' && typeof GaitEngine !== 'undefined') {
+    const scores = ScoringEngine.calculate(legacyAssessment);
+    const gait   = GaitEngine.analyze(legacyAssessment);
+
+    ScoringEngine.renderScores(scores);
+    GaitEngine.renderGaitAnalysis(gait);
+
+    // Unhide panels
+    document.getElementById('score-panel')?.classList.remove('hidden');
+    document.getElementById('gait-panel')?.classList.remove('hidden');
+    document.getElementById('gait-phase-strip')?.classList.remove('hidden');
+  }
+
+  // Load 3D skeleton simulation
+  const gaitWrap = document.getElementById('neucore-gait-container');
+  if (gaitWrap) {
     gaitWrap.classList.remove('hidden');
     setTimeout(() => gaitWrap.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
 
     gaitPage?.destroy();
-    gaitPage = new GaitAnalysisPage(gaitWrap, assessment);
-  }, { capture: true });
+    gaitPage = new GaitAnalysisPage(gaitWrap, neucoreAssessment);
+  }
+
+  window._lastMovementAnalysisSignature = _getAssessmentSignature();
+  return true;
+}
+
+// Expose globally for other scripts
+window.runMovementAnalysis = runMovementAnalysis;
+
+// ── 3. Generate button → GaitAnalysisPage ────────────────────────
+function _initGenerateButton() {
+  const btn = document.getElementById('generate-btn');
+  const buildBtn = document.getElementById('build-manual-btn');
+  const analysisBtn = document.getElementById('movement-analysis-btn');
+
+  // 1. Hook up the dedicated movement analysis button
+  if (analysisBtn) {
+    analysisBtn.addEventListener('click', () => {
+      runMovementAnalysis();
+    });
+  }
+
+  // 2. Intercept generate-btn click to run/refresh analysis if needed
+  if (btn) {
+    btn.addEventListener('click', (e) => {
+      const client = _getActiveClient();
+      if (!client.id) {
+        return; // Let Dashboard.generateProgram() handle the warning/block
+      }
+      const currentSig = _getAssessmentSignature();
+      if (window._lastMovementAnalysisSignature !== currentSig) {
+        const success = runMovementAnalysis();
+        if (!success) {
+          e.stopPropagation();
+          e.preventDefault();
+        }
+      }
+    }, { capture: true });
+  }
+
+  // 3. Intercept build-manual-btn click to run/refresh analysis if needed
+  if (buildBtn) {
+    buildBtn.addEventListener('click', (e) => {
+      const client = _getActiveClient();
+      if (!client.id) {
+        return; // Let Dashboard.buildManualProgram() handle the warning/block
+      }
+      const currentSig = _getAssessmentSignature();
+      if (window._lastMovementAnalysisSignature !== currentSig) {
+        const success = runMovementAnalysis();
+        if (!success) {
+          e.stopPropagation();
+          e.preventDefault();
+        }
+      }
+    }, { capture: true });
+  }
 }
 
 // ── 4. Right-side joint info bar in dashboard ─────────────────────

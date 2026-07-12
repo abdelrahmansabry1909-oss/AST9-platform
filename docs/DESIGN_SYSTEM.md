@@ -134,3 +134,11 @@ To prevent breaking public automated tests, developers must never delete or rena
 * **Pain Scale Sliders:** Range sliders utilize a visible gradient from green to dark red (`linear-gradient(to right, #22C55E 0%, #EAB308 40%, #F97316 60%, #EF4444 80%, #991B1B 100%)`). The slider thumb is styled as a white circle with a `2px` emerald border and a subtle elevation shadow.
 * **Skeleton Canvas Zone Rails:** Side zone names/chips (`.zone-rail`, `.zone-chip`) are hidden in the Objective Tab to focus purely on the 3D anatomical model.
 * **Visual Polish:** Cards inside the Objective Assessment workspace utilize white backings, deep navy headers, and spacious padding to maintain a clean clinical ledger layout with minimal heavy outlines.
+
+### Gait Analysis & Movement Simulation (Bright Mode)
+* **Layout Theme:** The outer `.gait-page` container is presented as a clean white card on the porcelain canvas. Sub-panels (`#gait-strip-wrap`, `#score-summary`, `#deficit-cards > div`) use white or very light grey (`#F8F9F9`) backgrounds, matching the rest of the SaaS platform.
+* **3D Skeleton Canvas:** The skeleton canvas viewport (`#sim-canvas-wrap`) remains dark (`#050D1A`) for contrast.
+* **Clinical Color Mapping:** Telemetry values map directly to clean semantic/brand colors: green/emerald (`#047857`) for ROM/Control, warning amber (`#F59E0B`) for Force, and danger red (`#EF4444`) for Neurology.
+* **Worst-Case Panel:** Styled as a warning/alert card using a soft warm red background (`#FEF2F2`), a solid rose border (`#FCA5A5`), and dark warning text (`#991B1B`).
+* **Simulation Buttons:** Toolbar actions (`.nc-toolbar-btn`) use a flat white background with emerald hover states, avoiding dark neon borders and glows.
+* **Orchestration Workflow:** The movement analysis step is separated from program creation via a dedicated `#movement-analysis-btn` button, letting coaches inspect biomechanical telemetry and 3D simulation results before building manually or automatically.

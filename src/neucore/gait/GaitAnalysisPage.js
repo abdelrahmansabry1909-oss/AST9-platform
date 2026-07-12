@@ -20,7 +20,6 @@ import { BodyCanvas }                 from '../core/BodyCanvas.js';
 import { FXLayer }                    from '../core/FXLayer.js';
 import { bus }                        from '../core/JointBus.js';
 import { ScoringEngine }              from '../scoring/ScoringEngine.js';
-
 export class GaitAnalysisPage {
   constructor(containerEl, assessmentData) {
     this.container  = containerEl;

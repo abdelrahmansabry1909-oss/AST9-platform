@@ -223,3 +223,14 @@ Verification legend:
   4. Enforced a minimum width of `480px` on hip and shoulder tables with card-level horizontal scrolling (`overflow-x: auto`) to prevent grid column compression on narrow screens.
 - **Files:** `css/neucore-premium.css`, `docs/DESIGN_SYSTEM.md`, `docs/DEV_LOG.md`.
 - **Verification:** Built successfully (`npm run build`), ran visual assertion tests verifying inputs/sliders, hidden rails, wide layout constraints, and zero console errors.
+
+### Generate Page Movement Analysis Step & Simulator Styling
+- **Date:** 2026-07-12 · branch `feat/generate-movement-analysis-step`
+- **What:** Refactored the assessment analysis flow on the Generate tab to separate the movement quality scores and 3D simulation analysis from automatic/manual program generation.
+  1. Added a dedicated `#movement-analysis-btn` button (visual style managed in `css/neucore-premium.css`) before program creation actions to trigger analysis independently.
+  2. Refactored the analysis launch code into a reusable `runMovementAnalysis()` function, and wired it to dedicated analysis, auto-generate, and manual-build buttons.
+  3. Added assessment signature tracking (`window._lastMovementAnalysisSignature`) using active client ID + assessment values. If data has changed, clicking Generate or Build Manually automatically recalculates and refreshes the analysis first.
+  4. Redesigned the Movement Simulation panel (`.gait-page`, sub-panels, headers, and buttons) to follow the porcelain + emerald theme direction (white cards, clean grey borders, dark canvas viewport for contrast, and emerald/amber/red color-coded telemetry and buttons).
+  5. Refactored `ActivationChart` in `src/neucore/simulation/ActivationChart.js` directly with clean bright-mode support, utilizing soft porcelain-emerald gridlines (`rgba(24, 28, 50, 0.06)`), high contrast dark text `#181C32`, and clinical legend colors.
+- **Files:** `app.html`, `src/main.js`, `src/neucore/gait/GaitAnalysisPage.js`, `src/neucore/simulation/ActivationChart.js`, `css/neucore-premium.css`, `docs/DESIGN_SYSTEM.md`, `docs/DEV_LOG.md`.
+- **Verification:** Built successfully (`npm run build`), and verified layout/simulation render and user workflows in Playwright.
