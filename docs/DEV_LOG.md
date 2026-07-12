@@ -209,7 +209,17 @@ Verification legend:
 - **Verification:** Built successfully (`npm run build`), ran Playwright visual verification asserting container opacities evaluate to `1` and filled Objective Assessment inputs are fully visible and not clipped.
 
 ### FitExpert-Inspired Dashboard Layout & Sidebar Polish
-- **Date:** 2026-07-11 · branch `feat/fitexpert-dashboard-layout-polish`
+- **Date:** 2026-07-11 · **PR #120** · merge `be4a72a`
 - **What:** Reorganized the authenticated dashboard layout and sidebar to match the FitExpert dashboard structure while preserving the porcelain-emerald theme. Restored a clear "Dashboard" page header. Refined the first fold to feature a wide welcome card with integrated workflow steps on the left and a compact Client Overview roster card on the right. Moved the KPI row below the first fold and simplified its card styles to be flat. Expanded the desktop sidebar to a wider (`220px`), non-collapsing sidebar displaying text labels next to icons. Polished general cards and Objective Assessment cards to use thin borders (`rgba(24, 28, 50, 0.06)`), minimal shadows, and cleaner section spacing.
 - **Files:** `css/neucore-premium.css`, `docs/DESIGN_SYSTEM.md`, `docs/DEV_LOG.md`, `app.html`.
 - **Verification:** Built successfully (`npm run build`), ran Playwright visual checks asserting welcome cards, wide sidebar width (220px), client roster placement, and input fields remain fully functional and visible.
+
+### Objective Assessment Visual Polish
+- **Date:** 2026-07-12 · branch `feat/objective-assessment-visual-polish`
+- **What:** Polished the Objective Assessment tab to improve input box readability, range slider controls, and body map presentation in bright/porcelain mode. Specifically:
+  1. Restored the joint editor pain slider gradient background (green -> yellow -> orange -> red -> dark red) and premium white/emerald-bordered thumb by resolving broad input override rules.
+  2. Hidden the side zone rail chips (`#zone-rail`, `.zone-rail`, `.zone-chip`) next to the 3D skeleton to present a clean, unboxed anatomy model.
+  3. Optimized input boxes (`.form-input`, `input[type="number"]`, `select`) in the Objective tab to use a centered layout, height of `44px`, font-size of `14px`, font-weight `600`, and compact `8px 10px` padding to prevent typed values from clipping.
+  4. Enforced a minimum width of `480px` on hip and shoulder tables with card-level horizontal scrolling (`overflow-x: auto`) to prevent grid column compression on narrow screens.
+- **Files:** `css/neucore-premium.css`, `docs/DESIGN_SYSTEM.md`, `docs/DEV_LOG.md`.
+- **Verification:** Built successfully (`npm run build`), ran visual assertion tests verifying inputs/sliders, hidden rails, wide layout constraints, and zero console errors.
