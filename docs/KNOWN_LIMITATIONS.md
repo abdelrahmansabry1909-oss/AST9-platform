@@ -69,3 +69,14 @@ and `expired` explicitly, then falls through to date logic. A subscription row w
 future feature needs a `cancelled` state, add a `WHEN status='cancelled'` branch
 (→ `expired`/`none`) to the view **in the same change**. Surfaced by the Fable 5
 secondary review of Phase A.
+
+## L10 - Gait simulation is centered in-place, not a translating locomotion scene
+The Movement Simulation now uses physiological timing, smooth periodic joint
+curves, and natural pelvic/trunk coordination, but it remains centered in the
+analysis viewport. A stance foot therefore moves backward relative to the body as
+it would on a treadmill; it is not pinned to a fixed world point. True fixed-world
+foot locking requires forward root progression plus a following camera/ground
+strategy (or a modeled moving treadmill), and cannot be added as a small bounded
+root correction without creating a reset or large artificial body motion. The
+real GLB foot-center nodes are exposed for measurement when that separate
+locomotion-scene phase is authorized.

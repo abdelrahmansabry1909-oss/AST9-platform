@@ -14,6 +14,13 @@
 import * as THREE from 'three';
 import { bus } from '../core/JointBus.js';
 import { GAIT_PHASES } from './MuscleActivationDB.js';
+import {
+  createPeriodicGaitCurve,
+  getGaitPhaseSample,
+  getPhasePosePosition,
+  normalizeCyclePhase,
+  samplePeriodicGaitCurve,
+} from './GaitTiming.js';
 
 const D = Math.PI / 180;   // degrees → radians
 const CYCLE_DUR  = 2.0;    // seconds per full gait cycle
@@ -29,7 +36,7 @@ const SIGN = {
 };
 
 // Normative kinematics (degrees) — Neumann Ch.15
-const NORMATIVE_KINEMATICS = {
+export const NORMATIVE_KINEMATICS = {
   hip_flexion:  { loading_response:25, mid_stance:5,  terminal_stance:-10, pre_swing:-5,  initial_swing:15,  mid_swing:25,  terminal_swing:20  },
   hip_abduction:{ loading_response:-5, mid_stance:3,  terminal_stance:2,   pre_swing:-2,  initial_swing:0,   mid_swing:0,   terminal_swing:0   },
   knee_flexion: { loading_response:20, mid_stance:5,  terminal_stance:0,   pre_swing:35,  initial_swing:60,  mid_swing:65,  terminal_swing:30  },
@@ -37,10 +44,33 @@ const NORMATIVE_KINEMATICS = {
   trunk_lean:   { loading_response:5,  mid_stance:3,  terminal_stance:2,   pre_swing:4,   initial_swing:5,   mid_swing:3,   terminal_swing:4   },
 };
 
+export function getRootTrajectory(phase) {
+  const p = normalizeCyclePhase(phase);
+  return {
+    // In-place clinical locomotion: bounded lateral weight shift and two
+    // vertical COM peaks per stride. The limb cycle supplies sagittal motion
+    // while the body remains centered in the analysis viewport.
+    x: Math.sin(p * Math.PI * 2) * 0.012,
+    y: (1 - Math.cos(p * Math.PI * 4)) * 0.006,
+    z: 0,
+  };
+}
+
+export function getAxialMotion(phase) {
+  const p = normalizeCyclePhase(phase);
+  const wave = Math.sin(p * Math.PI * 2);
+  return {
+    pelvisObliquity: wave * 2.8 * D,
+    pelvisRotation: Math.sin((p * Math.PI * 2) + (Math.PI / 8)) * 4.0 * D,
+    trunkCounterRotation: -Math.sin((p * Math.PI * 2) + (Math.PI / 8)) * 2.4 * D,
+  };
+}
+
 export class MovementSimulator {
-  constructor(skeleton, deficits) {
+  constructor(skeleton, deficits, frameSource = null) {
     this.skeleton  = skeleton;
     this.deficits  = deficits ?? [];
+    this.frameSource = frameSource;
     this.isPlaying = false;
     this._clock    = new THREE.Clock();
     this._phase    = 0;
@@ -50,14 +80,18 @@ export class MovementSimulator {
     this._frozen   = false;
     this._effectiveElapsed = 0;
     this._rafId    = null;
+    this._removeFrameCallback = null;
 
     // Scratch quaternions/axes reused every frame.
     this._qx = new THREE.Quaternion();
+    this._qy = new THREE.Quaternion();
     this._qz = new THREE.Quaternion();
     this._xAxis = new THREE.Vector3(1, 0, 0);
+    this._yAxis = new THREE.Vector3(0, 1, 0);
     this._zAxis = new THREE.Vector3(0, 0, 1);
 
     this._clientKinematics = this._computeClientKinematics();
+    this._curves = this._compileCurves(this._clientKinematics);
   }
 
   // ── Public API ───────────────────────────────────────────────
@@ -69,7 +103,7 @@ export class MovementSimulator {
     if (this.isPlaying) {
       if (this._frozen) {
         this._frozen = false;
-        this._clock.start();
+        if (!this._removeFrameCallback) this._clock.start();
       }
       return;
     }
@@ -78,6 +112,7 @@ export class MovementSimulator {
     this._phase = 0;
     this.isPlaying = true;
     this._frozen   = false;
+    this._lastPhaseIdx = -1;
 
     this._startLoop();
   }
@@ -86,6 +121,10 @@ export class MovementSimulator {
     this.isPlaying = false;
     this._frozen   = false;
     this._clock.stop();
+    if (this._removeFrameCallback) {
+      this._removeFrameCallback();
+      this._removeFrameCallback = null;
+    }
     if (this._rafId !== null) {
       cancelAnimationFrame(this._rafId);
       this._rafId = null;
@@ -101,7 +140,8 @@ export class MovementSimulator {
   unfreeze() {
     if (this._frozen) {
       this._frozen = false;
-      this._clock.start();
+      this._lastPhaseIdx = -1;
+      if (!this._removeFrameCallback) this._clock.start();
     }
   }
 
@@ -109,9 +149,8 @@ export class MovementSimulator {
     const phaseIdx = GAIT_PHASES.indexOf(phaseName);
     if (phaseIdx < 0) return;
 
-    const phaseCount = GAIT_PHASES.length;
-    this._effectiveElapsed = (phaseIdx / phaseCount + 0.035) * CYCLE_DUR;
-    this._phase = (this._effectiveElapsed % CYCLE_DUR) / CYCLE_DUR;
+    this._phase = getPhasePosePosition(phaseName);
+    this._effectiveElapsed = this._phase * CYCLE_DUR;
     this._frozen = true;
 
     if (!this.isPlaying) {
@@ -121,6 +160,7 @@ export class MovementSimulator {
       this._startLoop();
     }
     this._applyKinematics(this._phase);
+    this._applyRootMotion(this._phase);
   }
 
   // ── Deficit-modified kinematics ───────────────────────────────
@@ -169,6 +209,12 @@ export class MovementSimulator {
     return k;
   }
 
+  _compileCurves(kinematics) {
+    return Object.fromEntries(
+      Object.entries(kinematics).map(([key, values]) => [key, createPeriodicGaitCurve(values)]),
+    );
+  }
+
   // ── Capture bind pose of the gait bones ──────────────────────
   _setupRig() {
     this._bones = (this.skeleton.getGaitBones && this.skeleton.getGaitBones()) || null;
@@ -191,12 +237,39 @@ export class MovementSimulator {
     }
   }
 
+  _applyBindRotation(bone, ax = 0, ay = 0, az = 0) {
+    if (!bone || !bone.userData._bindQuat) return;
+    bone.quaternion.copy(bone.userData._bindQuat);
+    if (ax) {
+      this._qx.setFromAxisAngle(this._xAxis, ax);
+      bone.quaternion.multiply(this._qx);
+    }
+    if (ay) {
+      this._qy.setFromAxisAngle(this._yAxis, ay);
+      bone.quaternion.multiply(this._qy);
+    }
+    if (az) {
+      this._qz.setFromAxisAngle(this._zAxis, az);
+      bone.quaternion.multiply(this._qz);
+    }
+  }
+
   // ── Animation loop ────────────────────────────────────────────
   _startLoop() {
+    if (this._removeFrameCallback) {
+      this._removeFrameCallback();
+      this._removeFrameCallback = null;
+    }
     if (this._rafId !== null) {
       cancelAnimationFrame(this._rafId);
       this._rafId = null;
     }
+
+    if (this.frameSource?.addFrameCallback) {
+      this._removeFrameCallback = this.frameSource.addFrameCallback((dt) => this.update(dt));
+      return;
+    }
+
     this._clock.start();
     this._animate();
   }
@@ -205,26 +278,28 @@ export class MovementSimulator {
     this._rafId = null;
     if (!this.isPlaying) return;
 
-    const rawDt = this._clock.getDelta();
-    const clampedDt = Math.min(rawDt, 0.05);
-    const dt = clampedDt * this._speed;
+    this.update(this._clock.getDelta());
+    this._rafId = requestAnimationFrame(() => this._animate());
+  }
+
+  update(rawDt) {
+    if (!this.isPlaying) return;
+    const dt = Math.min(Math.max(rawDt, 0), 0.05) * this._speed;
     if (!this._frozen) {
       this._effectiveElapsed += dt;
-      this._phase = (this._effectiveElapsed % CYCLE_DUR) / CYCLE_DUR;
+      this._phase = normalizeCyclePhase(this._effectiveElapsed / CYCLE_DUR);
     }
 
     this._applyKinematics(this._phase);
-    if (!this._frozen) this._applyRootMotion(this._phase);
+    this._applyRootMotion(this._phase);
 
-    const phaseCount = GAIT_PHASES.length;
-    const phaseIdx = Math.min(Math.floor(this._phase * phaseCount), phaseCount - 1);
+    const phaseSample = getGaitPhaseSample(this._phase);
+    const phaseIdx = phaseSample.index;
     if (phaseIdx !== this._lastPhaseIdx) {
       this._lastPhaseIdx = phaseIdx;
-      bus.emit('gait:phaseChange', { phase: GAIT_PHASES[phaseIdx] });
+      bus.emit('gait:phaseChange', { phase: phaseSample.name });
     }
-    bus.emit('sim:phaseUpdate', { phase: this._phase, phaseName: GAIT_PHASES[phaseIdx] });
-
-    this._rafId = requestAnimationFrame(() => this._animate());
+    bus.emit('sim:phaseUpdate', { phase: this._phase, phaseName: phaseSample.name });
   }
 
   // ── Root motion: translation + bounce + sway ─────────────────
@@ -232,68 +307,55 @@ export class MovementSimulator {
     const root = this.skeleton._root;
     if (!root) return;
 
-    root.position.x = Math.sin(phase * Math.PI * 2) * 0.018;
-    root.position.y = Math.sin(phase * Math.PI * 4) * 0.018;
-    root.position.z = 0;
+    const trajectory = getRootTrajectory(phase);
+    root.position.set(trajectory.x, trajectory.y, trajectory.z);
     root.rotation.y = 0;
   }
 
   // ── FK kinematics ─────────────────────────────────────────────
   _applyKinematics(phase) {
     if (!this._bones) return;
-    const k = this._clientKinematics;
-
-    const phaseCount = GAIT_PHASES.length;
-    const phaseIdx  = Math.min(Math.floor(phase * phaseCount), phaseCount - 1);
-    const phaseFrac = (phase * phaseCount) - phaseIdx;
-    const cur       = GAIT_PHASES[phaseIdx];
-    const next      = GAIT_PHASES[(phaseIdx + 1) % phaseCount];
-
-    // Contralateral phase (right leg 50% offset)
-    const rPhase    = (phase + 0.5) % 1.0;
-    const rIdx      = Math.min(Math.floor(rPhase * phaseCount), phaseCount - 1);
-    const rFrac     = (rPhase * phaseCount) - rIdx;
-    const rCur      = GAIT_PHASES[rIdx];
-    const rNext     = GAIT_PHASES[(rIdx + 1) % phaseCount];
-
-    const lerp = (key, c, n, t) => {
-      const a = (k[key]?.[c] ?? 0) * D;
-      const b = (k[key]?.[n] ?? 0) * D;
-      return a + (b - a) * t;
-    };
+    const rPhase = normalizeCyclePhase(phase + 0.5);
+    const leftPhaseName = getGaitPhaseSample(phase).name;
+    const sample = (key, limbPhase) => samplePeriodicGaitCurve(this._curves[key], limbPhase) * D;
 
     const { pelvis, trunk, L, R } = this._bones;
 
     // ── Left leg ──────────────────────────────────────────────
     this._flex(L.thigh,
-      SIGN.hipFlex * lerp('hip_flexion',   cur, next, phaseFrac),
-      SIGN.hipAbd  * lerp('hip_abduction', cur, next, phaseFrac));
-    this._flex(L.shank, SIGN.knee  * lerp('knee_flexion', cur, next, phaseFrac));
-    this._flex(L.foot,  SIGN.ankle * lerp('ankle_df',     cur, next, phaseFrac));
+      SIGN.hipFlex * sample('hip_flexion', phase),
+      SIGN.hipAbd * sample('hip_abduction', phase));
+    this._flex(L.shank, SIGN.knee * sample('knee_flexion', phase));
+    this._flex(L.foot, SIGN.ankle * sample('ankle_df', phase));
 
     // ── Right leg (contralateral) ─────────────────────────────
     this._flex(R.thigh,
-      SIGN.hipFlex * lerp('hip_flexion',   rCur, rNext, rFrac),
-      -SIGN.hipAbd * lerp('hip_abduction', rCur, rNext, rFrac));
-    this._flex(R.shank, SIGN.knee  * lerp('knee_flexion', rCur, rNext, rFrac));
-    this._flex(R.foot,  SIGN.ankle * lerp('ankle_df',     rCur, rNext, rFrac));
+      SIGN.hipFlex * sample('hip_flexion', rPhase),
+      -SIGN.hipAbd * sample('hip_abduction', rPhase));
+    this._flex(R.shank, SIGN.knee * sample('knee_flexion', rPhase));
+    this._flex(R.foot, SIGN.ankle * sample('ankle_df', rPhase));
 
     // ── Arms: counter-swing to contralateral leg ──────────────
-    this._flex(L.arm, SIGN.arm * lerp('hip_flexion', rCur, rNext, rFrac) * 0.32);
-    this._flex(R.arm, SIGN.arm * lerp('hip_flexion', cur,  next,  phaseFrac) * 0.32);
+    this._flex(L.arm, SIGN.arm * sample('hip_flexion', rPhase) * 0.32);
+    this._flex(R.arm, SIGN.arm * sample('hip_flexion', phase) * 0.32);
 
     // ── Trunk lean + pelvic sway ──────────────────────────────
+    const axial = getAxialMotion(phase);
     if (trunk && trunk.userData._bindQuat) {
-      this._flex(trunk, SIGN.trunk * lerp('trunk_lean', cur, next, phaseFrac) * 0.5);
+      this._applyBindRotation(
+        trunk,
+        SIGN.trunk * sample('trunk_lean', phase) * 0.5,
+        axial.trunkCounterRotation,
+        0,
+      );
     }
     if (pelvis && pelvis.userData._bindQuat) {
-      let swayZ = Math.sin(phase * Math.PI * 2) * 0.05;
+      let obliquity = axial.pelvisObliquity;
       const hasTrend = this.deficits.some(d => d.id === 'trendelenburg');
-      if (hasTrend && (cur === 'mid_stance' || cur === 'terminal_stance')) {
-        swayZ += Math.sin(phase * Math.PI * 2) * 0.07;
+      if (hasTrend && (leftPhaseName === 'mid_stance' || leftPhaseName === 'terminal_stance')) {
+        obliquity += Math.sin(phase * Math.PI * 2) * 4.0 * D;
       }
-      this._qz.setFromAxisAngle(this._zAxis, swayZ);
-      pelvis.quaternion.copy(pelvis.userData._bindQuat).multiply(this._qz);
+      this._applyBindRotation(pelvis, 0, axial.pelvisRotation, obliquity);
     }
   }
 

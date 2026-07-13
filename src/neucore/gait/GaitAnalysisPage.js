@@ -160,7 +160,7 @@ export class GaitAnalysisPage {
     this.bodyCanvas._skeleton = this.skeleton;
     this.bodyCanvas._fxLayer  = this.fx;
 
-    this.simulator  = new MovementSimulator(this.skeleton, this.deficits);
+    this.simulator  = new MovementSimulator(this.skeleton, this.deficits, this.bodyCanvas);
     this.simulator._assessment = this.assessment;
     this.gaitEngine = new GaitEngine(this.bodyCanvas);
     this.gaitEngine.loadAssessment(this.assessment);

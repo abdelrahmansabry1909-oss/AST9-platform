@@ -19,6 +19,8 @@ export class BodyCanvas {
     this._raycaster  = new THREE.Raycaster();
     this._mouse      = new THREE.Vector2();
     this._clock      = new THREE.Clock();
+    this._lastFrameTime = 0;
+    this._frameCallbacks = new Set();
 
     this._initRenderer();
     this._initScene();
@@ -180,6 +182,12 @@ export class BodyCanvas {
     if (this.bloom)    this.bloom.setSize(w, h);
   }
 
+  addFrameCallback(callback) {
+    if (typeof callback !== 'function') return () => {};
+    this._frameCallbacks.add(callback);
+    return () => this._frameCallbacks.delete(callback);
+  }
+
   _getJointMeshes() {
     return this._skeleton ? [...this._skeleton.jointMeshes.values()] : [];
   }
@@ -288,6 +296,9 @@ export class BodyCanvas {
     if (this._disposed) return;            // stop the rAF loop once destroyed
     this._rafId = requestAnimationFrame(() => this._animate());
     const t = this._clock.getElapsedTime();
+    const dt = Math.min(Math.max(t - this._lastFrameTime, 0), 0.05);
+    this._lastFrameTime = t;
+    this._frameCallbacks.forEach((callback) => callback(dt, t));
     this.controls.update();
     if (this._skeleton)  this._skeleton.update(t);
     if (this._fxLayer)   this._fxLayer.update();
@@ -299,6 +310,7 @@ export class BodyCanvas {
   destroy() {
     this._disposed = true;
     if (this._rafId) cancelAnimationFrame(this._rafId);
+    this._frameCallbacks.clear();
     if (this._fxLayer && typeof this._fxLayer.destroy === 'function') {
       try { this._fxLayer.destroy(); } catch {}
     }

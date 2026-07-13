@@ -4,7 +4,6 @@
 // worst-case visual mode, and deficit-driven color reactions on the skeleton.
 
 import { bus } from '../core/JointBus.js';
-import { GAIT_PHASES } from '../simulation/MuscleActivationDB.js';
 
 // Joint highlights per gait phase — which joints are under load
 const PHASE_ACTIVE_JOINTS = {
@@ -23,11 +22,6 @@ export class GaitEngine {
     this.assessment  = null;
     this.isPlaying   = false;
     this._worstCase  = false;
-    this._phase      = 0;
-    this._phaseIdx   = 0;
-    this._raf        = null;
-    this._startTime  = 0;
-    this._speed      = 1.0;
 
     bus.on('gait:phaseChange', ({ phase }) => this._onPhaseChange(phase));
   }
@@ -36,22 +30,13 @@ export class GaitEngine {
     this.assessment = assessment;
   }
 
-  start(speed = 1.0) {
+  start() {
     this.isPlaying  = true;
-    this._speed     = speed;
-    this._startTime = performance.now();
-    this._loop();
   }
 
   stop() {
     this.isPlaying = false;
-    if (this._raf) cancelAnimationFrame(this._raf);
-    this._raf = null;
     this._clearHighlights();
-  }
-
-  setSpeed(speed) {
-    this._speed = speed;
   }
 
   setWorstCase(active) {
@@ -60,22 +45,8 @@ export class GaitEngine {
     else        this._clearHighlights();
   }
 
-  _loop() {
-    if (!this.isPlaying) return;
-    const elapsed   = (performance.now() - this._startTime) / 1000 * this._speed;
-    const phase     = (elapsed % 1.1) / 1.1;
-    const phaseIdx  = Math.min(Math.floor(phase * 7), 6);
-
-    if (phaseIdx !== this._phaseIdx) {
-      this._phaseIdx = phaseIdx;
-      this._onPhaseChange(GAIT_PHASES[phaseIdx]);
-    }
-
-    this._raf = requestAnimationFrame(() => this._loop());
-  }
-
   _onPhaseChange(phaseName) {
-    if (!this.body?.skeleton) return;
+    if (!this.isPlaying && !this._worstCase) return;
     const skel     = this.body._skeleton;
     if (!skel) return;
 

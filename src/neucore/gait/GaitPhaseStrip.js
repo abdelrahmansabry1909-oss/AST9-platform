@@ -1,6 +1,7 @@
 // src/neucore/gait/GaitPhaseStrip.js
 import { bus } from '../core/JointBus.js';
 import { GAIT_PHASES } from '../simulation/MuscleActivationDB.js';
+import { getPhasePosePosition, normalizeCyclePhase } from '../simulation/GaitTiming.js';
 
 const PHASE_LABELS = {
   loading_response: 'Loading',
@@ -82,12 +83,20 @@ export class GaitPhaseStrip {
 
     const idx = GAIT_PHASES.indexOf(phaseName);
     if (idx >= 0 && this._progressFill) {
-      this._progressFill.style.width = `${((idx + 1) / GAIT_PHASES.length) * 100}%`;
+      this._progressFill.style.width = `${getPhasePosePosition(phaseName) * 100}%`;
     }
+  }
+
+  setProgress(phase) {
+    if (!this._progressFill) return;
+    this._progressFill.style.width = `${normalizeCyclePhase(phase) * 100}%`;
   }
 
   _bindEvents() {
     bus.on('gait:phaseChange', ({ phase }) => this.setPhase(phase));
-    bus.on('sim:phaseUpdate',  ({ phaseName }) => { if (phaseName) this.setPhase(phaseName); });
+    bus.on('sim:phaseUpdate',  ({ phase, phaseName }) => {
+      if (phaseName) this.setPhase(phaseName);
+      if (Number.isFinite(phase)) this.setProgress(phase);
+    });
   }
 }

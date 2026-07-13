@@ -18,6 +18,17 @@ Verification legend:
 
 ## NeuCore movement scoring
 
+### Natural Gait Kinematics V2
+- **Date:** 2026-07-13 · branch `codex/gait-natural-kinematics-v2`
+- **What:** Corrected the remaining unnatural hip/knee reversal and phase timing after PR #125:
+  1. Added physiological phase boundaries (0%, 10%, 30%, 50%, 60%, 73%, 87%) shared by pose sampling, phase events, analysis jumps, and the progress strip.
+  2. Replaced piecewise-linear joint interpolation with periodic monotone cubic interpolation. Clinical angle keyframes remain exact, curves cannot overshoot adjacent keyframe bounds, and angular velocity is continuous through every boundary including the cycle wrap.
+  3. Added bounded pelvic obliquity and transverse rotation with trunk counter-rotation while retaining an in-place, centered clinical viewport.
+  4. Moved skeleton kinematic updates onto `BodyCanvas`'s render frame callback. Removed the separate 1.1-second equal-phase clock from `GaitEngine`; highlights and telemetry now follow the simulator's authoritative physiological phase.
+  5. Exposed the real GLB left/right foot-center nodes as measurement probes. A bounded pseudo foot lock was tested and rejected because a centered loop cannot pin a fixed-world stance foot without real forward progression and a moving/following scene.
+- **Files:** `src/main.js`, `src/neucore/core/BodyCanvas.js`, `src/neucore/gait/GaitAnalysisPage.js`, `src/neucore/gait/GaitEngine.js`, `src/neucore/gait/GaitPhaseStrip.js`, `src/neucore/simulation/GaitTiming.js`, `src/neucore/simulation/MovementSimulator.js`, `src/neucore/skeleton/GLBSkeleton.js`, `tests/unit/gait-kinematics.test.js`, `tests/unit/gait-glb-integration.test.js`, `docs/DEV_LOG.md`, `docs/ISSUE_LOG.md`, `docs/KNOWN_LIMITATIONS.md`.
+- **Verification:** `node --check` passed; 14 gait/scoring unit tests passed; real GLB integration passed with both foot probes resolved and no femur/foot frame pop above the test thresholds; `npm run build` passed. Local mocked-auth browser verification rendered a complete ordered seven-phase cycle and wrap, then passed Stop → Start with one WebGL renderer, one expected FX canvas, no horizontal overflow, and zero relevant console/page errors. Public smoke passed 10/11 in the six-worker run; the sole login-route load timeout passed immediately when rerun alone with one worker, confirming a parallel-load flake. Real authenticated smoke was not performed.
+
 ### Gait Simulation Loop & Simulator Shell Polish
 - **Date:** 2026-07-12 · branch `feat/gait-loop-and-simulator-shell-polish`
 - **What:** Refined the NeuCore Movement Simulation to fix gait animation jumps/reversals and polish the simulator shell:

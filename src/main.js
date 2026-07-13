@@ -141,7 +141,7 @@ function _initMainSkeleton() {
       btn.textContent = '▶ Simulate';
     } else {
       const { MovementSimulator } = await import('./neucore/simulation/MovementSimulator.js');
-      _gaitSim = new MovementSimulator(mainSkeleton, []);
+      _gaitSim = new MovementSimulator(mainSkeleton, [], mainCanvas);
       _gaitSim.start(1.0);
       btn.textContent = '■ Stop';
     }

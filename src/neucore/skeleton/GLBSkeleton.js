@@ -21,7 +21,7 @@ import { createJointMaterial } from '../core/MaterialFactory.js';
 
 // Use Vite's BASE_URL so the model resolves correctly both in dev
 // (served at /) and on GitHub Pages (served under /AST9_HUB/).
-const MODEL_URL     = `${import.meta.env.BASE_URL}models/ecorche_humanoid.glb`;
+const MODEL_URL     = `${import.meta.env?.BASE_URL ?? '/'}models/ecorche_humanoid.glb`;
 const TARGET_HEIGHT = 1.62;   // world units — feet at y=0, ~matches old camera framing
 
 // ── Premium "polished bone" shader ──────────────────────────────────
@@ -491,12 +491,14 @@ export class GLBSkeleton {
         thigh: get('GEO-skeletionleg_femurL'),
         shank: get('GEO-skeletionleg_tibulaL'),
         foot:  get('GEO-skeletionfoot_talusL'),
+        contact: get('GEO-skeletionfoot_centerL'),
         arm:   get('GEO-skeletionarm_humerusL'),
       },
       R: {
         thigh: get('GEO-skeletionleg_femurR'),
         shank: get('GEO-skeletionleg_tibulaR'),
         foot:  get('GEO-skeletionfoot_talusR'),
+        contact: get('GEO-skeletionfoot_centerR'),
         arm:   get('GEO-skeletionarm_humerusR'),
       },
     };
