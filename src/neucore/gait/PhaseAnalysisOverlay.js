@@ -125,7 +125,10 @@ export class PhaseAnalysisOverlay {
     this.skeleton   = skeleton;
     this.bodyCanvas = bodyCanvas;
     this._overlayEl = null;
+    this._cardRailEl = null;
     this._active    = false;
+    this._timeouts  = [];
+    this._generation = 0;
   }
 
   show(worstPhase, deficits, activation) {
@@ -146,6 +149,12 @@ export class PhaseAnalysisOverlay {
 
   hide() {
     this._active = false;
+    this._generation++;
+    if (this._timeouts) {
+      this._timeouts.forEach(t => clearTimeout(t));
+      this._timeouts = [];
+    }
+    this._cardRailEl = null;
     this._closeExpandedCard();
     this._overlayEl?.remove();
     this._overlayEl = null;
@@ -156,8 +165,14 @@ export class PhaseAnalysisOverlay {
     const info = PHASE_ANALYSIS[this._phase] ?? PHASE_ANALYSIS['mid_stance'];
 
     this._overlayEl = document.createElement('div');
+    this._overlayEl.className = 'gait-phase-overlay';
     this._overlayEl.style.cssText = 'position:absolute;inset:0;pointer-events:none;z-index:20;overflow:hidden;';
     this.container.appendChild(this._overlayEl);
+
+    // Create a dedicated card rail for mobile/desktop layout flexibility
+    this._cardRailEl = document.createElement('div');
+    this._cardRailEl.className = 'gait-phase-card-rail';
+    this._overlayEl.appendChild(this._cardRailEl);
 
     // Dark vignette to focus attention on skeleton
     const vignette = document.createElement('div');
@@ -195,11 +210,19 @@ export class PhaseAnalysisOverlay {
     this._overlayEl.appendChild(this._svg);
 
     // Stagger cards
+    this._generation++;
+    const currentGen = this._generation;
+    const currentRail = this._cardRailEl;
+
     info.joints.forEach((jInfo, idx) => {
-      setTimeout(() => {
+      const tId = setTimeout(() => {
+        this._timeouts = this._timeouts.filter(t => t !== tId);
         if (!this._active) return;
+        if (this._generation !== currentGen) return;
+        if (this._cardRailEl !== currentRail) return;
         this._addCard(jInfo, idx, info.joints.length);
       }, 600 + idx * 480);
+      this._timeouts.push(tId);
     });
   }
 
@@ -247,7 +270,7 @@ export class PhaseAnalysisOverlay {
     `;
 
     card.innerHTML = this._buildCardHTML(jInfo);
-    this._overlayEl.appendChild(card);
+    this._cardRailEl.appendChild(card);
 
     requestAnimationFrame(() => {
       card.style.opacity = '1';

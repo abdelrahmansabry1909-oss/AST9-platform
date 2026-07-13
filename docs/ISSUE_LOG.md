@@ -102,3 +102,21 @@
   a separate owner decision.
 - **Remaining:** Owner visual confirm the Movement Simulation panel now shows
   numeric scores in the live app.
+
+## 8. Gait animation jumps, duplicate loops, and simulator styling mismatch
+- **Symptoms:** The NeuCore Movement Simulation gait animation paused/teleported when looping from terminal swing to loading response. Multiple concurrent animation loops ran after a rapid Stop → Start or Worst Phase → Resume sequence. The simulator outer shell, phase strip, and worst-phase overlay cards had style conflicts and overlap breakages on mobile screens.
+- **Root cause:**
+  1. Bone rotation interpolation did not use cyclic interpolation between `terminal_swing` and `loading_response` index transitions.
+  2. Old root translation moved between `±WALK_RANGE` and reversed direction unnaturally.
+  3. Missing delta clamping allowed large phase steps after inactive tabs, and missing RAF ownership allowed duplicate frame chains.
+  4. Styles were not strictly scoped to `#neucore-gait-container` under bright mode, overriding layout button displays due to `!important` on the gait toolbar display declaration.
+  5. Joint callout cards on viewports < 480px lacked responsive positioning constraints, resulting in overlaps and viewport overflow.
+- **Fix:**
+  1. Implemented cyclic phase index wrapping (`(phaseIdx + 1) % phaseCount`) for rotation interpolation.
+  2. Replaced walk-progress root motion with centered sinusoidal displacement (`Math.sin(phase * Math.PI * 2) * 0.018`), keeping depth position.z = 0 and yaw rotation.y = 0.
+  3. Implemented delta clamping (`Math.min(rawDt, 0.05)`) to prevent large phase skips, structured `start()` with an active-playing return guard, and saved the RAF handle (`this._rafId`) to cancel any existing animation frame before starting, preventing duplicate chains.
+  4. Scoped all premium styles under `body.nc-bright #neucore-gait-container` and removed `!important` from the gait toolbar display declaration.
+  5. Added a dedicated `.gait-phase-card-rail` container element and styled it as a horizontal, scrollable card rail with scroll snapping (`scroll-snap-type: x mandatory`) and hidden connector lines on mobile.
+  6. Corrected Stop clicked during worst-phase analysis to clear `_analysisMode`, hide the overlay, stop the simulation loop, reset the skeleton, and restore the overview camera.
+- **Verified:** Built successfully (`npm run build`). Verified the 17-point regression checklist using a Playwright script: no overlapping cards, no horizontal document overflow at 390px/375px, Stop/Resume transitions work correctly, and all six unit tests pass.
+- **Remaining:** None.

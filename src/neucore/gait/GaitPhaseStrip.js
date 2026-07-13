@@ -23,36 +23,23 @@ export class GaitPhaseStrip {
 
   _build() {
     this.container.innerHTML = `
-      <div style="display:flex;gap:3px;width:100%">
+      <div class="gait-phase-row">
         ${GAIT_PHASES.map(phase => `
-          <div class="gait-phase-cell" data-phase="${phase}" style="
-            flex:1;padding:6px 4px;border-radius:5px;text-align:center;cursor:default;
-            border:0.5px solid rgba(0,212,255,0.15);background:rgba(0,212,255,0.04);
-            transition:all 200ms ease;
-          ">
-            <div style="font-size:9px;font-weight:500;letter-spacing:.05em;
-                       text-transform:uppercase;color:rgba(0,212,255,0.45);line-height:1.3">
+          <div class="gait-phase-cell" data-phase="${phase}">
+            <div class="gait-phase-label">
               ${PHASE_LABELS[phase]}
             </div>
-            <div class="gait-phase-dot" data-phase="${phase}" style="
-              width:6px;height:6px;border-radius:50%;background:rgba(0,212,255,0.2);
-              margin:3px auto 0;transition:all 200ms ease;
-            "></div>
+            <div class="gait-phase-dot" data-phase="${phase}"></div>
           </div>
         `).join('')}
       </div>
-      <div id="phase-progress" style="
-        height:2px;background:rgba(0,212,255,0.1);border-radius:1px;margin-top:6px;overflow:hidden;
-      ">
-        <div id="phase-progress-fill" style="
-          height:100%;width:0%;background:linear-gradient(to right,#00D4FF,#00FFF0);
-          border-radius:1px;transition:width 150ms ease;
-        "></div>
+      <div class="gait-progress-track">
+        <div class="gait-progress-fill" style="width:0%"></div>
       </div>
     `;
     this._cells = this.container.querySelectorAll('.gait-phase-cell');
     this._dots  = this.container.querySelectorAll('.gait-phase-dot');
-    this._progressFill = this.container.querySelector('#phase-progress-fill');
+    this._progressFill = this.container.querySelector('.gait-progress-fill');
   }
 
   markDeficits(deficits) {
@@ -73,10 +60,9 @@ export class GaitPhaseStrip {
       const dot      = cell.querySelector('.gait-phase-dot');
       if (deficits?.length) {
         const severe = deficits.some(d => d.activeSeverity === 'severe');
-        const color  = severe ? '#FF2D78' : '#FF8800';
-        dot.style.background = color;
-        dot.style.boxShadow  = `0 0 6px ${color}`;
-        cell.style.borderColor = `${color}44`;
+        const severityClass = severe ? 'gait-severity-severe' : 'gait-severity-moderate';
+        cell.classList.add(severityClass);
+        if (dot) dot.classList.add(severityClass);
       }
     });
   }
@@ -87,8 +73,11 @@ export class GaitPhaseStrip {
 
     this._cells.forEach(cell => {
       const isActive = cell.dataset.phase === phaseName;
-      cell.style.background = isActive ? 'rgba(0,212,255,0.12)' : 'rgba(0,212,255,0.04)';
-      cell.style.borderColor = isActive ? 'rgba(0,212,255,0.5)' : 'rgba(0,212,255,0.15)';
+      if (isActive) {
+        cell.classList.add('is-active');
+      } else {
+        cell.classList.remove('is-active');
+      }
     });
 
     const idx = GAIT_PHASES.indexOf(phaseName);

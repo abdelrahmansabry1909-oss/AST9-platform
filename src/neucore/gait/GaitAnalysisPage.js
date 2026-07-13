@@ -34,99 +34,65 @@ export class GaitAnalysisPage {
 
   _build() {
     this.container.innerHTML = `
-      <div class="gait-page" style="
-        display:grid;
-        grid-template-columns: 1fr 340px;
-        grid-template-rows: auto 1fr auto;
-        gap:16px;
-        height:100%;
-        padding:16px;
-      ">
+      <div class="gait-page">
         <!-- Header -->
-        <div class="gait-header" style="grid-column:1/-1">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <div>
-              <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;
-                         color:rgba(0,212,255,0.5);margin-bottom:4px">
+        <div class="gait-header">
+          <div class="gait-header-flex">
+            <div class="gait-header-copy">
+              <div class="gait-eyebrow">
                 NeuCore — Gait Analysis
               </div>
-              <div style="font-size:20px;font-weight:500;color:rgba(200,240,255,0.95)">
+              <div class="gait-title">
                 Movement Simulation
               </div>
             </div>
-            <div style="display:flex;gap:8px">
-              <button id="btn-sim-start"   class="nc-toolbar-btn">▶ Start</button>
-              <button id="btn-sim-stop"    class="nc-toolbar-btn" style="display:none">■ Stop</button>
-              <button id="btn-analyze"     class="nc-toolbar-btn" style="border-color:rgba(250,204,21,0.5);color:#FACC15">
+            <div class="gait-toolbar">
+              <button id="btn-sim-start"   class="nc-toolbar-btn gait-btn-start">▶ Start</button>
+              <button id="btn-sim-stop"    class="nc-toolbar-btn gait-btn-stop" style="display:none">■ Stop</button>
+              <button id="btn-analyze"     class="nc-toolbar-btn gait-btn-analyze">
                 ⚡ Analyze Worst Phase
               </button>
-              <button id="btn-resume"      class="nc-toolbar-btn" style="display:none;border-color:rgba(0,255,144,0.5);color:#00FF90">
+              <button id="btn-resume"      class="nc-toolbar-btn gait-btn-resume" style="display:none">
                 ▶ Resume Walk
               </button>
-              <button id="btn-worst-case"  class="nc-toolbar-btn nc-toolbar-btn--danger">
+              <button id="btn-worst-case"  class="nc-toolbar-btn nc-toolbar-btn--danger gait-btn-worst-case">
                 Hold: Worst Case
               </button>
-              <button id="btn-export-report" class="nc-toolbar-btn">↓ Export</button>
+              <button id="btn-export-report" class="nc-toolbar-btn gait-btn-export">↓ Export</button>
             </div>
           </div>
         </div>
 
         <!-- Left: 3D Simulation -->
-        <div style="display:flex;flex-direction:column;gap:12px">
-          <div id="sim-canvas-wrap" style="
-            flex:1;min-height:420px;
-            background:rgba(5,13,26,0.6);
-            border:0.5px solid rgba(0,212,255,0.15);
-            border-radius:12px;
-            position:relative;
-            overflow:hidden;
-          "></div>
+        <div class="gait-stage-column">
+          <div id="sim-canvas-wrap" class="gait-viewport"></div>
 
           <!-- Gait phase strip -->
-          <div id="gait-strip-wrap" style="
-            background:rgba(5,13,26,0.85);
-            border:0.5px solid rgba(0,212,255,0.15);
-            border-radius:10px;
-            padding:10px 14px;
-          ">
-            <div class="nc-label" style="margin-bottom:8px">Gait Cycle</div>
+          <div id="gait-strip-wrap" class="gait-phase-panel">
+            <div class="nc-label">Gait Cycle</div>
             <div id="gait-strip"></div>
           </div>
 
           <!-- Deficit summary cards -->
-          <div id="deficit-cards" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div id="deficit-cards" class="gait-deficit-grid">
           </div>
         </div>
 
         <!-- Right: Activation chart + score -->
-        <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="gait-data-column">
           <!-- Score summary -->
-          <div id="score-summary" style="
-            background:rgba(5,13,26,0.85);
-            border:0.5px solid rgba(0,212,255,0.15);
-            border-radius:10px;
-            padding:12px 14px;
-          "></div>
+          <div id="score-summary" class="gait-score-panel"></div>
 
           <!-- Activation chart -->
-          <div id="activation-chart-container" style="flex:1"></div>
+          <div id="activation-chart-container" class="gait-activation-container"></div>
         </div>
 
         <!-- Worst case panel (bottom, hidden by default) -->
-        <div id="worst-case-panel" style="
-          grid-column:1/-1;
-          background:rgba(30,5,15,0.95);
-          border:0.5px solid rgba(255,45,120,0.3);
-          border-radius:10px;
-          padding:16px;
-          display:none;
-        ">
-          <div style="font-size:13px;font-weight:500;color:#FF2D78;margin-bottom:10px">
+        <div id="worst-case-panel" class="gait-worst-case-panel" style="display:none">
+          <div class="gait-worst-case-title">
             ⚠ Worst-Case Scenario — If Untreated
           </div>
-          <div id="worst-case-content" style="
-            display:grid;grid-template-columns:repeat(3,1fr);gap:12px;
-          "></div>
+          <div id="worst-case-content" class="gait-worst-case-content"></div>
         </div>
       </div>
     `;
@@ -153,9 +119,7 @@ export class GaitAnalysisPage {
     this._analysisMode = false;
 
     const loader = document.createElement('div');
-    loader.style.cssText = `position:absolute;inset:0;display:flex;align-items:center;
-      justify-content:center;flex-direction:column;gap:12px;color:#67E8F9;font-size:11px;
-      letter-spacing:.16em;text-transform:uppercase;z-index:30;text-align:center;padding:20px;`;
+    loader.className = 'gait-loader';
     loader.textContent = 'Loading anatomy…';
     wrap.appendChild(loader);
 
@@ -169,13 +133,11 @@ export class GaitAnalysisPage {
       if (this._disposed || myBuild !== this._buildToken) return;
       const reason = (err && err.message ? String(err.message) : 'The 3D model could not be retrieved.').slice(0, 140);
       loader.innerHTML = `
-        <div style="color:#FF6B6B;font-size:12px;letter-spacing:.04em;text-transform:none">
+        <div class="gait-loader-error-title">
           3D anatomy failed to load
         </div>
-        <div style="color:rgba(255,150,150,0.6);font-size:10px;letter-spacing:.03em;
-                    text-transform:none;max-width:280px;line-height:1.5">${reason}</div>
-        <button id="gait-skel-retry" class="nc-toolbar-btn"
-          style="cursor:pointer;text-transform:none;letter-spacing:.02em">↻ Retry</button>`;
+        <div class="gait-loader-error-desc">${reason}</div>
+        <button id="gait-skel-retry" class="nc-toolbar-btn gait-loader-retry-btn">↻ Retry</button>`;
       loader.querySelector('#gait-skel-retry')
         ?.addEventListener('click', () => { this._initSimulation(); });
       return;
@@ -221,25 +183,14 @@ export class GaitAnalysisPage {
   _buildDeficitCards() {
     const el = this.container.querySelector('#deficit-cards');
     if (!this.deficits.length) {
-      el.innerHTML = `<div style="grid-column:1/-1;font-size:12px;color:rgba(0,212,255,0.4);
-                       padding:8px">No active gait deficits detected.</div>`;
+      el.innerHTML = `<div class="gait-deficit-empty">No active gait deficits detected.</div>`;
       return;
     }
     el.innerHTML = this.deficits.map(d => `
-      <div style="
-        background:rgba(5,13,26,0.85);
-        border:0.5px solid ${d.activeSeverity === 'severe' ? 'rgba(255,45,120,0.35)' : 'rgba(0,212,255,0.15)'};
-        border-radius:8px;padding:10px 12px;
-      ">
-        <div style="
-          font-size:10px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;
-          color:${d.activeSeverity === 'severe' ? '#FF2D78' : d.activeSeverity === 'moderate' ? '#FF8800' : '#FACC15'};
-          margin-bottom:4px;
-        ">${d.activeSeverity}</div>
-        <div style="font-size:12px;font-weight:500;color:rgba(200,240,255,0.9);margin-bottom:4px">
-          ${d.label}
-        </div>
-        <div style="font-size:11px;color:rgba(0,212,255,0.55)">
+      <div class="gait-deficit-card gait-severity-${d.activeSeverity}">
+        <div class="gait-deficit-severity">${d.activeSeverity}</div>
+        <div class="gait-deficit-label">${d.label}</div>
+        <div class="gait-deficit-phases">
           ${d.phases.slice(0,2).map(p => p.replace(/_/g,' ')).join(' · ')}
         </div>
       </div>
@@ -253,65 +204,61 @@ export class GaitAnalysisPage {
       const scores = scorer.fullScores();
       const phase  = scorer.phaseRecommendation();
 
+      const compositeColorClass = scores.composite_score < 50 ? 'gait-color-danger' : scores.composite_score < 75 ? 'gait-color-warning' : 'gait-color-success';
+
       el.innerHTML = `
-        <div class="nc-label" style="margin-bottom:8px">Movement Score</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+        <div class="nc-label">Movement Score</div>
+        <div class="gait-score-grid">
           ${[
-            ['ROM',       scores.rom_score,       '#00D4FF'],
-            ['Control',   scores.control_score,   '#00FFF0'],
-            ['Force',     scores.force_score,     '#FACC15'],
-            ['Neurology', scores.neurology_score, '#FF6B6B'],
-          ].map(([label, val, col]) => `
-            <div>
-              <div style="font-size:10px;color:rgba(0,212,255,0.5);text-transform:uppercase;
-                         letter-spacing:.08em;margin-bottom:2px">${label}</div>
-              <div style="font-size:22px;font-weight:500;color:${col}">${val ?? '—'}</div>
+            ['ROM',       scores.rom_score,       'rom'],
+            ['Control',   scores.control_score,   'control'],
+            ['Force',     scores.force_score,     'force'],
+            ['Neurology', scores.neurology_score, 'neurology'],
+          ].map(([label, val, key]) => `
+            <div class="gait-score-item">
+              <div class="gait-score-label">${label}</div>
+              <div class="gait-score-value gait-score-${key}">${val ?? '—'}</div>
             </div>
           `).join('')}
         </div>
-        <div style="border-top:0.5px solid rgba(0,212,255,0.1);padding-top:8px">
-          <div style="font-size:10px;color:rgba(0,212,255,0.5);text-transform:uppercase;
-                     letter-spacing:.08em;margin-bottom:2px">Composite</div>
-          <div style="font-size:28px;font-weight:500;
-            color:${scores.composite_score < 50 ? '#FF2D78' : scores.composite_score < 75 ? '#FF8800' : '#00FFF0'}
-          ">${scores.composite_score ?? '—'}</div>
-          <div style="font-size:11px;color:rgba(0,212,255,0.55);margin-top:4px">
+        <div class="gait-score-footer">
+          <div class="gait-score-composite-label">Composite</div>
+          <div class="gait-score-composite-value ${compositeColorClass}">
+            ${scores.composite_score ?? '—'}
+          </div>
+          <div class="gait-score-recommendation">
             ${phase.phase}
           </div>
           ${phase.referral ? `
-            <div style="font-size:11px;color:#FF2D78;margin-top:6px;
-                       padding:4px 8px;border-radius:4px;background:rgba(255,45,120,0.08);
-                       border:0.5px solid rgba(255,45,120,0.25)">
+            <div class="gait-score-referral">
               ⚠ Manual therapy referral required
             </div>
           ` : ''}
         </div>
       `;
     } catch (err) {
-      el.innerHTML = `<div style="font-size:11px;color:rgba(0,212,255,0.4)">Score unavailable</div>`;
+      el.innerHTML = `<div class="gait-score-empty">Score unavailable</div>`;
     }
   }
 
   _buildWorstCasePanel() {
     const el = this.container.querySelector('#worst-case-content');
     if (!this.deficits.length) {
-      el.innerHTML = `<div style="font-size:12px;color:rgba(255,150,150,0.6)">No active deficits.</div>`;
+      el.innerHTML = `<div class="gait-worst-case-empty">No active deficits.</div>`;
       return;
     }
     el.innerHTML = this.deficits.map(d => `
-      <div style="border-left:2px solid rgba(255,45,120,0.4);padding-left:10px">
-        <div style="font-size:11px;font-weight:500;color:#FF2D78;margin-bottom:6px">
-          ${d.label}
+      <div class="gait-worst-case-card">
+        <div class="gait-worst-case-card-title">${d.label}</div>
+        <div class="gait-worst-case-card-body">
+          ${d.future_risk.map(risk => `
+            <div class="gait-worst-case-risk">
+              <span class="gait-worst-case-risk-bullet">→</span>
+              <span class="gait-worst-case-risk-text">${risk}</span>
+            </div>
+          `).join('')}
         </div>
-        ${d.future_risk.map(risk => `
-          <div style="font-size:11px;color:rgba(255,150,150,0.75);
-                     padding:2px 0;display:flex;gap:6px;align-items:baseline">
-            <span style="color:rgba(255,45,120,0.5)">→</span>
-            ${risk}
-          </div>
-        `).join('')}
-        <div style="font-size:10px;color:rgba(255,45,120,0.45);margin-top:6px;
-                   text-transform:uppercase;letter-spacing:.06em">
+        <div class="gait-worst-case-card-footer">
           Untreated projection
         </div>
       </div>
@@ -339,10 +286,21 @@ export class GaitAnalysisPage {
     });
 
     stopBtn.addEventListener('click', () => {
+      if (this._analysisMode) {
+        this._analysisMode = false;
+        this.phaseOverlay.hide();
+      }
       this.simulator.stop();
       this.gaitEngine.stop();
+      this.bodyCanvas.animateCameraTo(
+        new THREE.Vector3(0, 0.85, 0),
+        new THREE.Vector3(0, 0.9, 3.2),
+        800,
+      );
       startBtn.style.display  = '';
       stopBtn.style.display   = 'none';
+      analyzeBtn.style.display = '';
+      resumeBtn.style.display = 'none';
     });
 
     analyzeBtn.addEventListener('click', () => {
@@ -405,8 +363,12 @@ export class GaitAnalysisPage {
     // Swap toolbar buttons
     const analyzeBtn = this.container.querySelector('#btn-analyze');
     const resumeBtn  = this.container.querySelector('#btn-resume');
+    const startBtn   = this.container.querySelector('#btn-sim-start');
+    const stopBtn    = this.container.querySelector('#btn-sim-stop');
     if (analyzeBtn) analyzeBtn.style.display = 'none';
     if (resumeBtn)  resumeBtn.style.display  = '';
+    if (startBtn)   startBtn.style.display   = 'none';
+    if (stopBtn)    stopBtn.style.display    = '';
   }
 
   _exitAnalysis() {
@@ -414,10 +376,18 @@ export class GaitAnalysisPage {
     this.phaseOverlay.hide();
     this.simulator.unfreeze();
 
+    // Resume walking means simulator is now playing!
+    this.simulator.start(1.0);
+    this.gaitEngine.start(1.0);
+
     const analyzeBtn = this.container.querySelector('#btn-analyze');
     const resumeBtn  = this.container.querySelector('#btn-resume');
+    const startBtn   = this.container.querySelector('#btn-sim-start');
+    const stopBtn    = this.container.querySelector('#btn-sim-stop');
     if (analyzeBtn) analyzeBtn.style.display = '';
     if (resumeBtn)  resumeBtn.style.display  = 'none';
+    if (startBtn)   startBtn.style.display   = 'none';
+    if (stopBtn)    stopBtn.style.display    = '';
 
     // Restore camera
     this.bodyCanvas.animateCameraTo(

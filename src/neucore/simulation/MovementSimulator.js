@@ -17,8 +17,6 @@ import { GAIT_PHASES } from './MuscleActivationDB.js';
 
 const D = Math.PI / 180;   // degrees → radians
 const CYCLE_DUR  = 2.0;    // seconds per full gait cycle
-const WALK_RANGE = 0.85;   // ±X meters the skeleton travels (kept in-frame)
-const WALK_SPEED = WALK_RANGE * 2 / (CYCLE_DUR * 5); // crosses the range in ~5 cycles
 
 // Rotation-sign map — flexion axes on the GLB bone tree (limbs run down −Y).
 const SIGN = {
@@ -51,6 +49,7 @@ export class MovementSimulator {
     this._rigged   = false;
     this._frozen   = false;
     this._effectiveElapsed = 0;
+    this._rafId    = null;
 
     // Scratch quaternions/axes reused every frame.
     this._qx = new THREE.Quaternion();
@@ -64,18 +63,33 @@ export class MovementSimulator {
   // ── Public API ───────────────────────────────────────────────
   start(speed = 1.0) {
     if (!this._rigged) { this._setupRig(); this._rigged = true; }
+    this._speed = speed;
+    if (this.skeleton) this.skeleton._idleFloat = false;
+
+    if (this.isPlaying) {
+      if (this._frozen) {
+        this._frozen = false;
+        this._clock.start();
+      }
+      return;
+    }
+
+    this._effectiveElapsed = 0;
+    this._phase = 0;
     this.isPlaying = true;
     this._frozen   = false;
-    this._speed    = speed;
-    this._effectiveElapsed = 0;
-    if (this.skeleton) this.skeleton._idleFloat = false;
-    this._clock.start();
-    this._animate();
+
+    this._startLoop();
   }
 
   stop() {
     this.isPlaying = false;
     this._frozen   = false;
+    this._clock.stop();
+    if (this._rafId !== null) {
+      cancelAnimationFrame(this._rafId);
+      this._rafId = null;
+    }
     this._resetPose();
     if (this.skeleton) this.skeleton._idleFloat = true;
   }
@@ -84,20 +98,27 @@ export class MovementSimulator {
 
   freeze() { this._frozen = true; }
 
-  unfreeze() { this._frozen = false; }
+  unfreeze() {
+    if (this._frozen) {
+      this._frozen = false;
+      this._clock.start();
+    }
+  }
 
   jumpToPhase(phaseName) {
     const phaseIdx = GAIT_PHASES.indexOf(phaseName);
     if (phaseIdx < 0) return;
-    this._effectiveElapsed = (phaseIdx / 7 + 0.035) * CYCLE_DUR;
+
+    const phaseCount = GAIT_PHASES.length;
+    this._effectiveElapsed = (phaseIdx / phaseCount + 0.035) * CYCLE_DUR;
     this._phase = (this._effectiveElapsed % CYCLE_DUR) / CYCLE_DUR;
     this._frozen = true;
+
     if (!this.isPlaying) {
       if (!this._rigged) { this._setupRig(); this._rigged = true; }
       if (this.skeleton) this.skeleton._idleFloat = false;
       this.isPlaying = true;
-      this._clock.start();
-      this._animate();
+      this._startLoop();
     }
     this._applyKinematics(this._phase);
   }
@@ -171,42 +192,50 @@ export class MovementSimulator {
   }
 
   // ── Animation loop ────────────────────────────────────────────
+  _startLoop() {
+    if (this._rafId !== null) {
+      cancelAnimationFrame(this._rafId);
+      this._rafId = null;
+    }
+    this._clock.start();
+    this._animate();
+  }
+
   _animate() {
+    this._rafId = null;
     if (!this.isPlaying) return;
 
-    const dt = this._clock.getDelta() * this._speed;
+    const rawDt = this._clock.getDelta();
+    const clampedDt = Math.min(rawDt, 0.05);
+    const dt = clampedDt * this._speed;
     if (!this._frozen) {
       this._effectiveElapsed += dt;
       this._phase = (this._effectiveElapsed % CYCLE_DUR) / CYCLE_DUR;
     }
-    const elapsed = this._effectiveElapsed;
 
     this._applyKinematics(this._phase);
-    if (!this._frozen) this._applyRootMotion(this._phase, elapsed);
+    if (!this._frozen) this._applyRootMotion(this._phase);
 
-    const phaseIdx = Math.min(Math.floor(this._phase * 7), 6);
+    const phaseCount = GAIT_PHASES.length;
+    const phaseIdx = Math.min(Math.floor(this._phase * phaseCount), phaseCount - 1);
     if (phaseIdx !== this._lastPhaseIdx) {
       this._lastPhaseIdx = phaseIdx;
       bus.emit('gait:phaseChange', { phase: GAIT_PHASES[phaseIdx] });
     }
     bus.emit('sim:phaseUpdate', { phase: this._phase, phaseName: GAIT_PHASES[phaseIdx] });
 
-    requestAnimationFrame(() => this._animate());
+    this._rafId = requestAnimationFrame(() => this._animate());
   }
 
   // ── Root motion: translation + bounce + sway ─────────────────
-  _applyRootMotion(phase, elapsed) {
+  _applyRootMotion(phase) {
     const root = this.skeleton._root;
     if (!root) return;
 
-    const totalDist = WALK_RANGE * 2;
-    const walkProgress = (elapsed * WALK_SPEED) % (totalDist * 2);
-    const rootX = walkProgress < totalDist
-      ? -WALK_RANGE + walkProgress
-      :  WALK_RANGE - (walkProgress - totalDist);
-    root.position.x = rootX;
+    root.position.x = Math.sin(phase * Math.PI * 2) * 0.018;
     root.position.y = Math.sin(phase * Math.PI * 4) * 0.018;
-    root.rotation.y = walkProgress < totalDist ? -0.08 : 0.08;
+    root.position.z = 0;
+    root.rotation.y = 0;
   }
 
   // ── FK kinematics ─────────────────────────────────────────────
@@ -214,17 +243,18 @@ export class MovementSimulator {
     if (!this._bones) return;
     const k = this._clientKinematics;
 
-    const phaseIdx  = Math.min(Math.floor(phase * 7), 6);
-    const phaseFrac = (phase * 7) - phaseIdx;
+    const phaseCount = GAIT_PHASES.length;
+    const phaseIdx  = Math.min(Math.floor(phase * phaseCount), phaseCount - 1);
+    const phaseFrac = (phase * phaseCount) - phaseIdx;
     const cur       = GAIT_PHASES[phaseIdx];
-    const next      = GAIT_PHASES[Math.min(phaseIdx + 1, 6)];
+    const next      = GAIT_PHASES[(phaseIdx + 1) % phaseCount];
 
     // Contralateral phase (right leg 50% offset)
     const rPhase    = (phase + 0.5) % 1.0;
-    const rIdx      = Math.min(Math.floor(rPhase * 7), 6);
-    const rFrac     = (rPhase * 7) - rIdx;
+    const rIdx      = Math.min(Math.floor(rPhase * phaseCount), phaseCount - 1);
+    const rFrac     = (rPhase * phaseCount) - rIdx;
     const rCur      = GAIT_PHASES[rIdx];
-    const rNext     = GAIT_PHASES[Math.min(rIdx + 1, 6)];
+    const rNext     = GAIT_PHASES[(rIdx + 1) % phaseCount];
 
     const lerp = (key, c, n, t) => {
       const a = (k[key]?.[c] ?? 0) * D;
