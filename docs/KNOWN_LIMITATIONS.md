@@ -19,8 +19,11 @@ bug. UI changes are verified by owner visual review. See [NOT_A_BUG.md](NOT_A_BU
 
 ## L3 — Legal text requires final lawyer review before launch
 Terms / consent / disclaimer copy is not finalized and must be reviewed by a lawyer
-before any public launch. Acceptance must also be **backend-persisted** (decision
-D3 in [DECISIONS.md](DECISIONS.md)) — currently not implemented.
+before any public launch. Backend persistence **is implemented**:
+`legal_documents` stores version metadata, `legal_acceptances` is append-only, and
+`has_accepted_current_legal()` / `record_legal_acceptance()` enforce the current
+required versions server-side. This is an auditable technical foundation, not a
+claim that the legal text or the product is GDPR/CCPA compliant.
 
 ## L4 — Payment integration not implemented (provider-neutral DB foundation laid)
 Billing/packages exist as a foundation, and as of **P2B** a provider-neutral
@@ -69,3 +72,24 @@ and `expired` explicitly, then falls through to date logic. A subscription row w
 future feature needs a `cancelled` state, add a `WHEN status='cancelled'` branch
 (→ `expired`/`none`) to the view **in the same change**. Surfaced by the Fable 5
 secondary review of Phase A.
+
+## L10 — Free-tier capacity does not satisfy high-concurrency latency targets
+The real staging load test reached 500 virtual users without observed 5xx/429
+responses, but p95 latency rose to roughly 20 seconds at that level. Acceptable
+latency was observed only around the 50-user stage. This proves functional
+survival, not production scalability. Capacity work needs a paid-tier baseline,
+query profiling, explicit SLOs, and a repeatable load-test gate before making
+concurrency claims.
+
+## L11 — Rate limiting, recovery, and retention controls are incomplete
+Several Edge Functions use best-effort in-memory rate limits. Those counters are
+per instance, so they are not a durable distributed abuse-control boundary.
+Incident response and rollback runbooks exist, but there is no documented restore
+drill, approved RTO/RPO, or complete data-retention/deletion schedule. These are
+production-hardening gaps, not hidden completed work.
+
+## L12 — No centralized runtime feature-flag system
+The Sentry DSN has a documented kill switch, but the product has no general
+feature-flag service for safely disabling risky features without a deploy. Any
+future feature-flag system must be authorization-safe and must not replace
+server-side access control.

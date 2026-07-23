@@ -16,6 +16,30 @@ Verification legend:
 
 ---
 
+## Production hardening
+
+### Phase 0 — Production baseline reconciliation
+- **Date:** 2026-07-23 · branch `codex/production-baseline-hardening`
+- **What:** Reconciled the repository's production-readiness evidence against the
+  full "Production Reality" checklist, corrected stale legal/migration/testing
+  statements, and recorded the current three-role workflow (Claude reviews,
+  Codex implements backend, Antigravity implements frontend). Added
+  `PRODUCTION_READINESS_STATUS.md` as the current evidence matrix and ordered
+  continuation plan.
+- **Security:** Refreshed the transitive `ws` lock entry from `8.20.0` to
+  `8.21.1`, which resolves the published memory disclosure and memory exhaustion
+  advisories inherited through Supabase Realtime. No direct dependency or
+  application behavior changed.
+- **Review:** PR #126 was reviewed without merge. Its shared gait timing,
+  periodic monotone interpolation, and single BodyCanvas frame loop had no
+  blocking review finding. A pre-existing global event-bus unsubscribe gap was
+  logged separately as ISSUE_LOG #9.
+- **Files:** `package-lock.json`, control documentation, and the tracked AST9
+  guard-skill documentation only. No HTML, CSS, product JS, migration, RLS,
+  Edge Function, auth, billing, subscription, or payment implementation changed.
+
+---
+
 ## NeuCore movement scoring
 
 ### Gait Simulation Loop & Simulator Shell Polish

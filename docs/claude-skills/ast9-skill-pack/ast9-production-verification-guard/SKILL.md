@@ -5,7 +5,7 @@ description: "AST9/NeuCore guard for post-merge, deploy, and production-verifica
 
 # AST9 — Production Verification & Honesty Guard
 
-Apply after any merge/deploy and whenever reporting verification. Pushing to `main` **is** deploying (GitHub Pages → `https://abdelrahmansabry1909-oss.github.io/AST9_HUB/`). Parent: `AI_WORKFLOW_GUARDRAILS.md` §7.
+Apply after any merge/deploy and whenever reporting verification. Pushing to `main` **is** deploying (GitHub Pages → `https://abdelrahmansabry1909-oss.github.io/AST9_HUB/`). Parent: `AI_WORKFLOW_GUARDRAILS.md` §8.
 
 ## The mistakes this prevents
 
@@ -54,6 +54,6 @@ known limitations
 
 ## Ownership / honesty
 
-- Claude verifies code/asset/DB/RLS behavior; **real device + real credential** owner/coach/client smoke is the owner's manual step when Claude has no credentials — name it as a pending owner action, do not fake it.
+- Codex verifies backend/code/DB/RLS behavior, Antigravity verifies frontend assets and visual behavior, and Claude reviews the evidence. **Real device + real credential** owner/coach/client smoke is the owner's manual step when dedicated test credentials are unavailable — name it as pending, do not retrieve credentials or fake it.
 - Never inspect `.env`, tokens, cookies, localStorage, sessionStorage, saved profiles, or credentials to "verify" — that is not permitted and not necessary for asset-level checks.
 - A change is "done" only when its applicable checks are green **and** the honest smoke status is stated.

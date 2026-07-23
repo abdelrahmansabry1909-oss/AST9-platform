@@ -23,6 +23,9 @@ vanilla-JS single-page authenticated shell (`app.html`) backed by Supabase
 - **Rehab platform = the production focus.** It is the shipped, in-use product:
   assessments, programs, workout tracking, appointments, community, exercise
   library, coach/admin business tracking.
+- The detailed iceberg-style production checklist is maintained in
+  [PRODUCTION_READINESS_STATUS.md](PRODUCTION_READINESS_STATUS.md). It separates
+  verified controls from partial controls and unstarted production work.
 - **Athletic Performance = admin-only locked preview.** As of PR #72 (R1A) the
   Athletic lane is gated to `admin` only. Coaches see a `Performance 🔒` switcher
   that opens a "locked" modal; clients never see the switcher. It is **not
@@ -45,8 +48,10 @@ See [DEV_LOG.md](DEV_LOG.md) for the full chronological log with PRs/commits.
 
 - Real authenticated **owner manual save smoke** for the Athletic flow (the last
   open item from the save-failure diagnostic — see [ISSUE_LOG.md](ISSUE_LOG.md)).
-- Legal acceptance must be **backend-persisted**, with final lawyer review before
-  any public launch (see [DECISIONS.md](DECISIONS.md) / [KNOWN_LIMITATIONS.md](KNOWN_LIMITATIONS.md)).
+- Legal acceptance is backend-persisted through versioned legal documents,
+  append-only acceptance records, and server-validated RPCs. Final lawyer review
+  of the legal text is still required before public launch (see
+  [DECISIONS.md](DECISIONS.md) / [KNOWN_LIMITATIONS.md](KNOWN_LIMITATIONS.md)).
 - Payment integration: provider-neutral DB foundation laid (P2B — `payment_events`
   + `coach_subscriptions` provider columns + service-role `apply_paid_coach_package_period_system()`);
   **no provider live yet.** Paymob-first webhook (P2C/P2D) is next and needs an
@@ -57,11 +62,14 @@ See [DEV_LOG.md](DEV_LOG.md) for the full chronological log with PRs/commits.
 
 | Agent | Owns |
 |---|---|
+| **Claude** | Audit / architecture plan / risk review / implementation review |
+| **Codex** | Backend / RLS / schema / migrations / security / payments / business logic |
 | **Antigravity** | Frontend / UI / CSS / visual screens / interaction polish |
-| **Claude** | Backend / RLS / schema / migrations / security / payment / business logic |
 
-Strict no-overwrite rule between the two. See `AI_WORKFLOW_GUARDRAILS.md` (repo
-root) and the `.claude/skills/ast9-*` guard pack for the enforced detail.
+Strict no-overwrite rule between implementation owners. Claude does not
+implement; Codex and Antigravity do not cross backend/frontend boundaries without
+explicit owner approval. See `AI_WORKFLOW_GUARDRAILS.md` (repo root) and the
+tracked AST9 guard pack for the enforced detail.
 
 ## 6. The control-baseline doc set (this folder)
 
@@ -77,6 +85,7 @@ root) and the `.claude/skills/ast9-*` guard pack for the enforced detail.
 | [REPO_MAP.md](REPO_MAP.md) | Repository structure map |
 | [INCIDENT_RESPONSE.md](INCIDENT_RESPONSE.md) | Incident playbook: severity levels, rollback, health checks, owner notification |
 | [RUNBOOK.md](RUNBOOK.md) | Quick ops cheat-sheet: `ops_health_snapshot()`, deploy/asset checks, cron health |
+| [PRODUCTION_READINESS_STATUS.md](PRODUCTION_READINESS_STATUS.md) | Current production checklist, evidence, gaps, and ordered continuation plan |
 
 ## 7. Canonical deep-dive docs (repo root — pre-existing, not duplicated here)
 

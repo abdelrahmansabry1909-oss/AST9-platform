@@ -1,13 +1,13 @@
 # PROJECT_STATUS.md — NeuCore Platform
 
-## ▶ CURRENT STATE (2026-06-19)
+## ▶ CURRENT STATE (2026-07-23)
 
-**Live:** `origin/main` @ `1f4dc4d` · GitHub Pages <https://abdelrahmansabry1909-oss.github.io/AST9_HUB/> (auto-deployed by `.github/workflows/deploy.yml`).
-**Supabase:** `byquokhcbagofshsclfy` (eu-central-1, Postgres 17) · **48 migrations** · **11 edge functions** · **owner-only admin verified live (`admin_count = 1`)**.
+**Live:** `origin/main` @ `ccc287a` · GitHub Pages <https://abdelrahmansabry1909-oss.github.io/AST9_HUB/> (auto-deployed by `.github/workflows/deploy.yml`).
+**Supabase:** `byquokhcbagofshsclfy` (eu-central-1, Postgres 17) · **60 migration files** · **14 paired rollback files** · **11 edge functions** · **owner-only admin verified live (`admin_count = 1`)**.
 
-> The detailed body below this section is an older **handoff snapshot (2026-06-09)** written in the legacy `Feature 1–8 (F-N)` numbering and frozen at the F1–F6 era. Everything from **Phase 2 onward** uses the newer `Phase N` scheme summarized here. When the two disagree, trust this section + the per-phase docs.
+> The detailed body below this section is an older **handoff snapshot (2026-06-09)** written in the legacy `Feature 1–8 (F-N)` numbering and frozen at the F1–F6 era. Everything from **Phase 2 onward** uses the newer `Phase N` scheme summarized here. When the two disagree, trust this section, [`docs/PRODUCTION_READINESS_STATUS.md`](docs/PRODUCTION_READINESS_STATUS.md), and the per-phase docs.
 
-**Two-agent split (since 2026-06-19):** Claude Code owns backend / product-logic / security (DB, migrations, RLS, edge functions, data contracts); **Antigravity** owns frontend visual/UI (CSS, layout, `js/neucore-ui.js`). See `feedback_agent_role_boundaries` in memory.
+**Three-role workflow (since 2026-07-23):** **Claude** audits, plans, and reviews; **Codex** owns backend / product logic / security; **Antigravity** owns frontend visual/UI. Implementation agents must not cross these ownership boundaries without explicit owner approval.
 
 ### Phase ledger (shipped to `main`)
 

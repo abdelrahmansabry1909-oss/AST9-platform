@@ -5,7 +5,7 @@ description: "AST9/NeuCore guard for authentication, session, and client login-r
 
 # AST9 — Auth / Session / Client-Login Routing Guard
 
-Apply this as a guard pass whenever auth, session, role-routing, or the client subscription gate is touched or reviewed. This skill exists because a real high-severity production bug shipped to a near-onboarded client (fixed in **PR #53**, merge `8ea94cd`, file refs below). Parent workflow: `AI_WORKFLOW_GUARDRAILS.md` (this is the auth-specific extension of §8 Production Safety).
+Apply this as a guard pass whenever auth, session, role-routing, or the client subscription gate is touched or reviewed. This skill exists because a real high-severity production bug shipped to a near-onboarded client (fixed in **PR #53**, merge `8ea94cd`, file refs below). Parent workflow: `AI_WORKFLOW_GUARDRAILS.md` (this is the auth-specific extension of §9 Production Safety).
 
 ## The regression this prevents (what actually happened)
 
@@ -43,15 +43,15 @@ Apply this as a guard pass whenever auth, session, role-routing, or the client s
 
 ## Ownership classification
 
-- **Claude owns this entirely.** Auth, session, role routing, subscription gating, Supabase client, server-side authz — backend/product/security.
-- A *visible* Sign-In button being missing on mobile is **CSS** (Antigravity / `ast9-frontend-launch-guard`). A bounce **after** a visible Sign-In is **auth routing** (Claude / this skill). Classify before touching anything.
+- **Codex owns implementation.** Auth, session, role routing, subscription gating, Supabase client, server-side authz — backend/product/security. Claude audits and reviews the plan and result.
+- A *visible* Sign-In button being missing on mobile is **CSS** (Antigravity / `ast9-frontend-launch-guard`). A bounce **after** a visible Sign-In is **auth routing** (Codex / this skill). Classify before touching anything.
 
 ## Checklist — before implementation (read-only)
 
 - Restate objective + name exact files. Confirm it is auth-routing, not CSS reachability.
 - `git fetch origin`; branch from latest `origin/main`; confirm no overlapping Antigravity branch.
 - Trace every `window.location` write to `index.html` and every `SIGNED_OUT`/`signOut()` path before editing.
-- Classify backend impact: state "Data/RLS/Edge impact: none" unless proven necessary (then design-first + approval per AI_WORKFLOW_GUARDRAILS §8).
+- Classify backend impact: state "Data/RLS/Edge impact: none" unless proven necessary (then design-first + approval per AI_WORKFLOW_GUARDRAILS §9).
 
 ## Checklist — before commit
 

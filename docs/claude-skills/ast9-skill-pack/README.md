@@ -27,7 +27,7 @@ project-specific and authored in-repo.
 | Skill | Scope |
 |---|---|
 | `ast9-auth-routing-guard` | Auth/session/client-login routing, the client subscription gate, the `SIGNED_OUT` listener, boot routing, cache-bust tokens. |
-| `ast9-agent-boundary-git-guard` | Git/branch/PR/merge flow + the Claude(backend) vs Antigravity(frontend-visual) ownership split. |
+| `ast9-agent-boundary-git-guard` | Git/branch/PR/merge flow + the Claude(review), Codex(backend), Antigravity(frontend) ownership split. |
 | `ast9-frontend-launch-guard` | Landing page, mobile nav, Sign-In reachability, public/auth entry visibility. |
 | `ast9-realtime-smoke-guard` | Realtime / no-refresh behavior and how to test the *subscribed* state honestly. |
 | `ast9-cleanup-archive-guard` | File/folder deletion, archiving, and `git worktree` retirement safety. |
@@ -45,7 +45,7 @@ project-specific and authored in-repo.
   staging of tooling/`dist`/`node_modules`/screenshots/secrets, and wrong-folder edits.
 - **`ast9-frontend-launch-guard`** — the **mobile launch blocker** (PR #52): at ≤900px the landing hid
   the Sign-In button behind a hamburger that had no handler and no menu, leaving no path to login.
-  Also enforces the CSS-reachability (Antigravity) vs post-login-bounce (Claude) classification.
+  Also enforces the CSS-reachability (Antigravity) vs post-login-bounce (Codex) classification.
 - **`ast9-realtime-smoke-guard`** — the **false "realtime broken"** conclusion caused by testing a view
   whose channel was never subscribed (the thread was never opened), plus duplicate-channel and
   over-scoped-load mistakes.

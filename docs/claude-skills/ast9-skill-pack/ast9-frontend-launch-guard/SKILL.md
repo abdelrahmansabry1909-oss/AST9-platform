@@ -1,11 +1,11 @@
 ---
 name: ast9-frontend-launch-guard
-description: "AST9/NeuCore guard for the landing page, mobile nav, Sign-In reachability, and public/auth entry visibility. Use when working on index.html landing, the responsive nav, the mobile hamburger, the Sign-In button, app entry from landing, or any 'can a user reach login on mobile' question. Triggers: 'no Sign In on mobile', 'hamburger', 'mobile nav', 'landing page', 'responsive', 'Sign In button', 'app.html?login=1 reachability'. Encodes the real launch-blocker where the mobile landing hid Sign In at <=900px behind a dead hamburger. Classifies CSS-reachability (Antigravity) vs post-login bounce (Claude/auth). DO NOT USE for the login bounce itself after Sign In is visible (use ast9-auth-routing-guard)."
+description: "AST9/NeuCore guard for the landing page, mobile nav, Sign-In reachability, and public/auth entry visibility. Use when working on index.html landing, the responsive nav, the mobile hamburger, the Sign-In button, app entry from landing, or any 'can a user reach login on mobile' question. Triggers: 'no Sign In on mobile', 'hamburger', 'mobile nav', 'landing page', 'responsive', 'Sign In button', 'app.html?login=1 reachability'. Encodes the real launch-blocker where the mobile landing hid Sign In at <=900px behind a dead hamburger. Classifies CSS-reachability (Antigravity) vs post-login bounce (Codex/auth). DO NOT USE for the login bounce itself after Sign In is visible (use ast9-auth-routing-guard)."
 ---
 
 # AST9 — Frontend Launch / Mobile Sign-In Reachability Guard
 
-Apply when touching the landing page or mobile navigation, or when asked "why can't I sign in on mobile." Parent: `AI_WORKFLOW_GUARDRAILS.md` §3 (browser smoke).
+Apply when touching the landing page or mobile navigation, or when asked "why can't I sign in on mobile." Parent: `AI_WORKFLOW_GUARDRAILS.md` §4 (browser smoke).
 
 ## The regression this prevents
 
@@ -13,8 +13,8 @@ A launch blocker reached a near-onboarded client: on the landing page at **≤90
 
 ## Classification first (critical)
 
-- **Sign-In not visible / not tappable on mobile = CSS reachability → Antigravity** (`css/landing.css`, nav media queries). Claude diagnoses but does not edit CSS unless explicitly approved.
-- **Sign-In visible and tapped, but the app bounces back to landing = auth routing → Claude** (`ast9-auth-routing-guard`). These are different bugs with different owners — never conflate them.
+- **Sign-In not visible / not tappable on mobile = CSS reachability → Antigravity** (`css/landing.css`, nav media queries). Claude may diagnose and review; Antigravity implements.
+- **Sign-In visible and tapped, but the app bounces back to landing = auth routing → Codex** (`ast9-auth-routing-guard`). These are different bugs with different owners — never conflate them.
 
 ## Core invariants
 
@@ -22,7 +22,7 @@ A launch blocker reached a near-onboarded client: on the landing page at **≤90
 2. Sign-In navigates to `app.html?login=1`.
 3. No dead/non-functional controls are shown (a hamburger must have a working handler + menu, or not be shown at all).
 4. CSS-only reachability fixes belong to Antigravity.
-5. A login bounce **after** a visible Sign-In is auth routing (Claude), not CSS.
+5. A login bounce **after** a visible Sign-In is auth routing (Codex), not CSS.
 6. Mobile is checked at **375px, 390px, 414px, 768px**, and desktop.
 7. Console errors are reported, not ignored.
 8. `npm run build` passes.
@@ -56,7 +56,7 @@ npm run build passes
 ## Ownership classification
 
 - CSS / layout / responsive visibility → **Antigravity**.
-- The login/auth behavior the button leads to → **Claude** (`ast9-auth-routing-guard`).
+- The login/auth behavior the button leads to → **Codex** (`ast9-auth-routing-guard`).
 - When unsure which layer a "can't log in on mobile" report is, diagnose read-only first, then route to the correct owner.
 
 ## Required honesty

@@ -5,7 +5,7 @@ description: "AST9/NeuCore guard for realtime / no-refresh behavior and how to t
 
 # AST9 — Realtime / No-Refresh Smoke Guard
 
-Apply when building or testing anything that is supposed to update live. Parent: `AI_WORKFLOW_GUARDRAILS.md` §3 (browser smoke).
+Apply when building or testing anything that is supposed to update live. Parent: `AI_WORKFLOW_GUARDRAILS.md` §4 (browser smoke).
 
 ## The mistakes this prevents
 
@@ -48,7 +48,7 @@ production vs local environment stated explicitly
 
 ## Ownership classification
 
-- Realtime data flow, channels, RLS participant scoping, publication config → **Claude** (backend/product).
+- Realtime data flow, channels, RLS participant scoping, publication config → **Codex** (backend/product); Claude audits and reviews.
 - The visual rendering of badges/threads/empty states → **Antigravity**.
 
 ## Required honesty

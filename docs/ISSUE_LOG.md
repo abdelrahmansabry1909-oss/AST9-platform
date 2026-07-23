@@ -120,3 +120,18 @@
   6. Corrected Stop clicked during worst-phase analysis to clear `_analysisMode`, hide the overlay, stop the simulation loop, reset the skeleton, and restore the overview camera.
 - **Verified:** Built successfully (`npm run build`). Verified the 17-point regression checklist using a Playwright script: no overlapping cards, no horizontal document overflow at 390px/375px, Stop/Resume transitions work correctly, and all six unit tests pass.
 - **Remaining:** None.
+
+## 9. Gait event-bus listeners are not released on page destruction
+- **Symptoms:** Rebuilding the Movement Simulation repeatedly can leave inactive
+  `gait:phaseChange` handlers attached to the global `JointBus`. The stale
+  handlers normally return early, so the visible result may be only growing
+  handler count and duplicated hidden work rather than an immediate UI failure.
+- **Root cause:** `JointBus.on()` wraps each handler in an anonymous listener and
+  returns no unsubscribe function. `GaitEngine` and `GaitAnalysisPage` register
+  listeners but therefore cannot detach them in `destroy()`.
+- **Status:** Open backend lifecycle issue. It was identified while reviewing PR
+  #126; that PR's physiological timing and interpolation work does not introduce
+  the listener design and must not be expanded or merged automatically.
+- **Required fix:** Make `JointBus.on()` return a stable unsubscribe callback,
+  retain those callbacks in the owning classes, release them during `destroy()`,
+  and add a repeated-build test proving listener counts do not grow.

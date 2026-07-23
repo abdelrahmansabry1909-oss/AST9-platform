@@ -19,7 +19,11 @@
 ## D3 — Legal acceptance must be backend-persisted, not just a checkbox
 - **Rationale:** A client-only checkbox is not auditable or enforceable. Acceptance
   (terms/consent) must be recorded server-side with who/when.
-- **Status:** Decided; **not yet implemented** (see [KNOWN_LIMITATIONS.md](KNOWN_LIMITATIONS.md)).
+- **Status:** Implemented by
+  `20260627000000_legal_acceptance_foundation.sql` and the authenticated legal
+  gate in `js/auth.js`. Final lawyer review remains required; this implementation
+  is not a GDPR/CCPA compliance claim (see
+  [KNOWN_LIMITATIONS.md](KNOWN_LIMITATIONS.md)).
 
 ## D4 — No fake medical diagnosis
 - **Rationale:** The platform must not present invented or authoritative-sounding
