@@ -4,8 +4,6 @@
    Stack: vanilla HTML/CSS/JS (matches existing project)
 ═══════════════════════════════════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
-
 /* ── DESIGN TOKENS ──────────────────────────────────────────── */
 :root {
   /* Core palette — Royal Premium (royal-navy surfaces, parity with the app) */
@@ -33,9 +31,9 @@
   --nc-border-strong: rgba(212, 175, 55, 0.22);
   --nc-border-glow:   rgba(212, 175, 55, 0.3);
 
-  /* Typography — Phase G2 parity with the app (Plus Jakarta display) */
-  --nc-font-display: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
-  --nc-font-body:    'Inter', system-ui, sans-serif;
+  /* Typography — Phase G2 parity with the app (Hanken Grotesk display & body) */
+  --nc-font-display: 'Hanken Grotesk', system-ui, sans-serif;
+  --nc-font-body:    'Hanken Grotesk', system-ui, sans-serif;
 
   /* Spacing scale */
   --nc-sp-1:  4px;
@@ -1751,4 +1749,571 @@ button:focus-visible,
   }
 }
 
+/* ── STITCH VISUAL REDESIGN V4 LANDING PAGE OVERRIDES ── */
 
+/* 1. Global typography override */
+body.nc-body {
+  font-family: 'Hanken Grotesk', system-ui, sans-serif !important;
+}
+.nc-display, .nc-h1, .nc-h2, .nc-h3, .nc-logo, .nc-nav-link {
+  font-family: 'Hanken Grotesk', system-ui, sans-serif !important;
+}
+
+/* 2. Light white/80 Glass Navigation */
+.nc-nav {
+  background: rgba(255, 255, 255, 0.80) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
+  padding: 16px 0 !important;
+  transition: all 0.3s ease !important;
+}
+.nc-nav.scrolled {
+  background: rgba(255, 255, 255, 0.80) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
+  padding: 12px 0 !important;
+}
+.nc-nav .nc-logo {
+  color: #043927 !important;
+  font-weight: 700 !important;
+}
+.nc-nav .nc-logo-mark {
+  filter: none !important;
+}
+/* Style brandmark in nav to emerald */
+.nc-nav .nc-logo-mark svg rect[fill="url(#ncRoyalNav)"] {
+  fill: #043927 !important;
+}
+.nc-nav .nc-logo-mark svg rect[stroke="url(#ncRoyalNavG)"],
+.nc-nav .nc-logo-mark svg path[stroke="url(#ncRoyalNavG)"] {
+  stroke: #10B981 !important;
+}
+.nc-nav .nc-logo-mark svg circle[fill="#2DD4BF"] {
+  fill: #10B981 !important;
+}
+.nc-nav .nc-logo-mark svg circle[stroke="#2DD4BF"] {
+  stroke: #10B981 !important;
+}
+
+.nc-nav .nc-nav-link {
+  color: #49454F !important;
+  font-weight: 500 !important;
+}
+.nc-nav .nc-nav-link:hover {
+  color: #043927 !important;
+}
+.nc-nav .nc-btn--ghost {
+  color: #043927 !important;
+  border: 1px solid #E2E2E6 !important;
+  background: transparent !important;
+}
+.nc-nav .nc-btn--ghost:hover {
+  background: rgba(4, 57, 39, 0.04) !important;
+}
+.nc-nav .nc-btn--primary {
+  background: #043927 !important;
+  color: #FFFFFF !important;
+}
+.nc-nav .nc-btn--primary:hover {
+  background: #396752 !important;
+}
+.nc-nav-toggle {
+  border-color: #E2E2E6 !important;
+  background: rgba(0, 0, 0, 0.02) !important;
+  color: #043927 !important;
+}
+
+/* 3. Deep Emerald Hero Section */
+.nc-hero {
+  background: #002215 !important;
+  padding: 160px 0 100px !important;
+  position: relative;
+  overflow: hidden;
+}
+.nc-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 10% 20%, rgba(16, 185, 129, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(4, 57, 39, 0.3) 0%, transparent 50%);
+  pointer-events: none;
+}
+.nc-hero-glow, .nc-hero-overlay {
+  display: none !important; /* Remove legacy gold/navy animations */
+}
+.nc-hero-headline {
+  color: #FFFFFF !important;
+}
+.nc-gradient-text {
+  background: linear-gradient(135deg, #FFFFFF 0%, #10B981 100%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+.nc-hero-sub {
+  color: #AAB2C5 !important;
+}
+@media (min-width: 1025px) {
+  .nc-hero {
+    padding: 110px 0 60px !important;
+  }
+  .nc-hero-headline {
+    font-size: 52px !important;
+    line-height: 1.08 !important;
+  }
+  .nc-hero-sub {
+    font-size: 16px !important;
+    line-height: 1.5 !important;
+    max-width: 520px !important;
+  }
+  .nc-hero-content {
+    gap: 16px !important;
+  }
+}
+.nc-hero-cta .nc-btn--primary {
+  background: #10B981 !important; /* Accent emerald for hero CTA to stand out */
+  color: #FFFFFF !important;
+  border: none !important;
+}
+.nc-hero-cta .nc-btn--primary:hover {
+  background: #059669 !important;
+}
+.nc-hero-cta .nc-btn--ghost {
+  color: #FFFFFF !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+.nc-hero-cta .nc-btn--ghost:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+.nc-hero-trust .nc-trust-item {
+  color: #AAB2C5 !important;
+}
+.nc-hero-trust .nc-trust-item svg {
+  color: #10B981 !important;
+}
+
+/* AI Engine Linked Badge */
+.nc-ai-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 9999px;
+  padding: 6px 14px;
+  margin-bottom: 24px;
+  align-self: flex-start;
+}
+.nc-ai-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #10B981;
+  box-shadow: 0 0 8px #10B981;
+  animation: pulse-active 2s infinite;
+}
+.nc-ai-text {
+  font-size: 12px;
+  font-weight: 600;
+  color: #10B981;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+@keyframes pulse-active {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.3); opacity: 0.6; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* 4. Porcelain Alternating Section Backgrounds & Layouts */
+
+/* Platform Modules Section (Section 2) - Light Porcelain */
+#features.nc-section {
+  background: #f9f9fc !important;
+  color: #1C1C1E !important;
+  border-bottom: 1px solid #F2F4F7;
+}
+#features.nc-section .nc-display {
+  color: #043927 !important; /* deep emerald h2 */
+}
+#features.nc-section .nc-lead {
+  color: #49454F !important; /* secondary text */
+}
+#features.nc-section .nc-eyebrow {
+  color: #396752 !important;
+}
+
+/* Bento Grid */
+.nc-bento-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 24px;
+  margin-top: 48px;
+}
+.nc-bento-card {
+  grid-column: span 12;
+  background: #FFFFFF !important;
+  border: 1px solid #F2F4F7 !important;
+  border-radius: 16px !important;
+  padding: 32px !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
+  transition: all 300ms ease;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.nc-bento-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px -10px rgba(4,57,39,0.15) !important;
+  border-color: rgba(4,57,39,0.12) !important;
+}
+.nc-bento-card .nc-service-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(4, 57, 39, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+  color: #043927 !important;
+}
+.nc-bento-card .nc-service-icon span,
+.nc-bento-card .nc-service-icon svg {
+  font-size: 24px;
+}
+.nc-bento-card .nc-service-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #043927 !important;
+  margin-bottom: 12px;
+}
+.nc-bento-card .nc-service-desc {
+  font-size: 14px;
+  color: #49454F !important;
+  line-height: 1.6;
+}
+
+/* Bento spans */
+@media (min-width: 1025px) {
+  .nc-bento-card.span-8 { grid-column: span 8; }
+  .nc-bento-card.span-4 { grid-column: span 4; }
+  .nc-bento-card.span-6 { grid-column: span 6; }
+}
+
+/* Bento Card Visual Details */
+.nc-bento-mockup {
+  margin-top: auto;
+  padding-top: 24px;
+  display: flex;
+  flex-direction: column;
+}
+.nc-mockup-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-top: 1px solid #F2F4F7;
+  font-size: 13px;
+}
+.nc-mockup-active-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.nc-mockup-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10B981;
+}
+
+/* Visual Hologram Section (Section 3) - Deep Emerald Dark */
+#visual.nc-section {
+  background: #002215 !important;
+  color: #FFFFFF !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+#visual.nc-section .nc-lead {
+  color: #AAB2C5 !important;
+}
+#visual.nc-section .nc-eyebrow {
+  color: #10B981 !important;
+}
+.nc-3d-stage {
+  background: rgba(4, 57, 39, 0.2) !important;
+  border-color: rgba(16, 185, 129, 0.15) !important;
+}
+.nc-skeleton-svg {
+  stroke: #10B981 !important;
+}
+.nc-skeleton-svg circle[fill="#2DD4BF"] {
+  fill: #10B981 !important;
+}
+.nc-skeleton-svg circle[stroke="#2DD4BF"] {
+  stroke: #10B981 !important;
+}
+.nc-3d-tag {
+  background: rgba(0, 34, 21, 0.9) !important;
+  border-color: rgba(16, 185, 129, 0.2) !important;
+  color: #FFFFFF !important;
+}
+
+/* Connected Loop & Workspaces Section (Section 4 & 4b) - Light White/Porcelain */
+#loop.nc-section, #workspaces.nc-section {
+  background: #FFFFFF !important;
+  color: #1C1C1E !important;
+}
+#loop.nc-section .nc-display, #workspaces.nc-section .nc-display {
+  color: #043927 !important;
+}
+#loop.nc-section .nc-lead, #workspaces.nc-section .nc-lead {
+  color: #49454F !important;
+}
+#loop.nc-section .nc-eyebrow, #workspaces.nc-section .nc-eyebrow {
+  color: #396752 !important;
+}
+
+/* Loop Steps */
+.nc-workflow-step {
+  background: #f9f9fc !important;
+  border: 1px solid #F2F4F7 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
+  color: #1C1C1E !important;
+}
+.nc-workflow-badge {
+  background: #043927 !important;
+  color: #FFFFFF !important;
+}
+.nc-workflow-title {
+  color: #043927 !important;
+  font-weight: 700 !important;
+}
+.nc-workflow-desc {
+  color: #49454F !important;
+}
+.nc-workflow-arrow {
+  color: #043927 !important;
+}
+
+/* Workspace Roles Cards */
+#workspaces.nc-section .nc-service-card {
+  background: #f9f9fc !important;
+  border: 1px solid #F2F4F7 !important;
+  border-radius: 16px !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
+  color: #1C1C1E !important;
+  padding: 32px !important;
+}
+#workspaces.nc-section .nc-service-card h3 {
+  color: #043927 !important;
+}
+#workspaces.nc-section .nc-service-card p {
+  color: #49454F !important;
+}
+#workspaces.nc-section .nc-service-card .nc-eyebrow {
+  color: #10B981 !important;
+}
+
+/* Clinician Testimonial Card */
+.nc-testimonial-section {
+  background: #f9f9fc !important;
+  padding: 80px 0;
+  border-top: 1px solid #F2F4F7;
+  border-bottom: 1px solid #F2F4F7;
+}
+.nc-testimonial-card {
+  max-width: 800px;
+  margin: 0 auto;
+  background: #FFFFFF;
+  border: 1px solid #F2F4F7;
+  border-radius: 16px;
+  padding: 48px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  text-align: center;
+}
+.nc-testimonial-quote {
+  font-size: 20px;
+  font-weight: 500;
+  color: #043927;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+.nc-testimonial-author {
+  font-weight: 700;
+  color: #1C1C1E;
+}
+.nc-testimonial-title {
+  font-size: 13px;
+  color: #49454F;
+  margin-top: 4px;
+}
+
+/* Case Studies (Section 5) - Deep Emerald Dark */
+#cases.nc-section {
+  background: #002215 !important;
+  color: #FFFFFF !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+#cases.nc-section .nc-lead {
+  color: #AAB2C5 !important;
+}
+#cases.nc-section .nc-eyebrow {
+  color: #10B981 !important;
+}
+.nc-case-card {
+  background: rgba(4, 57, 39, 0.2) !important;
+  border: 1px solid rgba(16, 185, 129, 0.15) !important;
+  border-radius: 12px !important;
+}
+.nc-case-card h4 {
+  color: #FFFFFF !important;
+}
+.nc-case-card p {
+  color: #AAB2C5 !important;
+}
+
+/* Athletic Preview (Section 6) - Deep Emerald Dark */
+#athletic.nc-section {
+  background: #002215 !important;
+  color: #FFFFFF !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+#athletic.nc-section .nc-lead {
+  color: #AAB2C5 !important;
+}
+#athletic.nc-section .nc-eyebrow {
+  color: #FB7185 !important;
+}
+
+/* CTA Section (Section 7) - Light Porcelain Alternating */
+#cta.nc-cta-section {
+  background: #f9f9fc !important;
+  padding: 80px 0 !important;
+}
+.nc-cta-card {
+  background: #043927 !important;
+  border: 1px solid rgba(16, 185, 129, 0.2) !important;
+  box-shadow: 0 12px 32px rgba(4, 57, 39, 0.3) !important;
+  border-radius: 20px !important;
+  color: #FFFFFF !important;
+}
+.nc-cta-card .nc-display {
+  color: #FFFFFF !important;
+}
+.nc-cta-card .nc-lead {
+  color: #AAB2C5 !important;
+}
+.nc-cta-card .nc-btn--primary {
+  background: #10B981 !important;
+  color: #FFFFFF !important;
+}
+.nc-cta-card .nc-btn--primary:hover {
+  background: #059669 !important;
+}
+.nc-cta-card .nc-btn--ghost {
+  color: #FFFFFF !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  background: transparent !important;
+}
+.nc-cta-card .nc-btn--ghost:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* 5. Dark-Emerald Four-Column Footer */
+.nc-footer {
+  background: #002215 !important;
+  color: #AAB2C5 !important;
+  padding: 80px 0 40px !important;
+}
+.nc-footer .nc-logo {
+  color: #FFFFFF !important;
+}
+/* Style brandmark in footer to white/emerald */
+.nc-footer .nc-logo-mark svg rect[fill="url(#ncRoyalSb)"],
+.nc-footer .nc-logo-mark svg rect[fill="url(#ncRoyalNav)"] {
+  fill: #FFFFFF !important;
+}
+.nc-footer .nc-logo-mark svg path {
+  stroke: #10B981 !important;
+}
+.nc-footer .nc-logo-mark svg circle {
+  fill: #10B981 !important;
+  stroke: #10B981 !important;
+}
+.nc-footer-brand p {
+  color: #AAB2C5 !important;
+}
+.nc-footer-col h4 {
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+  font-size: 14px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.08em !important;
+  margin-bottom: 20px !important;
+}
+.nc-footer-col ul li a {
+  color: #AAB2C5 !important;
+  font-size: 13.5px !important;
+  transition: color 200ms ease !important;
+}
+.nc-footer-col ul li a:hover {
+  color: #FFFFFF !important;
+}
+.nc-footer-bottom {
+  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+  margin-top: 48px !important;
+  padding-top: 24px !important;
+}
+.nc-footer-bottom p {
+  color: #6E7787 !important;
+}
+.nc-footer-social a {
+  color: #AAB2C5 !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+.nc-footer-social a:hover {
+  color: #FFFFFF !important;
+  background: rgba(16, 185, 129, 0.1) !important;
+  border-color: #10B981 !important;
+}
+
+/* Privacy / Trust Badges */
+.nc-trust-grid {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  flex-wrap: wrap;
+  margin-top: 40px;
+  padding-top: 32px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+.nc-trust-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #AAB2C5;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 6px 16px;
+  border-radius: 6px;
+}
+.nc-trust-badge span {
+  font-size: 14px;
+}
+
+.nc-trust-badge--emerald {
+  border-color: rgba(16, 185, 129, 0.2) !important;
+  background: rgba(16, 185, 129, 0.05) !important;
+  color: #10B981 !important;
+}

@@ -16,6 +16,23 @@ Verification legend:
 
 ---
 
+## Porcelain Emerald Platform Visual Redesign
+
+### Porcelain Emerald Visual Redesign & Compliance Cleanup
+- **Date:** 2026-07-26 · branch `feat/porcelain-emerald-platform-redesign`
+- **What:** Completed the Porcelain Emerald platform visual redesign and compliance cleanup across landing, login, and application shell:
+  1. Replaced all 5 remaining `material-symbols-outlined` text icon spans with 100% native inline SVGs, eliminating font-load dependencies.
+  2. Applied compliance copywriting cleanup across `index.html` and `app.html` (removed HIPAA, SOC2, bank-grade, Vance/Jenkins/Apex, and patient bounce-back claims).
+  3. Repaired `index.html` section HTML hierarchy and replaced legacy subtitle with "Movement Intelligence Workspace".
+  4. Restructured mobile bottom navigation into a 64px fixed horizontal row with role-accurate navigation items (`Home`, `Session`, `Community`, `Programs`).
+  5. Refined Objective Assessment layout for mobile viewports (`max-width: 768px`) using vertical flex stacking to eliminate 320px grid overflow.
+  6. Corrected desktop landing hero sizing at `1440px` (`min-width: 1025px`), ensuring primary CTAs fit inside the first viewport.
+  7. Implemented desktop collapsible slim sidebar under `body.nc-bright:not(.nc-client) .sidebar` (64px collapsed with centered 44px active pills and centered icons; 260px expanded on hover with 0 text clipping and zero main content shift).
+- **Files:** `app.html`, `index.html`, `css/landing.css`, `css/neucore-design-system.css`, `css/neucore-premium.css`, `css/styles.css`, `docs/DESIGN_SYSTEM.md`, `docs/DEV_LOG.md`, `docs/ISSUE_LOG.md`, `docs/KNOWN_LIMITATIONS.md`.
+- **Verification:** `git diff --check` clean. `npm run build` green. `npx playwright test tests/smoke/public.spec.ts` 11/11 passed in 20.9s. Complete 5-stage visual verification suite executed with Google Fonts blocked.
+
+---
+
 ## NeuCore movement scoring
 
 ### Gait Simulation Loop & Simulator Shell Polish

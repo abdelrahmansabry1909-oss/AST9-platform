@@ -68,39 +68,7 @@
 <div id="screen-login" class="hidden nc-login">
   <div class="nc-login-split-container">
     
-    <!-- Left Hero Side -->
-    <div class="nc-login-hero-side">
-      <div class="nc-login-grid"></div>
-      <div class="nc-login-glow nc-login-glow--teal"></div>
-      <div class="nc-login-glow nc-login-glow--cyan"></div>
-      <div class="nc-login-hero-content">
-        <div class="nc-login-hero-tag">Clinical Rehab OS</div>
-        <h2 class="nc-login-hero-title">Precision movement intelligence and telemetry.</h2>
-        <div class="nc-login-telemetry-box">
-          <div class="nc-login-telemetry-header">
-            <span>DEMO TELEMETRY</span>
-            <span class="nc-login-status-dot"></span>
-          </div>
-          <div class="nc-login-telemetry-row">
-            <span>ROM Deficit</span>
-            <strong>-12° Knee Extension</strong>
-          </div>
-          <div class="nc-login-telemetry-row">
-            <span>Pain Score</span>
-            <strong>2/10 Discomfort</strong>
-          </div>
-          <div class="nc-login-telemetry-row">
-            <span>Adherence</span>
-            <strong>94% Target Load</strong>
-          </div>
-          <div class="nc-login-telemetry-row" style="font-size:10px; opacity:0.5; margin-top:12px; border-top:1px solid rgba(255,255,255,0.06); padding-top:8px; justify-content:center;">
-            <span>Illustrative metrics only</span>
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Right Form Side -->
+    <!-- Left Form Side -->
     <div class="nc-login-form-side">
       <div class="nc-login-card">
         <div class="nc-login-brand">
@@ -108,21 +76,21 @@
             <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="NeuCore">
               <defs>
                 <linearGradient id="ncRoyalLg" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
-                  <stop stop-color="#0f172a"/><stop offset="1" stop-color="#020617"/>
+                  <stop stop-color="#043927"/><stop offset="1" stop-color="#002215"/>
                 </linearGradient>
                 <linearGradient id="ncRoyalLgG" x1="10" y1="9" x2="30" y2="31" gradientUnits="userSpaceOnUse">
-                  <stop stop-color="#38BDF8"/><stop offset=".5" stop-color="#0EA5E9"/><stop offset="1" stop-color="#0284c7"/>
+                  <stop stop-color="#A7F3D0"/><stop offset=".5" stop-color="#10B981"/><stop offset="1" stop-color="#059669"/>
                 </linearGradient>
               </defs>
               <rect x="1.5" y="1.5" width="37" height="37" rx="11" fill="url(#ncRoyalLg)"/>
               <rect x="2.5" y="2.5" width="35" height="35" rx="10" fill="none" stroke="url(#ncRoyalLgG)" stroke-width="1" opacity=".75"/>
               <path d="M13 28V13l14 14V12" fill="none" stroke="url(#ncRoyalLgG)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
-              <circle cx="27" cy="12" r="2.6" fill="#2DD4BF"/>
-              <circle cx="27" cy="12" r="5" fill="none" stroke="#2DD4BF" stroke-width="1" opacity=".5"/>
+              <circle cx="27" cy="12" r="2.6" fill="#10B981"/>
+              <circle cx="27" cy="12" r="5" fill="none" stroke="#10B981" stroke-width="1" opacity=".5"/>
             </svg>
           </span>
           <div>
-            <div class="nc-login-wordmark">NEU<span style="color:#38BDF8">CORE</span></div>
+            <div class="nc-login-wordmark">NEU<span style="color:#10B981">CORE</span></div>
             <div class="nc-login-tagline">Movement Operating System</div>
           </div>
         </div>
@@ -155,7 +123,7 @@
           <div class="nc-login-meta" style="margin-top:6px">
             Forgot password? <span class="nc-link" onclick="UI.switchLoginTab('reset')">Reset it</span>
           </div>
-          <div class="nc-login-meta" style="margin-top:14px;border-top:1px solid rgba(255,255,255,0.08);padding-top:12px;font-size:12px;opacity:0.8">
+          <div class="nc-login-meta" style="margin-top:14px;border-top:1px solid #E2E2E6;padding-top:12px;font-size:12px;opacity:0.8">
             Need to test another account? <a href="app.html?isolated=1" target="_blank" class="nc-link" style="text-decoration:underline">Open isolated test window</a>
           </div>
         </div>
@@ -186,10 +154,10 @@
             <label class="nc-login-label" for="su-password">Password</label>
             <input id="su-password" type="password" class="nc-login-input" placeholder="••••••••" autocomplete="new-password" oninput="UI._suStrength()"/>
             <div style="margin-top:8px">
-              <div style="height:6px;border-radius:99px;background:rgba(255,255,255,0.12);overflow:hidden">
+              <div style="height:6px;border-radius:99px;background:rgba(0,0,0,0.06);overflow:hidden">
                 <div id="su-strength-bar" style="height:100%;width:0;background:#f43f5e;transition:width .3s ease,background .3s ease"></div>
               </div>
-              <div id="su-strength-label" style="font-size:11px;color:rgba(255,255,255,0.55);margin-top:5px">Use 8+ characters with upper, lower, number &amp; symbol.</div>
+              <div id="su-strength-label" style="font-size:11px;color:#6E7787;margin-top:5px">Use 8+ characters with upper, lower, number &amp; symbol.</div>
             </div>
           </div>
           <div class="nc-login-field">
@@ -197,25 +165,25 @@
             <input id="su-password2" type="password" class="nc-login-input" placeholder="••••••••" autocomplete="new-password"/>
           </div>
           
-          <div class="nc-login-field" style="margin-top:20px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 18px;">
-            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: rgba(255,255,255,0.4); margin-bottom: 12px;">Legal Agreement</div>
+          <div class="nc-login-field" style="margin-top:20px; border-top: 1px solid #E2E2E6; padding-top: 18px;">
+            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #49454F; margin-bottom: 12px;">Legal Agreement</div>
 
             <div style="display: flex; gap: 8px; align-items: flex-start; margin-bottom: 10px;">
               <input type="checkbox" id="su-agree-legal" style="margin-top: 3px; cursor: pointer;" required />
-              <label for="su-agree-legal" style="font-size: 12px; color: rgba(255,255,255,0.65); line-height: 1.5; cursor: pointer; user-select: none;">
+              <label for="su-agree-legal" style="font-size: 12px; color: #49454F; line-height: 1.5; cursor: pointer; user-select: none;">
                 I have read and agree to the
-                <a href="legal/terms.html" target="_blank" style="color: var(--teal, #2DD4BF); text-decoration: none;">Terms of Service</a>,
-                <a href="legal/privacy.html" target="_blank" style="color: var(--teal, #2DD4BF); text-decoration: none;">Privacy Policy</a>,
-                <a href="legal/medical-disclaimer.html" target="_blank" style="color: var(--teal, #2DD4BF); text-decoration: none;">Medical Disclaimer</a>, and
-                <a href="legal/health-data-consent.html" target="_blank" style="color: var(--teal, #2DD4BF); text-decoration: none;">Consent to Process Health/Rehab Data</a>.
+                <a href="legal/terms.html" target="_blank" style="color: #10B981; text-decoration: none;">Terms of Service</a>,
+                <a href="legal/privacy.html" target="_blank" style="color: #10B981; text-decoration: none;">Privacy Policy</a>,
+                <a href="legal/medical-disclaimer.html" target="_blank" style="color: #10B981; text-decoration: none;">Medical Disclaimer</a>, and
+                <a href="legal/health-data-consent.html" target="_blank" style="color: #10B981; text-decoration: none;">Consent to Process Health/Rehab Data</a>.
                 <span style="color: #f43f5e;">*</span>
               </label>
             </div>
 
-            <div style="font-size: 11px; color: rgba(255,255,255,0.45); line-height: 1.5; padding-left: 24px;">
+            <div style="font-size: 11px; color: #6E7787; line-height: 1.5; padding-left: 24px;">
               See also our
-              <a href="legal/refund-policy.html" target="_blank" style="color: var(--teal, #2DD4BF); text-decoration: none;">Refund Policy</a> and
-              <a href="legal/cookie-policy.html" target="_blank" style="color: var(--teal, #2DD4BF); text-decoration: none;">Cookie Policy</a>.
+              <a href="legal/refund-policy.html" target="_blank" style="color: #10B981; text-decoration: none;">Refund Policy</a> and
+              <a href="legal/cookie-policy.html" target="_blank" style="color: #10B981; text-decoration: none;">Cookie Policy</a>.
             </div>
           </div>
           
@@ -227,7 +195,7 @@
 
         <!-- RESET -->
         <div id="login-form-reset" class="hidden">
-          <p style="font-size:13px;color:var(--text-secondary);margin-bottom:18px;line-height:1.6">
+          <p style="font-size:13px;color:#49454F;margin-bottom:18px;line-height:1.6">
             Enter your email and we'll send a reset link to your inbox.
           </p>
           <div class="nc-login-field">
@@ -239,9 +207,42 @@
             <span class="nc-link" onclick="UI.switchLoginTab('signin')">← Back to Sign In</span>
           </div>
         </div>
+
+        <!-- Protected Access Badge -->
+        <div class="nc-login-trust-badge" style="display: flex; align-items: center; justify-content: center; gap: 8px; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 8px; padding: 10px; margin-top: 24px; color: #10B981; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+          <span>Protected Access Workspace</span>
+        </div>
+
       </div>
     </div>
-    
+
+    <!-- Right Hero Side (Visual Telemetry) -->
+    <div class="nc-login-hero-side">
+      <div class="nc-login-grid"></div>
+      <div class="nc-login-glow nc-login-glow--emerald"></div>
+      <div class="nc-login-hero-content">
+        <span class="nc-login-hero-tag">Kinematics Telemetry</span>
+        <h2 class="nc-login-hero-title">Precision Movement Intelligence.</h2>
+
+        <!-- Waveform Visualizer -->
+        <div class="nc-login-waveform-container" style="margin-bottom: 40px; background: rgba(0, 34, 21, 0.4); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 16px; padding: 24px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: 0 8px 32px rgba(0,0,0,0.3); width: 380px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 10px; font-family: var(--font-mono); color: #10B981; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 16px; border-bottom: 1px solid rgba(16, 185, 129, 0.1); padding-bottom: 8px;">
+            <span>Illustrative Waveform Telemetry</span>
+            <span class="nc-login-status-dot" style="width: 6px; height: 6px; background: #10B981; border-radius: 50%; box-shadow: 0 0 8px #10B981;"></span>
+          </div>
+          <svg viewBox="0 0 400 120" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: auto; display: block;">
+            <path d="M 0 60 Q 50 100 100 60 T 200 60 T 300 60 T 400 60" fill="none" stroke="rgba(16, 185, 129, 0.15)" stroke-width="2" />
+            <path d="M 0 60 Q 50 20 100 60 T 200 60 T 300 60 T 400 60" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" />
+            <circle cx="50" cy="20" r="4" fill="#A7F3D0" />
+            <line x1="50" y1="20" x2="50" y2="100" stroke="rgba(16, 185, 129, 0.3)" stroke-dasharray="3,3" />
+            <circle cx="150" cy="100" r="4" fill="#A7F3D0" />
+            <line x1="150" y1="60" x2="150" y2="100" stroke="rgba(16, 185, 129, 0.3)" stroke-dasharray="3,3" />
+          </svg>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -424,7 +425,7 @@
         </span>
         <span>NEUCORE</span>
       </div>
-      <div class="sidebar-sub nc-sidebar-sub">An AST9 Solution</div>
+      <div class="sidebar-sub nc-sidebar-sub">Movement Operating System</div>
       <!-- SERVICE SWITCHER -->
       <div class="nc-service-switcher role-coach-admin">
         <button type="button" class="nc-service-btn active" id="switcher-rehab" onclick="Dashboard.setService('rehab')" data-service="rehab">Rehab</button>
@@ -434,154 +435,141 @@
     <nav class="sidebar-nav">
       <div class="nav-section rehab-only">Main</div>
       <div class="nav-item active rehab-only" id="nav-dashboard" onclick="Dashboard.showSection('dashboard')" title="Dashboard">
-        <svg class="nav-item-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg><span class="nav-label">Dashboard</span>
+        <svg class="nav-item-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg><span class="nav-label">Dashboard</span>
       </div>
       <div class="nav-item role-coach-admin rehab-only" id="nav-new-session" onclick="Dashboard.showSection('new-session')" title="Assessment">
-        <svg class="nav-item-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg><span class="nav-label">Assessment</span>
+        <svg class="nav-item-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg><span class="nav-label">Assessment</span>
       </div>
       <div class="nav-item role-coach-admin rehab-only" id="nav-programs" onclick="Dashboard.showSection('programs')" title="Programs">
-        <svg class="nav-item-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg><span class="nav-label">Programs</span>
+        <svg class="nav-item-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path></svg><span class="nav-label">Programs</span>
       </div>
-      <!-- Daily Routine is coach/admin-only in the nav now: the coach adherence
-           dashboard. Clients reach their routine inside Train (folded in S2);
-           this avoids a duplicate desktop path. Section + workflow unchanged. -->
       <div class="nav-item role-coach-admin rehab-only" id="nav-daily-routine" onclick="Dashboard.showSection('daily-routine')" title="Daily Routine">
-        <svg class="nav-item-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg><span class="nav-label">Daily Routine</span>
+        <svg class="nav-item-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg><span class="nav-label">Daily Routine</span>
       </div>
       <div class="nav-item role-client-only rehab-only" id="nav-nutrition-plan" onclick="Dashboard.showSection('nutrition-plan')" title="Nutrition Plan">
-        <svg class="nav-item-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg><span class="nav-label">Nutrition Plan</span>
+        <svg class="nav-item-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path></svg><span class="nav-label">Nutrition Plan</span>
       </div>
 
       <div class="nav-section role-coach-admin rehab-only">Manage</div>
       <div class="nav-item role-coach-admin rehab-only" id="nav-clients" onclick="Dashboard.showSection('clients')" title="Clients">
-        <svg class="nav-item-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg><span class="nav-label">Clients</span>
+        <svg class="nav-item-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg><span class="nav-label">Clients</span>
       </div>
       <div class="nav-item role-coach-admin rehab-only" id="nav-appointments" onclick="Dashboard.showSection('appointments')" title="Appointments">
-        <svg class="nav-item-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg><span class="nav-label">Appointments</span>
+        <svg class="nav-item-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg><span class="nav-label">Appointments</span>
       </div>
       <div class="nav-item role-coach-admin rehab-only" id="nav-subscriptions" onclick="Dashboard.showSection('subscriptions')" title="Subscriptions">
-        <svg class="nav-item-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg><span class="nav-label">Subscriptions</span>
+        <svg class="nav-item-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg><span class="nav-label">Subscriptions</span>
       </div>
       <div class="nav-item role-coach-admin rehab-only" id="nav-billing" onclick="Dashboard.showSection('billing')" title="Billing">
-        <svg class="nav-item-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg><span class="nav-label">Billing</span>
+        <svg class="nav-item-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg><span class="nav-label">Billing</span>
       </div>
       <div class="nav-item role-coach-admin rehab-only" id="nav-coach-profile" onclick="Dashboard.showSection('coach-profile')" title="My Profile">
-        <svg class="nav-item-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg><span class="nav-label">My Profile</span>
+        <svg class="nav-item-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg><span class="nav-label">My Profile</span>
       </div>
       <div class="nav-item role-coach-admin rehab-only" id="nav-exercise-library" onclick="Dashboard.showSection('exercise-library')" title="Exercise Library">
-        <svg class="nav-item-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg><span class="nav-label">Exercise Library</span>
+        <svg class="nav-item-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg><span class="nav-label">Exercise Library</span>
       </div>
       <div class="nav-item role-coach-admin rehab-only" id="nav-progress" onclick="Dashboard.showSection('progress')" title="Progress Charts">
-        <svg class="nav-item-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"></path><path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"></path></svg><span class="nav-label">Progress Charts</span>
+        <svg class="nav-item-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg><span class="nav-label">Progress Charts</span>
       </div>
       <div class="nav-item role-coach-admin rehab-only" id="nav-workout-history" onclick="Dashboard.showSection('workout-history')" title="Workout History">
-        <svg class="nav-item-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l3 3"></path><path d="M3.05 11a9 9 0 1 1 .05.084V12H3v-1.05z"></path></svg><span class="nav-label">Workout History</span>
+        <svg class="nav-item-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg><span class="nav-label">Workout History</span>
       </div>
       <div class="nav-item role-coach-admin rehab-only" id="nav-progression" onclick="Dashboard.showSection('progression')" title="Progression">
-        <svg class="nav-item-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"></path></svg><span class="nav-label">Progression</span>
+        <svg class="nav-item-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg><span class="nav-label">Progression</span>
       </div>
 
       <div class="nav-section role-coach-admin rehab-only">NeuCore Intelligence</div>
       <div class="nav-item rehab-only" id="nav-services" onclick="Dashboard.showSection('services')" title="Our Services">
-        <svg class="nav-item-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg><span class="nav-label">Our Services</span>
+        <svg class="nav-item-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg><span class="nav-label">Our Services</span>
       </div>
-      <!-- Gait Analysis removed from navigation (Phase 8). The engine stays
-           wired into the New Session generation pipeline (gait-panel /
-           _setLastGait / Reactive Graph); only the standalone sidebar entry
-           is hidden. Re-add this nav item to expose the section again. -->
       <div class="nav-item rehab-only" id="nav-case-studies" onclick="Dashboard.showSection('case-studies')" title="Case Studies">
-        <span class="nav-item-icon">◧</span><span class="nav-label">Case Studies</span>
+        <svg class="nav-item-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg><span class="nav-label">Case Studies</span>
       </div>
       <div class="nav-item role-coach-admin rehab-only" id="nav-analytics" onclick="Dashboard.showSection('analytics')" title="Analytics">
-        <span class="nav-item-icon">◎</span><span class="nav-label">Analytics</span>
+        <svg class="nav-item-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg><span class="nav-label">Analytics</span>
       </div>
       <div class="nav-item role-coach-admin rehab-only" id="nav-rpm-approvals" onclick="Dashboard.showSection('rpm-approvals')" title="Phase Approvals">
-        <span class="nav-item-icon">✓</span><span class="nav-label">Approvals</span>
+        <svg class="nav-item-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg><span class="nav-label">Approvals</span>
         <span id="badge-rpm-approvals" class="nav-badge hidden">0</span>
       </div>
       <div class="nav-item role-client-only rehab-only" id="nav-my-graph" onclick="Dashboard.showSection('my-graph')" title="My Reactive Graph">
-        <span class="nav-item-icon">↟</span><span class="nav-label">My Graph</span>
+        <svg class="nav-item-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg><span class="nav-label">My Graph</span>
       </div>
-      <!-- My Program folded into Train → "Your training plan" (CX1 ClientProgram).
-           Legacy nav item + #section-my-program removed in the F-1 cleanup. -->
       <div class="nav-item role-client-only rehab-only" id="nav-client-train" onclick="Dashboard.showSection('client-train')" title="Train">
-        <span class="nav-item-icon">◈</span><span class="nav-label">Train</span>
+        <svg class="nav-item-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path></svg><span class="nav-label">Train</span>
       </div>
       <div class="nav-item role-client-only rehab-only" id="nav-client-progress" onclick="Dashboard.showSection('client-progress')" title="Progress">
-        <span class="nav-item-icon">◮</span><span class="nav-label">Progress</span>
+        <svg class="nav-item-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg><span class="nav-label">Progress</span>
       </div>
       <div class="nav-item role-client-only rehab-only" id="nav-client-coach" onclick="Dashboard.showSection('client-coach')" title="Coach">
-        <span class="nav-item-icon">✦</span><span class="nav-label">Coach</span>
+        <svg class="nav-item-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg><span class="nav-label">Coach</span>
       </div>
 
       <div class="nav-section rehab-only">Community</div>
       <div class="nav-item rehab-only" id="nav-community" onclick="Dashboard.showSection('community')" title="Community">
-        <span class="nav-item-icon">◈</span><span class="nav-label">Community</span>
+        <svg class="nav-item-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg><span class="nav-label">Community</span>
         <span id="badge-community" class="nav-badge hidden">0</span>
       </div>
-      <!-- Notifications is coach/admin-only in the nav now: the inbox +
-           alt-exercise queue. Clients get the same data reframed on the Coach
-           tab (S4), so the raw inbox is no longer a separate client path.
-           Section + workflow unchanged for coach/admin. -->
       <div class="nav-item role-coach-admin rehab-only" id="nav-notifications" onclick="Dashboard.showSection('notifications')" title="Notifications">
-        <span class="nav-item-icon">◔</span><span class="nav-label">Notifications</span>
+        <svg class="nav-item-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg><span class="nav-label">Notifications</span>
       </div>
 
       <div class="nav-section role-admin-only rehab-only">Admin</div>
       <div class="nav-item role-admin-only rehab-only" id="nav-coaches" onclick="Dashboard.showSection('coaches')" title="Coaches">
-        <span class="nav-item-icon">◈</span><span class="nav-label">Coaches</span>
+        <svg class="nav-item-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg><span class="nav-label">Coaches</span>
       </div>
       <div class="nav-item role-admin-only rehab-only" id="nav-admin-business" onclick="Dashboard.showSection('admin-business')" title="Business">
-        <span class="nav-item-icon">📊</span><span class="nav-label">Business</span>
+        <svg class="nav-item-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg><span class="nav-label">Business</span>
       </div>
       <div class="nav-item role-admin-only rehab-only" id="nav-settings" onclick="Dashboard.showSection('settings')" title="Settings">
-        <span class="nav-item-icon">◎</span><span class="nav-label">Settings</span>
+        <svg class="nav-item-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg><span class="nav-label">Settings</span>
       </div>
       <div class="nav-item role-client-only rehab-only" id="nav-client-settings" onclick="Dashboard.showSection('client-settings')" title="Settings">
-        <span class="nav-item-icon">◎</span><span class="nav-label">Settings</span>
+        <svg class="nav-item-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg><span class="nav-label">Settings</span>
       </div>
 
       <!-- Athletic Performance Nav Group -->
       <div class="nav-section role-coach-admin athletic-only" style="display: none;">Athletic Performance</div>
 
       <div class="nav-item role-coach-admin athletic-only" id="nav-athletic-dashboard" onclick="Dashboard.showSection('athletic-dashboard')" title="Athletic Dashboard" style="display: none;">
-        <span class="nav-item-icon">⬡</span><span class="nav-label">Dashboard</span>
+        <svg class="nav-item-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg><span class="nav-label">Dashboard</span>
       </div>
 
       <div class="nav-item role-coach-admin athletic-only" id="nav-athlete-story-intake" onclick="Dashboard.showSection('athlete-story-intake')" title="Athlete Story Intake" style="display: none;">
-        <span class="nav-item-icon">✦</span><span class="nav-label">Story Intake</span>
+        <svg class="nav-item-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg><span class="nav-label">Story Intake</span>
       </div>
 
       <div class="nav-item role-coach-admin athletic-only" id="nav-athletic-movement-assessment" onclick="Dashboard.showSection('athletic-movement-assessment')" title="Movement Assessment" style="display: none;">
-        <span class="nav-item-icon">⚡</span><span class="nav-label">Assessment</span>
+        <svg class="nav-item-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg><span class="nav-label">Assessment</span>
       </div>
 
       <div class="nav-item role-coach-admin athletic-only" id="nav-athletic-movement-twin" onclick="Dashboard.showSection('athletic-movement-twin')" title="Athletic Movement Twin" style="display: none;">
-        <span class="nav-item-icon">🧬</span><span class="nav-label">Movement Twin</span>
+        <svg class="nav-item-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg><span class="nav-label">Movement Twin</span>
       </div>
 
       <div class="nav-item role-coach-admin athletic-only" id="nav-athlete-profile" onclick="Dashboard.showSection('athlete-profile')" title="Athlete Profile" style="display: none;">
-        <span class="nav-item-icon">◉</span><span class="nav-label">Athlete Profile</span>
+        <svg class="nav-item-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg><span class="nav-label">Athlete Profile</span>
       </div>
 
       <div class="nav-item role-coach-admin athletic-only" id="nav-movement-deficit-profile" onclick="Dashboard.showSection('movement-deficit-profile')" title="Movement Deficit Profile" style="display: none;">
-        <svg class="nav-item-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg><span class="nav-label">Deficit Profile</span>
+        <svg class="nav-item-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg><span class="nav-label">Deficit Profile</span>
       </div>
 
       <div class="nav-item role-coach-admin athletic-only" id="nav-athletic-program-design" onclick="Dashboard.showSection('athletic-program-design')" title="Athletic Program Design" style="display: none;">
-        <svg class="nav-item-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg><span class="nav-label">Program Design</span>
+        <svg class="nav-item-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path></svg><span class="nav-label">Program Design</span>
       </div>
 
       <div class="nav-item role-coach-admin athletic-only" id="nav-periodization-calendar" onclick="Dashboard.showSection('periodization-calendar')" title="Periodization Calendar" style="display: none;">
-        <svg class="nav-item-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg><span class="nav-label">Periodization Calendar</span>
+        <svg class="nav-item-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg><span class="nav-label">Periodization Calendar</span>
       </div>
 
       <div class="nav-item role-coach-admin athletic-only" id="nav-performance-reports" onclick="Dashboard.showSection('performance-reports')" title="Performance Reports" style="display: none;">
-        <svg class="nav-item-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg><span class="nav-label">Performance Reports</span>
+        <svg class="nav-item-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg><span class="nav-label">Performance Reports</span>
       </div>
 
       <div class="nav-item role-coach-admin athletic-only" id="nav-ml-insights" onclick="Dashboard.showSection('ml-insights')" title="ML Insights" style="display: none;">
-        <svg class="nav-item-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.59 4.59A2 2 0 1 1 11 8H9m10.59 11.41A2 2 0 1 1 18 16h1.59M16 8h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-3m-6 3H5c-1.1 0-2-.9-2-2v-3c0-1.1.9-2 2-2h3"></path></svg><span class="nav-label">ML Insights</span>
+        <svg class="nav-item-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg><span class="nav-label">ML Insights</span>
       </div>
 
     </nav>
@@ -596,9 +584,9 @@
         </div>
         <div id="notif-bell" class="logout-icon" title="Notifications" onclick="Dashboard.showSection('notifications')"
              style="position:relative;cursor:pointer;margin-right:8px;display:flex;align-items:center;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
         </div>
-        <svg class="logout-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" onclick="UI.handleLogout()" title="Sign out"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+        <svg class="logout-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="cursor:pointer;" onclick="UI.handleLogout()" title="Sign out"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
       </div>
     </div>
   </aside>
@@ -805,7 +793,7 @@
       <div class="nc-kpi-grid">
         <div class="nc-kpi">
           <div class="nc-kpi-top">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
             <span class="nc-kpi-label">Clients</span>
           </div>
           <div class="nc-kpi-value" id="stat-clients">–</div>
@@ -813,7 +801,7 @@
         </div>
         <div class="nc-kpi">
           <div class="nc-kpi-top">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
             <span class="nc-kpi-label">Active Programs</span>
           </div>
           <div class="nc-kpi-value" id="stat-programs">–</div>
@@ -821,7 +809,7 @@
         </div>
         <div class="nc-kpi">
           <div class="nc-kpi-top">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M9 15l2 2 4-4"></path></svg>
             <span class="nc-kpi-label">Assessments</span>
           </div>
           <div class="nc-kpi-value" id="stat-assessments">–</div>
@@ -829,7 +817,7 @@
         </div>
         <div class="nc-kpi">
           <div class="nc-kpi-top">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
             <span class="nc-kpi-label">Alerts</span>
           </div>
           <div class="nc-kpi-value" id="stat-alerts">–</div>
@@ -854,18 +842,18 @@
 
           <section class="nc-panel">
             <div class="nc-section-head">
-              <div class="nc-section-title"><span class="nc-section-dot" style="background:var(--nc-indigo)"></span>Telemetry & Compliance Pulse</div>
+              <div class="nc-section-title"><span class="nc-section-dot" style="background:#10B981"></span>Telemetry & Compliance Pulse</div>
               <button class="nc-section-link" onclick="Dashboard.showSection('progress')">Trends ↗</button>
             </div>
             <div class="nc-telemetry-summary-content">
               <div class="nc-telemetry-row">
                 <div class="nc-telemetry-stat">
                   <span class="lbl">Compliance Rate</span>
-                  <span class="val" style="color:var(--nc-teal)">94.2%</span>
+                  <span class="val" style="color:#10B981">94.2%</span>
                 </div>
                 <div class="nc-telemetry-stat">
                   <span class="lbl">Avg ROM Deficit</span>
-                  <span class="val" style="color:var(--nc-indigo)">12.5°</span>
+                  <span class="val" style="color:#043927">12.5°</span>
                 </div>
                 <div class="nc-telemetry-stat">
                   <span class="lbl">Pain Score Index</span>
@@ -883,7 +871,7 @@
 
           <section class="nc-panel">
             <div class="nc-section-head">
-              <div class="nc-section-title"><span class="nc-section-dot"></span>Recent Activity</div>
+              <div class="nc-section-title"><span class="nc-section-dot" style="background:#10B981"></span>Recent Activity</div>
               <button class="nc-section-link" onclick="Dashboard.showSection('programs')">View all ↗</button>
             </div>
             <div id="recent-sessions-list"></div>
@@ -894,7 +882,7 @@
 
           <section class="nc-panel">
             <div class="nc-section-head">
-              <div class="nc-section-title"><span class="nc-section-dot" style="background:#8b5cf6"></span>Upcoming Schedule (Sample)</div>
+              <div class="nc-section-title"><span class="nc-section-dot" style="background:#10B981"></span>Upcoming Schedule (Sample)</div>
               <button class="nc-section-link" onclick="Dashboard.showSection('appointments')">Schedule ↗</button>
             </div>
             <div class="nc-schedule-list">
@@ -917,7 +905,7 @@
 
           <section class="nc-panel">
             <div class="nc-section-head">
-              <div class="nc-section-title"><span class="nc-section-dot" style="background:#7C6CF0"></span>Business Growth</div>
+              <div class="nc-section-title"><span class="nc-section-dot" style="background:#10B981"></span>Business Growth</div>
               <button class="nc-section-link" onclick="Dashboard.showSection('subscriptions')">Plans ↗</button>
             </div>
             <div id="dash-business"></div>
@@ -925,7 +913,7 @@
 
           <section class="nc-panel">
             <div class="nc-section-head">
-              <div class="nc-section-title"><span class="nc-section-dot" style="background:#14B8A6"></span>Quick Actions</div>
+              <div class="nc-section-title"><span class="nc-section-dot" style="background:#10B981"></span>Quick Actions</div>
             </div>
             <div class="nc-quick-grid">
               <button class="nc-quick-btn" onclick="Dashboard.showSection('new-session')">
@@ -956,7 +944,7 @@
       <div class="page-header">
         <div class="page-header-left">
           <h1 class="page-title">Assessment <span class="accent">Workspace</span></h1>
-          <p class="page-subtitle">Complete all tabs then generate the AI program</p>
+          <p class="page-subtitle">Complete all tabs then generate the program</p>
         </div>
       </div>
       <div class="tab-row" id="session-tabs">
@@ -1096,6 +1084,10 @@
 
       <!-- TAB 3 -->
       <div class="tab-panel" id="tab-objective">
+        <div class="nc-ai-status-indicator" style="display: flex; align-items: center; gap: 8px; font-size: 11px; font-family: var(--font-mono); color: #10B981; margin-bottom: 16px; background: rgba(16, 185, 129, 0.06); padding: 8px 12px; border-radius: 6px; border: 1px solid rgba(16, 185, 129, 0.15); width: fit-content;">
+          <span style="width: 6px; height: 6px; background: #10B981; border-radius: 50%; box-shadow: 0 0 8px #10B981; display: inline-block;"></span>
+          <span>Movement Intelligence Workspace</span>
+        </div>
         <!-- ══ OBJECTIVE ASSESSMENT GRID ══════════════════════════ -->
         <!-- All IDs match exactly what ScoringEngine.readForm() reads -->
         <div class="neucore-assess-layout">
@@ -1477,6 +1469,10 @@
 
       <!-- TAB 5 — GENERATE ══════════════════════════════════════ -->
       <div class="tab-panel" id="tab-generate">
+        <div class="nc-ai-status-indicator" style="display: flex; align-items: center; gap: 8px; font-size: 11px; font-family: var(--font-mono); color: #10B981; margin-bottom: 16px; background: rgba(16, 185, 129, 0.06); padding: 8px 12px; border-radius: 6px; border: 1px solid rgba(16, 185, 129, 0.15); width: fit-content;">
+          <span style="width: 6px; height: 6px; background: #10B981; border-radius: 50%; box-shadow: 0 0 8px #10B981; display: inline-block;"></span>
+          <span>Movement Intelligence Workspace</span>
+        </div>
 
         <!-- ── STATUS PANEL (rendered by StatusPanel via neucore.js) -->
         <div id="status-panel" class="hidden" style="margin-bottom:var(--sp-4)"></div>

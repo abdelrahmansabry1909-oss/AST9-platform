@@ -3,10 +3,10 @@
    Loaded LAST in app.html, so it takes precedence on tokens and the
    component bridge. Extends (never replaces) the existing systems:
      · styles.css                 legacy --* tokens + components
-     · neucore-design-system.css  --nc-* tokens + body.nc-bright theme
+     · neucore-design-system.css  --nc-* tokens + body.nc-bright:not(.nc-client) theme
 
    Scope discipline:
-     · COLOR changes are scoped to body.nc-bright (coach/admin). The
+     · COLOR changes are scoped to body.nc-bright:not(.nc-client) (coach/admin). The
        client mobile shell + floating hologram keep their calm dark
        theme untouched.
      · Typography, card depth, focus, and motion are theme-neutral and
@@ -18,15 +18,12 @@
    medical teal · soft lavender. Apple / Linear / Stripe restraint.
 ═══════════════════════════════════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-
 /* ── 1 · TYPOGRAPHY (global) ─────────────────────────────────────
-   Plus Jakarta Sans for display (executive, premium, humanist) over
-   the previous Space Grotesk; Inter stays the body face. Numerals go
+   Hanken Grotesk for display and body faces. Numerals go
    tabular so KPI values and stats align like a ledger. */
 :root {
-  --nc-font-display: 'Space Grotesk', 'Inter', system-ui, sans-serif;
-  --font-display:    'Space Grotesk', 'Inter', system-ui, sans-serif;
+  --nc-font-display: 'Hanken Grotesk', system-ui, sans-serif;
+  --font-display:    'Hanken Grotesk', system-ui, sans-serif;
 
   /* Theme-adaptive surface primitives (dark defaults). Client modules
      consume these instead of hardcoded white-alpha so they read on both
@@ -50,71 +47,72 @@ h1, h2, h3, h4, h5, h6,
    Refines the porcelain surfaces, navy ink, hairline borders, and
    soft layered shadows. Adds an indigo / violet / lavender accent
    ramp so the dashboard reads enterprise, not gamer. */
-body.nc-bright {
-  --nc-bg-primary:    #F4F7FB;   /* porcelain canvas */
-  --nc-bg-secondary:  #E9EEF5;
+body.nc-bright:not(.nc-client) {
+  --nc-bg-primary:    #f9f9fc;   /* porcelain canvas */
+  --nc-bg-secondary:  #F2F4F7;
   --nc-bg-elevated:   #FFFFFF;
   --nc-bg-card:       #FFFFFF;
 
-  --nc-text-primary:   #0D1828;  /* premium navy ink */
-  --nc-text-secondary: #566378;  /* soft graphite */
-  --nc-text-muted:     #8593A6;
+  --nc-text-primary:   #1C1C1E;  /* premium navy ink */
+  --nc-text-secondary: #49454F;  /* soft graphite */
+  --nc-text-muted:     #79747E;
 
-  --nc-border:        rgba(13, 24, 40, 0.07);
-  --nc-border-strong: rgba(13, 24, 40, 0.14);
+  --nc-border:        rgba(0, 0, 0, 0.06);
+  --nc-border-strong: #E2E2E6;
 
-  /* Soft, layered, cool-tinted elevation (premium shadow language) */
-  --nc-shadow-sm:   0 1px 2px rgba(13,24,40,0.05);
-  --nc-shadow-md:   0 2px 6px rgba(13,24,40,0.05), 0 10px 26px rgba(13,24,40,0.06);
-  --nc-shadow-lg:   0 8px 18px rgba(13,24,40,0.06), 0 28px 60px rgba(13,24,40,0.10);
-  --nc-shadow-card: 0 1px 2px rgba(13,24,40,0.04), 0 8px 24px rgba(13,24,40,0.05);
+  /* Soft, layered clinical elevation */
+  --nc-shadow-sm:   0 1px 2px rgba(0,0,0,0.05);
+  --nc-shadow-md:   0 4px 6px -1px rgba(0,0,0,0.1);
+  --nc-shadow-lg:   0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px rgba(0,0,0,0.05);
+  --nc-shadow-card: 0 1px 2px rgba(0,0,0,0.05);
 
-  --nc-glass-bg:     rgba(255, 255, 255, 0.68);
-  --nc-glass-border: rgba(13, 24, 40, 0.08);
+  --nc-glass-bg:     rgba(255, 255, 255, 0.80);
+  --nc-glass-border: rgba(0, 0, 0, 0.06);
 
-  /* Premium accent ramp (deep indigo + soft lavender + clinical violet) */
-  --nc-indigo:        #5B6CFF;
-  --nc-indigo-ink:    #4F5BD5;
-  --nc-indigo-soft:   rgba(91, 108, 255, 0.10);
-  --nc-violet:        #7C6CF0;
-  --nc-violet-soft:   rgba(124, 108, 240, 0.10);
-  --nc-lavender:      #EEF0FF;
-  --nc-amber-ink:     #B7791F;
-  --nc-amber-soft:    rgba(245, 158, 11, 0.12);
-  --nc-teal-ink:      #0E9384;
-  --nc-teal-tint:     rgba(20, 184, 166, 0.10);
+  /* Premium accent ramp (Stitch Emerald and Emerald-Accent) */
+  --nc-indigo:        #10B981;
+  --nc-indigo-ink:    #043927;
+  --nc-indigo-soft:   rgba(4, 57, 39, 0.10);
+  --nc-violet:        #10B981;
+  --nc-violet-soft:   rgba(16, 185, 129, 0.10);
+  --nc-lavender:      #FAFAFA;
+  --nc-amber-ink:     #AA8C2C;
+  --nc-amber-soft:    rgba(170, 140, 44, 0.12);
+  --nc-teal-ink:      #043927;
+  --nc-teal-tint:     rgba(4, 57, 39, 0.10);
+  --nc-teal:          #043927;
 
   /* Adaptive surface primitives — ink on porcelain (client modules) */
-  --nc-fill-1: rgba(13, 24, 40, 0.03);
-  --nc-track:  rgba(13, 24, 40, 0.10);
+  --nc-fill-1: rgba(0, 0, 0, 0.03);
+  --nc-track:  rgba(0, 0, 0, 0.10);
 
   /* Legacy-token bridge — refined so styles.css components inherit the
      same porcelain/ink/shadow language coherently. */
-  --bg-void:    #E7ECF3;
-  --bg-base:    #F4F7FB;
+  --bg-void:    #f9f9fc;
+  --bg-base:    #f9f9fc;
   --bg-surface: #FFFFFF;
-  --bg-raised:  #F4F7FB;
+  --bg-raised:  #F2F4F7;
   --bg-overlay: #FFFFFF;
-  --bg-hover:   rgba(13, 24, 40, 0.035);
+  --bg-hover:   rgba(4, 57, 39, 0.035);
 
-  --border-subtle:  rgba(13, 24, 40, 0.06);
-  --border-default: rgba(13, 24, 40, 0.11);
-  --border-strong:  rgba(13, 24, 40, 0.18);
+  --border-subtle:  rgba(0, 0, 0, 0.04);
+  --border-default: rgba(0, 0, 0, 0.06);
+  --border-strong:  #E2E2E6;
 
-  --text-primary:   #0D1828;
-  --text-secondary: #4C5A70;
-  --text-tertiary:  #7E8DA1;
+  --text-primary:   #1C1C1E;
+  --text-secondary: #49454F;
+  --text-tertiary:  #79747E;
 
-  --shadow-sm:   0 1px 2px rgba(13,24,40,0.05);
-  --shadow-md:   0 2px 6px rgba(13,24,40,0.05), 0 10px 26px rgba(13,24,40,0.06);
-  --shadow-lg:   0 8px 18px rgba(13,24,40,0.06), 0 28px 60px rgba(13,24,40,0.10);
-  --shadow-xl:   0 18px 40px rgba(13,24,40,0.10), 0 40px 80px rgba(13,24,40,0.12);
-  --shadow-card: 0 1px 2px rgba(13,24,40,0.04), 0 8px 24px rgba(13,24,40,0.05);
+  --shadow-sm:   0 1px 2px rgba(0,0,0,0.05);
+  --shadow-md:   0 4px 6px -1px rgba(0,0,0,0.1);
+  --shadow-lg:   0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px rgba(0,0,0,0.05);
+  --shadow-xl:   0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+  --shadow-card: 0 1px 2px rgba(0,0,0,0.05);
 }
 
 /* The porcelain canvas reads cleaner with a whisper of cool light at
    the top — replaces the flat fill without muddying it. */
-body.nc-bright {
+body.nc-bright:not(.nc-client) {
   background:
     radial-gradient(120% 80% at 100% -10%, rgba(91,108,255,0.05) 0%, transparent 55%),
     radial-gradient(90% 60% at -10% 0%, rgba(20,184,166,0.045) 0%, transparent 50%),
@@ -126,41 +124,47 @@ body.nc-bright {
    One card system across Dashboard / Programs / Clients / Assessments
    / Recovery / Graphs: hairline border, soft layered shadow, a barely
    there top highlight, and an elegant hover lift. */
-body.nc-bright .card,
-body.nc-bright .stat-card,
-body.nc-bright .neu-card {
-  border: 1px solid var(--nc-border);
-  border-radius: 18px;
-  box-shadow: var(--nc-shadow-card);
-  background: var(--nc-bg-card);
+body.nc-bright:not(.nc-client) .card,
+body.nc-bright:not(.nc-client) .stat-card,
+body.nc-bright:not(.nc-client) .neu-card {
+  background: #FFFFFF;
+  border: 1px solid #F2F4F7;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  position: relative;
+  backdrop-filter: none;
+  transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
 }
-body.nc-bright .card { backdrop-filter: none; }
 
-/* Soft inner top highlight — the "expensive glass edge" without weight */
-body.nc-bright .card::before,
-body.nc-bright .stat-card::before {
-  content: "";
-  position: absolute; inset: 0;
-  border-radius: inherit;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.9);
-  pointer-events: none;
+body.nc-bright:not(.nc-client) .card::before,
+body.nc-bright:not(.nc-client) .stat-card::before {
+  content: none !important;
 }
-body.nc-bright .card { position: relative; }
 
-/* Elegant hover (motion personality: Strategist — composed, not bouncy) */
-body.nc-bright .stat-card:hover,
-body.nc-bright .card-hover:hover,
-body.nc-bright .neu-card--interactive:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--nc-shadow-lg);
-  border-color: var(--nc-border-strong);
+body.nc-bright:not(.nc-client) .stat-card {
+  border: 1px solid #E5E7EB;
 }
-body.nc-bright .card,
-body.nc-bright .stat-card,
-body.nc-bright .neu-card {
-  transition: transform var(--nc-dur-base, 320ms) var(--nc-ease, cubic-bezier(0.16,1,0.3,1)),
-              box-shadow var(--nc-dur-base, 320ms) var(--nc-ease, cubic-bezier(0.16,1,0.3,1)),
-              border-color var(--nc-dur-base, 320ms) var(--nc-ease, cubic-bezier(0.16,1,0.3,1));
+
+body.nc-bright:not(.nc-client) .stat-card:hover,
+body.nc-bright:not(.nc-client) .card-hover:hover,
+body.nc-bright:not(.nc-client) .neu-card--interactive:hover {
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+  transform: translateY(-1px);
+  border-color: #E2E2E6;
+}
+
+body.nc-bright:not(.nc-client) .card-active {
+  border-color: #043927;
+  box-shadow: 0 0 0 1px #043927;
+}
+
+body.nc-bright:not(.nc-client) .glass-card {
+  background: rgba(255,255,255,0.80);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0,0,0,0.06);
+  border-radius: 12px;
 }
 
 /* ── 4 · EXECUTIVE DASHBOARD ────────────────────────────────────
@@ -379,18 +383,18 @@ body.nc-bright .neu-card {
   from { opacity: 0; transform: translateY(14px); }
   to   { opacity: 1; transform: none; }
 }
-body.nc-bright #section-dashboard.active .nc-kpi,
-body.nc-bright #section-dashboard.active .nc-panel {
+body.nc-bright:not(.nc-client) #section-dashboard.active .nc-kpi,
+body.nc-bright:not(.nc-client) #section-dashboard.active .nc-panel {
   animation: nc-rise 520ms var(--nc-ease, cubic-bezier(0.16,1,0.3,1)) both;
 }
-body.nc-bright #section-dashboard.active .nc-kpi:nth-child(1) { animation-delay: 40ms; }
-body.nc-bright #section-dashboard.active .nc-kpi:nth-child(2) { animation-delay: 90ms; }
-body.nc-bright #section-dashboard.active .nc-kpi:nth-child(3) { animation-delay: 140ms; }
-body.nc-bright #section-dashboard.active .nc-kpi:nth-child(4) { animation-delay: 190ms; }
-body.nc-bright #section-dashboard.active .nc-dash-main .nc-panel { animation-delay: 220ms; }
-body.nc-bright #section-dashboard.active .nc-dash-rail .nc-panel:nth-child(1) { animation-delay: 260ms; }
-body.nc-bright #section-dashboard.active .nc-dash-rail .nc-panel:nth-child(2) { animation-delay: 300ms; }
-body.nc-bright #section-dashboard.active .nc-dash-rail .nc-panel:nth-child(3) { animation-delay: 340ms; }
+body.nc-bright:not(.nc-client) #section-dashboard.active .nc-kpi:nth-child(1) { animation-delay: 40ms; }
+body.nc-bright:not(.nc-client) #section-dashboard.active .nc-kpi:nth-child(2) { animation-delay: 90ms; }
+body.nc-bright:not(.nc-client) #section-dashboard.active .nc-kpi:nth-child(3) { animation-delay: 140ms; }
+body.nc-bright:not(.nc-client) #section-dashboard.active .nc-kpi:nth-child(4) { animation-delay: 190ms; }
+body.nc-bright:not(.nc-client) #section-dashboard.active .nc-dash-main .nc-panel { animation-delay: 220ms; }
+body.nc-bright:not(.nc-client) #section-dashboard.active .nc-dash-rail .nc-panel:nth-child(1) { animation-delay: 260ms; }
+body.nc-bright:not(.nc-client) #section-dashboard.active .nc-dash-rail .nc-panel:nth-child(2) { animation-delay: 300ms; }
+body.nc-bright:not(.nc-client) #section-dashboard.active .nc-dash-rail .nc-panel:nth-child(3) { animation-delay: 340ms; }
 
 /* Intelligent text reveal — words ease in sequentially, like a
    composed system writing a line. Driven by Dashboard._revealText(). */
@@ -409,23 +413,24 @@ body.nc-bright #section-dashboard.active .nc-dash-rail .nc-panel:nth-child(3) { 
 /* ── 7 · GRAPH + ASSESSMENT SURFACE POLISH (bright) ─────────────
    Lift the controls and chart frame to the same premium card
    language; the assessment hologram stays dark (client theme). */
-body.nc-bright .chart-card,
-body.nc-bright .graph-card,
-body.nc-bright #section-progress .card,
-body.nc-bright #section-analytics .card {
+body.nc-bright:not(.nc-client) .chart-card,
+body.nc-bright:not(.nc-client) .graph-card,
+body.nc-bright:not(.nc-client) #section-progress .card,
+body.nc-bright:not(.nc-client) #section-analytics .card {
   border-radius: 18px;
   box-shadow: var(--nc-shadow-card);
 }
-body.nc-bright .tab-row { border-bottom-color: var(--nc-border); }
-body.nc-bright .tab-btn { color: var(--nc-text-secondary); }
-body.nc-bright .tab-btn.active { color: var(--nc-indigo-ink, #4F5BD5); }
-body.nc-bright .assess-section-head { color: var(--nc-indigo-ink, #4F5BD5); }
+body.nc-bright:not(.nc-client) .tab-row { border-bottom-color: var(--nc-border); }
+body.nc-bright:not(.nc-client) .tab-btn { color: var(--nc-text-secondary); }
+body.nc-bright:not(.nc-client) .tab-btn.active { color: var(--nc-indigo-ink, #4F5BD5); }
+body.nc-bright:not(.nc-client) .assess-section-head { color: var(--nc-indigo-ink, #4F5BD5); }
 
 /* Sidebar refinement — premium navy rail, tighter active pill */
-body.nc-bright .sidebar { box-shadow: 1px 0 0 rgba(13,24,40,0.04); }
-body.nc-bright .nav-item.active {
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05);
-  background: linear-gradient(135deg, rgba(20,184,166,0.16), rgba(91,108,255,0.10));
+body.nc-bright:not(.nc-client) .sidebar { box-shadow: none !important; }
+body.nc-bright:not(.nc-client) .nav-item.active {
+  background: rgba(4, 57, 39, 0.08) !important;
+  color: #043927 !important;
+  border-right: 3px solid #043927 !important;
 }
 
 /* ── 8 · RESPONSIVE ─────────────────────────────────────────────*/
@@ -440,8 +445,8 @@ body.nc-bright .nav-item.active {
 
 /* ── 9 · REDUCED MOTION ─────────────────────────────────────────*/
 @media (prefers-reduced-motion: reduce) {
-  body.nc-bright #section-dashboard.active .nc-kpi,
-  body.nc-bright #section-dashboard.active .nc-panel,
+  body.nc-bright:not(.nc-client) #section-dashboard.active .nc-kpi,
+  body.nc-bright:not(.nc-client) #section-dashboard.active .nc-panel,
   .nc-reveal-word { animation: none !important; }
   .nc-reveal-word { opacity: 1; filter: none; transform: none; }
 }
@@ -456,7 +461,7 @@ body.nc-bright .nav-item.active {
 /* ── Cards V2 · tactile multi-layer depth (token refinement) ─────
    Refining the shadow tokens lifts every card/panel/KPI/stat at once —
    they all consume var(--nc-shadow-card). */
-body.nc-bright {
+body.nc-bright:not(.nc-client) {
   --nc-shadow-card:
     0 1px 1px rgba(13,24,40,0.04),
     0 4px 10px rgba(13,24,40,0.045),
@@ -470,18 +475,18 @@ body.nc-bright {
 }
 
 /* ── Typography rhythm · intentional, not developer-default ──────*/
-body.nc-bright .page-title {
+body.nc-bright:not(.nc-client) .page-title {
   font-size: clamp(22px, 2.4vw, 30px);
   font-weight: 800; letter-spacing: -0.028em; line-height: 1.1;
 }
-body.nc-bright .page-subtitle { font-size: 14px; color: var(--nc-text-secondary); line-height: 1.6; }
-body.nc-bright .card-title { font-size: 15px; font-weight: 700; letter-spacing: -0.012em; }
-body.nc-bright .form-label, body.nc-bright .neu-label {
+body.nc-bright:not(.nc-client) .page-subtitle { font-size: 14px; color: var(--nc-text-secondary); line-height: 1.6; }
+body.nc-bright:not(.nc-client) .card-title { font-size: 15px; font-weight: 700; letter-spacing: -0.012em; }
+body.nc-bright:not(.nc-client) .form-label, body.nc-bright:not(.nc-client) .neu-label {
   font-size: 11px; font-weight: 600; letter-spacing: 0.05em;
   text-transform: uppercase; color: var(--nc-text-muted);
 }
-body.nc-bright .btn, body.nc-bright .neu-btn { letter-spacing: -0.005em; font-weight: 600; }
-body.nc-bright .nc-card-eyebrow, body.nc-bright .stat-label { letter-spacing: 0.12em; }
+body.nc-bright:not(.nc-client) .btn, body.nc-bright:not(.nc-client) .neu-btn { letter-spacing: -0.005em; font-weight: 600; }
+body.nc-bright:not(.nc-client) .nc-card-eyebrow, body.nc-bright:not(.nc-client) .stat-label { letter-spacing: 0.12em; }
 
 /* ── Dashboard breathing room + rhythm ───────────────────────────*/
 .nc-kpi-grid   { gap: 18px; margin-bottom: 26px; }
@@ -501,15 +506,15 @@ body.nc-bright .nc-card-eyebrow, body.nc-bright .stat-label { letter-spacing: 0.
 }
 
 /* ── Micro-interactions · Linear/Stripe restraint ────────────────*/
-body.nc-bright .btn:active:not([disabled]),
-body.nc-bright .neu-btn:active:not([disabled]),
-body.nc-bright .nc-quick-btn:active,
-body.nc-bright .nc-section-link:active {
+body.nc-bright:not(.nc-client) .btn:active:not([disabled]),
+body.nc-bright:not(.nc-client) .neu-btn:active:not([disabled]),
+body.nc-bright:not(.nc-client) .nc-quick-btn:active,
+body.nc-bright:not(.nc-client) .nc-section-link:active {
   transform: translateY(0) scale(0.985);
   transition-duration: 90ms;
 }
-body.nc-bright .nav-label { display: inline-block; transition: transform var(--nc-dur-fast,180ms) var(--nc-ease, ease); }
-body.nc-bright .nav-item:hover .nav-label { transform: translateX(2px); }
+body.nc-bright:not(.nc-client) .nav-label { display: inline-block; transition: transform var(--nc-dur-fast,180ms) var(--nc-ease, ease); }
+body.nc-bright:not(.nc-client) .nav-item:hover .nav-label { transform: translateX(2px); }
 /* Section link — quiet animated underline */
 .nc-section-link::after {
   content: ""; position: absolute; left: 6px; right: 6px; bottom: 1px; height: 1.5px;
@@ -548,27 +553,27 @@ body.nc-bright .nav-item:hover .nav-label { transform: translateX(2px); }
 @keyframes nc-ai-blink { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
 
 /* Premium empty/loading surfaces on graph + queue (bright) */
-body.nc-bright .nc-rpm-empty,
-body.nc-bright .nc-app-empty {
+body.nc-bright:not(.nc-client) .nc-rpm-empty,
+body.nc-bright:not(.nc-client) .nc-app-empty {
   border: 1px dashed var(--nc-border-strong);
   border-radius: 18px; background: var(--nc-bg-secondary);
   padding: 44px 24px; color: var(--nc-text-secondary);
 }
 
 /* ── Assessment luxury (bright) ──────────────────────────────────*/
-body.nc-bright .tab-row { gap: 4px; }
-body.nc-bright .tab-btn { padding: 10px 18px; border-radius: 10px 10px 0 0; font-weight: 600; }
-body.nc-bright .tab-btn.active { background: var(--nc-indigo-soft, rgba(91,108,255,0.10)); }
-body.nc-bright #section-new-session .card { border-radius: 18px; }
-body.nc-bright .assess-section-head { font-size: 13px; letter-spacing: 0.01em; }
+body.nc-bright:not(.nc-client) .tab-row { gap: 4px; }
+body.nc-bright:not(.nc-client) .tab-btn { padding: 10px 18px; border-radius: 10px 10px 0 0; font-weight: 600; }
+body.nc-bright:not(.nc-client) .tab-btn.active { background: var(--nc-indigo-soft, rgba(91,108,255,0.10)); }
+body.nc-bright:not(.nc-client) #section-new-session .card { border-radius: 18px; }
+body.nc-bright:not(.nc-client) .assess-section-head { font-size: 13px; letter-spacing: 0.01em; }
 
 @media (prefers-reduced-motion: reduce) {
   .nc-ai-chip::before,
-  body.nc-bright .modal-overlay,
-  body.nc-bright .modal,
-  body.nc-bright .toast,
-  body.nc-bright .section.active,
-  body.nc-bright .tab-panel.active {
+  body.nc-bright:not(.nc-client) .modal-overlay,
+  body.nc-bright:not(.nc-client) .modal,
+  body.nc-bright:not(.nc-client) .toast,
+  body.nc-bright:not(.nc-client) .section.active,
+  body.nc-bright:not(.nc-client) .tab-panel.active {
     animation: none !important;
     transition: none !important;
   }
@@ -586,43 +591,43 @@ body.nc-bright .assess-section-head { font-size: 13px; letter-spacing: 0.01em; }
    ════════════════════════════════════════════════════════════════ */
 
 /* Wizard + builder section shells → porcelain cards */
-body.nc-bright .nc-wizard,
-body.nc-bright .nc-rpm-section {
+body.nc-bright:not(.nc-client) .nc-wizard,
+body.nc-bright:not(.nc-client) .nc-rpm-section {
   background: var(--nc-bg-card, #fff);
   border-color: var(--nc-border);
   box-shadow: var(--nc-shadow-card);
 }
-body.nc-bright .nc-subj-mode {
+body.nc-bright:not(.nc-client) .nc-subj-mode {
   background: var(--nc-bg-secondary, #EEF2F6);
   border-color: var(--nc-border);
 }
 
 /* Inputs / textareas / selects / chip wells → light fields with hairline */
-body.nc-bright .nc-w-input,
-body.nc-bright .nc-w-textarea,
-body.nc-bright .nc-w-select,
-body.nc-bright .nc-w-chips,
-body.nc-bright .nc-w-rrow input,
-body.nc-bright .nc-w-rrow select,
-body.nc-bright .nc-rpm-section select,
-body.nc-bright .nc-rpm-section textarea,
-body.nc-bright .nc-rpm-section input[type="text"],
-body.nc-bright .nc-rpm-section input[type="number"],
-body.nc-bright .nc-rpm-stepper {
+body.nc-bright:not(.nc-client) .nc-w-input,
+body.nc-bright:not(.nc-client) .nc-w-textarea,
+body.nc-bright:not(.nc-client) .nc-w-select,
+body.nc-bright:not(.nc-client) .nc-w-chips,
+body.nc-bright:not(.nc-client) .nc-w-rrow input,
+body.nc-bright:not(.nc-client) .nc-w-rrow select,
+body.nc-bright:not(.nc-client) .nc-rpm-section select,
+body.nc-bright:not(.nc-client) .nc-rpm-section textarea,
+body.nc-bright:not(.nc-client) .nc-rpm-section input[type="text"],
+body.nc-bright:not(.nc-client) .nc-rpm-section input[type="number"],
+body.nc-bright:not(.nc-client) .nc-rpm-stepper {
   background: var(--nc-bg-secondary, #F4F7FB);
   border-color: var(--nc-border);
   color: var(--nc-text-primary);
 }
 
 /* Checkbox rows, recap rows, empty states → light surfaces */
-body.nc-bright .nc-w-check,
-body.nc-bright .nc-w-recap-row,
-body.nc-bright .nc-subj-no-client,
-body.nc-bright .nc-rpm-client-chip {
+body.nc-bright:not(.nc-client) .nc-w-check,
+body.nc-bright:not(.nc-client) .nc-w-recap-row,
+body.nc-bright:not(.nc-client) .nc-subj-no-client,
+body.nc-bright:not(.nc-client) .nc-rpm-client-chip {
   background: var(--nc-bg-secondary, #F4F7FB);
   border-color: var(--nc-border);
 }
-body.nc-bright .nc-w-check:hover { border-color: var(--nc-border-strong); background: #fff; }
+body.nc-bright:not(.nc-client) .nc-w-check:hover { border-color: var(--nc-border-strong); background: #fff; }
 
 /* ════════════════════════════════════════════════════════════════
    CLIENT → porcelain bright. Clients now share the coach/admin bright
@@ -634,21 +639,21 @@ body.nc-bright .nc-w-check:hover { border-color: var(--nc-border-strong); backgr
    dark by design (they own their colours explicitly).
    ════════════════════════════════════════════════════════════════ */
 /* Reused daily-routine cards join the premium card language */
-body.nc-bright .dr-card { border-radius: 18px; box-shadow: var(--nc-shadow-card); }
+body.nc-bright:not(.nc-client) .dr-card { border-radius: 18px; box-shadow: var(--nc-shadow-card); }
 
 /* Mobile client tab bar + More sheet → light glass (were dark navy) */
-body.nc-bright.nc-client .nc-tabbar {
+body.nc-bright:not(.nc-client).nc-client .nc-tabbar {
   background: rgba(255, 255, 255, 0.88) !important;
   border-top-color: var(--nc-border);
   box-shadow: 0 -8px 24px rgba(13,24,40,0.06);
   backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
 }
-body.nc-bright.nc-client .nc-sheet-panel { box-shadow: 0 -16px 48px rgba(13,24,40,0.18); }
+body.nc-bright:not(.nc-client).nc-client .nc-sheet-panel { box-shadow: 0 -16px 48px rgba(13,24,40,0.18); }
 
 /* Dark island — the fullscreen load-map hologram stays dark (royal navy)
    with light controls even under the porcelain theme, so the glowing 3D
    skeleton reads. Re-establish dark tokens locally for its children. */
-body.nc-bright #cp-holo-overlay {
+body.nc-bright:not(.nc-client) #cp-holo-overlay {
   background: #0A1126 !important;
   --nc-bg-primary:     #0A1126;
   --nc-text-primary:   #F4F7FB;
@@ -660,38 +665,38 @@ body.nc-bright #cp-holo-overlay {
 }
 
 /* Placeholders readable on the light fields */
-body.nc-bright .nc-w-input::placeholder,
-body.nc-bright .nc-w-textarea::placeholder,
-body.nc-bright .nc-rpm-section textarea::placeholder,
-body.nc-bright .nc-rpm-section input::placeholder { color: var(--nc-text-muted); }
+body.nc-bright:not(.nc-client) .nc-w-input::placeholder,
+body.nc-bright:not(.nc-client) .nc-w-textarea::placeholder,
+body.nc-bright:not(.nc-client) .nc-rpm-section textarea::placeholder,
+body.nc-bright:not(.nc-client) .nc-rpm-section input::placeholder { color: var(--nc-text-muted); }
 
 /* Mode-toggle active pill reads on a light bar */
-body.nc-bright .nc-subj-mode-btn.active {
+body.nc-bright:not(.nc-client) .nc-subj-mode-btn.active {
   background: var(--nc-indigo-soft, rgba(91,108,255,0.10));
   color: var(--nc-indigo-ink, #4F5BD5);
   box-shadow: 0 0 0 1px color-mix(in oklab, var(--nc-indigo, #5B6CFF), transparent 55%);
 }
-body.nc-bright .nc-wizard-step-num { color: var(--nc-indigo-ink, #4F5BD5); }
+body.nc-bright:not(.nc-client) .nc-wizard-step-num { color: var(--nc-indigo-ink, #4F5BD5); }
 
 /* ════════════════════════════════════════════════════════════════
    PHASE A — GLOBAL FRONTEND SURFACE POLISH
    Scope: Unify cards, buttons, inputs, selects, textareas, modals,
    tables, tabs, chips, badges, hover/focus/loading/empty states,
    subtle transitions, border radii, shadows and spacing.
-   Theme-neutral and additive, scoped safely under body.nc-bright
+   Theme-neutral and additive, scoped safely under body.nc-bright:not(.nc-client)
    for coach/admin and standard classes where appropriate.
    ════════════════════════════════════════════════════════════════ */
 
 /* ── 1. CARDS ── */
 /* Ensure all card variants share the unified card language */
-body.nc-bright .card,
-body.nc-bright .stat-card,
-body.nc-bright .glass-card,
-body.nc-bright .neu-card,
-body.nc-bright .chart-card,
-body.nc-bright .graph-card,
-body.nc-bright .ws-tracker-live,
-body.nc-bright .ws-tracker-cta {
+body.nc-bright:not(.nc-client) .card,
+body.nc-bright:not(.nc-client) .stat-card,
+body.nc-bright:not(.nc-client) .glass-card,
+body.nc-bright:not(.nc-client) .neu-card,
+body.nc-bright:not(.nc-client) .chart-card,
+body.nc-bright:not(.nc-client) .graph-card,
+body.nc-bright:not(.nc-client) .ws-tracker-live,
+body.nc-bright:not(.nc-client) .ws-tracker-cta {
   border: 1px solid var(--nc-border) !important;
   border-radius: 18px !important;
   box-shadow: var(--nc-shadow-card) !important;
@@ -704,12 +709,12 @@ body.nc-bright .ws-tracker-cta {
 }
 
 /* Subtle top highlight inside all card types for expensive glass feel */
-body.nc-bright .card::before,
-body.nc-bright .stat-card::before,
-body.nc-bright .glass-card::before,
-body.nc-bright .neu-card::before,
-body.nc-bright .chart-card::before,
-body.nc-bright .graph-card::before {
+body.nc-bright:not(.nc-client) .card::before,
+body.nc-bright:not(.nc-client) .stat-card::before,
+body.nc-bright:not(.nc-client) .glass-card::before,
+body.nc-bright:not(.nc-client) .neu-card::before,
+body.nc-bright:not(.nc-client) .chart-card::before,
+body.nc-bright:not(.nc-client) .graph-card::before {
   content: "";
   position: absolute; inset: 0;
   border-radius: inherit;
@@ -719,20 +724,20 @@ body.nc-bright .graph-card::before {
 }
 
 /* Unified interactive card hover lift */
-body.nc-bright .stat-card:hover,
-body.nc-bright .card-hover:hover,
-body.nc-bright .neu-card--interactive:hover,
-body.nc-bright .ws-tracker-live:hover,
-body.nc-bright .ws-tracker-cta:hover {
+body.nc-bright:not(.nc-client) .stat-card:hover,
+body.nc-bright:not(.nc-client) .card-hover:hover,
+body.nc-bright:not(.nc-client) .neu-card--interactive:hover,
+body.nc-bright:not(.nc-client) .ws-tracker-live:hover,
+body.nc-bright:not(.nc-client) .ws-tracker-cta:hover {
   transform: translateY(-3px) !important;
   box-shadow: var(--nc-shadow-lg) !important;
   border-color: var(--nc-border-strong) !important;
 }
 
 /* Unified Empty State inside Cards */
-body.nc-bright .empty-state,
-body.nc-bright .nc-rpm-empty,
-body.nc-bright .nc-app-empty {
+body.nc-bright:not(.nc-client) .empty-state,
+body.nc-bright:not(.nc-client) .nc-rpm-empty,
+body.nc-bright:not(.nc-client) .nc-app-empty {
   border: 1px dashed var(--nc-border-strong) !important;
   border-radius: 14px !important;
   background: var(--nc-bg-secondary, #E9EEF5) !important;
@@ -741,21 +746,21 @@ body.nc-bright .nc-app-empty {
   color: var(--nc-text-secondary) !important;
   box-shadow: none !important;
 }
-body.nc-bright .empty-icon {
+body.nc-bright:not(.nc-client) .empty-icon {
   font-size: 32px !important;
   color: var(--nc-text-muted) !important;
   opacity: 0.8 !important;
   margin-bottom: 12px !important;
   display: block;
 }
-body.nc-bright .empty-title {
+body.nc-bright:not(.nc-client) .empty-title {
   font-family: var(--nc-font-display) !important;
   font-size: 16px !important;
   font-weight: 700 !important;
   color: var(--nc-text-primary) !important;
   margin-bottom: 6px !important;
 }
-body.nc-bright .empty-desc {
+body.nc-bright:not(.nc-client) .empty-desc {
   font-size: 13px !important;
   color: var(--nc-text-secondary) !important;
   line-height: 1.5 !important;
@@ -765,8 +770,8 @@ body.nc-bright .empty-desc {
 
 /* ── 2. BUTTONS ── */
 /* Standardize buttons height, padding, interactive timing, and outline colors */
-body.nc-bright .btn,
-body.nc-bright .neu-btn {
+body.nc-bright:not(.nc-client) .btn,
+body.nc-bright:not(.nc-client) .neu-btn {
   height: 44px;
   padding: 0 24px;
   border-radius: var(--nc-r-full, 9999px) !important;
@@ -788,79 +793,79 @@ body.nc-bright .neu-btn {
 }
 
 /* Small Button overrides */
-body.nc-bright .btn-sm,
-body.nc-bright .btn-xs,
-body.nc-bright .neu-btn--sm {
+body.nc-bright:not(.nc-client) .btn-sm,
+body.nc-bright:not(.nc-client) .btn-xs,
+body.nc-bright:not(.nc-client) .neu-btn--sm {
   height: 34px !important;
   padding: 0 16px !important;
   font-size: 12.5px !important;
 }
 
 /* Large Button overrides */
-body.nc-bright .btn-lg,
-body.nc-bright .neu-btn--lg {
+body.nc-bright:not(.nc-client) .btn-lg,
+body.nc-bright:not(.nc-client) .neu-btn--lg {
   height: 52px !important;
   padding: 0 32px !important;
   font-size: 15.5px !important;
 }
 
 /* Primary Button high-contrast gradients and shadow */
-body.nc-bright .btn-primary,
-body.nc-bright .neu-btn--primary {
+body.nc-bright:not(.nc-client) .btn-primary,
+body.nc-bright:not(.nc-client) .neu-btn--primary {
   background: linear-gradient(135deg, var(--nc-teal) 0%, #0EA5E9 100%) !important;
   color: #04141A !important;
   box-shadow: 0 8px 24px rgba(20,184,166,0.22), inset 0 1px 0 rgba(255,255,255,0.2) !important;
 }
-body.nc-bright .btn-primary:hover:not([disabled]),
-body.nc-bright .neu-btn--primary:hover:not([disabled]) {
+body.nc-bright:not(.nc-client) .btn-primary:hover:not([disabled]),
+body.nc-bright:not(.nc-client) .neu-btn--primary:hover:not([disabled]) {
   transform: translateY(-2px) !important;
   box-shadow: 0 14px 32px rgba(20,184,166,0.32), inset 0 1px 0 rgba(255,255,255,0.2) !important;
 }
 
 /* Secondary & Ghost Buttons contrast repair for Bright Porcelain canvas */
-body.nc-bright .btn-secondary,
-body.nc-bright .btn-ghost,
-body.nc-bright .neu-btn--ghost {
+body.nc-bright:not(.nc-client) .btn-secondary,
+body.nc-bright:not(.nc-client) .btn-ghost,
+body.nc-bright:not(.nc-client) .neu-btn--ghost {
   background: var(--nc-bg-secondary, #E9EEF5) !important;
   border-color: var(--nc-border) !important;
   color: var(--nc-text-primary) !important;
   box-shadow: var(--nc-shadow-sm) !important;
   backdrop-filter: none !important;
 }
-body.nc-bright .btn-secondary:hover:not([disabled]),
-body.nc-bright .btn-ghost:hover:not([disabled]),
-body.nc-bright .neu-btn--ghost:hover:not([disabled]) {
+body.nc-bright:not(.nc-client) .btn-secondary:hover:not([disabled]),
+body.nc-bright:not(.nc-client) .btn-ghost:hover:not([disabled]),
+body.nc-bright:not(.nc-client) .neu-btn--ghost:hover:not([disabled]) {
   background: color-mix(in oklab, var(--nc-bg-secondary), var(--nc-text-primary) 4%) !important;
   border-color: var(--nc-border-strong) !important;
   transform: translateY(-2px) !important;
 }
 
 /* Danger Button */
-body.nc-bright .btn-danger,
-body.nc-bright .neu-btn--danger {
+body.nc-bright:not(.nc-client) .btn-danger,
+body.nc-bright:not(.nc-client) .neu-btn--danger {
   background: linear-gradient(135deg, #F5426C, #C92053) !important;
   color: #FFFFFF !important;
   box-shadow: 0 8px 20px rgba(245,66,108,0.2) !important;
 }
-body.nc-bright .btn-danger:hover:not([disabled]),
-body.nc-bright .neu-btn--danger:hover:not([disabled]) {
+body.nc-bright:not(.nc-client) .btn-danger:hover:not([disabled]),
+body.nc-bright:not(.nc-client) .neu-btn--danger:hover:not([disabled]) {
   transform: translateY(-2px) !important;
   box-shadow: 0 12px 28px rgba(245,66,108,0.3) !important;
 }
 
 /* Gold Button */
-body.nc-bright .neu-btn--gold {
+body.nc-bright:not(.nc-client) .neu-btn--gold {
   background: linear-gradient(135deg, #F4D77A, #D4AF37) !important;
   color: #2A1F00 !important;
   box-shadow: 0 8px 20px rgba(212,175,55,0.12) !important;
 }
-body.nc-bright .neu-btn--gold:hover:not([disabled]) {
+body.nc-bright:not(.nc-client) .neu-btn--gold:hover:not([disabled]) {
   transform: translateY(-2px) !important;
   box-shadow: 0 12px 28px rgba(212,175,55,0.22) !important;
 }
 
 /* Icon Button */
-body.nc-bright .btn-icon {
+body.nc-bright:not(.nc-client) .btn-icon {
   width: 36px !important;
   height: 36px !important;
   padding: 0 !important;
@@ -869,17 +874,17 @@ body.nc-bright .btn-icon {
   border: 1px solid var(--nc-border) !important;
   color: var(--nc-text-secondary) !important;
 }
-body.nc-bright .btn-icon:hover {
+body.nc-bright:not(.nc-client) .btn-icon:hover {
   background: color-mix(in oklab, var(--nc-bg-secondary), var(--nc-text-primary) 5%) !important;
   border-color: var(--nc-border-strong) !important;
   color: var(--nc-text-primary) !important;
 }
 
 /* Disabled state */
-body.nc-bright .btn:disabled,
-body.nc-bright .btn[disabled],
-body.nc-bright .neu-btn:disabled,
-body.nc-bright .neu-btn[disabled] {
+body.nc-bright:not(.nc-client) .btn:disabled,
+body.nc-bright:not(.nc-client) .btn[disabled],
+body.nc-bright:not(.nc-client) .neu-btn:disabled,
+body.nc-bright:not(.nc-client) .neu-btn[disabled] {
   opacity: 0.5 !important;
   cursor: not-allowed !important;
   transform: none !important;
@@ -887,28 +892,28 @@ body.nc-bright .neu-btn[disabled] {
 }
 
 /* Focus outline for all interactive elements */
-body.nc-bright .btn:focus-visible,
-body.nc-bright .neu-btn:focus-visible,
-body.nc-bright input:focus-visible,
-body.nc-bright select:focus-visible,
-body.nc-bright textarea:focus-visible {
+body.nc-bright:not(.nc-client) .btn:focus-visible,
+body.nc-bright:not(.nc-client) .neu-btn:focus-visible,
+body.nc-bright:not(.nc-client) input:focus-visible,
+body.nc-bright:not(.nc-client) select:focus-visible,
+body.nc-bright:not(.nc-client) textarea:focus-visible {
   outline: none !important;
   box-shadow: var(--nc-focus-ring) !important;
 }
 
 /* ── 3. FORMS ── */
 /* Unify form text fields, textareas, and dropdown controls */
-body.nc-bright .form-input,
-body.nc-bright .neu-input,
-body.nc-bright .neu-textarea,
-body.nc-bright .neu-select,
-body.nc-bright input[type='text'],
-body.nc-bright input[type='number'],
-body.nc-bright input[type='email'],
-body.nc-bright input[type='password'],
-body.nc-bright input[type='date'],
-body.nc-bright select,
-body.nc-bright textarea {
+body.nc-bright:not(.nc-client) .form-input,
+body.nc-bright:not(.nc-client) .neu-input,
+body.nc-bright:not(.nc-client) .neu-textarea,
+body.nc-bright:not(.nc-client) .neu-select,
+body.nc-bright:not(.nc-client) input[type='text'],
+body.nc-bright:not(.nc-client) input[type='number'],
+body.nc-bright:not(.nc-client) input[type='email'],
+body.nc-bright:not(.nc-client) input[type='password'],
+body.nc-bright:not(.nc-client) input[type='date'],
+body.nc-bright:not(.nc-client) select,
+body.nc-bright:not(.nc-client) textarea {
   background: var(--nc-bg-secondary, #E9EEF5) !important;
   border: 1px solid var(--nc-border) !important;
   color: var(--nc-text-primary) !important;
@@ -922,8 +927,8 @@ body.nc-bright textarea {
 }
 
 /* Select element layout alignment */
-body.nc-bright select.form-input,
-body.nc-bright select {
+body.nc-bright:not(.nc-client) select.form-input,
+body.nc-bright:not(.nc-client) select {
   padding-right: 32px !important;
   appearance: none !important;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%23566378'%3E%3Cpath fill-rule='evenodd' d='M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06z' clip-rule='evenodd'/%3E%3C/svg%3E") !important;
@@ -933,45 +938,45 @@ body.nc-bright select {
 }
 
 /* Focus effect with indigo glow */
-body.nc-bright .form-input:focus,
-body.nc-bright .neu-input:focus,
-body.nc-bright .neu-textarea:focus,
-body.nc-bright .neu-select:focus,
-body.nc-bright input:focus,
-body.nc-bright select:focus,
-body.nc-bright textarea:focus {
+body.nc-bright:not(.nc-client) .form-input:focus,
+body.nc-bright:not(.nc-client) .neu-input:focus,
+body.nc-bright:not(.nc-client) .neu-textarea:focus,
+body.nc-bright:not(.nc-client) .neu-select:focus,
+body.nc-bright:not(.nc-client) input:focus,
+body.nc-bright:not(.nc-client) select:focus,
+body.nc-bright:not(.nc-client) textarea:focus {
   outline: none !important;
   border-color: var(--nc-indigo, #5B6CFF) !important;
   box-shadow: 0 0 0 3px rgba(91, 108, 255, 0.16) !important;
 }
 
 /* Placeholders contrast */
-body.nc-bright input::placeholder,
-body.nc-bright textarea::placeholder {
+body.nc-bright:not(.nc-client) input::placeholder,
+body.nc-bright:not(.nc-client) textarea::placeholder {
   color: var(--nc-text-muted, #8593A6) !important;
   opacity: 0.95 !important;
 }
 
 /* Validation/Error States */
-body.nc-bright .neu-input--error,
-body.nc-bright .form-input--error,
-body.nc-bright input.neu-input--error,
-body.nc-bright select.neu-input--error,
-body.nc-bright textarea.neu-input--error {
+body.nc-bright:not(.nc-client) .neu-input--error,
+body.nc-bright:not(.nc-client) .form-input--error,
+body.nc-bright:not(.nc-client) input.neu-input--error,
+body.nc-bright:not(.nc-client) select.neu-input--error,
+body.nc-bright:not(.nc-client) textarea.neu-input--error {
   border-color: var(--nc-rose) !important;
   box-shadow: 0 0 0 3px rgba(245, 66, 108, 0.16) !important;
 }
 
 /* Form Helper Text and Errors */
-body.nc-bright .form-hint,
-body.nc-bright .neu-field-hint {
+body.nc-bright:not(.nc-client) .form-hint,
+body.nc-bright:not(.nc-client) .neu-field-hint {
   font-size: 12px !important;
   color: var(--nc-text-secondary) !important;
   margin-top: 5px !important;
   line-height: 1.45 !important;
 }
-body.nc-bright .neu-field-error,
-body.nc-bright .form-error {
+body.nc-bright:not(.nc-client) .neu-field-error,
+body.nc-bright:not(.nc-client) .form-error {
   font-size: 12px !important;
   color: var(--nc-rose) !important;
   margin-top: 5px !important;
@@ -979,9 +984,9 @@ body.nc-bright .form-error {
 }
 
 /* Form disabled controls */
-body.nc-bright input:disabled,
-body.nc-bright select:disabled,
-body.nc-bright textarea:disabled {
+body.nc-bright:not(.nc-client) input:disabled,
+body.nc-bright:not(.nc-client) select:disabled,
+body.nc-bright:not(.nc-client) textarea:disabled {
   background: var(--nc-bg-primary) !important;
   opacity: 0.6 !important;
   cursor: not-allowed !important;
@@ -989,7 +994,7 @@ body.nc-bright textarea:disabled {
 
 /* ── 4. TABLES ── */
 /* Unified table styles */
-body.nc-bright .table-wrap {
+body.nc-bright:not(.nc-client) .table-wrap {
   border: 1px solid var(--nc-border) !important;
   border-radius: 14px !important;
   overflow: hidden;
@@ -997,11 +1002,11 @@ body.nc-bright .table-wrap {
   background: var(--nc-bg-elevated) !important;
   margin: 12px 0 20px !important;
 }
-body.nc-bright table {
+body.nc-bright:not(.nc-client) table {
   width: 100% !important;
   border-collapse: collapse !important;
 }
-body.nc-bright thead th {
+body.nc-bright:not(.nc-client) thead th {
   background: var(--nc-bg-secondary) !important;
   color: var(--nc-text-muted) !important;
   font-family: var(--nc-font-display) !important;
@@ -1011,26 +1016,26 @@ body.nc-bright thead th {
   padding: 12px 16px !important;
   border-bottom: 1px solid var(--nc-border) !important;
 }
-body.nc-bright tbody tr {
+body.nc-bright:not(.nc-client) tbody tr {
   border-bottom: 1px solid var(--nc-border) !important;
   transition: background-color var(--nc-dur-fast) ease !important;
 }
-body.nc-bright tbody tr:hover {
+body.nc-bright:not(.nc-client) tbody tr:hover {
   background-color: color-mix(in oklab, var(--nc-bg-secondary), transparent 60%) !important;
 }
-body.nc-bright tbody td {
+body.nc-bright:not(.nc-client) tbody td {
   padding: 14px 16px !important;
   color: var(--nc-text-secondary) !important;
   font-size: 13.5px !important;
 }
-body.nc-bright tbody td:first-child {
+body.nc-bright:not(.nc-client) tbody td:first-child {
   color: var(--nc-text-primary) !important;
   font-weight: 600 !important;
 }
 
 /* ── 5. TABS / CHIPS / BADGES ── */
 /* Unify chips and badges in the bright premium palette */
-body.nc-bright .badge {
+body.nc-bright:not(.nc-client) .badge {
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -1043,54 +1048,54 @@ body.nc-bright .badge {
   box-shadow: none !important;
 }
 
-body.nc-bright .badge-admin {
+body.nc-bright:not(.nc-client) .badge-admin {
   background: var(--nc-teal-tint, rgba(20, 184, 166, 0.10)) !important;
   color: var(--nc-teal-ink, #0E9384) !important;
   border: 1px solid rgba(20, 184, 166, 0.25) !important;
 }
-body.nc-bright .badge-coach {
+body.nc-bright:not(.nc-client) .badge-coach {
   background: var(--nc-indigo-soft, rgba(91, 108, 255, 0.10)) !important;
   color: var(--nc-indigo-ink, #4F5BD5) !important;
   border: 1px solid rgba(91, 108, 255, 0.25) !important;
 }
-body.nc-bright .badge-client {
+body.nc-bright:not(.nc-client) .badge-client {
   background: var(--nc-violet-soft, rgba(124, 108, 240, 0.10)) !important;
   color: var(--nc-violet, #7C6CF0) !important;
   border: 1px solid rgba(124, 108, 240, 0.25) !important;
 }
-body.nc-bright .badge-phase1 {
+body.nc-bright:not(.nc-client) .badge-phase1 {
   background: var(--nc-teal-tint, rgba(20, 184, 166, 0.10)) !important;
   color: var(--nc-teal-ink, #0E9384) !important;
   border: 1px solid rgba(20, 184, 166, 0.25) !important;
 }
-body.nc-bright .badge-phase2 {
+body.nc-bright:not(.nc-client) .badge-phase2 {
   background: var(--nc-amber-soft, rgba(245, 158, 11, 0.12)) !important;
   color: var(--nc-amber-ink, #B7791F) !important;
   border: 1px solid rgba(245, 158, 11, 0.25) !important;
 }
-body.nc-bright .badge-phase3 {
+body.nc-bright:not(.nc-client) .badge-phase3 {
   background: rgba(245, 66, 108, 0.08) !important;
   color: var(--nc-rose) !important;
   border: 1px solid rgba(245, 66, 108, 0.2) !important;
 }
-body.nc-bright .badge-active {
+body.nc-bright:not(.nc-client) .badge-active {
   background: var(--nc-teal-tint, rgba(20, 184, 166, 0.10)) !important;
   color: var(--nc-teal-ink, #0E9384) !important;
   border: 1px solid rgba(20, 184, 166, 0.25) !important;
 }
-body.nc-bright .badge-expired {
+body.nc-bright:not(.nc-client) .badge-expired {
   background: rgba(245, 66, 108, 0.08) !important;
   color: var(--nc-rose) !important;
   border: 1px solid rgba(245, 66, 108, 0.2) !important;
 }
-body.nc-bright .badge-pending {
+body.nc-bright:not(.nc-client) .badge-pending {
   background: var(--nc-amber-soft, rgba(245, 158, 11, 0.12)) !important;
   color: var(--nc-amber-ink, #B7791F) !important;
   border: 1px solid rgba(245, 158, 11, 0.25) !important;
 }
 
 /* Subscription filter buttons as chips */
-body.nc-bright .subs-filter-btn {
+body.nc-bright:not(.nc-client) .subs-filter-btn {
   border-radius: var(--nc-r-full, 9999px) !important;
   font-family: var(--nc-font-display) !important;
   font-size: 12.5px !important;
@@ -1101,11 +1106,11 @@ body.nc-bright .subs-filter-btn {
   color: var(--nc-text-secondary) !important;
   box-shadow: none !important;
 }
-body.nc-bright .subs-filter-btn:hover {
+body.nc-bright:not(.nc-client) .subs-filter-btn:hover {
   background: var(--nc-bg-secondary) !important;
   color: var(--nc-text-primary) !important;
 }
-body.nc-bright .subs-filter-btn.active {
+body.nc-bright:not(.nc-client) .subs-filter-btn.active {
   background: var(--nc-indigo-soft, rgba(91, 108, 255, 0.10)) !important;
   color: var(--nc-indigo-ink, #4F5BD5) !important;
   border-color: rgba(91, 108, 255, 0.4) !important;
@@ -1114,7 +1119,7 @@ body.nc-bright .subs-filter-btn.active {
 
 /* ── 6. MODALS / TOASTS ── */
 /* Modal visual style & entrance keyframe override */
-body.nc-bright .modal-overlay {
+body.nc-bright:not(.nc-client) .modal-overlay {
   background: rgba(13, 24, 40, 0.48) !important;
   backdrop-filter: blur(12px) saturate(1.2) !important;
   -webkit-backdrop-filter: blur(12px) saturate(1.2) !important;
@@ -1125,7 +1130,7 @@ body.nc-bright .modal-overlay {
   to { opacity: 1; }
 }
 
-body.nc-bright .modal {
+body.nc-bright:not(.nc-client) .modal {
   background: var(--nc-bg-elevated) !important;
   border: 1px solid var(--nc-border) !important;
   border-radius: 20px !important;
@@ -1133,7 +1138,7 @@ body.nc-bright .modal {
   animation: nc-modal-scale-in var(--nc-dur-base) var(--nc-ease-spring) both;
   overflow: hidden !important;
 }
-body.nc-bright .modal::before {
+body.nc-bright:not(.nc-client) .modal::before {
   background: linear-gradient(90deg, var(--nc-indigo) 0%, var(--nc-teal) 100%) !important;
   height: 3px !important;
 }
@@ -1142,28 +1147,28 @@ body.nc-bright .modal::before {
   to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
-body.nc-bright .modal-header {
+body.nc-bright:not(.nc-client) .modal-header {
   padding: 20px 24px !important;
   border-bottom: 1px solid var(--nc-border) !important;
 }
-body.nc-bright .modal-header h3 {
+body.nc-bright:not(.nc-client) .modal-header h3 {
   font-family: var(--nc-font-display) !important;
   font-size: 17.5px !important;
   font-weight: 700 !important;
   color: var(--nc-text-primary) !important;
   letter-spacing: -0.015em !important;
 }
-body.nc-bright .modal-body {
+body.nc-bright:not(.nc-client) .modal-body {
   padding: 24px !important;
 }
-body.nc-bright .modal-footer {
+body.nc-bright:not(.nc-client) .modal-footer {
   padding: 16px 24px !important;
   border-top: 1px solid var(--nc-border) !important;
   gap: 12px !important;
 }
 
 /* Premium Toast overrides */
-body.nc-bright .toast {
+body.nc-bright:not(.nc-client) .toast {
   background: var(--nc-bg-elevated) !important;
   border: 1px solid var(--nc-border) !important;
   box-shadow: var(--nc-shadow-lg) !important;
@@ -1177,32 +1182,32 @@ body.nc-bright .toast {
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-body.nc-bright .toast.success {
+body.nc-bright:not(.nc-client) .toast.success {
   border-color: rgba(20, 184, 166, 0.25) !important;
   background: rgba(20, 184, 166, 0.04) !important;
 }
-body.nc-bright .toast.success .toast-icon { color: var(--nc-teal) !important; }
+body.nc-bright:not(.nc-client) .toast.success .toast-icon { color: var(--nc-teal) !important; }
 
-body.nc-bright .toast.error {
+body.nc-bright:not(.nc-client) .toast.error {
   border-color: rgba(245, 66, 108, 0.25) !important;
   background: rgba(245, 66, 108, 0.04) !important;
 }
-body.nc-bright .toast.error .toast-icon { color: var(--nc-rose) !important; }
+body.nc-bright:not(.nc-client) .toast.error .toast-icon { color: var(--nc-rose) !important; }
 
-body.nc-bright .toast.info {
+body.nc-bright:not(.nc-client) .toast.info {
   border-color: rgba(91, 108, 255, 0.25) !important;
   background: rgba(91, 108, 255, 0.04) !important;
 }
-body.nc-bright .toast.info .toast-icon { color: var(--nc-indigo) !important; }
+body.nc-bright:not(.nc-client) .toast.info .toast-icon { color: var(--nc-indigo) !important; }
 
-body.nc-bright .toast.warning {
+body.nc-bright:not(.nc-client) .toast.warning {
   border-color: rgba(245, 158, 11, 0.25) !important;
   background: rgba(245, 158, 11, 0.04) !important;
 }
-body.nc-bright .toast.warning .toast-icon { color: var(--nc-amber-ink) !important; }
+body.nc-bright:not(.nc-client) .toast.warning .toast-icon { color: var(--nc-amber-ink) !important; }
 
 /* ── Phase A additional global frontend polish overrides ── */
-body.nc-bright .tab-btn.active {
+body.nc-bright:not(.nc-client) .tab-btn.active {
   border-bottom-color: var(--nc-indigo, #5B6CFF) !important;
 }
 
@@ -1213,41 +1218,41 @@ body.nc-bright .tab-btn.active {
 }
 
 /* Composed strategist transition for sections and tab panels */
-body.nc-bright .section.active {
+body.nc-bright:not(.nc-client) .section.active {
   animation: neu-fade-up var(--nc-dur-base, 320ms) var(--nc-ease, cubic-bezier(0.16, 1, 0.3, 1)) both !important;
 }
-body.nc-bright .tab-panel.active {
+body.nc-bright:not(.nc-client) .tab-panel.active {
   animation: neu-fade-in var(--nc-dur-base, 320ms) var(--nc-ease, cubic-bezier(0.16, 1, 0.3, 1)) both !important;
 }
 
 /* Admin Business Section Polish */
-body.nc-bright .abz-stat {
+body.nc-bright:not(.nc-client) .abz-stat {
   border: 1px solid var(--nc-border) !important;
   border-radius: 14px !important;
   background: var(--nc-bg-secondary) !important;
   box-shadow: var(--nc-shadow-sm) !important;
   padding: 14px 16px !important;
 }
-body.nc-bright .abz-stat-n {
+body.nc-bright:not(.nc-client) .abz-stat-n {
   font-family: var(--nc-font-display) !important;
   font-weight: 700 !important;
   color: var(--nc-text-primary) !important;
 }
-body.nc-bright .abz-stat-l {
+body.nc-bright:not(.nc-client) .abz-stat-l {
   font-size: 11px !important;
   font-weight: 600 !important;
   letter-spacing: 0.02em !important;
   text-transform: uppercase !important;
   color: var(--nc-text-muted) !important;
 }
-body.nc-bright .abz-table-wrap {
+body.nc-bright:not(.nc-client) .abz-table-wrap {
   border: 1px solid var(--nc-border) !important;
   border-radius: 14px !important;
   background: var(--nc-bg-elevated) !important;
   box-shadow: var(--nc-shadow-sm) !important;
   margin-top: 12px !important;
 }
-body.nc-bright .abz-table th {
+body.nc-bright:not(.nc-client) .abz-table th {
   background: var(--nc-bg-secondary) !important;
   color: var(--nc-text-muted) !important;
   font-family: var(--nc-font-display) !important;
@@ -1257,12 +1262,12 @@ body.nc-bright .abz-table th {
   padding: 12px 16px !important;
   border-bottom: 1px solid var(--nc-border) !important;
 }
-body.nc-bright .abz-table td {
+body.nc-bright:not(.nc-client) .abz-table td {
   padding: 12px 16px !important;
   color: var(--nc-text-secondary) !important;
   border-bottom: 1px solid var(--nc-border) !important;
 }
-body.nc-bright .abz-table tr:hover {
+body.nc-bright:not(.nc-client) .abz-table tr:hover {
   background-color: color-mix(in oklab, var(--nc-bg-secondary), transparent 60%) !important;
   transition: background-color var(--nc-dur-fast) ease !important;
 }
@@ -1272,17 +1277,17 @@ body.nc-bright .abz-table tr:hover {
    ═══════════════════════════════════════════════════════════════ */
 
 /* ── 1. Coach Dashboard spacing & card rhythm ── */
-body.nc-bright .nc-dash-welcome {
+body.nc-bright:not(.nc-client) .nc-dash-welcome {
   margin-bottom: var(--nc-sp-8, 32px) !important;
 }
-body.nc-bright .nc-kpi-grid {
+body.nc-bright:not(.nc-client) .nc-kpi-grid {
   gap: var(--nc-sp-6, 24px) !important;
   margin-bottom: var(--nc-sp-8, 32px) !important;
 }
-body.nc-bright .nc-dash-grid {
+body.nc-bright:not(.nc-client) .nc-dash-grid {
   gap: var(--nc-sp-6, 24px) !important;
 }
-body.nc-bright .nc-panel {
+body.nc-bright:not(.nc-client) .nc-panel {
   border-radius: 18px !important;
   box-shadow: var(--nc-shadow-card) !important;
   border: 1px solid var(--nc-border) !important;
@@ -1292,51 +1297,102 @@ body.nc-bright .nc-panel {
 }
 
 /* ── 2. New Session mobile horizontal scroll & tab row focus ── */
-body.nc-bright #session-tabs.tab-row {
+body.nc-bright:not(.nc-client) #session-tabs.tab-row {
   display: flex !important;
-  flex-wrap: nowrap !important;
+  gap: 16px !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 2px solid var(--dash-border, #E5E7EB) !important;
+  border-radius: 0 !important;
+  margin-bottom: 24px !important;
   overflow-x: auto !important;
+  flex-wrap: nowrap !important;
   scroll-behavior: smooth !important;
   -webkit-overflow-scrolling: touch !important;
-  scroll-snap-type: x mandatory !important;
-  border-bottom: 1px solid var(--nc-border) !important;
-  gap: var(--nc-sp-2, 8px) !important;
-  padding-bottom: 2px !important;
 }
-body.nc-bright #session-tabs.tab-row::-webkit-scrollbar {
-  display: none !important; /* Hide scrollbar for clean visual look */
+body.nc-bright:not(.nc-client) #session-tabs.tab-row::-webkit-scrollbar {
+  display: none !important;
 }
-body.nc-bright #session-tabs .tab-btn {
-  flex: 0 0 auto !important;
-  scroll-snap-align: start !important;
-  border-radius: 8px 8px 0 0 !important;
-  transition: all var(--nc-dur-fast) var(--nc-ease) !important;
-  border: 1px solid transparent !important;
+body.nc-bright:not(.nc-client) #session-tabs .tab-btn {
+  flex: none !important;
+  padding: 8px 4px !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 2px solid transparent !important;
+  color: var(--dash-text-secondary, #4B5563) !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  transition: all 0.2s ease !important;
+  cursor: pointer !important;
+  margin-bottom: -2px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
 }
-body.nc-bright #session-tabs .tab-btn:focus-visible {
-  outline: none !important;
-  box-shadow: var(--nc-focus-ring) !important;
+body.nc-bright:not(.nc-client) #session-tabs .tab-btn.active {
+  background: transparent !important;
+  border-bottom: 2px solid var(--dash-brand, #043927) !important;
+  color: var(--dash-brand, #043927) !important;
+  box-shadow: none !important;
+}
+body.nc-bright:not(.nc-client) #session-tabs .tab-btn svg {
+  font-size: 18px !important;
+  color: inherit !important;
+}
+body.nc-bright:not(.nc-client) #session-tabs .tab-btn:focus-visible {
+  outline: 2px solid var(--dash-emerald, #10B981) !important;
+  outline-offset: 2px !important;
 }
 
 /* ── 3. Objective/Subjective panel spacing consistency ── */
-body.nc-bright .neucore-assess-layout {
-  gap: var(--nc-sp-6, 24px) !important;
+body.nc-bright:not(.nc-client) .neucore-assess-layout {
+  gap: 24px !important;
 }
-body.nc-bright .assess-grid {
+@media (min-width: 1025px) {
+  body.nc-bright:not(.nc-client) .neucore-assess-layout {
+    display: grid !important;
+    grid-template-columns: 8.2fr 3.8fr !important;
+    gap: 24px !important;
+    align-items: start !important;
+  }
+}
+body.nc-bright:not(.nc-client) .assess-grid {
   display: grid !important;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)) !important;
-  gap: var(--nc-sp-6, 24px) !important;
+  gap: 24px !important;
 }
-body.nc-bright .tab-panel {
+@media (max-width: 768px) {
+  body.nc-bright:not(.nc-client) .neucore-assess-layout {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  body.nc-bright:not(.nc-client) .assess-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  body.nc-bright:not(.nc-client) .assess-grid > .card {
+    grid-column: span 1 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+}
+body.nc-bright:not(.nc-client) .tab-panel {
   padding-top: var(--nc-sp-4, 16px) !important;
 }
-body.nc-bright .form-group {
+body.nc-bright:not(.nc-client) .form-group {
   margin-bottom: var(--nc-sp-4, 16px) !important;
 }
-body.nc-bright .form-group:last-child {
+body.nc-bright:not(.nc-client) .form-group:last-child {
   margin-bottom: 0 !important;
 }
-body.nc-bright .nc-wizard-step {
+body.nc-bright:not(.nc-client) .nc-wizard-step {
   margin-bottom: var(--nc-sp-4, 16px) !important;
   padding: var(--nc-sp-5, 20px) !important;
   border-radius: 14px !important;
@@ -1344,10 +1400,10 @@ body.nc-bright .nc-wizard-step {
 }
 
 /* ── 4. Exercise Library & Picker Modal visual polish ── */
-body.nc-bright .modal-overlay {
+body.nc-bright:not(.nc-client) .modal-overlay {
   background: rgba(8, 15, 26, 0.54) !important; /* Slightly darker overlay for premium depth */
 }
-body.nc-bright .modal {
+body.nc-bright:not(.nc-client) .modal {
   animation: nc-modal-scale-spring var(--nc-dur-base, 320ms) var(--nc-ease-spring) both !important;
 }
 @keyframes nc-modal-scale-spring {
@@ -1356,36 +1412,36 @@ body.nc-bright .modal {
 }
 
 /* ── 5. Admin Business Metrics & Table Spacing ── */
-body.nc-bright .abz-stat {
+body.nc-bright:not(.nc-client) .abz-stat {
   border-radius: var(--nc-r-md, 12px) !important;
   background: var(--nc-bg-card, #fff) !important;
   border: 1px solid var(--nc-border) !important;
   box-shadow: var(--nc-shadow-card) !important;
 }
-body.nc-bright .abz-table-wrap {
+body.nc-bright:not(.nc-client) .abz-table-wrap {
   border-radius: var(--nc-r-md, 12px) !important;
   box-shadow: var(--nc-shadow-card) !important;
 }
-body.nc-bright .abz-table th {
+body.nc-bright:not(.nc-client) .abz-table th {
   padding: 14px 20px !important;
 }
-body.nc-bright .abz-table td {
+body.nc-bright:not(.nc-client) .abz-table td {
   padding: 14px 20px !important;
 }
 
 /* ── 6. Client Today/Train/Progress Card Contrast & Spacing ── */
-body.nc-bright.nc-client .card,
-body.nc-bright.nc-client .dr-card {
+body.nc-bright:not(.nc-client).nc-client .card,
+body.nc-bright:not(.nc-client).nc-client .dr-card {
   box-shadow: var(--nc-shadow-card) !important;
   background: var(--nc-bg-card) !important;
 }
 /* Progress Ring Label High Contrast in Light mode */
-body.nc-bright.nc-client .dr-card svg text {
+body.nc-bright:not(.nc-client).nc-client .dr-card svg text {
   fill: var(--nc-text-primary) !important;
   font-weight: 700 !important;
 }
 /* Hologram panel smooth fade-in */
-body.nc-bright #cp-holo-overlay {
+body.nc-bright:not(.nc-client) #cp-holo-overlay {
   animation: nc-holo-fade-in var(--nc-dur-base) ease-out both !important;
 }
 @keyframes nc-holo-fade-in {
@@ -1394,7 +1450,7 @@ body.nc-bright #cp-holo-overlay {
 }
 
 /* ── 7. Mobile bottom tabbar safe-area ── */
-body.nc-bright.nc-client .nc-tabbar {
+body.nc-bright:not(.nc-client).nc-client .nc-tabbar {
   padding-bottom: env(safe-area-inset-bottom, 16px) !important;
   height: calc(64px + env(safe-area-inset-bottom, 16px)) !important;
   display: flex !important;
@@ -1403,18 +1459,18 @@ body.nc-bright.nc-client .nc-tabbar {
 }
 
 /* ── 8. Form focus transitions ── */
-body.nc-bright .form-input,
-body.nc-bright .neu-input,
-body.nc-bright .neu-textarea,
-body.nc-bright .neu-select,
-body.nc-bright input,
-body.nc-bright select,
-body.nc-bright textarea {
+body.nc-bright:not(.nc-client) .form-input,
+body.nc-bright:not(.nc-client) .neu-input,
+body.nc-bright:not(.nc-client) .neu-textarea,
+body.nc-bright:not(.nc-client) .neu-select,
+body.nc-bright:not(.nc-client) input,
+body.nc-bright:not(.nc-client) select,
+body.nc-bright:not(.nc-client) textarea {
   transition: border-color 180ms ease, box-shadow 180ms ease !important;
 }
 
 /* ── 9. Modal/Toast Spring Physics ── */
-body.nc-bright .toast {
+body.nc-bright:not(.nc-client) .toast {
   animation: nc-toast-spring var(--nc-dur-base, 320ms) var(--nc-ease-spring) both !important;
 }
 @keyframes nc-toast-spring {
@@ -1424,12 +1480,12 @@ body.nc-bright .toast {
 
 /* ── 10. Prefers Reduced Motion overrides ── */
 @media (prefers-reduced-motion: reduce) {
-  body.nc-bright .modal,
-  body.nc-bright .modal-overlay,
-  body.nc-bright .toast,
-  body.nc-bright #cp-holo-overlay,
-  body.nc-bright .section.active,
-  body.nc-bright .tab-panel.active {
+  body.nc-bright:not(.nc-client) .modal,
+  body.nc-bright:not(.nc-client) .modal-overlay,
+  body.nc-bright:not(.nc-client) .toast,
+  body.nc-bright:not(.nc-client) #cp-holo-overlay,
+  body.nc-bright:not(.nc-client) .section.active,
+  body.nc-bright:not(.nc-client) .tab-panel.active {
     animation: none !important;
     transition: none !important;
   }
@@ -1440,15 +1496,15 @@ body.nc-bright .toast {
    ════════════════════════════════════════════════════════════════ */
 
 /* ── 1. Exercise Library One-Column List Layout ── */
-body.nc-bright .exercise-grid-ph3,
-body.nc-bright .exercise-grid {
+body.nc-bright:not(.nc-client) .exercise-grid-ph3,
+body.nc-bright:not(.nc-client) .exercise-grid {
   display: flex !important;
   flex-direction: column !important;
   gap: 12px !important;
 }
 
-body.nc-bright .ex-card,
-body.nc-bright .exercise-card {
+body.nc-bright:not(.nc-client) .ex-card,
+body.nc-bright:not(.nc-client) .exercise-card {
   display: flex !important;
   flex-direction: row !important;
   align-items: center !important;
@@ -1463,15 +1519,15 @@ body.nc-bright .exercise-card {
   box-sizing: border-box !important;
 }
 
-body.nc-bright .ex-card:hover,
-body.nc-bright .exercise-card:hover {
+body.nc-bright:not(.nc-client) .ex-card:hover,
+body.nc-bright:not(.nc-client) .exercise-card:hover {
   transform: translateY(-2px) !important;
   box-shadow: var(--nc-shadow-lg) !important;
   border-color: var(--nc-border-strong) !important;
 }
 
 /* Selected row visual connection (Clients subtab selection outline override) */
-body.nc-bright .exercise-card[style*="outline"] {
+body.nc-bright:not(.nc-client) .exercise-card[style*="outline"] {
   outline: none !important;
   border-color: var(--nc-indigo, #5B6CFF) !important;
   background: color-mix(in oklab, var(--nc-bg-card), var(--nc-indigo, #5B6CFF) 3%) !important;
@@ -1479,8 +1535,8 @@ body.nc-bright .exercise-card[style*="outline"] {
 }
 
 /* Image Thumbnails & Placeholders in list rows */
-body.nc-bright .ex-card-thumb,
-body.nc-bright .ex-card-thumb-placeholder {
+body.nc-bright:not(.nc-client) .ex-card-thumb,
+body.nc-bright:not(.nc-client) .ex-card-thumb-placeholder {
   width: 120px !important;
   height: 80px !important;
   border-radius: 10px !important;
@@ -1491,7 +1547,7 @@ body.nc-bright .ex-card-thumb-placeholder {
   background: var(--nc-bg-secondary) !important;
 }
 
-body.nc-bright .ex-card-thumb img {
+body.nc-bright:not(.nc-client) .ex-card-thumb img {
   width: 100% !important;
   height: 100% !important;
   object-fit: cover !important;
@@ -1499,7 +1555,7 @@ body.nc-bright .ex-card-thumb img {
 }
 
 /* Video Availability - Play Icon Indicator (visible at all times) */
-body.nc-bright .ex-card-play-btn {
+body.nc-bright:not(.nc-client) .ex-card-play-btn {
   position: absolute !important;
   inset: 0 !important;
   display: flex !important;
@@ -1510,7 +1566,7 @@ body.nc-bright .ex-card-play-btn {
   transition: background var(--nc-dur-fast) ease !important;
 }
 
-body.nc-bright .ex-card-play-btn::before {
+body.nc-bright:not(.nc-client) .ex-card-play-btn::before {
   content: "▶" !important;
   display: flex !important;
   align-items: center !important;
@@ -1525,18 +1581,18 @@ body.nc-bright .ex-card-play-btn::before {
   transition: transform var(--nc-dur-fast) ease, background var(--nc-dur-fast) ease !important;
 }
 
-body.nc-bright .ex-card-thumb:hover .ex-card-play-btn {
+body.nc-bright:not(.nc-client) .ex-card-thumb:hover .ex-card-play-btn {
   background: rgba(13, 24, 40, 0.35) !important;
 }
 
-body.nc-bright .ex-card-thumb:hover .ex-card-play-btn::before {
+body.nc-bright:not(.nc-client) .ex-card-thumb:hover .ex-card-play-btn::before {
   transform: scale(1.1) !important;
   background: var(--nc-teal, #14B8A6) !important;
   box-shadow: 0 4px 12px rgba(20, 184, 166, 0.45) !important;
 }
 
 /* Calm "No Video" state (Hiding the hardcoded ▶ arrow text) */
-body.nc-bright .ex-card-thumb-placeholder {
+body.nc-bright:not(.nc-client) .ex-card-thumb-placeholder {
   font-size: 0 !important;
   display: flex !important;
   align-items: center !important;
@@ -1544,7 +1600,7 @@ body.nc-bright .ex-card-thumb-placeholder {
   border: 1px dashed var(--nc-border-strong) !important;
 }
 
-body.nc-bright .ex-card-thumb-placeholder::after {
+body.nc-bright:not(.nc-client) .ex-card-thumb-placeholder::after {
   content: "NO VIDEO" !important;
   font-size: 10px !important;
   font-weight: 700 !important;
@@ -1553,7 +1609,7 @@ body.nc-bright .ex-card-thumb-placeholder::after {
 }
 
 /* List details grid layout inside the card body */
-body.nc-bright .ex-card-body {
+body.nc-bright:not(.nc-client) .ex-card-body {
   flex: 1 !important;
   min-width: 0 !important;
   padding: 0 !important;
@@ -1564,13 +1620,13 @@ body.nc-bright .ex-card-body {
 }
 
 /* Stack metadata title, badges, cues, tags on left side */
-body.nc-bright .ex-card-body > *:not(.ex-card-actions) {
+body.nc-bright:not(.nc-client) .ex-card-body > *:not(.ex-card-actions) {
   display: flex !important;
   flex-direction: column !important;
   gap: 6px !important;
 }
 
-body.nc-bright .ex-card-title {
+body.nc-bright:not(.nc-client) .ex-card-title {
   font-family: var(--nc-font-display) !important;
   font-size: 15px !important;
   font-weight: 700 !important;
@@ -1578,7 +1634,7 @@ body.nc-bright .ex-card-title {
   margin: 0 !important;
 }
 
-body.nc-bright .ex-card-badges {
+body.nc-bright:not(.nc-client) .ex-card-badges {
   display: flex !important;
   flex-direction: row !important;
   flex-wrap: wrap !important;
@@ -1586,14 +1642,14 @@ body.nc-bright .ex-card-badges {
   margin: 0 !important;
 }
 
-body.nc-bright .ex-card-cues {
+body.nc-bright:not(.nc-client) .ex-card-cues {
   font-size: 12px !important;
   color: var(--nc-text-secondary) !important;
   line-height: 1.5 !important;
   margin: 0 !important;
 }
 
-body.nc-bright .ex-card-tags {
+body.nc-bright:not(.nc-client) .ex-card-tags {
   display: flex !important;
   flex-direction: row !important;
   flex-wrap: wrap !important;
@@ -1601,7 +1657,7 @@ body.nc-bright .ex-card-tags {
   margin: 0 !important;
 }
 
-body.nc-bright .ex-card-actions {
+body.nc-bright:not(.nc-client) .ex-card-actions {
   display: flex !important;
   flex-direction: row !important;
   flex-wrap: wrap !important;
@@ -1611,14 +1667,14 @@ body.nc-bright .ex-card-actions {
 }
 
 /* ── 2. Connecting the Preview Modal as a Right-side Drawer ── */
-body.nc-bright #modal-ex-video.modal-overlay {
+body.nc-bright:not(.nc-client) #modal-ex-video.modal-overlay {
   display: flex !important;
   justify-content: flex-end !important;
   align-items: stretch !important;
   background: rgba(13, 24, 40, 0.45) !important;
 }
 
-body.nc-bright #modal-ex-video .modal {
+body.nc-bright:not(.nc-client) #modal-ex-video .modal {
   width: 480px !important;
   max-width: 90vw !important;
   height: 100vh !important;
@@ -1637,18 +1693,18 @@ body.nc-bright #modal-ex-video .modal {
   to { transform: translateX(0); }
 }
 
-body.nc-bright #modal-ex-video .modal-header {
+body.nc-bright:not(.nc-client) #modal-ex-video .modal-header {
   flex-shrink: 0 !important;
 }
 
-body.nc-bright #modal-ex-video .modal-body {
+body.nc-bright:not(.nc-client) #modal-ex-video .modal-body {
   flex: 1 !important;
   overflow-y: auto !important;
   display: flex !important;
   flex-direction: column !important;
 }
 
-body.nc-bright #ex-video-details {
+body.nc-bright:not(.nc-client) #ex-video-details {
   padding: 20px !important;
   color: var(--nc-text-secondary) !important;
   font-size: 13px !important;
@@ -1656,27 +1712,27 @@ body.nc-bright #ex-video-details {
 }
 
 /* ── 3. Exercise Picker Modal Visual Polish ── */
-body.nc-bright #modal-exercise-picker .modal {
+body.nc-bright:not(.nc-client) #modal-exercise-picker .modal {
   background: var(--nc-bg-elevated) !important;
   border-radius: 20px !important;
   box-shadow: 0 24px 64px rgba(13, 24, 40, 0.16) !important;
 }
 
-body.nc-bright #ep-filters {
+body.nc-bright:not(.nc-client) #ep-filters {
   display: flex !important;
   flex-wrap: wrap !important;
   gap: 6px !important;
   margin-bottom: 14px !important;
 }
 
-body.nc-bright #ep-filters .ep-chip {
+body.nc-bright:not(.nc-client) #ep-filters .ep-chip {
   height: 28px !important;
   padding: 0 12px !important;
   font-size: 11px !important;
   border-radius: 9999px !important;
 }
 
-body.nc-bright #ep-list [data-row-id] {
+body.nc-bright:not(.nc-client) #ep-list [data-row-id] {
   background: var(--nc-bg-secondary) !important;
   border: 1px solid var(--nc-border) !important;
   border-radius: 12px !important;
@@ -1684,27 +1740,27 @@ body.nc-bright #ep-list [data-row-id] {
   transition: all 180ms ease !important;
 }
 
-body.nc-bright #ep-list [data-row-id]:hover {
+body.nc-bright:not(.nc-client) #ep-list [data-row-id]:hover {
   background: var(--nc-bg-elevated) !important;
   border-color: var(--nc-indigo, #5B6CFF) !important;
   transform: translateY(-1px) !important;
   box-shadow: var(--nc-shadow-sm) !important;
 }
 
-body.nc-bright #ep-list [data-row-id] img {
+body.nc-bright:not(.nc-client) #ep-list [data-row-id] img {
   border: 1px solid var(--nc-border) !important;
   border-radius: 6px !important;
   background: var(--nc-bg-secondary) !important;
 }
 
-body.nc-bright #ep-list [data-row-id] div[style*="background:rgba(255,255,255,.04)"] {
+body.nc-bright:not(.nc-client) #ep-list [data-row-id] div[style*="background:rgba(255,255,255,.04)"] {
   background: var(--nc-bg-secondary) !important;
   border: 1px dashed var(--nc-border-strong) !important;
   color: var(--nc-text-muted) !important;
   font-size: 0 !important;
 }
 
-body.nc-bright #ep-list [data-row-id] div[style*="background:rgba(255,255,255,.04)"]::after {
+body.nc-bright:not(.nc-client) #ep-list [data-row-id] div[style*="background:rgba(255,255,255,.04)"]::after {
   content: "NO VID" !important;
   font-size: 9px !important;
   font-weight: 700 !important;
@@ -1879,35 +1935,35 @@ body.nc-bright #ep-list [data-row-id] div[style*="background:rgba(255,255,255,.0
 
 /* ── 6. Mobile & Tablet Responsiveness ── */
 @media (max-width: 768px) {
-  body.nc-bright .ex-card,
-  body.nc-bright .exercise-card {
+  body.nc-bright:not(.nc-client) .ex-card,
+  body.nc-bright:not(.nc-client) .exercise-card {
     flex-direction: column !important;
     align-items: stretch !important;
     gap: 14px !important;
     padding: 16px !important;
   }
 
-  body.nc-bright .ex-card-thumb,
-  body.nc-bright .ex-card-thumb-placeholder {
+  body.nc-bright:not(.nc-client) .ex-card-thumb,
+  body.nc-bright:not(.nc-client) .ex-card-thumb-placeholder {
     width: 100% !important;
     height: 160px !important;
   }
 
-  body.nc-bright .ex-card-body {
+  body.nc-bright:not(.nc-client) .ex-card-body {
     grid-template-columns: 1fr !important;
     gap: 14px !important;
   }
 
-  body.nc-bright .ex-card-actions {
+  body.nc-bright:not(.nc-client) .ex-card-actions {
     justify-content: flex-start !important;
   }
 
-  body.nc-bright #modal-ex-video.modal-overlay {
+  body.nc-bright:not(.nc-client) #modal-ex-video.modal-overlay {
     align-items: center !important;
     justify-content: center !important;
   }
 
-  body.nc-bright #modal-ex-video .modal {
+  body.nc-bright:not(.nc-client) #modal-ex-video .modal {
     width: 90vw !important;
     height: auto !important;
     max-height: 90vh !important;
@@ -1932,7 +1988,7 @@ body.nc-bright #ep-list [data-row-id] div[style*="background:rgba(255,255,255,.0
   transition: opacity 300ms ease, visibility 300ms ease, height 300ms ease, margin 300ms ease, padding 300ms ease !important;
 }
 
-body.nc-bright .nc-service-switcher {
+body.nc-bright:not(.nc-client) .nc-service-switcher {
   background: rgba(13, 24, 40, 0.04);
   border-color: rgba(13, 24, 40, 0.07);
 }
@@ -1953,7 +2009,7 @@ body.nc-bright .nc-service-switcher {
   white-space: nowrap;
 }
 
-body.nc-bright .nc-service-btn {
+body.nc-bright:not(.nc-client) .nc-service-btn {
   color: #566378;
 }
 
@@ -2162,17 +2218,17 @@ body.service-athletic .nc-ai-chip::before {
 ═══════════════════════════════════════════════════════════════ */
 
 #screen-login.nc-login:not(.hidden) {
-  --royal-midnight: #050814;
-  --royal-navy: #0B1430;
-  --royal-sapphire: #102A56;
-  --royal-gold: #D4AF37;
-  --royal-gold-soft: #F6E27A;
-  --royal-ivory: #F8F5EA;
-  --royal-muted: #AAB2C5;
-  --royal-border: rgba(212, 175, 55, 0.22);
+  --login-midnight: #002215;
+  --login-brand: #043927;
+  --login-emerald: #10B981;
+  --login-mint: #A7F3D0;
+  --login-text-primary: #1C1C1E;
+  --login-text-secondary: #49454F;
+  --login-muted: #6E7787;
+  --login-border: #E2E2E6;
 
-  background: var(--royal-midnight) !important;
-  font-family: var(--font-display) !important;
+  background: #FFFFFF !important;
+  font-family: 'Hanken Grotesk', sans-serif !important;
   position: fixed !important;
   inset: 0 !important;
   z-index: 1000 !important;
@@ -2190,24 +2246,27 @@ body.service-athletic .nc-ai-chip::before {
   display: grid !important;
   grid-template-columns: 1fr !important;
   width: 100vw !important;
-  height: 100vh !important;
+  height: auto !important;
+  min-height: 100vh !important;
   position: absolute !important;
   inset: 0 !important;
-  overflow: hidden !important;
+  overflow-y: auto !important;
 }
 
 @media (min-width: 900px) {
   #screen-login .nc-login-split-container {
-    grid-template-columns: 1.15fr 0.85fr !important;
+    grid-template-columns: 0.85fr 1.15fr !important;
+    height: 100vh !important;
+    overflow-y: hidden !important;
   }
 }
 
 #screen-login .nc-login-hero-side {
   display: none !important;
-  background: linear-gradient(135deg, var(--royal-midnight) 0%, var(--royal-navy) 100%) !important;
+  background: linear-gradient(135deg, #002215 0%, #043927 100%) !important;
   position: relative !important;
   overflow: hidden !important;
-  border-right: 1px solid var(--royal-border) !important;
+  border-left: 1px solid rgba(16, 185, 129, 0.15) !important;
   padding: 64px !important;
   flex-direction: column !important;
   justify-content: center !important;
@@ -2222,92 +2281,54 @@ body.service-athletic .nc-ai-chip::before {
 
 #screen-login .nc-login-form-side {
   display: flex !important;
+  flex-direction: column !important;
   align-items: center !important;
-  justify-content: center !important;
-  padding: 24px !important;
-  background: var(--royal-midnight) !important;
+  justify-content: flex-start !important;
+  padding: 48px 24px !important;
+  background: #FFFFFF !important;
   position: relative !important;
+  min-height: 100vh !important;
+  box-sizing: border-box !important;
+}
+
+@media (min-width: 900px) {
+  #screen-login .nc-login-form-side {
+    min-height: 0 !important;
+    height: 100vh !important;
+    overflow-y: auto !important;
+  }
 }
 
 #screen-login .nc-login-hero-content {
   position: relative !important;
   z-index: 3 !important;
+  width: 100% !important;
+  max-width: 440px !important;
 }
 
 #screen-login .nc-login-hero-tag {
   font-family: var(--font-mono) !important;
   font-size: 11px !important;
   font-weight: 600 !important;
-  color: var(--royal-gold-soft) !important;
+  color: var(--login-emerald) !important;
   text-transform: uppercase !important;
   letter-spacing: 0.15em !important;
   padding: 6px 14px !important;
-  background: rgba(212, 175, 55, 0.08) !important;
-  border: 1px solid var(--royal-border) !important;
+  background: rgba(16, 185, 129, 0.1) !important;
+  border: 1px solid rgba(16, 185, 129, 0.2) !important;
   border-radius: 99px !important;
   display: inline-block !important;
   margin-bottom: 24px !important;
 }
 
 #screen-login .nc-login-hero-title {
-  font-family: var(--font-display) !important;
-  font-size: clamp(28px, 4.5vw, 42px) !important;
+  font-family: 'Hanken Grotesk', sans-serif !important;
+  font-size: clamp(28px, 4vw, 38px) !important;
   font-weight: 700 !important;
-  color: var(--royal-ivory) !important;
+  color: #FFFFFF !important;
   line-height: 1.3 !important;
   letter-spacing: -0.02em !important;
   margin-bottom: 36px !important;
-  max-width: 520px !important;
-}
-
-#screen-login .nc-login-telemetry-box {
-  background: rgba(11, 20, 48, 0.5) !important;
-  border: 1px solid var(--royal-border) !important;
-  border-radius: 16px !important;
-  padding: 24px !important;
-  width: 100% !important;
-  max-width: 380px !important;
-  backdrop-filter: blur(12px) !important;
-  -webkit-backdrop-filter: blur(12px) !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
-}
-
-#screen-login .nc-login-telemetry-header {
-  display: flex !important;
-  justify-content: space-between !important;
-  align-items: center !important;
-  font-family: var(--font-mono) !important;
-  font-size: 11px !important;
-  color: var(--royal-gold) !important;
-  letter-spacing: 0.1em !important;
-  border-bottom: 1px solid rgba(212, 175, 55, 0.15) !important;
-  padding-bottom: 12px !important;
-  margin-bottom: 16px !important;
-}
-
-#screen-login .nc-login-status-dot {
-  width: 6px !important;
-  height: 6px !important;
-  background: var(--royal-gold) !important;
-  border-radius: 50% !important;
-  box-shadow: 0 0 8px var(--royal-gold) !important;
-}
-
-#screen-login .nc-login-telemetry-row {
-  display: flex !important;
-  justify-content: space-between !important;
-  font-size: 13px !important;
-  color: var(--royal-muted) !important;
-  margin-bottom: 10px !important;
-}
-
-#screen-login .nc-login-telemetry-row:last-child {
-  margin-bottom: 0 !important;
-}
-
-#screen-login .nc-login-telemetry-row strong {
-  color: var(--royal-ivory) !important;
-  font-weight: 600 !important;
 }
 
 #screen-login .nc-login-grid {
@@ -2315,14 +2336,14 @@ body.service-athletic .nc-ai-chip::before {
   position: absolute !important;
   inset: 0 !important;
   background-image:
-    linear-gradient(rgba(212, 175, 55, 0.005) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(212, 175, 55, 0.005) 1px, transparent 1px) !important;
+    linear-gradient(rgba(16, 185, 129, 0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(16, 185, 129, 0.015) 1px, transparent 1px) !important;
   background-size: 64px 64px !important;
   mask-image: radial-gradient(circle 500px at 50% 50%, #000 40%, transparent 100%) !important;
   -webkit-mask-image: radial-gradient(circle 500px at 50% 50%, #000 40%, transparent 100%) !important;
   pointer-events: none !important;
   z-index: 1 !important;
-  opacity: 0.5 !important;
+  opacity: 0.4 !important;
 }
 
 #screen-login .nc-login-glow {
@@ -2333,188 +2354,296 @@ body.service-athletic .nc-ai-chip::before {
   filter: blur(140px) !important;
   pointer-events: none !important;
   z-index: 2 !important;
-  opacity: 0.6 !important;
+  opacity: 0.4 !important;
 }
 
-#screen-login .nc-login-glow--teal {
+#screen-login .nc-login-glow--emerald {
   top: -10% !important;
   left: -10% !important;
-  background: radial-gradient(circle, var(--royal-sapphire), transparent 70%) !important;
-}
-
-#screen-login .nc-login-glow--cyan {
-  bottom: -10% !important;
-  right: -10% !important;
-  background: radial-gradient(circle, rgba(16, 42, 86, 0.5), transparent 70%) !important;
+  background: radial-gradient(circle, var(--login-emerald), transparent 70%) !important;
 }
 
 #screen-login .nc-login-card {
   z-index: 2 !important;
-  background: rgba(11, 20, 48, 0.6) !important;
-  border: 1px solid var(--royal-border) !important;
-  box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.5), 
-    0 24px 80px rgba(0, 0, 0, 0.7),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
-  backdrop-filter: blur(32px) saturate(140%) !important;
-  -webkit-backdrop-filter: blur(32px) saturate(140%) !important;
-  border-radius: 20px !important;
+  background: #FFFFFF !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
   position: relative !important;
   width: 100% !important;
   max-width: 420px !important;
+  margin-top: auto !important;
+  margin-bottom: auto !important;
 }
 
 #screen-login .nc-login-card::before {
-  content: '' !important;
-  position: absolute !important;
-  top: 0 !important; left: 0 !important; right: 0 !important;
-  height: 2px !important;
-  background: linear-gradient(90deg, var(--royal-gold), var(--royal-gold-soft), var(--royal-gold)) !important;
-  border-radius: 20px 20px 0 0 !important;
+  content: none !important;
 }
 
 #screen-login .nc-login-input {
-  background: rgba(5, 8, 20, 0.7) !important;
-  border: 1px solid var(--royal-border) !important;
-  color: var(--royal-ivory) !important;
+  background: #FFFFFF !important;
+  border: 1px solid var(--login-border) !important;
+  color: var(--login-text-primary) !important;
   border-radius: 8px !important;
   font-size: 14px !important;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  padding: 10px 14px !important;
 }
 
 #screen-login .nc-login-input:focus {
-  border-color: var(--royal-gold) !important;
-  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15), inset 0 1px 2px rgba(0, 0, 0, 0.4) !important;
-  background: rgba(5, 8, 20, 0.85) !important;
+  border-color: var(--login-emerald) !important;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15), inset 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+  background: #FFFFFF !important;
+}
+
+#screen-login select.nc-login-input {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2349454F'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 12px center !important;
+  background-size: 16px 16px !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  padding-right: 36px !important;
+}
+
+/* Tabs Rail Restyling */
+#screen-login .nc-login-tabs {
+  display: flex !important;
+  gap: 16px !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 2px solid var(--login-border) !important;
+  border-radius: 0 !important;
+  margin-bottom: 24px !important;
 }
 
 #screen-login .nc-login-tab {
-  border-bottom: 2px solid rgba(212, 175, 55, 0.08) !important;
-  color: var(--royal-muted) !important;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  flex: none !important;
+  padding: 8px 4px !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 2px solid transparent !important;
+  color: var(--login-text-secondary) !important;
+  font-size: 14px !important;
   font-weight: 600 !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  cursor: pointer !important;
+  margin-bottom: -2px !important;
 }
 
 #screen-login .nc-login-tab.active {
   background: transparent !important;
-  border-bottom-color: var(--royal-gold) !important;
-  color: var(--royal-gold) !important;
+  border-bottom: 2px solid var(--login-brand) !important;
+  color: var(--login-brand) !important;
   box-shadow: none !important;
 }
 
 #screen-login .nc-login-submit {
-  background: linear-gradient(135deg, var(--royal-gold) 0%, #B89020 100%) !important;
-  color: #050814 !important;
+  background: var(--login-brand) !important;
+  color: #FFFFFF !important;
   font-weight: 700 !important;
   border-radius: 8px !important;
-  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 0 4px 12px rgba(4, 57, 39, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  border: none !important;
+  cursor: pointer !important;
 }
 
 #screen-login .nc-login-submit:hover:not(:disabled) {
-  background: linear-gradient(135deg, var(--royal-gold-soft) 0%, var(--royal-gold) 100%) !important;
+  background: var(--login-emerald) !important;
   transform: translateY(-1.5px) !important;
-  box-shadow: 0 6px 18px rgba(212, 175, 55, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 0 6px 18px rgba(16, 185, 129, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
 }
 
 #screen-login .nc-login-submit:active:not(:disabled) {
   transform: translateY(0.5px) !important;
-  box-shadow: 0 2px 6px rgba(212, 175, 55, 0.1) !important;
+  box-shadow: 0 2px 6px rgba(4, 57, 39, 0.05) !important;
 }
 
 #screen-login .nc-login-headline {
-  color: var(--royal-ivory) !important;
+  color: var(--login-brand) !important;
+  font-weight: 700 !important;
+  font-size: 28px !important;
+  margin-bottom: 8px !important;
 }
 
 #screen-login .nc-login-headline-sub {
-  color: var(--royal-muted) !important;
+  color: var(--login-text-secondary) !important;
+  font-size: 14px !important;
+  margin-bottom: 24px !important;
 }
 
 #screen-login .nc-login-label {
-  color: var(--royal-gold-soft) !important;
+  color: var(--login-brand) !important;
+  font-weight: 600 !important;
+  font-size: 13px !important;
+  margin-bottom: 6px !important;
+  display: block !important;
 }
 
 #screen-login .nc-login-meta {
-  color: var(--royal-muted) !important;
+  color: var(--login-text-secondary) !important;
+  font-size: 13px !important;
 }
 
 #screen-login .nc-link {
-  color: var(--royal-gold) !important;
+  color: var(--login-emerald) !important;
   font-weight: 600 !important;
+  cursor: pointer !important;
 }
 
 #screen-login .nc-link:hover {
-  color: var(--royal-gold-soft) !important;
+  color: #059669 !important;
+}
+
+#screen-login .nc-login-wordmark {
+  color: var(--login-brand) !important;
+}
+
+#screen-login .nc-login-tagline {
+  color: var(--login-text-secondary) !important;
+}
+
+#screen-login .nc-login-tab:focus,
+#screen-login .nc-login-tab:focus-visible,
+#screen-login .nc-login-input:focus,
+#screen-login .nc-login-input:focus-visible,
+#screen-login .nc-login-submit:focus,
+#screen-login .nc-login-submit:focus-visible,
+#screen-login .nc-link:focus,
+#screen-login .nc-link:focus-visible,
+#screen-login select.nc-login-input:focus,
+#screen-login select.nc-login-input:focus-visible {
+  outline: 2px solid var(--login-emerald) !important;
+  outline-offset: 2px !important;
 }
 
 /* ── EXECUTIVE SHELL & DASHBOARD REDESIGN OVERRIDES ── */
 
-/* Deep graphite sidebar override for bright mode (coach dashboard) */
-body.nc-bright .sidebar {
-  background: #0b0f19 !important;
-  border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
+/* Crisp white sidebar override for bright mode (coach dashboard) */
+body.nc-bright:not(.nc-client) .sidebar {
+  background: #FFFFFF !important;
+  border-right: 1px solid #F2F4F7 !important;
+  box-shadow: none !important;
+  padding: 24px 16px !important;
+}
+body.nc-bright:not(.nc-client) .sidebar::before {
+  display: none !important; /* Remove any backglow/effect on sidebar */
+}
+body.nc-bright:not(.nc-client) .sidebar .nc-sidebar-wordmark {
+  color: #043927 !important;
+  font-family: 'Hanken Grotesk', sans-serif !important;
+  font-size: 20px !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.015em;
+}
+body.nc-bright:not(.nc-client) .sidebar .nc-sidebar-sub {
+  color: #49454F !important;
+  font-family: 'Hanken Grotesk', sans-serif !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.05em !important;
+  margin-top: 4px !important;
+}
+body.nc-bright:not(.nc-client) .sidebar .nav-section {
+  color: #79747E !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.08em !important;
+  margin-top: 20px !important;
+  margin-bottom: 8px !important;
+  padding-left: 12px !important;
+  border-top: 1px solid #F2F4F7 !important;
+  padding-top: 12px !important;
+}
+body.nc-bright:not(.nc-client) .sidebar .nav-section:first-of-type {
+  border-top: none !important;
+  padding-top: 0 !important;
+}
+body.nc-bright:not(.nc-client) .sidebar .nc-service-switcher {
+  background: #F2F4F7 !important;
+  border: 1px solid #E2E2E6 !important;
+  border-radius: 8px !important;
+  padding: 2px !important;
+  margin-top: 16px !important;
+}
+body.nc-bright:not(.nc-client) .sidebar .nc-service-btn {
+  color: #49454F !important;
+  font-family: 'Hanken Grotesk', sans-serif !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  border-radius: 6px !important;
+}
+body.nc-bright:not(.nc-client) .sidebar .nc-service-btn:hover:not(.active) {
+  background: rgba(4, 57, 39, 0.04) !important;
+  color: #043927 !important;
+}
+body.nc-bright:not(.nc-client) .sidebar .nc-service-btn.active[data-service="rehab"] {
+  background: #043927 !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important;
+}
+body.nc-bright:not(.nc-client) .sidebar .nc-service-btn.active[data-service="athletic"] {
+  background: #10B981 !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important;
+}
+body.nc-bright:not(.nc-client) .sidebar .nav-item {
+  color: #49454F !important;
+  font-family: 'Hanken Grotesk', sans-serif !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  padding: 12px 16px !important;
+  border-radius: 8px !important;
+  margin-bottom: 4px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+}
+body.nc-bright:not(.nc-client) .sidebar .nav-item:hover {
+  color: #043927 !important;
+  background: rgba(4, 57, 39, 0.04) !important;
+}
+body.nc-bright:not(.nc-client) .sidebar .nav-item.active {
+  color: #043927 !important;
+  background: rgba(4, 57, 39, 0.08) !important;
+  border-right: 3px solid #043927 !important;
+  border-radius: 8px 0 0 8px !important;
   box-shadow: none !important;
 }
-body.nc-bright .sidebar::before {
-  opacity: 0.25 !important;
+body.nc-bright:not(.nc-client) .sidebar .nav-item.active .nav-item-icon,
+body.nc-bright:not(.nc-client) .sidebar .nav-item.active svg {
+  color: #043927 !important;
 }
-body.nc-bright .sidebar .nc-sidebar-wordmark {
-  color: #ffffff !important;
+body.nc-bright:not(.nc-client) .sidebar .user-card {
+  background: transparent !important;
+  border: 1px solid #F2F4F7 !important;
+  border-radius: 12px !important;
+  padding: 12px !important;
+  margin-top: 16px !important;
 }
-body.nc-bright .sidebar .nc-sidebar-sub {
-  color: #475569 !important;
+body.nc-bright:not(.nc-client) .sidebar .user-name {
+  color: #1C1C1E !important;
+  font-family: 'Hanken Grotesk', sans-serif !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
 }
-body.nc-bright .sidebar .nav-section {
-  color: #475569 !important;
+body.nc-bright:not(.nc-client) .sidebar .user-role-tag {
+  background: rgba(4, 57, 39, 0.08) !important;
+  color: #043927 !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  border-radius: 4px !important;
+  padding: 2px 6px !important;
 }
-body.nc-bright .sidebar .nc-service-switcher {
-  background: rgba(255, 255, 255, 0.04) !important;
-  border-color: rgba(255, 255, 255, 0.08) !important;
+body.nc-bright:not(.nc-client) .sidebar .logout-icon {
+  color: #49454F !important;
 }
-body.nc-bright .sidebar .nc-service-btn {
-  color: #94a3b8 !important;
-}
-body.nc-bright .sidebar .nc-service-btn.active[data-service="rehab"] {
-  background: #14B8A6 !important;
-  color: #04141a !important;
-  box-shadow: 0 2px 8px rgba(20, 184, 166, 0.25) !important;
-}
-body.nc-bright .sidebar .nc-service-btn.active[data-service="athletic"] {
-  background: #5B6CFF !important;
-  color: #ffffff !important;
-  box-shadow: 0 2px 8px rgba(91, 108, 255, 0.25) !important;
-}
-body.nc-bright .sidebar .nav-item {
-  color: #94a3b8 !important;
-}
-body.nc-bright .sidebar .nav-item:hover {
-  color: #ffffff !important;
-  background: rgba(255, 255, 255, 0.04) !important;
-}
-body.nc-bright .sidebar .nav-item.active {
-  color: #38bdf8 !important;
-  background: rgba(56, 189, 248, 0.08) !important;
-  box-shadow: inset 0 0 0 1px rgba(56, 189, 248, 0.15) !important;
-}
-body.nc-bright .sidebar .nav-item.active .nav-item-icon {
-  color: #38bdf8 !important;
-}
-body.nc-bright .sidebar .user-card {
-  background: rgba(255, 255, 255, 0.03) !important;
-  border-color: rgba(255, 255, 255, 0.06) !important;
-}
-body.nc-bright .sidebar .user-name {
-  color: #ffffff !important;
-}
-body.nc-bright .sidebar .user-role-tag {
-  background: rgba(56, 189, 248, 0.1) !important;
-  color: #38bdf8 !important;
-}
-body.nc-bright .sidebar .logout-icon {
-  color: #94a3b8 !important;
-}
-body.nc-bright .sidebar .logout-icon:hover {
-  color: #f43f5e !important;
+body.nc-bright:not(.nc-client) .sidebar .logout-icon:hover {
+  color: #EF4444 !important;
 }
 
 /* Desktop top bar */
@@ -2946,7 +3075,7 @@ body.nc-bright .sidebar .logout-icon:hover {
 }
 
 /* Specificity fix for video modal visibility toggle */
-body.nc-bright #modal-ex-video.modal-overlay.hidden,
+body.nc-bright:not(.nc-client) #modal-ex-video.modal-overlay.hidden,
 #modal-ex-video.modal-overlay.hidden,
 #modal-ex-video.hidden {
   display: none !important;
@@ -2957,7 +3086,7 @@ body.nc-bright #modal-ex-video.modal-overlay.hidden,
 
 /* Mobile backdrop-filter performance optimization */
 @media (max-width: 639.98px) {
-  body.nc-bright .modal-overlay,
+  body.nc-bright:not(.nc-client) .modal-overlay,
   .modal-overlay {
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
@@ -3095,7 +3224,7 @@ body.nc-client #section-client-coach > div:first-child {
    - Retains restrained royal gold (#D4AF37) for premium highlights
    ───────────────────────────────────────────────────────────── */
 
-body.nc-bright {
+body.nc-bright:not(.nc-client) {
   /* Porcelain Emerald color variables mapped inside app shell scope */
   --nc-bg-primary:    #F8F9F9 !important;   /* porcelain canvas base */
   --nc-bg-secondary:  #FFFFFF !important;   /* crisp white panels */
@@ -3154,210 +3283,150 @@ body.nc-bright {
 }
 
 /* Base body background override */
-body.nc-bright {
+body.nc-bright:not(.nc-client) {
   background: var(--nc-bg-primary) !important;
   color: var(--nc-text-primary) !important;
 }
 
 /* 1. Sidebar Styling */
-body.nc-bright .sidebar {
+body.nc-bright:not(.nc-client) .sidebar {
   background: var(--nc-bg-secondary) !important;
   border-right: 1px solid var(--nc-border) !important;
   box-shadow: 1px 0 8px rgba(24, 28, 50, 0.01) !important;
 }
-body.nc-bright .sidebar::before {
+body.nc-bright:not(.nc-client) .sidebar::before {
   opacity: 0 !important; /* Hide old highlights */
 }
 
 /* Sidebar wordmark / header styling */
-body.nc-bright .sidebar .nc-sidebar-wordmark {
+body.nc-bright:not(.nc-client) .sidebar .nc-sidebar-wordmark {
   color: var(--nc-text-primary) !important;
 }
-body.nc-bright .sidebar .nc-sidebar-wordmark .nc-sidebar-mark {
+body.nc-bright:not(.nc-client) .sidebar .nc-sidebar-wordmark .nc-sidebar-mark {
   filter: drop-shadow(0 1px 4px rgba(4, 120, 87, 0.1)) !important;
 }
-body.nc-bright .sidebar .nc-sidebar-wordmark .w-ast {
-  color: var(--nc-text-primary) !important;
-}
-body.nc-bright .sidebar .nc-sidebar-wordmark .w-9 {
-  color: var(--nc-indigo) !important;
-}
-
-/* Sidebar Navigation Items */
-body.nc-bright .sidebar .nav-item {
-  color: var(--nc-text-secondary) !important;
-  border-left: 3px solid transparent !important;
-  transition: all 0.2s var(--nc-ease) !important;
-  font-weight: 500 !important;
-}
-body.nc-bright .sidebar .nav-item:hover {
-  background: rgba(24, 28, 50, 0.02) !important;
-  color: var(--nc-text-primary) !important;
-}
-body.nc-bright .sidebar .nav-item.active {
-  background: rgba(4, 120, 87, 0.06) !important; /* Soft emerald active background */
-  color: var(--nc-indigo) !important;
-  border-left-color: var(--nc-indigo) !important;
-  font-weight: 600 !important;
-}
-body.nc-bright .sidebar .nav-item-icon {
-  color: var(--nc-text-muted) !important;
-}
-body.nc-bright .sidebar .nav-item.active .nav-item-icon {
-  color: var(--nc-indigo) !important;
-}
-body.nc-bright .sidebar .nav-section {
-  color: var(--nc-text-muted) !important;
-  font-weight: 600 !important;
-  letter-spacing: 0.08em !important;
-  opacity: 0.95 !important;
-}
-
-/* User Profile card inside sidebar */
-body.nc-bright .sidebar .user-card {
-  background: #F8F9F9 !important;
-  border: 1px solid var(--nc-border) !important;
-}
-body.nc-bright .sidebar .user-name {
-  color: var(--nc-text-primary) !important;
-}
-body.nc-bright .sidebar .user-role-tag {
-  background: rgba(4, 120, 87, 0.06) !important;
-  color: var(--nc-indigo) !important;
-  border: 1px solid rgba(4, 120, 87, 0.12) !important;
-}
-
-/* Service switcher controls */
-body.nc-bright .nc-service-switcher {
-  background: #F8F9F9 !important;
-  border: 1px solid var(--nc-border) !important;
-}
-body.nc-bright .nc-service-switcher .switcher-btn.active {
-  background: #FFFFFF !important;
-  color: var(--nc-indigo) !important;
-  box-shadow: 0 1px 4px rgba(24, 28, 50, 0.03) !important;
-}
+/* Conflicting bright sidebar styles cleared for unification */
 
 /* 2. Topbar / Header Styling */
-body.nc-bright .topbar {
+body.nc-bright:not(.nc-client) .topbar {
   background: #FFFFFF !important;
   border-bottom: 1px solid var(--nc-border) !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
-body.nc-bright .topbar .page-title {
+body.nc-bright:not(.nc-client) .topbar .page-title {
   color: var(--nc-text-primary) !important;
 }
 
 /* Headings colors */
-body.nc-bright h1,
-body.nc-bright h2,
-body.nc-bright h3,
-body.nc-bright h4,
-body.nc-bright h5,
-body.nc-bright h6,
-body.nc-bright .page-title,
-body.nc-bright .section-title,
-body.nc-bright .card-title,
-body.nc-bright .nc-dashboard-title,
-body.nc-bright .nc-dash-greeting,
-body.nc-bright .nc-section-head {
+body.nc-bright:not(.nc-client) h1,
+body.nc-bright:not(.nc-client) h2,
+body.nc-bright:not(.nc-client) h3,
+body.nc-bright:not(.nc-client) h4,
+body.nc-bright:not(.nc-client) h5,
+body.nc-bright:not(.nc-client) h6,
+body.nc-bright:not(.nc-client) .page-title,
+body.nc-bright:not(.nc-client) .section-title,
+body.nc-bright:not(.nc-client) .card-title,
+body.nc-bright:not(.nc-client) .nc-dashboard-title,
+body.nc-bright:not(.nc-client) .nc-dash-greeting,
+body.nc-bright:not(.nc-client) .nc-section-head {
   color: var(--nc-text-primary) !important;
 }
 
 /* Eyebrow indicator */
-body.nc-bright .nc-dash-eyebrow::before {
+body.nc-bright:not(.nc-client) .nc-dash-eyebrow::before {
   background: var(--nc-indigo) !important;
   box-shadow: 0 0 0 3px rgba(4, 120, 87, 0.1) !important;
 }
-body.nc-bright .nc-dash-eyebrow {
+body.nc-bright:not(.nc-client) .nc-dash-eyebrow {
   color: var(--nc-indigo) !important;
 }
 
 /* 3. Card Overrides - crisp white & very subtle borders */
-body.nc-bright .card,
-body.nc-bright .stat-card,
-body.nc-bright .neu-card {
+body.nc-bright:not(.nc-client) .card,
+body.nc-bright:not(.nc-client) .stat-card,
+body.nc-bright:not(.nc-client) .neu-card {
   background: var(--nc-bg-card) !important;
   border: 1px solid var(--nc-border) !important;
   box-shadow: var(--nc-shadow-card) !important;
   border-radius: 12px !important; /* moderate, cleaner radius */
 }
-body.nc-bright .card::before,
-body.nc-bright .stat-card::before {
+body.nc-bright:not(.nc-client) .card::before,
+body.nc-bright:not(.nc-client) .stat-card::before {
   display: none !important; /* Hide 3D top highlight for flatter appearance */
 }
 
 /* Interactive Card Hovers */
-body.nc-bright .stat-card:hover,
-body.nc-bright .card-hover:hover,
-body.nc-bright .neu-card--interactive:hover {
+body.nc-bright:not(.nc-client) .stat-card:hover,
+body.nc-bright:not(.nc-client) .card-hover:hover,
+body.nc-bright:not(.nc-client) .neu-card--interactive:hover {
   border-color: var(--nc-border-strong) !important;
   box-shadow: 0 4px 16px rgba(24, 28, 50, 0.04) !important;
 }
 
 /* KPI/Stat Card visual values */
-body.nc-bright .nc-kpi-value,
-body.nc-bright .stat-value,
-body.nc-bright .nc-stat-num {
+body.nc-bright:not(.nc-client) .nc-kpi-value,
+body.nc-bright:not(.nc-client) .stat-value,
+body.nc-bright:not(.nc-client) .nc-stat-num {
   color: var(--nc-text-primary) !important;
 }
-body.nc-bright .nc-kpi-label,
-body.nc-bright .stat-label {
+body.nc-bright:not(.nc-client) .nc-kpi-label,
+body.nc-bright:not(.nc-client) .stat-label {
   color: var(--nc-text-secondary) !important;
 }
-body.nc-bright .nc-card-eyebrow {
+body.nc-bright:not(.nc-client) .nc-card-eyebrow {
   color: var(--nc-indigo) !important;
   font-weight: 600 !important;
 }
 
 /* 4. Table Styling */
-body.nc-bright table.table th,
-body.nc-bright .table-header,
-body.nc-bright .nc-table th {
+body.nc-bright:not(.nc-client) table.table th,
+body.nc-bright:not(.nc-client) .table-header,
+body.nc-bright:not(.nc-client) .nc-table th {
   background: #F8F9F9 !important;
   color: var(--nc-text-primary) !important;
   border-bottom: 2px solid var(--nc-border) !important;
 }
-body.nc-bright table.table td,
-body.nc-bright .nc-table td {
+body.nc-bright:not(.nc-client) table.table td,
+body.nc-bright:not(.nc-client) .nc-table td {
   border-bottom: 1px solid var(--nc-border) !important;
   color: var(--nc-text-secondary) !important;
 }
-body.nc-bright table.table tr:hover td,
-body.nc-bright .nc-table tr:hover td {
+body.nc-bright:not(.nc-client) table.table tr:hover td,
+body.nc-bright:not(.nc-client) .nc-table tr:hover td {
   background: rgba(24, 28, 50, 0.01) !important;
 }
 
 /* Buttons / inputs inside auth shell */
-body.nc-bright .btn-primary,
-body.nc-bright .btn-teal {
+body.nc-bright:not(.nc-client) .btn-primary,
+body.nc-bright:not(.nc-client) .btn-teal {
   background: var(--nc-indigo) !important;
   color: #FFFFFF !important;
   border: none !important;
   box-shadow: 0 1px 2px rgba(4, 120, 87, 0.05) !important;
 }
-body.nc-bright .btn-primary:hover,
-body.nc-bright .btn-teal:hover {
+body.nc-bright:not(.nc-client) .btn-primary:hover,
+body.nc-bright:not(.nc-client) .btn-teal:hover {
   background: var(--nc-indigo-ink) !important;
 }
-body.nc-bright .btn-ghost {
+body.nc-bright:not(.nc-client) .btn-ghost {
   border: 1px solid var(--nc-border) !important;
   color: var(--nc-text-primary) !important;
   background: transparent !important;
 }
-body.nc-bright .btn-ghost:hover {
+body.nc-bright:not(.nc-client) .btn-ghost:hover {
   background: rgba(24, 28, 50, 0.02) !important;
 }
 
 /* Scoped premium input/select/textarea styling across the app shell */
-body.nc-bright .form-input,
-body.nc-bright .neu-input,
-body.nc-bright .neu-textarea,
-body.nc-bright .neu-select,
-body.nc-bright input,
-body.nc-bright select,
-body.nc-bright textarea {
+body.nc-bright:not(.nc-client) .form-input,
+body.nc-bright:not(.nc-client) .neu-input,
+body.nc-bright:not(.nc-client) .neu-textarea,
+body.nc-bright:not(.nc-client) .neu-select,
+body.nc-bright:not(.nc-client) input,
+body.nc-bright:not(.nc-client) select,
+body.nc-bright:not(.nc-client) textarea {
   background: #FFFFFF !important;
   color: #181C32 !important;
   border: 1px solid rgba(24, 28, 50, 0.12) !important; /* Softer, subtle grey border close to FitExpert */
@@ -3373,29 +3442,29 @@ body.nc-bright textarea {
 }
 
 /* Specific overrides for textarea height (should not be restricted to 42px) */
-body.nc-bright textarea,
-body.nc-bright .neu-textarea {
+body.nc-bright:not(.nc-client) textarea,
+body.nc-bright:not(.nc-client) .neu-textarea {
   height: auto !important;
   min-height: 88px !important;
 }
 
 /* Placeholder styling */
-body.nc-bright .form-input::placeholder,
-body.nc-bright .neu-input::placeholder,
-body.nc-bright input::placeholder,
-body.nc-bright textarea::placeholder {
+body.nc-bright:not(.nc-client) .form-input::placeholder,
+body.nc-bright:not(.nc-client) .neu-input::placeholder,
+body.nc-bright:not(.nc-client) input::placeholder,
+body.nc-bright:not(.nc-client) textarea::placeholder {
   color: #7E8299 !important;
   opacity: 0.85 !important;
 }
 
 /* Premium Focus States */
-body.nc-bright .form-input:focus,
-body.nc-bright .neu-input:focus,
-body.nc-bright .neu-textarea:focus,
-body.nc-bright .neu-select:focus,
-body.nc-bright input:focus,
-body.nc-bright select:focus,
-body.nc-bright textarea:focus {
+body.nc-bright:not(.nc-client) .form-input:focus,
+body.nc-bright:not(.nc-client) .neu-input:focus,
+body.nc-bright:not(.nc-client) .neu-textarea:focus,
+body.nc-bright:not(.nc-client) .neu-select:focus,
+body.nc-bright:not(.nc-client) input:focus,
+body.nc-bright:not(.nc-client) select:focus,
+body.nc-bright:not(.nc-client) textarea:focus {
   outline: none !important;
   border-color: #047857 !important;
   box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.18) !important;
@@ -3403,8 +3472,8 @@ body.nc-bright textarea:focus {
 }
 
 /* Select element layout alignment */
-body.nc-bright select.form-input,
-body.nc-bright select {
+body.nc-bright:not(.nc-client) select.form-input,
+body.nc-bright:not(.nc-client) select {
   padding-right: 32px !important;
   appearance: none !important;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%23047857'%3E%3Cpath fill-rule='evenodd' d='M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06z' clip-rule='evenodd'/%3E%3C/svg%3E") !important;
@@ -3414,55 +3483,79 @@ body.nc-bright select {
 }
 
 /* Subscriptions progress elements override inside app shell */
-body.nc-bright .progress-bar {
+body.nc-bright:not(.nc-client) .progress-bar {
   background: rgba(4, 120, 87, 0.05) !important;
 }
-body.nc-bright .progress-fill:not(.danger):not(.warning) {
+body.nc-bright:not(.nc-client) .progress-fill:not(.danger):not(.warning) {
   background: var(--nc-indigo) !important;
 }
 
 /* Quick Action button triggers */
-body.nc-bright .nc-quick-btn {
+body.nc-bright:not(.nc-client) .nc-quick-btn {
   background: #FFFFFF !important;
   border: 1px solid var(--nc-border) !important;
   color: var(--nc-text-primary) !important;
   transition: all 0.2s var(--nc-ease) !important;
 }
-body.nc-bright .nc-quick-btn:hover {
+body.nc-bright:not(.nc-client) .nc-quick-btn:hover {
   border-color: var(--nc-border-strong) !important;
   background: rgba(24, 28, 50, 0.02) !important;
   transform: translateY(-1px) !important;
 }
-body.nc-bright .nc-quick-btn-icon {
+body.nc-bright:not(.nc-client) .nc-quick-btn-icon {
   color: var(--nc-indigo) !important;
 }
 
 /* 5. Objective Assessment Premium Polish */
-body.nc-bright .neucore-assess-layout {
+body.nc-bright:not(.nc-client) .neucore-assess-layout {
   gap: 24px !important;
 }
-body.nc-bright .assess-grid {
+body.nc-bright:not(.nc-client) .assess-grid {
   display: grid !important;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)) !important;
   gap: 24px !important;
   opacity: 1 !important;
 }
-body.nc-bright #tab-objective {
+body.nc-bright:not(.nc-client) #tab-objective {
   opacity: 1 !important;
 }
 
 /* Card backing - Porcelain/Ivory */
-body.nc-bright #tab-objective .card {
+body.nc-bright:not(.nc-client) #tab-objective .card {
   background: #FFFFFF !important;
   border: 1px solid var(--nc-border) !important;
   border-radius: 12px !important;
   padding: 24px !important;
   box-shadow: var(--nc-shadow-card) !important;
   opacity: 1 !important;
+  position: relative !important;
+  border-top: 4px solid var(--nc-border) !important;
+}
+
+body.nc-bright:not(.nc-client) #tab-objective .card[data-zone="foundation"] {
+  border-top-color: #10B981 !important;
+}
+body.nc-bright:not(.nc-client) #tab-objective .card[data-zone="knees"] {
+  border-top-color: #3B82F6 !important;
+}
+body.nc-bright:not(.nc-client) #tab-objective .card[data-zone="hips"] {
+  border-top-color: #F59E0B !important;
+}
+body.nc-bright:not(.nc-client) #tab-objective .card[data-zone="spine"] {
+  border-top-color: #8B5CF6 !important;
+}
+body.nc-bright:not(.nc-client) #tab-objective .card[data-zone="shoulders"] {
+  border-top-color: #EC4899 !important;
+}
+body.nc-bright:not(.nc-client) #tab-objective .card[data-zone="neck-arms"] {
+  border-top-color: #06B6D4 !important;
+}
+body.nc-bright:not(.nc-client) #tab-objective .card[data-zone="integration"] {
+  border-top-color: #043927 !important;
 }
 
 /* Heading - Deep Royal Navy */
-body.nc-bright #tab-objective .assess-section-head {
+body.nc-bright:not(.nc-client) #tab-objective .assess-section-head {
   color: var(--nc-text-primary) !important;
   font-family: var(--nc-font-display) !important;
   font-size: 15px !important;
@@ -3474,7 +3567,7 @@ body.nc-bright #tab-objective .assess-section-head {
 }
 
 /* Labels - Deep Royal Navy and clearly readable */
-body.nc-bright #tab-objective .form-label {
+body.nc-bright:not(.nc-client) #tab-objective .form-label {
   color: var(--nc-text-secondary) !important;
   font-weight: 600 !important;
   font-size: 11px !important;
@@ -3483,59 +3576,163 @@ body.nc-bright #tab-objective .form-label {
 }
 
 /* Input spacing and rows */
-body.nc-bright #tab-objective .input-row {
+body.nc-bright:not(.nc-client) #tab-objective .input-row {
   display: grid !important;
   grid-template-columns: 1fr 1fr !important;
   gap: 16px !important;
   margin-bottom: 16px !important;
 }
-body.nc-bright #tab-objective .form-group {
+body.nc-bright:not(.nc-client) #tab-objective .form-group {
   margin-bottom: 16px !important;
 }
-body.nc-bright #tab-objective .form-group:last-child {
+body.nc-bright:not(.nc-client) #tab-objective .form-group:last-child {
   margin-bottom: 0 !important;
 }
 
 /* Hints - Muted Slate but readable */
-body.nc-bright #tab-objective .form-hint {
+body.nc-bright:not(.nc-client) #tab-objective .form-hint {
   color: var(--nc-text-muted) !important;
   font-size: 11px !important;
   margin-top: 4px !important;
   font-weight: 500 !important;
 }
 
+/* 3D skeleton sidebar styling in bright mode */
+body.nc-bright:not(.nc-client) #neucore-body-canvas {
+  background: #FFFFFF !important;
+  border: 1px solid var(--nc-border, #E2E8F0) !important;
+  border-radius: 12px !important;
+  box-shadow: var(--nc-shadow-card, 0 4px 6px -1px rgba(0,0,0,0.05)) !important;
+}
+body.nc-bright:not(.nc-client) .assess-body-col > div:first-child {
+  color: var(--nc-text-muted, #64748B) !important;
+  font-family: var(--font-mono) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+}
+body.nc-bright:not(.nc-client) #section-new-session .form-input:focus {
+  border-color: var(--dash-emerald, #10B981) !important;
+  outline: 2px solid var(--dash-emerald, #10B981) !important;
+  outline-offset: -1px !important;
+}
+body.nc-bright:not(.nc-client) #section-new-session input[type="checkbox"] {
+  accent-color: var(--dash-emerald, #10B981) !important;
+}
+
 /* ─────────────────────────────────────────────────────────────
    FitExpert-inspired Layout and Sidebar refinements
    ───────────────────────────────────────────────────────────── */
 
-/* 1. Desktop Sidebar Expansion (Wider & Non-collapsing) */
+/* 1. Desktop Collapsible Slim Sidebar (64px collapsed, 260px expanded on hover) */
 @media (min-width: 901px) {
-  body.nc-bright .sidebar {
-    width: 220px !important;
-    transition: none !important;
+  body.nc-bright:not(.nc-client) .sidebar {
+    width: var(--sidebar-w-collapsed, 64px) !important;
+    padding: 24px 0 !important;
+    transition: width var(--sidebar-transition, 0.28s ease-out), padding var(--sidebar-transition, 0.28s ease-out) !important;
+    overflow: hidden !important;
+    position: fixed !important;
+    z-index: 100 !important;
+    box-sizing: border-box !important;
   }
-  body.nc-bright .main-content {
-    margin-left: 220px !important;
-  }
-  body.nc-bright .sidebar .nc-sidebar-wordmark > span:not(.nc-sidebar-mark),
-  body.nc-bright .sidebar .nc-sidebar-sub,
-  body.nc-bright .sidebar .nav-section,
-  body.nc-bright .sidebar .nav-item > *:not(.nav-item-icon):not(.nav-badge),
-  body.nc-bright .sidebar .user-details,
-  body.nc-bright .sidebar .logout-icon,
-  body.nc-bright .sidebar #notif-bell {
-    opacity: 1 !important;
-    visibility: visible !important;
+  body.nc-bright:not(.nc-client) .sidebar .sidebar-header {
+    padding: 0 12px !important;
     display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
-  body.nc-bright .sidebar .nav-section {
+  body.nc-bright:not(.nc-client) .sidebar .nc-sidebar-wordmark {
+    justify-content: center !important;
+    width: 100% !important;
+  }
+  body.nc-bright:not(.nc-client) .sidebar .nav-item {
+    width: 44px !important;
+    height: 44px !important;
+    padding: 0 !important;
+    margin: 4px auto !important;
+    justify-content: center !important;
+    align-items: center !important;
+    border-radius: 12px !important;
+    box-sizing: border-box !important;
+  }
+  body.nc-bright:not(.nc-client) .sidebar .nav-item-icon {
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* Expanded Hover/Focus State */
+  body.nc-bright:not(.nc-client) .sidebar:hover,
+  body.nc-bright:not(.nc-client) .sidebar:focus-within {
+    width: var(--sidebar-w-expanded, 260px) !important;
+    padding: 24px 16px !important;
+  }
+  body.nc-bright:not(.nc-client) .sidebar:hover .sidebar-header,
+  body.nc-bright:not(.nc-client) .sidebar:focus-within .sidebar-header {
+    padding: 0 !important;
+    align-items: flex-start !important;
+  }
+  body.nc-bright:not(.nc-client) .sidebar:hover .nc-sidebar-wordmark,
+  body.nc-bright:not(.nc-client) .sidebar:focus-within .nc-sidebar-wordmark {
+    justify-content: flex-start !important;
+  }
+  body.nc-bright:not(.nc-client) .sidebar:hover .nav-item,
+  body.nc-bright:not(.nc-client) .sidebar:focus-within .nav-item {
+    width: 100% !important;
+    height: auto !important;
+    padding: 10px 16px !important;
+    margin: 0 !important;
+    justify-content: flex-start !important;
+    border-radius: 12px !important;
+  }
+
+  body.nc-bright:not(.nc-client) .main-content {
+    margin-left: var(--sidebar-w-collapsed, 64px) !important;
+  }
+  body.nc-bright:not(.nc-client) .sidebar .nc-sidebar-wordmark > span:not(.nc-sidebar-mark),
+  body.nc-bright:not(.nc-client) .sidebar .nc-sidebar-sub,
+  body.nc-bright:not(.nc-client) .sidebar .nav-section,
+  body.nc-bright:not(.nc-client) .sidebar .nav-item > *:not(.nav-item-icon):not(.nav-badge),
+  body.nc-bright:not(.nc-client) .sidebar .user-details,
+  body.nc-bright:not(.nc-client) .sidebar .logout-icon,
+  body.nc-bright:not(.nc-client) .sidebar #notif-bell {
+    opacity: 0 !important;
+    display: none !important;
+    width: 0 !important;
+    overflow: hidden !important;
+    transition: opacity var(--sidebar-transition, 0.28s ease-out) !important;
+    white-space: nowrap !important;
+  }
+  body.nc-bright:not(.nc-client) .sidebar:hover .nc-sidebar-wordmark > span:not(.nc-sidebar-mark),
+  body.nc-bright:not(.nc-client) .sidebar:hover .nc-sidebar-sub,
+  body.nc-bright:not(.nc-client) .sidebar:hover .nav-section,
+  body.nc-bright:not(.nc-client) .sidebar:hover .nav-item > *:not(.nav-item-icon):not(.nav-badge),
+  body.nc-bright:not(.nc-client) .sidebar:hover .user-details,
+  body.nc-bright:not(.nc-client) .sidebar:hover .logout-icon,
+  body.nc-bright:not(.nc-client) .sidebar:hover #notif-bell,
+  body.nc-bright:not(.nc-client) .sidebar:focus-within .nc-sidebar-wordmark > span:not(.nc-sidebar-mark),
+  body.nc-bright:not(.nc-client) .sidebar:focus-within .nc-sidebar-sub,
+  body.nc-bright:not(.nc-client) .sidebar:focus-within .nav-section,
+  body.nc-bright:not(.nc-client) .sidebar:focus-within .nav-item > *:not(.nav-item-icon):not(.nav-badge),
+  body.nc-bright:not(.nc-client) .sidebar:focus-within .user-details,
+  body.nc-bright:not(.nc-client) .sidebar:focus-within .logout-icon,
+  body.nc-bright:not(.nc-client) .sidebar:focus-within #notif-bell {
+    opacity: 1 !important;
+    display: inline-block !important;
+    width: auto !important;
+    visibility: visible !important;
+  }
+  body.nc-bright:not(.nc-client) .sidebar .nav-section {
     display: block !important;
   }
-  body.nc-bright .sidebar .user-card {
+  body.nc-bright:not(.nc-client) .sidebar .user-card {
     justify-content: space-between !important;
     padding: 8px 12px !important;
   }
-  body.nc-bright .sidebar .nav-item {
+  body.nc-bright:not(.nc-client) .sidebar .nav-item {
     padding: 10px 16px !important;
     justify-content: flex-start !important;
     gap: 12px !important;
@@ -3543,7 +3740,7 @@ body.nc-bright #tab-objective .form-hint {
 }
 
 /* 2. First Fold Rework (Welcome Card left, Client Overview right) */
-body.nc-bright .nc-dash-first-fold {
+body.nc-bright:not(.nc-client) .nc-dash-first-fold {
   display: grid !important;
   grid-template-columns: 1.2fr 0.8fr !important;
   gap: 24px !important;
@@ -3551,12 +3748,12 @@ body.nc-bright .nc-dash-first-fold {
 }
 
 @media (max-width: 1080px) {
-  body.nc-bright .nc-dash-first-fold {
+  body.nc-bright:not(.nc-client) .nc-dash-first-fold {
     grid-template-columns: 1fr !important;
   }
 }
 
-body.nc-bright .nc-dash-welcome-panel {
+body.nc-bright:not(.nc-client) .nc-dash-welcome-panel {
   display: flex !important;
   flex-direction: column !important;
   padding: 32px !important;
@@ -3567,7 +3764,7 @@ body.nc-bright .nc-dash-welcome-panel {
   position: relative !important;
 }
 
-body.nc-bright .nc-dash-welcome-panel .nc-dash-eyebrow {
+body.nc-bright:not(.nc-client) .nc-dash-welcome-panel .nc-dash-eyebrow {
   font-size: 11px !important;
   font-weight: 700 !important;
   text-transform: uppercase !important;
@@ -3576,7 +3773,7 @@ body.nc-bright .nc-dash-welcome-panel .nc-dash-eyebrow {
   margin-bottom: 8px !important;
 }
 
-body.nc-bright .nc-dash-welcome-panel .welcome-heading {
+body.nc-bright:not(.nc-client) .nc-dash-welcome-panel .welcome-heading {
   font-size: 26px !important;
   font-weight: 700 !important;
   color: var(--nc-text-primary) !important;
@@ -3585,7 +3782,7 @@ body.nc-bright .nc-dash-welcome-panel .welcome-heading {
   line-height: 1.2 !important;
 }
 
-body.nc-bright .nc-dash-welcome-panel .welcome-text {
+body.nc-bright:not(.nc-client) .nc-dash-welcome-panel .welcome-text {
   font-size: 14px !important;
   color: var(--nc-text-secondary) !important;
   line-height: 1.6 !important;
@@ -3594,7 +3791,7 @@ body.nc-bright .nc-dash-welcome-panel .welcome-text {
 }
 
 /* Integrated quickstart bar inside welcome card */
-body.nc-bright .nc-quickstart-bar-integrated {
+body.nc-bright:not(.nc-client) .nc-quickstart-bar-integrated {
   margin-top: auto !important;
   padding-top: 20px !important;
   border-top: 1px dashed var(--nc-border) !important;
@@ -3603,7 +3800,7 @@ body.nc-bright .nc-quickstart-bar-integrated {
   gap: 12px !important;
 }
 
-body.nc-bright .nc-quickstart-bar-integrated .nc-quickstart-title {
+body.nc-bright:not(.nc-client) .nc-quickstart-bar-integrated .nc-quickstart-title {
   font-size: 12px !important;
   font-weight: 700 !important;
   color: var(--nc-text-primary) !important;
@@ -3611,14 +3808,14 @@ body.nc-bright .nc-quickstart-bar-integrated .nc-quickstart-title {
   letter-spacing: 0.05em !important;
 }
 
-body.nc-bright .nc-quickstart-bar-integrated .nc-quickstart-steps-integrated {
+body.nc-bright:not(.nc-client) .nc-quickstart-bar-integrated .nc-quickstart-steps-integrated {
   display: flex !important;
   align-items: center !important;
   flex-wrap: wrap !important;
   gap: 12px !important;
 }
 
-body.nc-bright .nc-quickstart-bar-integrated .step-item {
+body.nc-bright:not(.nc-client) .nc-quickstart-bar-integrated .step-item {
   display: inline-flex !important;
   align-items: center !important;
   gap: 8px !important;
@@ -3629,11 +3826,11 @@ body.nc-bright .nc-quickstart-bar-integrated .step-item {
   transition: color 0.15s ease !important;
 }
 
-body.nc-bright .nc-quickstart-bar-integrated .step-item:hover {
+body.nc-bright:not(.nc-client) .nc-quickstart-bar-integrated .step-item:hover {
   color: var(--nc-indigo) !important;
 }
 
-body.nc-bright .nc-quickstart-bar-integrated .step-badge {
+body.nc-bright:not(.nc-client) .nc-quickstart-bar-integrated .step-badge {
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -3646,89 +3843,544 @@ body.nc-bright .nc-quickstart-bar-integrated .step-badge {
   font-weight: 700 !important;
 }
 
-body.nc-bright .nc-quickstart-bar-integrated .step-arrow {
+body.nc-bright:not(.nc-client) .nc-quickstart-bar-integrated .step-arrow {
   color: var(--nc-text-muted) !important;
   font-weight: 600 !important;
 }
 
 /* 3. Status Banner and Header simplification */
-body.nc-bright #section-dashboard .nc-status-banner {
-  background: #FFFFFF !important;
-  border: 1px solid var(--nc-border) !important;
-  padding: 10px 16px !important;
-  border-radius: 8px !important;
-  margin-bottom: 24px !important;
-  box-shadow: var(--nc-shadow-sm) !important;
+body.nc-bright:not(.nc-client) #section-dashboard {
+  --dash-bg: #F9F9FC;
+  --dash-surface: #FFFFFF;
+  --dash-surface-low: #F2F4F7;
+  --dash-brand: #043927;
+  --dash-brand-light: #396752;
+  --dash-brand-10: rgba(4, 57, 39, 0.06);
+  --dash-emerald: #10B981;
+  --dash-border: #E5E7EB;
+  --dash-text-primary: #1F2937;
+  --dash-text-secondary: #4B5563;
+  --dash-text-muted: #9CA3AF;
+  --dash-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.02);
+
+  background: var(--dash-bg) !important;
+  color: var(--dash-text-primary) !important;
 }
-body.nc-bright #section-dashboard .nc-status-banner .nc-status-banner-content {
-  color: var(--nc-text-secondary) !important;
-  font-size: 12.5px !important;
+
+body.nc-bright:not(.nc-client) #section-dashboard .nc-status-banner {
+  background: var(--dash-surface) !important;
+  border: 1px solid var(--dash-border) !important;
+  border-radius: 8px !important;
+  padding: 12px 16px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin-bottom: 24px !important;
+  box-shadow: var(--dash-shadow) !important;
+}
+
+body.nc-bright:not(.nc-client) #section-dashboard .nc-status-banner .nc-status-banner-content {
+  color: var(--dash-text-secondary) !important;
+  font-size: 13px !important;
   font-weight: 500 !important;
 }
 
-/* 4. KPI row and Card Flat styling */
-body.nc-bright #section-dashboard .nc-kpi-grid {
+body.nc-bright:not(.nc-client) #section-dashboard .page-header {
+  margin-bottom: 24px !important;
+}
+
+body.nc-bright:not(.nc-client) #section-dashboard .page-title {
+  font-family: 'Hanken Grotesk', sans-serif !important;
+  font-size: 24px !important;
+  font-weight: 700 !important;
+  color: var(--dash-brand) !important;
+  margin: 0 0 4px 0 !important;
+}
+
+body.nc-bright:not(.nc-client) #section-dashboard .page-subtitle {
+  font-size: 13px !important;
+  color: var(--dash-text-secondary) !important;
+  margin: 0 !important;
+}
+
+/* First Fold Layout */
+body.nc-bright:not(.nc-client) #section-dashboard .nc-dash-first-fold {
+  display: grid !important;
+  grid-template-columns: 1.25fr 0.75fr !important;
   gap: 20px !important;
   margin-bottom: 24px !important;
 }
-body.nc-bright #section-dashboard .nc-kpi {
-  background: #FFFFFF !important;
-  border: 1px solid var(--nc-border) !important;
-  border-radius: 10px !important;
-  padding: 16px 20px !important;
-  box-shadow: var(--nc-shadow-sm) !important;
+
+@media (max-width: 900px) {
+  body.nc-bright:not(.nc-client) #section-dashboard .nc-dash-first-fold {
+    grid-template-columns: 1fr !important;
+  }
 }
-body.nc-bright #section-dashboard .nc-kpi::before {
-  display: none !important; /* Flat card appearance */
+
+body.nc-bright:not(.nc-client) #section-dashboard .nc-dash-welcome-panel {
+  background: var(--dash-surface) !important;
+  border: 1px solid var(--dash-border) !important;
+  border-radius: 12px !important;
+  padding: 24px !important;
+  box-shadow: var(--dash-shadow) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
 }
-body.nc-bright #section-dashboard .nc-kpi-value {
-  font-size: 24px !important;
+
+body.nc-bright:not(.nc-client) #section-dashboard .nc-dash-eyebrow {
+  font-family: var(--font-mono) !important;
+  font-size: 10px !important;
   font-weight: 700 !important;
-  margin-top: 4px !important;
-  color: var(--nc-text-primary) !important;
+  color: var(--dash-emerald) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.1em !important;
+  margin-bottom: 8px !important;
 }
-body.nc-bright #section-dashboard .nc-kpi-sub {
-  font-size: 11px !important;
-  color: var(--nc-text-muted) !important;
-  margin-top: 2px !important;
+
+body.nc-bright:not(.nc-client) #section-dashboard .welcome-heading {
+  font-size: 28px !important;
+  font-weight: 700 !important;
+  color: var(--dash-brand) !important;
+  margin: 0 0 8px 0 !important;
 }
-body.nc-bright #section-dashboard .nc-kpi-top {
+
+body.nc-bright:not(.nc-client) #section-dashboard .welcome-text {
+  font-size: 14px !important;
+  color: var(--dash-text-secondary) !important;
+  margin: 0 0 20px 0 !important;
+  line-height: 1.5 !important;
+}
+
+body.nc-bright:not(.nc-client) #section-dashboard .nc-quickstart-bar-integrated {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  flex-wrap: wrap !important;
+  padding-top: 16px !important;
+  border-top: 1px solid var(--dash-border) !important;
+}
+
+body.nc-bright:not(.nc-client) #section-dashboard .nc-quickstart-title {
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  color: var(--dash-brand) !important;
+}
+
+body.nc-bright:not(.nc-client) #section-dashboard .nc-quickstart-steps-integrated {
   display: flex !important;
   align-items: center !important;
   gap: 8px !important;
-  color: var(--nc-text-secondary) !important;
-}
-body.nc-bright #section-dashboard .nc-kpi-top svg {
-  color: var(--nc-text-muted) !important;
-}
-body.nc-bright #section-dashboard .nc-kpi-label {
-  font-size: 12px !important;
-  font-weight: 600 !important;
+  flex-wrap: wrap !important;
 }
 
-/* 5. General Card Polish */
-body.nc-bright #section-dashboard .card,
-body.nc-bright #section-dashboard .nc-panel,
-body.nc-bright #section-dashboard .stat-card {
-  border-radius: 12px !important;
-  padding: 24px !important;
-  background: #FFFFFF !important;
-  border: 1px solid var(--nc-border) !important;
-  box-shadow: var(--nc-shadow-card) !important;
+body.nc-bright:not(.nc-client) #section-dashboard .nc-quickstart-steps-integrated .step-item {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: var(--dash-text-secondary) !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  padding: 4px 8px !important;
+  border-radius: 6px !important;
 }
-body.nc-bright #section-dashboard .nc-panel::before,
-body.nc-bright #section-dashboard .card::before,
-body.nc-bright #section-dashboard .stat-card::before {
+
+body.nc-bright:not(.nc-client) #section-dashboard .nc-quickstart-steps-integrated .step-item:hover {
+  color: var(--dash-brand) !important;
+  background: var(--dash-brand-10) !important;
+}
+
+body.nc-bright:not(.nc-client) #section-dashboard .nc-quickstart-steps-integrated .step-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 20px !important;
+  height: 20px !important;
+  background: var(--dash-brand-10) !important;
+  color: var(--dash-brand) !important;
+  border-radius: 50% !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+}
+
+body.nc-bright:not(.nc-client) #section-dashboard .nc-quickstart-steps-integrated .step-arrow {
+  color: var(--dash-text-muted) !important;
+  font-size: 12px !important;
+}
+
+/* KPI Cards */
+body.nc-bright:not(.nc-client) #section-dashboard .nc-kpi-grid {
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: 20px !important;
+  margin-bottom: 24px !important;
+}
+
+@media (max-width: 900px) {
+  body.nc-bright:not(.nc-client) #section-dashboard .nc-kpi-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media (max-width: 480px) {
+  body.nc-bright:not(.nc-client) #section-dashboard .nc-kpi-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+body.nc-bright:not(.nc-client) #section-dashboard .nc-kpi {
+  background: var(--dash-surface) !important;
+  border: 1px solid var(--dash-border) !important;
+  border-radius: 12px !important;
+  padding: 20px !important;
+  box-shadow: var(--dash-shadow) !important;
+  position: relative !important;
+  display: flex !important;
+  flex-direction: column !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+body.nc-bright:not(.nc-client) #section-dashboard .nc-kpi::before {
   display: none !important;
 }
-body.nc-bright #section-dashboard .nc-section-head {
-  margin-bottom: 18px !important;
-  border-bottom: 1px solid rgba(24, 28, 50, 0.04) !important;
-  padding-bottom: 12px !important;
+
+body.nc-bright:not(.nc-client) #section-dashboard .nc-kpi:hover {
+  border-color: var(--dash-emerald) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06) !important;
+}
+
+body.nc-bright:not(.nc-client) #section-dashboard .nc-kpi-top {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin-bottom: 12px !important;
+  color: var(--dash-text-secondary) !important;
+}
+
+body.nc-bright:not(.nc-client) #section-dashboard .nc-kpi-top span.material-symbols-outlined {
+  color: var(--dash-brand) !important;
+  font-size: 20px !important;
+}
+
+body.nc-bright:not(.nc-client) #section-dashboard .nc-kpi-label {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: var(--dash-text-secondary) !important;
+}
+
+body.nc-bright:not(.nc-client) #section-dashboard .nc-kpi-value {
+  font-size: 32px !important;
+  font-weight: 700 !important;
+  color: var(--dash-brand) !important;
+  line-height: 1.1 !important;
+  margin-bottom: 4px !important;
+  margin-top: 0 !important;
+}
+
+body.nc-bright:not(.nc-client) #section-dashboard .nc-kpi-sub {
+  font-size: 11px !important;
+  color: var(--dash-text-secondary) !important;
+  font-weight: 500 !important;
+  margin-top: 0 !important;
+}
+
+/* General Card/Panel Polish */
+body.nc-bright:not(.nc-client) #section-dashboard .card,
+body.nc-bright:not(.nc-client) #section-dashboard .nc-panel,
+body.nc-bright:not(.nc-client) #section-dashboard .stat-card {
+  border-radius: 12px !important;
+  padding: 24px !important;
+  background: var(--dash-surface) !important;
+  border: 1px solid var(--dash-border) !important;
+  box-shadow: var(--dash-shadow) !important;
+  box-sizing: border-box !important;
+}
+
+body.nc-bright:not(.nc-client) #section-dashboard .nc-panel::before,
+body.nc-bright:not(.nc-client) #section-dashboard .card::before,
+body.nc-bright:not(.nc-client) #section-dashboard .stat-card::before {
+  display: none !important;
+}
+
+body.nc-bright:not(.nc-client) #section-dashboard .nc-section-head {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: flex-start !important;
+  margin-bottom: 20px !important;
+  border-bottom: 1px solid var(--dash-border) !important;
+  padding-bottom: 14px !important;
+}
+
+body.nc-bright:not(.nc-client) #section-dashboard .nc-section-title {
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  color: var(--dash-brand) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+body.nc-bright:not(.nc-client) #section-dashboard .nc-section-dot {
+  width: 8px !important;
+  height: 8px !important;
+  border-radius: 50% !important;
+  display: inline-block !important;
+}
+
+body.nc-bright:not(.nc-client) #section-dashboard .nc-section-sub {
+  font-size: 12px !important;
+  color: var(--dash-text-secondary) !important;
+  margin-top: 4px !important;
+}
+
+body.nc-bright:not(.nc-client) #section-dashboard .nc-section-link {
+  background: none !important;
+  border: none !important;
+  color: var(--dash-brand-light) !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  padding: 0 !important;
+  transition: color 0.15s ease !important;
+}
+
+body.nc-bright:not(.nc-client) #section-dashboard .nc-section-link:hover {
+  color: var(--dash-emerald) !important;
+  text-decoration: underline !important;
+}
+
+/* 8+4 command-center layout */
+body.nc-bright:not(.nc-client) #section-dashboard .nc-dash-grid {
+  display: grid !important;
+  grid-template-columns: 8fr 4fr !important;
+  gap: 24px !important;
+}
+
+@media (max-width: 1024px) {
+  body.nc-bright:not(.nc-client) #section-dashboard .nc-dash-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+body.nc-bright:not(.nc-client) #section-dashboard .nc-dash-main {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 24px !important;
+}
+
+body.nc-bright:not(.nc-client) #section-dashboard .nc-dash-rail {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 24px !important;
+}
+
+/* Telemetry & Compliance Pulse (Intelligence Modules) */
+body.nc-bright:not(.nc-client) #section-dashboard .nc-telemetry-summary-content {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 20px !important;
+}
+
+body.nc-bright:not(.nc-client) #section-dashboard .nc-telemetry-row {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 16px !important;
+}
+
+@media (max-width: 480px) {
+  body.nc-bright:not(.nc-client) #section-dashboard .nc-telemetry-row {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+body.nc-bright:not(.nc-client) #section-dashboard .nc-telemetry-stat {
+  background: var(--dash-surface-low) !important;
+  border: 1px solid var(--dash-border) !important;
+  border-radius: 8px !important;
+  padding: 16px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+  align-items: center !important;
+  text-align: center !important;
+}
+
+body.nc-bright:not(.nc-client) #section-dashboard .nc-telemetry-stat .lbl {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  color: var(--dash-text-secondary) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+}
+
+body.nc-bright:not(.nc-client) #section-dashboard .nc-telemetry-stat .val {
+  font-size: 22px !important;
+  font-weight: 800 !important;
+  line-height: 1.1 !important;
+}
+
+body.nc-bright:not(.nc-client) #section-dashboard .nc-telemetry-bar-wrap {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  padding-top: 12px !important;
+  border-top: 1px dashed var(--dash-border) !important;
+}
+
+body.nc-bright:not(.nc-client) #section-dashboard .nc-telemetry-bar-label {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: var(--dash-text-secondary) !important;
+}
+
+body.nc-bright:not(.nc-client) #section-dashboard .nc-telemetry-bar {
+  height: 8px !important;
+  background: var(--dash-surface-low) !important;
+  border-radius: 99px !important;
+  overflow: hidden !important;
+  border: 1px solid var(--dash-border) !important;
+}
+
+body.nc-bright:not(.nc-client) #section-dashboard .nc-telemetry-bar-fill {
+  height: 100% !important;
+  background: var(--dash-brand) !important;
+  border-radius: 99px !important;
+}
+
+/* Chronological Reactive Feed (Recent Activity) */
+body.nc-bright:not(.nc-client) #section-dashboard #recent-sessions-list {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 16px !important;
+  position: relative !important;
+  padding-left: 20px !important;
+}
+
+body.nc-bright:not(.nc-client) #section-dashboard #recent-sessions-list::before {
+  content: '' !important;
+  position: absolute !important;
+  left: 4px !important;
+  top: 10px !important;
+  bottom: 10px !important;
+  width: 2px !important;
+  background: var(--dash-border) !important;
+}
+
+body.nc-bright:not(.nc-client) #section-dashboard #recent-sessions-list > div.flex,
+body.nc-bright:not(.nc-client) #section-dashboard .nc-activity-item,
+body.nc-bright:not(.nc-client) #section-dashboard .recent-session-item {
+  position: relative !important;
+  background: var(--dash-surface) !important;
+  border: 1px solid var(--dash-border) !important;
+  border-radius: 8px !important;
+  padding: 12px 16px !important;
+  box-shadow: var(--dash-shadow) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+}
+
+body.nc-bright:not(.nc-client) #section-dashboard #recent-sessions-list > div.flex::before,
+body.nc-bright:not(.nc-client) #section-dashboard .nc-activity-item::before,
+body.nc-bright:not(.nc-client) #section-dashboard .recent-session-item::before {
+  content: '' !important;
+  position: absolute !important;
+  left: -20px !important;
+  top: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  width: 10px !important;
+  height: 10px !important;
+  border-radius: 50% !important;
+  background: var(--dash-emerald) !important;
+  border: 2px solid var(--dash-surface) !important;
+  box-shadow: 0 0 0 2px var(--dash-border) !important;
+  z-index: 2 !important;
+}
+
+/* Schedule Rail & Quick Actions */
+body.nc-bright:not(.nc-client) #section-dashboard .nc-schedule-list {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+}
+
+body.nc-bright:not(.nc-client) #section-dashboard .nc-schedule-item {
+  display: flex !important;
+  gap: 12px !important;
+  padding: 12px !important;
+  background: var(--dash-surface-low) !important;
+  border: 1px solid var(--dash-border) !important;
+  border-radius: 8px !important;
+}
+
+body.nc-bright:not(.nc-client) #section-dashboard .nc-schedule-item .time {
+  font-family: var(--font-mono) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  color: var(--dash-brand) !important;
+  white-space: nowrap !important;
+  background: var(--dash-brand-10) !important;
+  padding: 4px 8px !important;
+  border-radius: 4px !important;
+  height: fit-content !important;
+}
+
+body.nc-bright:not(.nc-client) #section-dashboard .nc-schedule-item .details {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+}
+
+body.nc-bright:not(.nc-client) #section-dashboard .nc-schedule-item .title {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: var(--dash-text-primary) !important;
+}
+
+body.nc-bright:not(.nc-client) #section-dashboard .nc-schedule-item .subtitle {
+  font-size: 11px !important;
+  color: var(--dash-text-secondary) !important;
+}
+
+body.nc-bright:not(.nc-client) #section-dashboard .nc-quick-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 12px !important;
+}
+
+body.nc-bright:not(.nc-client) #section-dashboard .nc-quick-btn {
+  background: var(--dash-surface) !important;
+  border: 1px solid var(--dash-border) !important;
+  color: var(--dash-brand) !important;
+  border-radius: 8px !important;
+  padding: 12px !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  cursor: pointer !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  box-shadow: var(--dash-shadow) !important;
+}
+
+body.nc-bright:not(.nc-client) #section-dashboard .nc-quick-btn:hover {
+  border-color: var(--dash-brand) !important;
+  background: var(--dash-brand-10) !important;
+  transform: translateY(-1.5px) !important;
+}
+
+body.nc-bright:not(.nc-client) #section-dashboard .nc-quick-btn svg {
+  font-size: 16px !important;
+  color: var(--dash-brand) !important;
 }
 
 /* 6. Objective Assessment Polish */
-body.nc-bright #tab-objective .card {
+body.nc-bright:not(.nc-client) #tab-objective .card {
   background: #FFFFFF !important;
   border: 1px solid rgba(24, 28, 50, 0.06) !important;
   border-radius: 12px !important;
@@ -3737,7 +4389,7 @@ body.nc-bright #tab-objective .card {
   opacity: 1 !important;
   overflow-x: auto !important; /* Prevent content clipping and allow swipe/scroll for narrow tables */
 }
-body.nc-bright #tab-objective .assess-section-head {
+body.nc-bright:not(.nc-client) #tab-objective .assess-section-head {
   color: var(--nc-text-primary) !important;
   border-bottom: 1px solid rgba(24, 28, 50, 0.05) !important;
   padding-bottom: 10px !important;
@@ -3746,7 +4398,7 @@ body.nc-bright #tab-objective .assess-section-head {
   font-weight: 700 !important;
   letter-spacing: -0.01em !important;
 }
-body.nc-bright #tab-objective .form-label {
+body.nc-bright:not(.nc-client) #tab-objective .form-label {
   color: var(--nc-text-secondary) !important;
   font-size: 11.5px !important;
   font-weight: 600 !important;
@@ -3754,14 +4406,14 @@ body.nc-bright #tab-objective .form-label {
 }
 
 /* Hide zone names/chips beside skeleton in Objective Assessment */
-body.nc-bright #tab-objective .zone-rail {
+body.nc-bright:not(.nc-client) #tab-objective .zone-rail {
   display: none !important;
 }
 
 /* Premium readable input boxes inside Objective Assessment */
-body.nc-bright #tab-objective .form-input,
-body.nc-bright #tab-objective input[type="number"],
-body.nc-bright #tab-objective select {
+body.nc-bright:not(.nc-client) #tab-objective .form-input,
+body.nc-bright:not(.nc-client) #tab-objective input[type="number"],
+body.nc-bright:not(.nc-client) #tab-objective select {
   font-size: 14px !important;
   font-weight: 600 !important;
   color: #181C32 !important;
@@ -3777,35 +4429,35 @@ body.nc-bright #tab-objective select {
   box-shadow: none !important;
 }
 
-body.nc-bright #tab-objective .form-input:focus,
-body.nc-bright #tab-objective input[type="number"]:focus,
-body.nc-bright #tab-objective select:focus {
+body.nc-bright:not(.nc-client) #tab-objective .form-input:focus,
+body.nc-bright:not(.nc-client) #tab-objective input[type="number"]:focus,
+body.nc-bright:not(.nc-client) #tab-objective select:focus {
   border-color: #047857 !important; /* Selective Emerald focus border */
   box-shadow: 0 0 0 3px rgba(4, 120, 87, 0.12) !important;
 }
 
 /* Center input text and hide spinner arrow clutter for clean density */
-body.nc-bright #tab-objective input[type="number"]::-webkit-outer-spin-button,
-body.nc-bright #tab-objective input[type="number"]::-webkit-inner-spin-button {
+body.nc-bright:not(.nc-client) #tab-objective input[type="number"]::-webkit-outer-spin-button,
+body.nc-bright:not(.nc-client) #tab-objective input[type="number"]::-webkit-inner-spin-button {
   -webkit-appearance: none !important;
   margin: 0 !important;
 }
-body.nc-bright #tab-objective input[type="number"] {
+body.nc-bright:not(.nc-client) #tab-objective input[type="number"] {
   -moz-appearance: textfield !important;
 }
 
 /* Hip & Shoulder grids style polish */
-body.nc-bright #tab-objective .card[data-zone="hips"] > div[style*="grid-template-columns"],
-body.nc-bright #tab-objective .card[data-zone="shoulders"] > div[style*="grid-template-columns"],
-body.nc-bright #tab-objective .card[data-zone="neck-arms"] > div[style*="grid-template-columns"] {
+body.nc-bright:not(.nc-client) #tab-objective .card[data-zone="hips"] > div[style*="grid-template-columns"],
+body.nc-bright:not(.nc-client) #tab-objective .card[data-zone="shoulders"] > div[style*="grid-template-columns"],
+body.nc-bright:not(.nc-client) #tab-objective .card[data-zone="neck-arms"] > div[style*="grid-template-columns"] {
   min-width: 480px !important; /* Enforce min-width so columns never squeeze too narrow */
 }
 
 /* Pain slider overrides in bright mode (scoped to Objective Assessment) */
-body.nc-bright #tab-objective input[type="range"].pain-slider,
-body.nc-bright #tab-objective input[type="range"]#joint-pain-slider,
-body.nc-bright #tab-objective input[type="range"]#joint-pain-slider-dashboard,
-body.nc-bright #tab-objective .pain-slider {
+body.nc-bright:not(.nc-client) #tab-objective input[type="range"].pain-slider,
+body.nc-bright:not(.nc-client) #tab-objective input[type="range"]#joint-pain-slider,
+body.nc-bright:not(.nc-client) #tab-objective input[type="range"]#joint-pain-slider-dashboard,
+body.nc-bright:not(.nc-client) #tab-objective .pain-slider {
   background: linear-gradient(to right, #22C55E 0%, #EAB308 40%, #F97316 60%, #EF4444 80%, #991B1B 100%) !important;
   border: none !important;
   height: 6px !important;
@@ -3817,10 +4469,10 @@ body.nc-bright #tab-objective .pain-slider {
   margin: 8px 0 !important;
 }
 
-body.nc-bright #tab-objective input[type="range"].pain-slider::-webkit-slider-thumb,
-body.nc-bright #tab-objective input[type="range"]#joint-pain-slider::-webkit-slider-thumb,
-body.nc-bright #tab-objective input[type="range"]#joint-pain-slider-dashboard::-webkit-slider-thumb,
-body.nc-bright #tab-objective .pain-slider::-webkit-slider-thumb {
+body.nc-bright:not(.nc-client) #tab-objective input[type="range"].pain-slider::-webkit-slider-thumb,
+body.nc-bright:not(.nc-client) #tab-objective input[type="range"]#joint-pain-slider::-webkit-slider-thumb,
+body.nc-bright:not(.nc-client) #tab-objective input[type="range"]#joint-pain-slider-dashboard::-webkit-slider-thumb,
+body.nc-bright:not(.nc-client) #tab-objective .pain-slider::-webkit-slider-thumb {
   -webkit-appearance: none !important;
   appearance: none !important;
   width: 18px !important;
@@ -3833,18 +4485,18 @@ body.nc-bright #tab-objective .pain-slider::-webkit-slider-thumb {
   transition: transform 0.1s ease, background-color 0.1s ease !important;
 }
 
-body.nc-bright #tab-objective input[type="range"].pain-slider::-webkit-slider-thumb:hover,
-body.nc-bright #tab-objective input[type="range"]#joint-pain-slider::-webkit-slider-thumb:hover,
-body.nc-bright #tab-objective input[type="range"]#joint-pain-slider-dashboard::-webkit-slider-thumb:hover,
-body.nc-bright #tab-objective .pain-slider::-webkit-slider-thumb:hover {
+body.nc-bright:not(.nc-client) #tab-objective input[type="range"].pain-slider::-webkit-slider-thumb:hover,
+body.nc-bright:not(.nc-client) #tab-objective input[type="range"]#joint-pain-slider::-webkit-slider-thumb:hover,
+body.nc-bright:not(.nc-client) #tab-objective input[type="range"]#joint-pain-slider-dashboard::-webkit-slider-thumb:hover,
+body.nc-bright:not(.nc-client) #tab-objective .pain-slider::-webkit-slider-thumb:hover {
   transform: scale(1.1) !important;
   background-color: #F8F9F9 !important;
 }
 
-body.nc-bright #tab-objective input[type="range"].pain-slider::-moz-range-thumb,
-body.nc-bright #tab-objective input[type="range"]#joint-pain-slider::-moz-range-thumb,
-body.nc-bright #tab-objective input[type="range"]#joint-pain-slider-dashboard::-moz-range-thumb,
-body.nc-bright #tab-objective .pain-slider::-moz-range-thumb {
+body.nc-bright:not(.nc-client) #tab-objective input[type="range"].pain-slider::-moz-range-thumb,
+body.nc-bright:not(.nc-client) #tab-objective input[type="range"]#joint-pain-slider::-moz-range-thumb,
+body.nc-bright:not(.nc-client) #tab-objective input[type="range"]#joint-pain-slider-dashboard::-moz-range-thumb,
+body.nc-bright:not(.nc-client) #tab-objective .pain-slider::-moz-range-thumb {
   width: 18px !important;
   height: 18px !important;
   border-radius: 50% !important;
@@ -3855,7 +4507,7 @@ body.nc-bright #tab-objective .pain-slider::-moz-range-thumb {
 }
 
 /* Explicit styling for dynamically generated body-map ROM inputs */
-body.nc-bright #tab-objective .rom-input {
+body.nc-bright:not(.nc-client) #tab-objective .rom-input {
   width: 112px !important;
   min-width: 112px !important;
   height: 44px !important;
@@ -3870,7 +4522,7 @@ body.nc-bright #tab-objective .rom-input {
 /* 7. Gait Analysis & Movement Simulation Polish (Bright mode) */
 
 /* Override outer container styling safely */
-body.nc-bright #neucore-gait-container {
+body.nc-bright:not(.nc-client) #neucore-gait-container {
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
@@ -3882,7 +4534,7 @@ body.nc-bright #neucore-gait-container {
 }
 
 /* Outer layout */
-body.nc-bright #neucore-gait-container .gait-page {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-page {
   background: #F8F9F9 !important; /* Page canvas */
   color: #181C32 !important;
   display: grid !important;
@@ -3896,12 +4548,12 @@ body.nc-bright #neucore-gait-container .gait-page {
 }
 
 /* Header */
-body.nc-bright #neucore-gait-container .gait-header {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-header {
   grid-column: 1 / -1 !important;
   margin-bottom: 8px !important;
 }
 
-body.nc-bright #neucore-gait-container .gait-header-flex {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-header-flex {
   display: flex !important;
   justify-content: space-between !important;
   align-items: center !important;
@@ -3909,12 +4561,12 @@ body.nc-bright #neucore-gait-container .gait-header-flex {
   gap: 12px !important;
 }
 
-body.nc-bright #neucore-gait-container .gait-header-copy {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-header-copy {
   display: flex !important;
   flex-direction: column !important;
 }
 
-body.nc-bright #neucore-gait-container .gait-eyebrow {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-eyebrow {
   font-size: 11px !important;
   font-weight: 600 !important;
   letter-spacing: .08em !important;
@@ -3923,20 +4575,20 @@ body.nc-bright #neucore-gait-container .gait-eyebrow {
   margin-bottom: 4px !important;
 }
 
-body.nc-bright #neucore-gait-container .gait-title {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-title {
   font-size: 20px !important;
   font-weight: 600 !important;
   color: #181C32 !important; /* Primary text */
 }
 
 /* Toolbar */
-body.nc-bright #neucore-gait-container .gait-toolbar {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-toolbar {
   display: flex !important;
   gap: 8px !important;
   flex-wrap: wrap !important;
 }
 
-body.nc-bright #neucore-gait-container .nc-toolbar-btn {
+body.nc-bright:not(.nc-client) #neucore-gait-container .nc-toolbar-btn {
   height: 36px !important;
   padding: 0 16px !important;
   font-size: 12px !important;
@@ -3954,54 +4606,54 @@ body.nc-bright #neucore-gait-container .nc-toolbar-btn {
   white-space: nowrap !important;
 }
 
-body.nc-bright #neucore-gait-container .nc-toolbar-btn:hover {
+body.nc-bright:not(.nc-client) #neucore-gait-container .nc-toolbar-btn:hover {
   background: rgba(4, 120, 87, 0.06) !important;
   border-color: #047857 !important;
   color: #047857 !important;
 }
 
 /* Toolbar Button Color Modifiers */
-body.nc-bright #neucore-gait-container .gait-btn-start,
-body.nc-bright #neucore-gait-container .gait-btn-resume {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-btn-start,
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-btn-resume {
   border-color: #18A058 !important;
   color: #18A058 !important;
 }
-body.nc-bright #neucore-gait-container .gait-btn-start:hover,
-body.nc-bright #neucore-gait-container .gait-btn-resume:hover {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-btn-start:hover,
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-btn-resume:hover {
   background: rgba(24, 160, 88, 0.06) !important;
   border-color: #18A058 !important;
   color: #18A058 !important;
 }
 
-body.nc-bright #neucore-gait-container .gait-btn-analyze {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-btn-analyze {
   border-color: #F59E0B !important;
   color: #F59E0B !important;
 }
-body.nc-bright #neucore-gait-container .gait-btn-analyze:hover {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-btn-analyze:hover {
   background: rgba(245, 158, 11, 0.06) !important;
   border-color: #F59E0B !important;
   color: #F59E0B !important;
 }
 
-body.nc-bright #neucore-gait-container .gait-btn-worst-case {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-btn-worst-case {
   border-color: #EF4444 !important;
   color: #EF4444 !important;
 }
-body.nc-bright #neucore-gait-container .gait-btn-worst-case:hover {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-btn-worst-case:hover {
   background: rgba(239, 68, 68, 0.06) !important;
   border-color: #EF4444 !important;
   color: #EF4444 !important;
 }
 
 /* Stage (left) and Data (right) Columns */
-body.nc-bright #neucore-gait-container .gait-stage-column {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-stage-column {
   display: flex !important;
   flex-direction: column !important;
   gap: 12px !important;
   min-width: 0 !important;
 }
 
-body.nc-bright #neucore-gait-container .gait-data-column {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-data-column {
   display: flex !important;
   flex-direction: column !important;
   gap: 12px !important;
@@ -4010,7 +4662,7 @@ body.nc-bright #neucore-gait-container .gait-data-column {
 }
 
 /* 3D Viewport */
-body.nc-bright #neucore-gait-container .gait-viewport {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-viewport {
   flex: 1 !important;
   min-height: 440px !important;
   background: #07110E !important; /* Dark viewport */
@@ -4020,12 +4672,12 @@ body.nc-bright #neucore-gait-container .gait-viewport {
   overflow: hidden !important;
 }
 
-body.nc-bright #neucore-gait-container .gait-viewport canvas {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-viewport canvas {
   max-width: 100% !important;
 }
 
 /* Phase Strip Panel */
-body.nc-bright #neucore-gait-container .gait-phase-panel {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-phase-panel {
   background: #FFFFFF !important;
   border: 1px solid rgba(24, 28, 50, 0.08) !important;
   border-radius: 8px !important;
@@ -4033,40 +4685,40 @@ body.nc-bright #neucore-gait-container .gait-phase-panel {
   min-width: 0 !important;
 }
 
-body.nc-bright #neucore-gait-container .gait-phase-panel .nc-label {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-phase-panel .nc-label {
   color: #181C32 !important;
   font-weight: 600 !important;
   margin-bottom: 8px !important;
 }
 
 /* Horizontal scrolling of the phase strip layout on mobile */
-body.nc-bright #neucore-gait-container #gait-strip {
+body.nc-bright:not(.nc-client) #neucore-gait-container #gait-strip {
   width: 100% !important;
   max-width: 100% !important;
   overflow-x: auto !important;
   -webkit-overflow-scrolling: touch !important;
 }
 
-body.nc-bright #neucore-gait-container #gait-strip > div {
+body.nc-bright:not(.nc-client) #neucore-gait-container #gait-strip > div {
   min-width: 540px !important;
 }
 
-body.nc-bright #neucore-gait-container #gait-strip::-webkit-scrollbar {
+body.nc-bright:not(.nc-client) #neucore-gait-container #gait-strip::-webkit-scrollbar {
   height: 4px !important;
 }
-body.nc-bright #neucore-gait-container #gait-strip::-webkit-scrollbar-thumb {
+body.nc-bright:not(.nc-client) #neucore-gait-container #gait-strip::-webkit-scrollbar-thumb {
   background: rgba(4, 120, 87, 0.2) !important;
   border-radius: 2px !important;
 }
 
 /* Semantic Phase Strip Classes (scoping) */
-body.nc-bright #neucore-gait-container .gait-phase-row {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-phase-row {
   display: flex !important;
   gap: 3px !important;
   width: 100% !important;
 }
 
-body.nc-bright #neucore-gait-container .gait-phase-cell {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-phase-cell {
   flex: 1 !important;
   padding: 6px 4px !important;
   border-radius: 5px !important;
@@ -4078,7 +4730,7 @@ body.nc-bright #neucore-gait-container .gait-phase-cell {
   min-width: 0 !important;
 }
 
-body.nc-bright #neucore-gait-container .gait-phase-label {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-phase-label {
   font-size: 9px !important;
   font-weight: 500 !important;
   letter-spacing: .05em !important;
@@ -4090,7 +4742,7 @@ body.nc-bright #neucore-gait-container .gait-phase-label {
   text-overflow: ellipsis !important;
 }
 
-body.nc-bright #neucore-gait-container .gait-phase-dot {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-phase-dot {
   width: 6px !important;
   height: 6px !important;
   border-radius: 50% !important;
@@ -4100,36 +4752,36 @@ body.nc-bright #neucore-gait-container .gait-phase-dot {
 }
 
 /* Active Phase State */
-body.nc-bright #neucore-gait-container .gait-phase-cell.is-active {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-phase-cell.is-active {
   background: rgba(4, 120, 87, 0.06) !important; /* Emerald tint */
   border-color: #047857 !important; /* Primary emerald */
 }
 
-body.nc-bright #neucore-gait-container .gait-phase-cell.is-active .gait-phase-label {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-phase-cell.is-active .gait-phase-label {
   color: #047857 !important;
 }
 
-body.nc-bright #neucore-gait-container .gait-phase-cell.is-active .gait-phase-dot {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-phase-cell.is-active .gait-phase-dot {
   background: #047857 !important;
 }
 
 /* Deficit / Severity States inside Phase Strip */
-body.nc-bright #neucore-gait-container .gait-phase-cell.gait-severity-moderate {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-phase-cell.gait-severity-moderate {
   border-color: rgba(245, 158, 11, 0.28) !important;
 }
-body.nc-bright #neucore-gait-container .gait-phase-dot.gait-severity-moderate {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-phase-dot.gait-severity-moderate {
   background: #F59E0B !important;
 }
 
-body.nc-bright #neucore-gait-container .gait-phase-cell.gait-severity-severe {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-phase-cell.gait-severity-severe {
   border-color: rgba(239, 68, 68, 0.28) !important;
 }
-body.nc-bright #neucore-gait-container .gait-phase-dot.gait-severity-severe {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-phase-dot.gait-severity-severe {
   background: #EF4444 !important;
 }
 
 /* Progress Bar */
-body.nc-bright #neucore-gait-container .gait-progress-track {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-progress-track {
   height: 4px !important;
   background: rgba(24, 28, 50, 0.04) !important;
   border-radius: 2px !important;
@@ -4137,7 +4789,7 @@ body.nc-bright #neucore-gait-container .gait-progress-track {
   overflow: hidden !important;
 }
 
-body.nc-bright #neucore-gait-container .gait-progress-fill {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-progress-fill {
   height: 100% !important;
   background: #047857 !important; /* Solid primary emerald, no gradient */
   border-radius: 2px !important;
@@ -4145,13 +4797,13 @@ body.nc-bright #neucore-gait-container .gait-progress-fill {
 }
 
 /* Deficit Grid & Cards */
-body.nc-bright #neucore-gait-container .gait-deficit-grid {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-deficit-grid {
   display: grid !important;
   grid-template-columns: 1fr 1fr !important;
   gap: 8px !important;
 }
 
-body.nc-bright #neucore-gait-container .gait-deficit-empty {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-deficit-empty {
   grid-column: 1 / -1 !important;
   font-size: 12px !important;
   color: #7E8299 !important;
@@ -4162,7 +4814,7 @@ body.nc-bright #neucore-gait-container .gait-deficit-empty {
   text-align: center !important;
 }
 
-body.nc-bright #neucore-gait-container .gait-deficit-card {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-deficit-card {
   background: #FFFFFF !important;
   border: 1px solid rgba(24, 28, 50, 0.08) !important;
   border-radius: 8px !important;
@@ -4170,7 +4822,7 @@ body.nc-bright #neucore-gait-container .gait-deficit-card {
   transition: border-color 0.15s ease !important;
 }
 
-body.nc-bright #neucore-gait-container .gait-deficit-severity {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-deficit-severity {
   font-size: 10px !important;
   font-weight: 600 !important;
   letter-spacing: .08em !important;
@@ -4179,63 +4831,63 @@ body.nc-bright #neucore-gait-container .gait-deficit-severity {
 }
 
 /* Severity modifiers */
-body.nc-bright #neucore-gait-container .gait-severity-severe {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-severity-severe {
   border-color: rgba(239, 68, 68, 0.28) !important;
 }
-body.nc-bright #neucore-gait-container .gait-severity-severe .gait-deficit-severity {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-severity-severe .gait-deficit-severity {
   color: #EF4444 !important;
 }
 
-body.nc-bright #neucore-gait-container .gait-severity-moderate {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-severity-moderate {
   border-color: rgba(245, 158, 11, 0.28) !important;
 }
-body.nc-bright #neucore-gait-container .gait-severity-moderate .gait-deficit-severity {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-severity-moderate .gait-deficit-severity {
   color: #F59E0B !important;
 }
 
-body.nc-bright #neucore-gait-container .gait-severity-mild .gait-deficit-severity {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-severity-mild .gait-deficit-severity {
   color: #10B981 !important;
 }
 
-body.nc-bright #neucore-gait-container .gait-deficit-label {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-deficit-label {
   font-size: 12px !important;
   font-weight: 600 !important;
   color: #181C32 !important;
   margin-bottom: 4px !important;
 }
 
-body.nc-bright #neucore-gait-container .gait-deficit-phases {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-deficit-phases {
   font-size: 11px !important;
   color: #7E8299 !important;
 }
 
 /* Score Panel */
-body.nc-bright #neucore-gait-container .gait-score-panel {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-score-panel {
   background: #FFFFFF !important;
   border: 1px solid rgba(24, 28, 50, 0.08) !important;
   border-radius: 8px !important;
   padding: 16px !important;
 }
 
-body.nc-bright #neucore-gait-container .gait-score-panel .nc-label {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-score-panel .nc-label {
   color: #181C32 !important;
   font-weight: 600 !important;
   margin-bottom: 12px !important;
 }
 
-body.nc-bright #neucore-gait-container .gait-score-grid {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-score-grid {
   display: grid !important;
   grid-template-columns: 1fr 1fr !important;
   gap: 12px !important;
   margin-bottom: 16px !important;
 }
 
-body.nc-bright #neucore-gait-container .gait-score-item {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-score-item {
   display: flex !important;
   flex-direction: column !important;
 }
 
-body.nc-bright #neucore-gait-container .gait-score-label {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-score-label {
   font-size: 10px !important;
   color: #7E8299 !important;
   text-transform: uppercase !important;
@@ -4243,32 +4895,32 @@ body.nc-bright #neucore-gait-container .gait-score-label {
   margin-bottom: 2px !important;
 }
 
-body.nc-bright #neucore-gait-container .gait-score-value {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-score-value {
   font-size: 22px !important;
   font-weight: 600 !important;
 }
 
 /* Score Semantic Colors */
-body.nc-bright #neucore-gait-container .gait-score-rom {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-score-rom {
   color: #047857 !important; /* Emerald */
 }
-body.nc-bright #neucore-gait-container .gait-score-control {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-score-control {
   color: #18A058 !important; /* Soft Emerald */
 }
-body.nc-bright #neucore-gait-container .gait-score-force {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-score-force {
   color: #F59E0B !important; /* Amber */
 }
-body.nc-bright #neucore-gait-container .gait-score-neurology {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-score-neurology {
   color: #EF4444 !important; /* Red */
 }
 
 /* Score Footer & Composite */
-body.nc-bright #neucore-gait-container .gait-score-footer {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-score-footer {
   border-top: 1px solid rgba(24, 28, 50, 0.08) !important;
   padding-top: 12px !important;
 }
 
-body.nc-bright #neucore-gait-container .gait-score-composite-label {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-score-composite-label {
   font-size: 10px !important;
   color: #7E8299 !important;
   text-transform: uppercase !important;
@@ -4276,28 +4928,28 @@ body.nc-bright #neucore-gait-container .gait-score-composite-label {
   margin-bottom: 2px !important;
 }
 
-body.nc-bright #neucore-gait-container .gait-score-composite-value {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-score-composite-value {
   font-size: 28px !important;
   font-weight: 700 !important;
 }
 
-body.nc-bright #neucore-gait-container .gait-color-success {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-color-success {
   color: #18A058 !important;
 }
-body.nc-bright #neucore-gait-container .gait-color-warning {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-color-warning {
   color: #F59E0B !important;
 }
-body.nc-bright #neucore-gait-container .gait-color-danger {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-color-danger {
   color: #EF4444 !important;
 }
 
-body.nc-bright #neucore-gait-container .gait-score-recommendation {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-score-recommendation {
   font-size: 11px !important;
   color: #4B5565 !important;
   margin-top: 4px !important;
 }
 
-body.nc-bright #neucore-gait-container .gait-score-referral {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-score-referral {
   font-size: 11px !important;
   color: #EF4444 !important;
   margin-top: 8px !important;
@@ -4309,7 +4961,7 @@ body.nc-bright #neucore-gait-container .gait-score-referral {
 }
 
 /* Activation Chart Panel Wrapper (transparent - no nested borders/padding/shadow) */
-body.nc-bright #neucore-gait-container .gait-activation-container {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-activation-container {
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
@@ -4319,7 +4971,7 @@ body.nc-bright #neucore-gait-container .gait-activation-container {
 }
 
 /* Worst Case Panel */
-body.nc-bright #neucore-gait-container .gait-worst-case-panel {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-worst-case-panel {
   grid-column: 1 / -1 !important;
   background: #FEF2F2 !important; /* Soft warm danger background */
   border: 1px solid rgba(239, 68, 68, 0.16) !important;
@@ -4328,34 +4980,34 @@ body.nc-bright #neucore-gait-container .gait-worst-case-panel {
   margin-top: 8px !important;
 }
 
-body.nc-bright #neucore-gait-container .gait-worst-case-title {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-worst-case-title {
   font-size: 13px !important;
   font-weight: 600 !important;
   color: #991B1B !important; /* Dark warning red */
   margin-bottom: 12px !important;
 }
 
-body.nc-bright #neucore-gait-container .gait-worst-case-content {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-worst-case-content {
   display: grid !important;
   grid-template-columns: repeat(3, 1fr) !important;
   gap: 12px !important;
 }
 
-body.nc-bright #neucore-gait-container .gait-worst-case-card {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-worst-case-card {
   background: #FFFFFF !important;
   border: 1px solid rgba(239, 68, 68, 0.08) !important;
   border-radius: 6px !important;
   padding: 12px 14px !important;
 }
 
-body.nc-bright #neucore-gait-container .gait-worst-case-card-title {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-worst-case-card-title {
   font-size: 11px !important;
   font-weight: 600 !important;
   color: #991B1B !important;
   margin-bottom: 8px !important;
 }
 
-body.nc-bright #neucore-gait-container .gait-worst-case-risk {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-worst-case-risk {
   font-size: 11px !important;
   color: #4B5565 !important;
   padding: 2px 0 !important;
@@ -4364,11 +5016,11 @@ body.nc-bright #neucore-gait-container .gait-worst-case-risk {
   align-items: baseline !important;
 }
 
-body.nc-bright #neucore-gait-container .gait-worst-case-risk-bullet {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-worst-case-risk-bullet {
   color: #EF4444 !important;
 }
 
-body.nc-bright #neucore-gait-container .gait-worst-case-card-footer {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-worst-case-card-footer {
   font-size: 10px !important;
   color: #7E8299 !important;
   margin-top: 8px !important;
@@ -4377,7 +5029,7 @@ body.nc-bright #neucore-gait-container .gait-worst-case-card-footer {
 }
 
 /* Loader Overlay */
-body.nc-bright #neucore-gait-container .gait-loader {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-loader {
   position: absolute !important;
   inset: 0 !important;
   display: flex !important;
@@ -4395,7 +5047,7 @@ body.nc-bright #neucore-gait-container .gait-loader {
   background: #07110E !important; /* Loader overlay same as viewport background */
 }
 
-body.nc-bright #neucore-gait-container .gait-loader-error-title {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-loader-error-title {
   color: #EF4444 !important;
   font-size: 12px !important;
   letter-spacing: .04em !important;
@@ -4403,7 +5055,7 @@ body.nc-bright #neucore-gait-container .gait-loader-error-title {
   margin-bottom: 4px !important;
 }
 
-body.nc-bright #neucore-gait-container .gait-loader-error-desc {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-loader-error-desc {
   color: #7E8299 !important;
   font-size: 10px !important;
   max-width: 280px !important;
@@ -4412,7 +5064,7 @@ body.nc-bright #neucore-gait-container .gait-loader-error-desc {
 }
 
 /* Phase Overlay & Card Rail (Desktop) */
-body.nc-bright #neucore-gait-container .gait-phase-overlay {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-phase-overlay {
   position: absolute !important;
   inset: 0 !important;
   pointer-events: none !important;
@@ -4420,14 +5072,14 @@ body.nc-bright #neucore-gait-container .gait-phase-overlay {
   overflow: hidden !important;
 }
 
-body.nc-bright #neucore-gait-container .gait-phase-card-rail {
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-phase-card-rail {
   position: absolute !important;
   inset: 0 !important;
   pointer-events: none !important;
   z-index: 21 !important;
 }
 
-body.nc-bright #neucore-gait-container .nc-phase-card {
+body.nc-bright:not(.nc-client) #neucore-gait-container .nc-phase-card {
   position: absolute !important;
   width: 230px !important;
   background: rgba(4, 10, 22, 0.97) !important;
@@ -4443,35 +5095,35 @@ body.nc-bright #neucore-gait-container .nc-phase-card {
 
 /* Responsive Media Queries */
 @media (max-width: 980px) {
-  body.nc-bright #neucore-gait-container .gait-page {
+  body.nc-bright:not(.nc-client) #neucore-gait-container .gait-page {
     grid-template-columns: 1fr !important;
   }
-  body.nc-bright #neucore-gait-container .gait-data-column {
+  body.nc-bright:not(.nc-client) #neucore-gait-container .gait-data-column {
     width: 100% !important;
   }
-  body.nc-bright #neucore-gait-container .gait-header-flex {
+  body.nc-bright:not(.nc-client) #neucore-gait-container .gait-header-flex {
     flex-direction: column !important;
     align-items: flex-start !important;
   }
-  body.nc-bright #neucore-gait-container .gait-toolbar {
+  body.nc-bright:not(.nc-client) #neucore-gait-container .gait-toolbar {
     width: 100% !important;
     flex-wrap: wrap !important;
   }
 }
 
 @media (max-width: 480px) {
-  body.nc-bright #neucore-gait-container .gait-viewport {
+  body.nc-bright:not(.nc-client) #neucore-gait-container .gait-viewport {
     min-height: 320px !important;
   }
-  body.nc-bright #neucore-gait-container .gait-deficit-grid {
+  body.nc-bright:not(.nc-client) #neucore-gait-container .gait-deficit-grid {
     grid-template-columns: 1fr !important;
   }
-  body.nc-bright #neucore-gait-container .gait-worst-case-content {
+  body.nc-bright:not(.nc-client) #neucore-gait-container .gait-worst-case-content {
     grid-template-columns: 1fr !important;
   }
 
   /* Mobile Phase Card Rail Layout */
-  body.nc-bright #neucore-gait-container .gait-phase-card-rail {
+  body.nc-bright:not(.nc-client) #neucore-gait-container .gait-phase-card-rail {
     position: absolute !important;
     left: 0 !important;
     right: 0 !important;
@@ -4488,7 +5140,7 @@ body.nc-bright #neucore-gait-container .nc-phase-card {
     pointer-events: auto !important;
   }
 
-  body.nc-bright #neucore-gait-container .nc-phase-card {
+  body.nc-bright:not(.nc-client) #neucore-gait-container .nc-phase-card {
     position: relative !important;
     left: auto !important;
     right: auto !important;
@@ -4504,7 +5156,7 @@ body.nc-bright #neucore-gait-container .nc-phase-card {
   }
 
   /* Hide connector lines and joint dots/rings on mobile */
-  body.nc-bright #neucore-gait-container .gait-phase-overlay svg {
+  body.nc-bright:not(.nc-client) #neucore-gait-container .gait-phase-overlay svg {
     display: none !important;
   }
 }
@@ -4516,18 +5168,18 @@ body.nc-bright #neucore-gait-container .nc-phase-card {
 }
 
 /* Bright mode styling overrides */
-body.nc-bright #movement-analysis-btn {
+body.nc-bright:not(.nc-client) #movement-analysis-btn {
   background: #047857 !important;
   color: #FFFFFF !important;
   border: none !important;
   font-weight: 600 !important;
   transition: background-color 0.15s ease, transform 0.15s ease !important;
 }
-body.nc-bright #movement-analysis-btn:hover {
+body.nc-bright:not(.nc-client) #movement-analysis-btn:hover {
   background: #065F46 !important;
   transform: translateY(-1px) !important;
 }
-body.nc-bright #movement-analysis-btn:active {
+body.nc-bright:not(.nc-client) #movement-analysis-btn:active {
   transform: translateY(1px) !important;
 }
 
@@ -4545,4 +5197,276 @@ body:not(.nc-bright) #movement-analysis-btn:hover {
 }
 body:not(.nc-bright) #movement-analysis-btn:active {
   transform: translateY(1px) !important;
+}
+
+/* ── STITCH REDESIGN V2 - COMPONENT VOCABULARY OVERRIDES ── */
+
+/* Buttons */
+body.nc-bright:not(.nc-client) .btn-primary,
+body.nc-bright:not(.nc-client) .neu-btn--primary,
+body.nc-bright:not(.nc-client) .btn--primary,
+body.nc-bright:not(.nc-client) .nc-btn--primary {
+  background: #396752 !important;
+  color: #FFFFFF !important;
+  font-weight: 600 !important;
+  padding: 12px 24px !important;
+  border-radius: 8px !important;
+  font-size: 14px !important;
+  border: none !important;
+  box-shadow: none !important;
+  transition: all 200ms ease !important;
+  transform: none !important;
+}
+body.nc-bright:not(.nc-client) .btn-primary:hover,
+body.nc-bright:not(.nc-client) .neu-btn--primary:hover,
+body.nc-bright:not(.nc-client) .btn--primary:hover,
+body.nc-bright:not(.nc-client) .nc-btn--primary:hover {
+  opacity: 0.9 !important;
+  background: #396752 !important;
+  box-shadow: 0 4px 6px -1px rgba(4,57,39,0.25) !important;
+  transform: translateY(-1px) !important;
+}
+
+body.nc-bright:not(.nc-client) .btn-secondary,
+body.nc-bright:not(.nc-client) .btn-ghost,
+body.nc-bright:not(.nc-client) .btn--ghost,
+body.nc-bright:not(.nc-client) .neu-btn--ghost,
+body.nc-bright:not(.nc-client) .neu-btn--secondary,
+body.nc-bright:not(.nc-client) .nc-btn--ghost {
+  background: transparent !important;
+  color: #043927 !important;
+  border: 1px solid #E2E2E6 !important;
+  padding: 12px 24px !important;
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+  box-shadow: none !important;
+  transform: none !important;
+  transition: all 200ms ease !important;
+  backdrop-filter: none !important;
+}
+body.nc-bright:not(.nc-client) .btn-secondary:hover,
+body.nc-bright:not(.nc-client) .btn-ghost:hover,
+body.nc-bright:not(.nc-client) .btn--ghost:hover,
+body.nc-bright:not(.nc-client) .neu-btn--ghost:hover,
+body.nc-bright:not(.nc-client) .neu-btn--secondary:hover,
+body.nc-bright:not(.nc-client) .nc-btn--ghost:hover {
+  background: rgba(4, 57, 39, 0.04) !important;
+  border-color: #E2E2E6 !important;
+  transform: translateY(-1px) !important;
+}
+
+body.nc-bright:not(.nc-client) .btn-icon,
+body.nc-bright:not(.nc-client) .neu-btn-icon,
+body.nc-bright:not(.nc-client) .nc-btn-icon {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 8px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: transparent !important;
+  color: #49454F !important;
+  border: 1px solid #E2E2E6 !important;
+  padding: 0 !important;
+  cursor: pointer !important;
+  transition: all 200ms ease !important;
+}
+body.nc-bright:not(.nc-client) .btn-icon:hover,
+body.nc-bright:not(.nc-client) .neu-btn-icon:hover,
+body.nc-bright:not(.nc-client) .nc-btn-icon:hover {
+  background: rgba(4, 57, 39, 0.04) !important;
+  color: #043927 !important;
+}
+
+/* Inputs */
+body.nc-bright:not(.nc-client) .input,
+body.nc-bright:not(.nc-client) .neu-input,
+body.nc-bright:not(.nc-client) .form-input,
+body.nc-bright:not(.nc-client) .neu-textarea,
+body.nc-bright:not(.nc-client) .neu-select,
+body.nc-bright:not(.nc-client) input[type="text"],
+body.nc-bright:not(.nc-client) input[type="number"],
+body.nc-bright:not(.nc-client) input[type="email"],
+body.nc-bright:not(.nc-client) input[type="password"],
+body.nc-bright:not(.nc-client) input[type="date"],
+body.nc-bright:not(.nc-client) select,
+body.nc-bright:not(.nc-client) textarea {
+  height: 48px !important;
+  background: #f9f9fc !important;
+  border: 1px solid #E2E2E6 !important;
+  border-radius: 8px !important;
+  padding: 0 16px !important;
+  font-size: 14px !important;
+  color: #1C1C1E !important;
+  font-family: 'Hanken Grotesk', sans-serif !important;
+  box-shadow: none !important;
+  transition: all 200ms ease !important;
+}
+body.nc-bright:not(.nc-client) textarea,
+body.nc-bright:not(.nc-client) .neu-textarea {
+  height: auto !important;
+  min-height: 90px !important;
+  padding: 12px 16px !important;
+}
+body.nc-bright:not(.nc-client) .input:focus,
+body.nc-bright:not(.nc-client) .neu-input:focus,
+body.nc-bright:not(.nc-client) .form-input:focus,
+body.nc-bright:not(.nc-client) .neu-textarea:focus,
+body.nc-bright:not(.nc-client) .neu-select:focus,
+body.nc-bright:not(.nc-client) input:focus,
+body.nc-bright:not(.nc-client) select:focus,
+body.nc-bright:not(.nc-client) textarea:focus {
+  border-color: #043927 !important;
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(4,57,39,0.1) !important;
+}
+body.nc-bright:not(.nc-client) .input::placeholder,
+body.nc-bright:not(.nc-client) .neu-input::placeholder,
+body.nc-bright:not(.nc-client) .form-input::placeholder,
+body.nc-bright:not(.nc-client) input::placeholder,
+body.nc-bright:not(.nc-client) textarea::placeholder {
+  color: #79747E !important;
+}
+
+/* Badges */
+body.nc-bright:not(.nc-client) .badge,
+body.nc-bright:not(.nc-client) .neu-badge,
+body.nc-bright:not(.nc-client) .nc-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 4px 12px !important;
+  border-radius: 9999px !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  border: none !important;
+}
+body.nc-bright:not(.nc-client) .badge-success,
+body.nc-bright:not(.nc-client) .badge--success,
+body.nc-bright:not(.nc-client) .nc-badge--success {
+  background: rgba(16, 185, 129, 0.1) !important;
+  color: #10B981 !important;
+}
+body.nc-bright:not(.nc-client) .badge-error,
+body.nc-bright:not(.nc-client) .badge-danger,
+body.nc-bright:not(.nc-client) .badge--danger,
+body.nc-bright:not(.nc-client) .nc-badge--danger {
+  background: rgba(239, 68, 68, 0.1) !important;
+  color: #EF4444 !important;
+}
+body.nc-bright:not(.nc-client) .badge-warning,
+body.nc-bright:not(.nc-client) .badge--warning,
+body.nc-bright:not(.nc-client) .nc-badge--warning {
+  background: rgba(170, 140, 44, 0.1) !important;
+  color: #AA8C2C !important;
+}
+body.nc-bright:not(.nc-client) .badge-primary,
+body.nc-bright:not(.nc-client) .badge--primary,
+body.nc-bright:not(.nc-client) .nc-badge--primary,
+body.nc-bright:not(.nc-client) .nc-badge--accent {
+  background: rgba(4, 57, 39, 0.1) !important;
+  color: #043927 !important;
+}
+
+/* Chips */
+body.nc-bright:not(.nc-client) .chip,
+body.nc-bright:not(.nc-client) .neu-chip {
+  padding: 8px 16px !important;
+  border-radius: 9999px !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  background: #FFFFFF !important;
+  border: 1px solid #E2E2E6 !important;
+  color: #5c5f61 !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  transition: all 200ms ease !important;
+}
+body.nc-bright:not(.nc-client) .chip:hover,
+body.nc-bright:not(.nc-client) .neu-chip:hover {
+  background: #F2F4F7 !important;
+}
+body.nc-bright:not(.nc-client) .chip.active,
+body.nc-bright:not(.nc-client) .neu-chip.active {
+  background: #043927 !important;
+  color: #FFFFFF !important;
+  border-color: #043927 !important;
+}
+
+/* Tables */
+body.nc-bright:not(.nc-client) .table,
+body.nc-bright:not(.nc-client) .nc-table {
+  width: 100% !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+}
+body.nc-bright:not(.nc-client) .table th,
+body.nc-bright:not(.nc-client) .nc-table th {
+  text-align: left !important;
+  padding: 12px 16px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: #49454F !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  border-bottom: 1px solid #E5E7EB !important;
+  background: #FAFAFA !important;
+}
+body.nc-bright:not(.nc-client) .table td,
+body.nc-bright:not(.nc-client) .nc-table td {
+  padding: 16px !important;
+  border-bottom: 1px solid #F2F4F7 !important;
+  font-size: 14px !important;
+  color: #1C1C1E !important;
+  background: transparent !important;
+}
+body.nc-bright:not(.nc-client) .table tr:hover td,
+body.nc-bright:not(.nc-client) .nc-table tr:hover td {
+  background: rgba(4, 57, 39, 0.02) !important;
+}
+
+/* Progress Bars */
+body.nc-bright:not(.nc-client) .progress-bar,
+body.nc-bright:not(.nc-client) .progress,
+body.nc-bright:not(.nc-client) .nc-progress,
+body.nc-bright:not(.nc-client) .nc-wizard-progress,
+body.nc-bright:not(.nc-client) .loader-bar {
+  height: 8px !important;
+  background: #F2F4F7 !important;
+  border-radius: 9999px !important;
+  overflow: hidden !important;
+  box-shadow: none !important;
+}
+body.nc-bright:not(.nc-client) .progress-bar-fill,
+body.nc-bright:not(.nc-client) .progress-fill,
+body.nc-bright:not(.nc-client) .nc-wizard-progress-fill,
+body.nc-bright:not(.nc-client) .loader-bar::before {
+  height: 100% !important;
+  background: #043927 !important;
+  border-radius: 9999px !important;
+  box-shadow: none !important;
+  transition: width 300ms ease !important;
+}
+
+/* Sidebar Standardized Width variable override */
+@media (min-width: 901px) {
+  body.nc-bright:not(.nc-client) {
+    --sidebar-w: var(--sidebar-w-collapsed, 64px) !important;
+  }
+}
+
+/* Sidebar Brand Mark SVG Color Overrides */
+body.nc-bright:not(.nc-client) .sidebar svg rect[fill="url(#ncRoyalSb)"] {
+  fill: #043927 !important;
+}
+body.nc-bright:not(.nc-client) .sidebar svg rect[stroke="url(#ncRoyalSbG)"],
+body.nc-bright:not(.nc-client) .sidebar svg path[stroke="url(#ncRoyalSbG)"] {
+  stroke: #10B981 !important;
+}
+body.nc-bright:not(.nc-client) .sidebar svg circle[fill="#2DD4BF"] {
+  fill: #10B981 !important;
+}
+body.nc-bright:not(.nc-client) .sidebar svg circle[stroke="#2DD4BF"] {
+  stroke: #10B981 !important;
 }

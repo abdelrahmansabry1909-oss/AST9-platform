@@ -111,8 +111,13 @@ To prevent breaking public automated tests, developers must never delete or rena
 ### Porcelain Emerald Theme (FitExpert-inspired)
 * **Visual Direction:** A clean, flat, premium SaaS dashboard visual layout structure with high-contrast comfortable typography, minimal glows, crisp white surfaces, and professional breathing room.
 * **Canvas Backdrop:** Bright porcelain `#F8F9F9` mapped to `body.nc-bright`.
-* **Sidebar:** Clean white `#FFFFFF` desktop sidebar, wider (`220px`) and non-collapsing in bright mode to present clear navigation icons and labels side-by-side. Active items receive a prominent emerald highlight and border line.
-* **Header & Topbar:** Clean white `#FFFFFF` top header with minimal grey border (`rgba(24, 28, 50, 0.06)`), housing the global search and user profile controls.
+* **Sidebar:** Clean white `#FFFFFF` desktop sidebar utilizing a collapsible 64px rail when unhovered and 260px drawer on hover (`body.nc-bright:not(.nc-client) .sidebar`).
+  - **Collapsed State (64px):** Centered 44px × 44px active item pills (`.nav-item`), centered icons, centered brand mark, and hidden text labels. Main content margin stays fixed at `64px`.
+  - **Expanded Hover State (260px):** Smoothly drawer-expands over content without shifting main content. Unclipped wordmark and subtitle (`letter-spacing: 0.05em`).
+  - **Active Indicators:** Active items receive a prominent emerald highlight (`#047857`) and soft background pill (`rgba(4, 120, 87, 0.06)`).
+* **Inline SVG Icon Policy:** All primary platform navigation and UI icons utilize 100% native inline `<svg>` elements rather than icon fonts (`material-symbols-outlined`), guaranteeing font-independent, immediate visual rendering without font-load flashes or network dependencies.
+* **Header & Topbar:** Clean white `#FFFFFF` top header with minimal grey border (`rgba(24, 28, 50, 0.06)`), housing global search and user controls.
+* **Mobile Bottom Navigation:** Fixed horizontal bottom row (`64px` height, `z-index: 200`) across 375px–768px viewports providing immediate role-accurate navigation for Home (`#mobnav-dashboard`), Session (`#mobnav-session`), Community (`#mobnav-community`), and Programs (`#mobnav-programs`).
 * **First Fold Structure:** Reorganized into a two-column layout:
   - **Left Column:** A welcoming intro card presenting a user greeting, dynamic date/context, and integrated recommended workflow steps.
   - **Right Column:** Compact Client Overview card displaying active roster status.

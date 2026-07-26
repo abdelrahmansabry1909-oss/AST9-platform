@@ -69,3 +69,6 @@ and `expired` explicitly, then falls through to date logic. A subscription row w
 future feature needs a `cancelled` state, add a `WHEN status='cancelled'` branch
 (→ `expired`/`none`) to the view **in the same change**. Surfaced by the Fable 5
 secondary review of Phase A.
+
+## L10 — Static authenticated-fixture limitation in Playwright visual verification
+Visual screenshot verification of authenticated platform shells (such as the coach dashboard, objective assessment, and programs views) uses a DOM-only static fixture in Playwright tests (`loginScreen.classList.add('hidden')`, `appScreen.style.display = 'block'`, `body.nc-bright`) without invoking Supabase, auth APIs, or live backend endpoints. Live session state rendering and database-persisted save flows still require owner manual testing in the live application.
