@@ -17,7 +17,6 @@
      const btn = NeuUI.button({ label: '✦ New Session', kind: 'primary', onClick: ... });
 ═══════════════════════════════════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 /* ── DESIGN TOKENS (mirrors landing.css) ────────────────────── */
 :root {
@@ -48,11 +47,9 @@
   --nc-border-glow:   rgba(20, 184, 166, 0.3);
 
   /* Typography
-     Note: spec called for "Impeccaple" — the project's actual display
-     font is Space Grotesk. We keep the existing pair (Space Grotesk
-     display + Inter body) so the design reads identically to landing. */
-  --nc-font-display:  'Space Grotesk', 'Inter', system-ui, sans-serif;
-  --nc-font-body:     'Inter', system-ui, sans-serif;
+     Unified to Hanken Grotesk for all roles (display, body, mono, UI). */
+  --nc-font-display:  'Hanken Grotesk', system-ui, sans-serif;
+  --nc-font-body:     'Hanken Grotesk', system-ui, sans-serif;
 
   /* Spacing scale */
   --nc-sp-1:  4px;  --nc-sp-2:  8px;   --nc-sp-3: 12px;  --nc-sp-4: 16px;
@@ -258,10 +255,8 @@
    rewriting hundreds of form rows.
    ═════════════════════════════════════════════════════════════ */
 
-/* Typography unification — every text element in the app inherits Inter,
-   every heading/button inherits Space Grotesk (the "Impeccaple" font in
-   the spec — which the project actually ships as Space Grotesk + Inter). */
-body, .section, .tab-panel, .card, .form-input, .form-label, p, span, div, input, textarea, select, button {
+/* Typography unification — every element inherits Hanken Grotesk. */
+body {
   font-family: var(--nc-font-body);
 }
 h1, h2, h3, h4, h5, h6,
@@ -293,7 +288,7 @@ textarea {
   transition: border-color var(--nc-dur-fast) var(--nc-ease),
               box-shadow   var(--nc-dur-fast) var(--nc-ease);
 }
-.form-input:focus, input:focus, textarea:focus, select:focus {
+.form-input:focus, .neu-input:focus, .nc-login-input:focus {
   border-color: var(--nc-cyan);
   box-shadow: 0 0 0 3px var(--nc-cyan-glow);
   outline: none;
@@ -394,7 +389,7 @@ textarea {
        until a surface opts in (Phase D applies body.nc-bright to the
        coach/admin shell; Phase C/E consume the utilities).
      · One token namespace only (--nc-*). Do not add new namespaces.
-     · Typography stays Space Grotesk (display) + Inter (body).
+     · Typography is Hanken Grotesk.
    See UI_UX_IDENTITY_AND_STABILIZATION_PLAN.md §4.
 ═══════════════════════════════════════════════════════════════ */
 
@@ -432,58 +427,62 @@ textarea {
 /* ── BRIGHT PREMIUM THEME (defined, not yet applied anywhere) ──
    Phase D opts the coach/admin shell in via <body class="nc-bright">.
    The client mobile shell keeps its calm dark theme. */
-body.nc-bright {
-  --nc-bg-primary:    #F7F9FB;   /* porcelain canvas */
-  --nc-bg-secondary:  #EEF2F6;
+body.nc-bright:not(.nc-client) {
+  --nc-bg-primary:    #f9f9fc;   /* porcelain canvas */
+  --nc-bg-secondary:  #F2F4F7;
   --nc-bg-elevated:   #FFFFFF;
   --nc-bg-card:       #FFFFFF;
 
-  --nc-text-primary:   #0E1726;  /* ink */
-  --nc-text-secondary: #4B5970;
-  --nc-text-muted:     #8494A6;
+  --nc-text-primary:   #1C1C1E;  /* ink */
+  --nc-text-secondary: #49454F;
+  --nc-text-muted:     #79747E;
 
-  --nc-border:        rgba(14, 23, 38, 0.08);
-  --nc-border-strong: rgba(14, 23, 38, 0.16);
+  --nc-border:        rgba(0, 0, 0, 0.06);
+  --nc-border-strong: #E2E2E6;
 
-  --nc-shadow-sm:   0 1px 3px rgba(14,23,38,0.06);
-  --nc-shadow-md:   0 6px 24px rgba(14,23,38,0.08);
-  --nc-shadow-lg:   0 16px 48px rgba(14,23,38,0.12);
-  --nc-shadow-card: 0 1px 2px rgba(14,23,38,0.04), 0 8px 28px rgba(14,23,38,0.07);
+  --nc-shadow-sm:   0 1px 2px rgba(0,0,0,0.05);
+  --nc-shadow-md:   0 4px 6px -1px rgba(0,0,0,0.1);
+  --nc-shadow-lg:   0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px rgba(0,0,0,0.05);
+  --nc-shadow-card: 0 1px 2px rgba(0,0,0,0.05);
 
-  --nc-glass-bg:     rgba(255, 255, 255, 0.62);
-  --nc-glass-border: rgba(14, 23, 38, 0.10);
+  --nc-glass-bg:     rgba(255, 255, 255, 0.80);
+  --nc-glass-border: rgba(0, 0, 0, 0.06);
+
+  /* Brand overrides for bright mode */
+  --nc-teal:          #043927;
+  --nc-indigo:        #10B981;
 
   /* ── Legacy-token bridge (D2) ─────────────────────────────────
      styles.css components consume the legacy tokens; bridging them
      here flips the whole coach/admin shell coherently. */
-  --bg-void:    #EDF1F5;
-  --bg-base:    #F7F9FB;
+  --bg-void:    #f9f9fc;
+  --bg-base:    #f9f9fc;
   --bg-surface: #FFFFFF;
-  --bg-raised:  #F2F5F8;
+  --bg-raised:  #F2F4F7;
   --bg-overlay: #FFFFFF;
-  --bg-hover:   rgba(14, 23, 38, 0.035);
+  --bg-hover:   rgba(4, 57, 39, 0.035);
 
-  --border-subtle:  rgba(14, 23, 38, 0.07);
-  --border-default: rgba(14, 23, 38, 0.12);
-  --border-strong:  rgba(14, 23, 38, 0.20);
+  --border-subtle:  rgba(0, 0, 0, 0.04);
+  --border-default: rgba(0, 0, 0, 0.06);
+  --border-strong:  #E2E2E6;
 
-  --text-primary:   #0E1726;
-  --text-secondary: #44536A;
-  --text-tertiary:  #7E8DA1;
+  --text-primary:   #1C1C1E;
+  --text-secondary: #49454F;
+  --text-tertiary:  #79747E;
   --text-inverse:   #FFFFFF;
 
-  --shadow-sm:   0 1px 3px rgba(14,23,38,0.06);
-  --shadow-md:   0 6px 24px rgba(14,23,38,0.08);
-  --shadow-lg:   0 16px 48px rgba(14,23,38,0.12);
-  --shadow-xl:   0 24px 64px rgba(14,23,38,0.16);
-  --shadow-card: 0 1px 2px rgba(14,23,38,0.04), 0 8px 28px rgba(14,23,38,0.07);
+  --shadow-sm:   0 1px 2px rgba(0,0,0,0.05);
+  --shadow-md:   0 4px 6px -1px rgba(0,0,0,0.1);
+  --shadow-lg:   0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px rgba(0,0,0,0.05);
+  --shadow-xl:   0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+  --shadow-card: 0 1px 2px rgba(0,0,0,0.05);
 }
 
 /* ── D2: the sidebar stays a dark ink rail in bright mode ────────
    (anchors the brand; FITXPERT-style figure/ground). Local variable
    re-overrides keep every child component legible on the dark rail. */
-body.nc-bright .sidebar,
-body.nc-bright .sidebar-overlay + .sidebar {
+body.nc-bright:not(.nc-client) .sidebar,
+body.nc-bright:not(.nc-client) .sidebar-overlay + .sidebar {
   background: linear-gradient(180deg, #0E1726 0%, #0B1220 100%);
   --bg-surface: #121C2E;
   --bg-raised:  #16213a;
@@ -499,7 +498,7 @@ body.nc-bright .sidebar-overlay + .sidebar {
 
 /* The dashboard hero keeps its dark cinematic surface in bright mode —
    same local re-override so its text stays light. */
-body.nc-bright .nc-dashboard-hero {
+body.nc-bright:not(.nc-client) .nc-dashboard-hero {
   --text-primary:      #F0F2F7;
   --text-secondary:    #93A1B7;
   --text-tertiary:     #6B7B92;

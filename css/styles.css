@@ -1,10 +1,8 @@
 /* ═══════════════════════════════════════════════════════════════
    AST9 ELITE CLINICAL PLATFORM — DESIGN SYSTEM v3
    Aesthetic: Premium Dark Clinical SaaS · Teal + Cyan + Gold
-   Font: Space Grotesk (display) + Inter (body) + JetBrains Mono
+   Font: Hanken Grotesk (all roles)
 ═══════════════════════════════════════════════════════════════ */
-
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap');
 
 /* ── TOKENS ─────────────────────────────────────────────────── */
 :root {
@@ -50,9 +48,9 @@
   --text-inverse:   #03060b;
 
   /* Typography */
-  --font-display: 'Space Grotesk', 'Inter', sans-serif;
-  --font-body:    'Inter', system-ui, -apple-system, sans-serif;
-  --font-mono:    'JetBrains Mono', monospace;
+  --font-display: 'Hanken Grotesk', system-ui, sans-serif;
+  --font-body:    'Hanken Grotesk', system-ui, sans-serif;
+  --font-mono:    'Hanken Grotesk', system-ui, sans-serif;
 
   /* Spacing scale */
   --sp-1:  4px;
@@ -1557,28 +1555,48 @@ tbody td:first-child { color: var(--text-primary); font-weight: 500; }
 .mobile-bottom-nav {
   display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
   background: var(--bg-surface); border-top: 1px solid var(--border-subtle);
-  padding: 8px 0 max(8px, env(safe-area-inset-bottom));
-  box-shadow: 0 -4px 20px rgba(0,0,0,0.4);
+  padding: 6px 4px max(6px, env(safe-area-inset-bottom));
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+  box-sizing: border-box;
 }
 .mobile-bottom-nav-inner { display: flex; }
 .mob-nav-btn {
-  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
-  padding: 6px 4px; cursor: pointer; border: none; background: transparent;
-  color: var(--text-tertiary); font-size: 10px; font-family: var(--font-body);
-  transition: color var(--t-base);
+  flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  padding: 4px 2px; cursor: pointer; border: none; background: transparent;
+  color: var(--text-tertiary); font-size: 11px; font-family: var(--font-body);
+  transition: color var(--t-base); box-sizing: border-box; overflow: hidden; white-space: nowrap;
 }
 .mob-nav-btn.active { color: var(--lime); }
 .mob-nav-icon { font-size: 18px; line-height: 1; }
+
+body.nc-bright .mobile-bottom-nav {
+  background: #FFFFFF !important;
+  border-top: 1px solid #E5E7EB !important;
+}
+body.nc-bright .mob-nav-btn {
+  color: #6B7280 !important;
+}
+body.nc-bright .mob-nav-btn.active {
+  color: #043927 !important;
+}
 
 @media (max-width: 768px) {
   /* Show hamburger & overlay */
   .hamburger { display: flex; }
 
-  /* Bottom nav visible on mobile */
-  .mobile-bottom-nav { display: block; }
+  /* Bottom nav visible on mobile as horizontal row */
+  .mobile-bottom-nav {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-around !important;
+    height: 64px !important;
+    max-height: 76px !important;
+    box-sizing: border-box !important;
+  }
 
   /* Extra bottom padding so content isn't behind bottom nav */
-  .main-content { padding-bottom: 80px; padding-top: var(--sp-8); }
+  .main-content { padding-bottom: 84px !important; padding-top: var(--sp-8); }
 
   /* Messaging layout stacks vertically */
   .comm-msg-layout { grid-template-columns: 1fr; height: auto; }
@@ -2076,7 +2094,7 @@ tbody td:first-child { color: var(--text-primary); font-weight: 500; }
     radial-gradient(ellipse 80% 50% at 50% -10%,  rgba(20,184,166,0.18), transparent 70%),
     radial-gradient(ellipse 60% 40% at 100% 30%,  rgba(103,232,249,0.10), transparent 70%),
     radial-gradient(ellipse 70% 50% at 0% 70%,    rgba(212,175,55,0.06),  transparent 70%);
-  font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+  font-family: var(--font-display);
   overflow: hidden;
 }
 
@@ -2157,7 +2175,7 @@ tbody td:first-child { color: var(--text-primary); font-weight: 500; }
 }
 
 .nc-login-wordmark {
-  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-family: var(--font-display);
   font-size: 26px;
   font-weight: 700;
   letter-spacing: -0.025em;
@@ -2175,7 +2193,7 @@ tbody td:first-child { color: var(--text-primary); font-weight: 500; }
 }
 
 .nc-login-headline {
-  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-family: var(--font-display);
   font-size: 24px;
   font-weight: 700;
   letter-spacing: -0.025em;
@@ -2320,7 +2338,7 @@ tbody td:first-child { color: var(--text-primary); font-weight: 500; }
 
 /* ── NEUCORE SIDEBAR WORDMARK (overrides AST9 style) ──── */
 .sidebar-wordmark.nc-sidebar-wordmark {
-  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-family: var(--font-display);
   font-size: 22px;
   font-weight: 700;
   letter-spacing: -0.025em;
@@ -2475,7 +2493,7 @@ tbody td:first-child { color: var(--text-primary); font-weight: 500; }
   margin-bottom: 12px;
 }
 .nc-case-title {
-  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-family: var(--font-display);
   font-size: 19px;
   font-weight: 600;
   letter-spacing: -0.02em;
@@ -2603,7 +2621,7 @@ tbody td:first-child { color: var(--text-primary); font-weight: 500; }
 .nc-shader-icon svg { width: 24px; height: 24px; }
 
 .nc-shader-title {
-  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-family: var(--font-display);
   font-size: 22px;
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -2705,7 +2723,7 @@ tbody td:first-child { color: var(--text-primary); font-weight: 500; }
 /* ── PHASE 1 NEW TOKENS ──────────────────────────────────── */
 :root {
   --sidebar-w-collapsed: 64px;
-  --sidebar-w-expanded:  240px;
+  --sidebar-w-expanded:  260px;
   --sidebar-transition:  0.28s var(--ease-out);
 }
 
@@ -2881,7 +2899,7 @@ tbody td:first-child { color: var(--text-primary); font-weight: 500; }
   margin-bottom: 8px;
 }
 .nc-visitor-title {
-  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-family: var(--font-display);
   font-size: 24px;
   font-weight: 700;
   letter-spacing: -0.025em;
@@ -2936,7 +2954,7 @@ tbody td:first-child { color: var(--text-primary); font-weight: 500; }
 }
 .nc-visitor-choice-icon svg { width: 18px; height: 18px; }
 .nc-visitor-choice-title {
-  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-family: var(--font-display);
   font-size: 16px;
   font-weight: 600;
   color: var(--text-primary);
@@ -3030,7 +3048,7 @@ tbody td:first-child { color: var(--text-primary); font-weight: 500; }
 }
 @media (max-width: 768px) { .nc-experts-grid { grid-template-columns: 1fr; gap: 24px; } }
 .nc-experts-headline {
-  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-family: var(--font-display);
   font-size: clamp(20px, 2.4vw, 28px);
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -3055,7 +3073,7 @@ tbody td:first-child { color: var(--text-primary); font-weight: 500; }
   gap: 6px;
 }
 .nc-experts-stat-value {
-  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-family: var(--font-display);
   font-size: 28px;
   font-weight: 700;
   letter-spacing: -0.025em;
@@ -3118,7 +3136,7 @@ tbody td:first-child { color: var(--text-primary); font-weight: 500; }
   background: linear-gradient(135deg, var(--nc-teal), var(--nc-cyan));
   color: #04141A;
   display: inline-flex; align-items: center; justify-content: center;
-  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-family: var(--font-display);
   font-weight: 700;
   font-size: 14px;
 }
@@ -3163,7 +3181,7 @@ tbody td:first-child { color: var(--text-primary); font-weight: 500; }
   border-radius: 999px;
   background: none;
   border: none;
-  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-family: var(--font-display);
   font-size: 13px;
   font-weight: 500;
   color: var(--text-secondary);
@@ -3229,7 +3247,7 @@ tbody td:first-child { color: var(--text-primary); font-weight: 500; }
   gap: 10px;
 }
 .nc-wizard-step-num {
-  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-family: var(--font-display);
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -3290,7 +3308,7 @@ tbody td:first-child { color: var(--text-primary); font-weight: 500; }
 }
 
 .nc-wizard-aim {
-  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-family: var(--font-display);
   font-size: 22px;
   font-weight: 700;
   letter-spacing: -0.025em;

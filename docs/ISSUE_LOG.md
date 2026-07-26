@@ -120,3 +120,24 @@
   6. Corrected Stop clicked during worst-phase analysis to clear `_analysisMode`, hide the overlay, stop the simulation loop, reset the skeleton, and restore the overview camera.
 - **Verified:** Built successfully (`npm run build`). Verified the 17-point regression checklist using a Playwright script: no overlapping cards, no horizontal document overflow at 390px/375px, Stop/Resume transitions work correctly, and all six unit tests pass.
 - **Remaining:** None.
+
+## 9. Collapsed sidebar icon & active pill alignment in Porcelain mode
+- **Symptoms:** In 1440px desktop viewports, collapsed sidebar navigation icons and active item background pills were cut off by the 64px sidebar boundary.
+- **Root cause:** `body.nc-bright:not(.nc-client) .sidebar` inherited horizontal padding (`24px 16px`) and flex start alignment intended for the 260px expanded drawer. Wordmark text labels retained flex layout width even when visually transparent.
+- **Fix:** Refined `@media (min-width: 901px)` sidebar rules in `css/neucore-premium.css`. Collapsed sidebar uses zero horizontal padding (`24px 0 !important`), centered 44px × 44px active item pills (`width: 44px; height: 44px; margin: 4px auto`), centered icons, centered brand mark, and hidden wordmark text width (`display: none; width: 0`). On hover/focus, expanded drawer padding (`24px 16px !important`) and wordmark width are restored without shifting main content.
+- **Verified:** Automated Playwright assertion script (`run_gate2e_verification.js`) verified `sidebarWidth = 64px`, `mainMarginLeft = 64px`, `markContained = true`, `activeContained = true`, `iconFit = true`, `expandedWidth = 260px`, `wordmarkUnclipped = true`, `subtitleUnclipped = true`.
+- **Remaining:** None.
+
+## 10. Objective Assessment mobile grid overflow at 375px/390px
+- **Symptoms:** Objective Assessment cards caused 320px 2-column grid clipping and horizontal document scrolling on mobile devices.
+- **Root cause:** Unconstrained 2-column CSS grid rules on `.neucore-assess-layout` and `.assess-grid` at small viewports.
+- **Fix:** Added `@media (max-width: 768px)` rules in `css/neucore-premium.css` converting layout grids to single-column flex vertical stacks (`flex-direction: column; grid-column: span 1 !important`).
+- **Verified:** Document scroll width verified to equal window inner width (`scrollWidth <= innerWidth`, overflow = `false`) across 375px and 390px viewports.
+- **Remaining:** None.
+
+## 11. Material Symbols icon font network dependency and flash of unstyled text
+- **Symptoms:** Five icon spans rendered as raw text strings (e.g. "dashboard", "group", "menu_book", "assignment_turned_in", "warning") before Google Fonts loaded or when fonts were blocked.
+- **Root cause:** Dependance on external `material-symbols-outlined` font family text spans instead of inline vector markup.
+- **Fix:** Replaced all 5 remaining `material-symbols-outlined` text spans in `app.html` with 100% native inline `<svg>` elements.
+- **Verified:** Full Playwright smoke and visual verification suites executed with Google Fonts network requests blocked (`context.route(/fonts\.googleapis\.com|fonts\.gstatic\.com/, route => route.abort())`); zero icon text flashes or raw string fallbacks.
+- **Remaining:** None.
