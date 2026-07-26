@@ -5,13 +5,16 @@
 
 ---
 
-## L1 — Authenticated write smoke still requires staging seed/reset automation
-P3A-1 provides a production-blocked authenticated Playwright harness for disposable
-staging accounts, but the separate Supabase staging project and deterministic
-seed/reset automation are not configured yet. End-to-end write flows (assessment
-save, subscription management, program draft/publish, workout completion) still
-require owner manual smoke or backend impersonation until P3A-2. See
-[RUNBOOK.md](RUNBOOK.md) and [ISSUE_LOG.md](ISSUE_LOG.md) #1–#2.
+## L1 — Authenticated write smoke still requires staging provisioning
+P3A-1 provides a production-blocked authenticated Playwright harness, and P3A-2A
+adds deterministic local seed/verify/reset tooling for four stable synthetic
+accounts. The separate Supabase staging project is not provisioned or configured
+yet, and this repository lacks a complete historical baseline schema for creating
+one from migrations alone. End-to-end write flows (assessment save, subscription
+management, program draft/publish, workout completion) still require owner manual
+smoke or backend impersonation until the owner clones the current schema into an
+isolated project and runs the fixture tooling. See [RUNBOOK.md](RUNBOOK.md) and
+[ISSUE_LOG.md](ISSUE_LOG.md) #1–#2.
 
 ## L2 — Automated browser visual smoke may fail (DevTools / localhost limits)
 Automated visual smoke can fail for environment reasons (no authenticated session,
@@ -48,7 +51,7 @@ Non-blocking and expected; do not chase it green. See [NOT_A_BUG.md](NOT_A_BUG.m
 markdownlint/prettier dev dependency. Docs are reviewed manually against the
 `clean-code-guard` / documentation-quality standards rather than by a linter.
 
-## L8 — Authenticated staging smoke is harnessed but not provisioned
+## L8 — Authenticated staging tooling exists but is not provisioned
 The Playwright smoke net (P1F-1 — `tests/smoke/`, `.github/workflows/smoke-tests.yml`)
 runs Chromium against the **built** bundle served at the production base `/AST9_HUB/`
 (via `tests/smoke/serve-dist.mjs`), so dev-only (`vite serve`) breakage is out of
@@ -58,8 +61,11 @@ admin, coach, active-client, inactive-client, and logout routing only when an
 isolated staging target plus synthetic accounts are configured. The harness fails
 closed on partial configuration, rejects the production project, and blocks
 production Supabase HTTP and WebSocket endpoints. Authenticated CI artifacts are
-not uploaded. P3A-2 write workflows and the video-modal regression remain pending
-until deterministic staging seed/reset automation exists.
+not uploaded. P3A-2A adds production-blocked seed/verify/reset commands with
+strict synthetic identities, typed project confirmation, scoped UUID deletion,
+and stable auth users. No staging environment was contacted during implementation.
+P3A-2 write workflows and the video-modal regression remain pending until the
+owner provisions the isolated schema and fixtures.
 
 ## L9 — `v_client_subscription_state` has no `cancelled` branch (latent, currently unreachable)
 The effective-state view (`20260530202308_subscription_grace.sql`) maps `pending`

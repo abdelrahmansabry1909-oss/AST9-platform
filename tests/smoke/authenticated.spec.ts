@@ -38,10 +38,10 @@ async function expectRole(page: Page, role: 'admin' | 'coach' | 'client') {
   await expect(page.locator('body')).toHaveClass(new RegExp(`nc-${role}`));
 }
 
-async function expectActiveApp(page: Page) {
+async function expectActiveApp(page: Page, section = '#section-dashboard') {
   await expect(page.locator('#login-form-signin')).toBeHidden({ timeout: 20_000 });
   await expect(page.locator('#screen-app')).toBeVisible();
-  await expect(page.locator('#section-dashboard')).toBeVisible();
+  await expect(page.locator(section)).toBeVisible();
   await expect(page).toHaveURL(/app\.html/);
 }
 
@@ -78,7 +78,7 @@ test.describe('authenticated staging: coach', () => {
     await expectRole(page, 'coach');
     await expect(page.locator('#nav-programs')).toBeVisible();
 
-    await page.locator('.logout-icon').click();
+    await page.locator('.logout-icon[title="Sign out"]').click();
     await expect(page).toHaveURL(/index\.html/);
 
     assertNoProductionRequests(productionGuard);
@@ -96,7 +96,7 @@ test.describe('authenticated staging: active client', () => {
     );
 
     await login(page, account.email, account.password);
-    await expectActiveApp(page);
+    await expectActiveApp(page, '#section-client-dashboard');
     await expectRole(page, 'client');
     await expect(page.locator('#client-mobile-tabs')).toBeAttached();
 
