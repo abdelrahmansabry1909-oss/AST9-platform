@@ -216,14 +216,46 @@ shell initializes without breaking boot. A console/`pageerror` guard fails on an
 uncaught error or non-benign `console.error` (tight allow-list: favicon, Sentry
 ingest — which is also route-stubbed).
 
-**Authenticated project** (credential-gated): coach + client login reach the app
-without a landing bounce. **Skips cleanly** unless these env/secrets are set:
-`AST9_E2E_COACH_EMAIL`, `AST9_E2E_COACH_PASSWORD`, `AST9_E2E_CLIENT_EMAIL`,
-`AST9_E2E_CLIENT_PASSWORD`. This project runs with **trace/screenshot/video OFF**
-so the login password (auth POST body) and post-login client data never reach disk;
-CI uploads artifacts only on failure (public project only). Not covered here (manual
-until a staging seeded account exists): inactive-client subscription gate,
-video-modal close regression — see [KNOWN_LIMITATIONS.md](KNOWN_LIMITATIONS.md) #L8.
+**Authenticated staging project** (P3A-1, credential-gated): admin, coach, active
+client, and inactive-client routing tests run only when an isolated Supabase
+staging project is configured. The harness rewrites the local built copy of
+`js/supabaseClient.js` and `js/visitor.js` in memory, blocks production Supabase
+HTTP and WebSocket endpoints, requires the locally built frontend, and rejects
+any staging URL that resolves to production ref
+`byquokhcbagofshsclfy`. Test emails must contain the configured synthetic identity
+marker. Partial configuration fails closed before login; a completely absent
+configuration skips the authenticated project cleanly.
+
+Repository **Variables**:
+
+- `AST9_E2E_STAGING_SUPABASE_URL` — `https://<staging-ref>.supabase.co`
+- `AST9_E2E_IDENTITY_MARKER` — marker present in every disposable test email
+
+Repository **Secrets**:
+
+- `AST9_E2E_STAGING_SUPABASE_ANON_KEY`
+- `AST9_E2E_ADMIN_EMAIL`, `AST9_E2E_ADMIN_PASSWORD`
+- `AST9_E2E_COACH_EMAIL`, `AST9_E2E_COACH_PASSWORD`
+- `AST9_E2E_CLIENT_EMAIL`, `AST9_E2E_CLIENT_PASSWORD`
+- `AST9_E2E_INACTIVE_CLIENT_EMAIL`, `AST9_E2E_INACTIVE_CLIENT_PASSWORD`
+
+The active admin/coach/client fixtures must have accepted current legal versions.
+The active client must resolve to `active` or `grace`; the inactive client must
+resolve to `expired`, `pending`, or `none`. Use disposable synthetic data only.
+Never configure production credentials. The authenticated Playwright project keeps
+trace/screenshot/video OFF and never persists `storageState`. CI does not upload
+Playwright reports or `test-results`; failure context remains ephemeral on the
+runner.
+
+```bash
+npm run test:unit:staging-safety  # production-target and rewrite guard tests
+npm run test:smoke:staging       # staging role-routing smoke (gated)
+```
+
+P3A-1 covers role routing, inactive takeover, and real logout. Deterministic write
+flows (subscription changes, assessment save, program draft/publish, workout
+completion) remain P3A-2 and must not be added until staging seed/reset automation
+exists.
 
 **CI:** `.github/workflows/smoke-tests.yml` (`workflow_dispatch` + PRs to `main`;
 `permissions: contents: read`). The Sentry **privacy** raw-envelope smoke above is a

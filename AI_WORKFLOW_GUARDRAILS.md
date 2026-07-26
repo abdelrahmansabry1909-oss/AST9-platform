@@ -195,6 +195,22 @@ If docs changed in a phase, **run `docs-guard`** (verify every referenced symbol
 
 ---
 
+## 9A. Agent Ownership
+
+- **Claude:** read-only audit, planning, risk review, and revision review. Claude
+  does not implement changes and must not request credentials or elevated access.
+- **Codex:** backend, auth, product/data contracts, Supabase schema/RLS/RPCs,
+  security, CI, and test infrastructure.
+- **Antigravity:** frontend visual implementation, HTML/CSS layout, responsive
+  behavior, interaction presentation, and visual verification.
+- No agent may cross into another agent's files or responsibilities without an
+  explicit owner-approved exception.
+- No agent may retrieve credentials from Git Credential Manager, environment
+  stores, browser storage, or local secret files. Missing access stays missing;
+  report the manual owner action instead of asking again.
+
+---
+
 ## 10. Final Phase Report
 
 After every phase, report:

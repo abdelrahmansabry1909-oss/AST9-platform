@@ -16,6 +16,29 @@ Verification legend:
 
 ---
 
+## Phase P3A-1 — Authenticated staging safety foundation
+
+- **Date:** 2026-07-26 · branch `codex/p3a-authenticated-production-verification`
+- **What:** Replaced the credential-only authenticated browser smoke contract with
+  a staging-isolated harness. It validates a non-production Supabase URL, requires
+  synthetic identity markers, rewrites only the local built Supabase-bearing
+  scripts in memory, blocks production Supabase HTTP and WebSocket endpoints,
+  requires the locally built frontend, and adds admin/coach/active
+  client/inactive-client/logout routing checks. Partial configuration fails closed;
+  completely absent staging configuration skips cleanly.
+- **Privacy:** Authenticated trace, screenshot, video, and persisted storage state
+  remain disabled. CI does not upload Playwright reports or test-results. No
+  credentials, tokens, staging URLs, or real user data are committed.
+- **Scope:** Test/CI/runbook/control documentation only. No production app, schema,
+  RLS, edge function, billing, Paymob, scoring, or frontend visual change.
+- **Verification:** staging-target safety unit tests; authenticated Playwright test
+  discovery; public Playwright smoke; production build; `git diff --check`.
+- **Remaining:** Provision the isolated Supabase staging project and synthetic
+  fixtures, configure repository variables/secrets, then implement deterministic
+  seed/reset plus P3A-2 write-flow coverage.
+
+---
+
 ## Porcelain Emerald Platform Visual Redesign
 
 ### Porcelain Emerald Visual Redesign & Compliance Cleanup

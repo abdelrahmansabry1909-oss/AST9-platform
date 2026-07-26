@@ -1,9 +1,7 @@
 # Browser smoke tests (Playwright, Chromium) — Phase P1F-1.
-# Public specs (landing, boot router, login screen, legal pages, Sentry-boot
-# safety) always run. Authenticated specs self-skip unless the AST9_E2E_*
-# secrets are present (fork PRs get none -> clean skip). The build is produced
-# and served by Playwright's webServer (see playwright.config.ts), so there is
-# no separate build step here.
+# Public specs always run. Authenticated specs self-skip unless an isolated
+# staging Supabase project and synthetic accounts are configured. Partial or
+# production-targeted authenticated configuration fails closed.
 
 name: Smoke Tests
 
@@ -36,23 +34,22 @@ jobs:
         run: npm ci
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
+      - name: Verify authenticated staging safety contract
+        run: npm run test:unit:staging-safety
       - name: Run smoke tests
         env:
-          # Authenticated specs self-skip when absent; public specs always run.
+          # Staging target: URL/marker are repository variables; anon key and
+          # account credentials are repository secrets. Never use production
+          # accounts or the production Supabase project here.
+          AST9_E2E_STAGING_SUPABASE_URL: ${{ vars.AST9_E2E_STAGING_SUPABASE_URL }}
+          AST9_E2E_STAGING_SUPABASE_ANON_KEY: ${{ secrets.AST9_E2E_STAGING_SUPABASE_ANON_KEY }}
+          AST9_E2E_IDENTITY_MARKER: ${{ vars.AST9_E2E_IDENTITY_MARKER }}
+          AST9_E2E_ADMIN_EMAIL: ${{ secrets.AST9_E2E_ADMIN_EMAIL }}
+          AST9_E2E_ADMIN_PASSWORD: ${{ secrets.AST9_E2E_ADMIN_PASSWORD }}
           AST9_E2E_COACH_EMAIL: ${{ secrets.AST9_E2E_COACH_EMAIL }}
           AST9_E2E_COACH_PASSWORD: ${{ secrets.AST9_E2E_COACH_PASSWORD }}
           AST9_E2E_CLIENT_EMAIL: ${{ secrets.AST9_E2E_CLIENT_EMAIL }}
           AST9_E2E_CLIENT_PASSWORD: ${{ secrets.AST9_E2E_CLIENT_PASSWORD }}
+          AST9_E2E_INACTIVE_CLIENT_EMAIL: ${{ secrets.AST9_E2E_INACTIVE_CLIENT_EMAIL }}
+          AST9_E2E_INACTIVE_CLIENT_PASSWORD: ${{ secrets.AST9_E2E_INACTIVE_CLIENT_PASSWORD }}
         run: npm run test:smoke
-      # Public-project artifacts only carry public pages; the authenticated
-      # project runs with trace/screenshot/video OFF, so no user data or
-      # credentials can appear in uploaded artifacts.
-      - name: Upload Playwright report on failure
-        if: ${{ failure() }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-report
-          path: |
-            playwright-report/
-            test-results/
-          retention-days: 5

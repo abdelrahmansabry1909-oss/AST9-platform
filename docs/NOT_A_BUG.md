@@ -32,13 +32,17 @@
 - **Do not change:** do not chase this check green; do not add a baseline migration
   just to satisfy it without owner direction.
 
-## 4. Real browser smoke is unavailable in the agent/Antigravity environment
-- **Behavior:** Automated authenticated browser save/visual smoke cannot be run
-  here; reports say "owner manual smoke pending."
-- **Why intended:** Environment limitation (no real authenticated browser session),
-  not an app defect. Backend behavior is verified by impersonated SQL instead.
-- **Approved / phase:** Owner — standing limitation.
-- **Do not change:** do not fabricate a "smoke passed" result; label honestly.
+## 4. Authenticated staging smoke skips when staging is not configured
+- **Behavior:** The authenticated Playwright project skips when all staging
+  configuration is absent. Partial configuration fails; production targets are
+  rejected, external frontend targets are rejected, and production Supabase HTTP
+  and WebSocket endpoints are blocked.
+- **Why intended:** P3A requires disposable staging identities. Production users
+  and production data must never be used as CI fixtures.
+- **Approved / phase:** Owner — P3A-1 production-verification baseline.
+- **Do not change:** do not remove the staging target validation, synthetic email
+  marker, production request blocker, or privacy settings. Do not report skipped
+  tests as authenticated smoke passing.
 
 ## 5. No fake AI scores, norms, percentiles, or risk %
 - **Behavior:** Movement observations store raw values + coach qualitative rating +

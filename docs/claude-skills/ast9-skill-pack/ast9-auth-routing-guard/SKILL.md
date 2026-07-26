@@ -43,8 +43,8 @@ Apply this as a guard pass whenever auth, session, role-routing, or the client s
 
 ## Ownership classification
 
-- **Claude owns this entirely.** Auth, session, role routing, subscription gating, Supabase client, server-side authz — backend/product/security.
-- A *visible* Sign-In button being missing on mobile is **CSS** (Antigravity / `ast9-frontend-launch-guard`). A bounce **after** a visible Sign-In is **auth routing** (Claude / this skill). Classify before touching anything.
+- **Codex owns implementation. Claude audits and reviews.** Auth, session, role routing, subscription gating, Supabase client, and server-side authz are backend/product/security work.
+- A *visible* Sign-In button being missing on mobile is **CSS** (Antigravity / `ast9-frontend-launch-guard`). A bounce **after** a visible Sign-In is **auth routing** (Codex implementation + Claude review / this skill). Classify before touching anything.
 
 ## Checklist — before implementation (read-only)
 
