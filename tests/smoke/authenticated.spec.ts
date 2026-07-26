@@ -1,51 +1,128 @@
-import { test, expect } from '@playwright/test';
-import { attachConsoleGuard, assertNoErrors, stubSentry, missingEnv, login } from './helpers';
+import { test, expect, Page } from '@playwright/test';
+import { attachConsoleGuard, assertNoErrors, stubSentry, login } from './helpers';
+import {
+  assertNoProductionRequests,
+  getRoleCredentials,
+  getStagingConfig,
+  installStagingBackend,
+} from './staging';
 
-// ── Authenticated smoke: credential-gated ────────────────────────
-// Runs ONLY when the matching env vars are set (locally or via CI secrets).
-// When absent it skips cleanly — never fails — so the public suite stays green
-// where no test accounts exist (see NOT_A_BUG.md #4). Credentials are never
-// printed and storageState is never persisted. The project runs with
-// trace/screenshot/video OFF (see playwright.config.ts) so the password (auth
-// POST body) and post-login client data never reach disk.
-//
-// Serial + no retries: never race parallel logins to the same account and never
-// double prod-auth traffic on a real login failure (which is signal, not flake).
-//
-// Deeper, fixture-dependent checks (opening a client's program, the video-modal
-// close regression, the inactive-client subscription gate) are intentionally
-// NOT here: they couple to mutable/real prod data and would make CI cry wolf.
-// They stay manual until a staging-backed seeded account exists (see RUNBOOK).
+// Authenticated smoke runs only against a separately configured staging
+// Supabase project. The harness rewrites the local built client in memory,
+// blocks every production Supabase request, and never persists browser state.
+// Missing staging configuration skips this project cleanly. Partial or
+// production-targeted configuration fails before any login request is sent.
 test.describe.configure({ mode: 'serial', retries: 0 });
 
-const COACH = ['AST9_E2E_COACH_EMAIL', 'AST9_E2E_COACH_PASSWORD'];
-const CLIENT = ['AST9_E2E_CLIENT_EMAIL', 'AST9_E2E_CLIENT_PASSWORD'];
+const STAGING = getStagingConfig();
 
-test.describe('authenticated: coach', () => {
-  test('logs in and reaches the app (no landing bounce, no crash)', async ({ page }) => {
-    const miss = missingEnv(COACH);
-    test.skip(miss.length > 0, `coach E2E creds not configured: ${miss.join(', ')}`);
-    const guard = attachConsoleGuard(page);
-    await stubSentry(page);
-    await login(page, process.env.AST9_E2E_COACH_EMAIL!, process.env.AST9_E2E_COACH_PASSWORD!);
-    // Auth resolved: the sign-in form is replaced by the app shell or the
-    // legal-acceptance gate — either way the login form is gone.
-    await expect(page.locator('#login-form-signin')).toBeHidden({ timeout: 20_000 });
-    await expect(page.locator('#login-error')).toBeHidden();
-    await expect(page).toHaveURL(/app\.html/);            // must NOT bounce to index.html
-    assertNoErrors(guard);
+async function prepare(page: Page) {
+  test.skip(!STAGING, 'isolated staging Supabase project is not configured');
+  const productionGuard = await installStagingBackend(page, STAGING!);
+  const consoleGuard = attachConsoleGuard(page);
+  await stubSentry(page);
+  return { productionGuard, consoleGuard };
+}
+
+function credentials(emailKey: string, passwordKey: string, role: string) {
+  test.skip(!STAGING, 'isolated staging Supabase project is not configured');
+  const value = getRoleCredentials(emailKey, passwordKey, role, STAGING!);
+  test.skip(!value, `${role} staging credentials are not configured`);
+  return value!;
+}
+
+async function expectRole(page: Page, role: 'admin' | 'coach' | 'client') {
+  await expect.poll(
+    () => page.evaluate(() => (window as any).Auth?.getProfile?.()?.role || null),
+    { timeout: 20_000, message: `expected authenticated staging role ${role}` }
+  ).toBe(role);
+  await expect(page.locator('body')).toHaveClass(new RegExp(`nc-${role}`));
+}
+
+async function expectActiveApp(page: Page) {
+  await expect(page.locator('#login-form-signin')).toBeHidden({ timeout: 20_000 });
+  await expect(page.locator('#screen-app')).toBeVisible();
+  await expect(page.locator('#section-dashboard')).toBeVisible();
+  await expect(page).toHaveURL(/app\.html/);
+}
+
+test.describe('authenticated staging: admin', () => {
+  test('routes the synthetic admin to the authenticated shell', async ({ page }) => {
+    const { productionGuard, consoleGuard } = await prepare(page);
+    const account = credentials(
+      'AST9_E2E_ADMIN_EMAIL',
+      'AST9_E2E_ADMIN_PASSWORD',
+      'admin'
+    );
+
+    await login(page, account.email, account.password);
+    await expectActiveApp(page);
+    await expectRole(page, 'admin');
+    await expect(page.locator('#nav-subscriptions')).toBeVisible();
+
+    assertNoProductionRequests(productionGuard);
+    assertNoErrors(consoleGuard);
   });
 });
 
-test.describe('authenticated: client', () => {
-  test('logs in and stays in the app shell (no landing bounce)', async ({ page }) => {
-    const miss = missingEnv(CLIENT);
-    test.skip(miss.length > 0, `client E2E creds not configured: ${miss.join(', ')}`);
-    const guard = attachConsoleGuard(page);
-    await stubSentry(page);
-    await login(page, process.env.AST9_E2E_CLIENT_EMAIL!, process.env.AST9_E2E_CLIENT_PASSWORD!);
-    await expect(page.locator('#login-form-signin')).toBeHidden({ timeout: 20_000 });
-    await expect(page).toHaveURL(/app\.html/);            // client must not be bounced to landing
-    assertNoErrors(guard);
+test.describe('authenticated staging: coach', () => {
+  test('routes the synthetic coach and preserves real logout behavior', async ({ page }) => {
+    const { productionGuard, consoleGuard } = await prepare(page);
+    const account = credentials(
+      'AST9_E2E_COACH_EMAIL',
+      'AST9_E2E_COACH_PASSWORD',
+      'coach'
+    );
+
+    await login(page, account.email, account.password);
+    await expectActiveApp(page);
+    await expectRole(page, 'coach');
+    await expect(page.locator('#nav-programs')).toBeVisible();
+
+    await page.locator('.logout-icon').click();
+    await expect(page).toHaveURL(/index\.html/);
+
+    assertNoProductionRequests(productionGuard);
+    assertNoErrors(consoleGuard);
+  });
+});
+
+test.describe('authenticated staging: active client', () => {
+  test('routes the synthetic active client without a landing bounce', async ({ page }) => {
+    const { productionGuard, consoleGuard } = await prepare(page);
+    const account = credentials(
+      'AST9_E2E_CLIENT_EMAIL',
+      'AST9_E2E_CLIENT_PASSWORD',
+      'client'
+    );
+
+    await login(page, account.email, account.password);
+    await expectActiveApp(page);
+    await expectRole(page, 'client');
+    await expect(page.locator('#client-mobile-tabs')).toBeAttached();
+
+    assertNoProductionRequests(productionGuard);
+    assertNoErrors(consoleGuard);
+  });
+});
+
+test.describe('authenticated staging: inactive client', () => {
+  test('shows the inactive takeover and never redirects to landing', async ({ page }) => {
+    const { productionGuard, consoleGuard } = await prepare(page);
+    const account = credentials(
+      'AST9_E2E_INACTIVE_CLIENT_EMAIL',
+      'AST9_E2E_INACTIVE_CLIENT_PASSWORD',
+      'inactive client'
+    );
+
+    await login(page, account.email, account.password);
+    await expect(page.locator('#screen-subscription-inactive')).toBeVisible({
+      timeout: 20_000,
+    });
+    await expect(page.locator('#screen-app')).toBeHidden();
+    await expect(page).toHaveURL(/app\.html/);
+
+    assertNoProductionRequests(productionGuard);
+    assertNoErrors(consoleGuard);
   });
 });

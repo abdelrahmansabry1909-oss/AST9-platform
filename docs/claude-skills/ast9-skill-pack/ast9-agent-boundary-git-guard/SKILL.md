@@ -1,6 +1,6 @@
 ---
 name: ast9-agent-boundary-git-guard
-description: "AST9/NeuCore guard for ALL git, branch, commit, push, PR, merge, and multi-agent work, plus the Claude-vs-Antigravity ownership split. Use whenever a branch/PR/merge/push/cleanup starts, before staging or committing, when deciding who owns a change (backend vs visual), or when two agents may touch the same files. Triggers: 'commit', 'push', 'open PR', 'merge', 'branch', 'git add', 'who should fix this', 'Antigravity', 'role boundary', 'direct to main', 'sync main'. Enforces no-direct-push-to-main, PR-only flow, explicit-path staging, and the strict backend(Claude)/frontend-visual(Antigravity) line. DO NOT USE for the auth-logic specifics (use ast9-auth-routing-guard) or file-deletion/worktree cleanup (use ast9-cleanup-archive-guard)."
+description: "AST9/NeuCore guard for ALL git, branch, commit, push, PR, merge, and multi-agent work, plus the Claude-audit, Codex-backend, and Antigravity-frontend ownership split. Use whenever a branch/PR/merge/push/cleanup starts, before staging or committing, when deciding who owns a change, or when agents may touch overlapping files. Triggers: 'commit', 'push', 'open PR', 'merge', 'branch', 'git add', 'who should fix this', 'Antigravity', 'Codex', 'role boundary', 'direct to main', 'sync main'. Enforces no-direct-push-to-main, PR-only flow, explicit-path staging, and strict agent boundaries. DO NOT USE for the auth-logic specifics (use ast9-auth-routing-guard) or file-deletion/worktree cleanup (use ast9-cleanup-archive-guard)."
 ---
 
 # AST9 — Agent-Boundary & Git Safety Guard
@@ -9,14 +9,15 @@ Apply before any version-control action and whenever ownership of a change is in
 
 ## Ownership split (ground truth)
 
-- **Claude = backend / product-logic / auth / DB / RLS / security.** Owns: Supabase schema, migrations, RLS, RPCs, triggers, cron; edge functions + `_shared` CORS/auth + server-side authz; product/data contracts (auth, owner-only admin, billing/slots, subscription gating, client creation, program generation/publish JSON, workout/logging contracts, PDF logic, exercise-library data, appointments, community permissions); all DB/RLS/authz verification and backend prod smoke.
+- **Claude = audit / plan / review.** Reads the implementation and evidence, identifies risks, writes or revises the plan, and reviews completed work. Claude does not implement or request credentials.
+- **Codex = backend / product-logic / auth / DB / RLS / security / CI.** Owns: Supabase schema, migrations, RLS, RPCs, triggers, cron; edge functions + `_shared` CORS/auth + server-side authz; product/data contracts; backend verification; staging and CI test infrastructure.
 - **Antigravity = frontend visual / UI.** Owns: CSS, spacing, cards/buttons/forms/tables/modals/tabs/chips/badges, transitions, hover/focus, loading/empty states, layout, responsive appearance, visual review.
-- **Off-limits to Claude unless explicitly asked:** `css/neucore-design-system.css`, `css/neucore-premium.css`, `css/styles.css`, `js/neucore-ui.js`. If a backend fix truly needs one of these, **STOP, report why, ask approval, coordinate with their branch.**
+- **Off-limits to Codex unless explicitly approved for a backend integration:** `css/neucore-design-system.css`, `css/neucore-premium.css`, `css/styles.css`, `js/neucore-ui.js`. If backend work truly needs one, **STOP, report why, ask approval, coordinate with Antigravity.**
 - **Owner-only admin** stays intact in every change: exactly one admin (the owner); coaches/clients never become admin; future Team Leader = team-scoped (team RLS), NOT `is_admin()`; never build an admin-creation UI or weaken admin RPCs.
 
 ## Core invariants
 
-1. Claude does backend/product/auth/DB/RLS/security; Antigravity does frontend visual/UI/CSS/layout.
+1. Claude audits/plans/reviews; Codex implements backend/product/auth/DB/RLS/security/CI; Antigravity implements frontend visual/UI/CSS/layout.
 2. **No direct push to `main`.** Every change goes through a PR.
 3. Always sync from latest `origin/main` before branching.
 4. Always confirm current branch and the exact changed-file list before committing.

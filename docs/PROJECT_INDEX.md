@@ -43,24 +43,27 @@ See [DEV_LOG.md](DEV_LOG.md) for the full chronological log with PRs/commits.
 
 ## 4. Current next roadmap
 
-- Real authenticated **owner manual save smoke** for the Athletic flow (the last
-  open item from the save-failure diagnostic — see [ISSUE_LOG.md](ISSUE_LOG.md)).
-- Legal acceptance must be **backend-persisted**, with final lawyer review before
-  any public launch (see [DECISIONS.md](DECISIONS.md) / [KNOWN_LIMITATIONS.md](KNOWN_LIMITATIONS.md)).
+- **P3A authenticated production verification:** P3A-1 adds a staging-only,
+  production-blocked role-routing harness. Next is owner provisioning of an
+  isolated Supabase staging project, synthetic role fixtures, and deterministic
+  seed/reset automation before P3A-2 write-flow coverage.
+- Legal acceptance is backend-persisted and versioned. Final lawyer review of the
+  legal document text and release procedure remains required before public launch.
 - Payment integration: provider-neutral DB foundation laid (P2B — `payment_events`
   + `coach_subscriptions` provider columns + service-role `apply_paid_coach_package_period_system()`);
-  **no provider live yet.** Paymob-first webhook (P2C/P2D) is next and needs an
-  owner-created provider account. See `BUSINESS_MODEL_AUTH_BILLING_PLAN.md`.
+  **no provider live yet.** Paymob work is intentionally postponed until the owner
+  explicitly resumes it. See `BUSINESS_MODEL_AUTH_BILLING_PLAN.md`.
 - Athletic Performance stays frozen as admin-only preview until fully smoked.
 
 ## 5. Agent boundaries (mandatory)
 
 | Agent | Owns |
 |---|---|
+| **Claude** | Read-only audit, planning, risk review, and revision review |
+| **Codex** | Backend, auth, data contracts, RLS, security, CI/test infrastructure |
 | **Antigravity** | Frontend / UI / CSS / visual screens / interaction polish |
-| **Claude** | Backend / RLS / schema / migrations / security / payment / business logic |
 
-Strict no-overwrite rule between the two. See `AI_WORKFLOW_GUARDRAILS.md` (repo
+Strict no-overwrite rule between all agents. See `AI_WORKFLOW_GUARDRAILS.md` (repo
 root) and the `.claude/skills/ast9-*` guard pack for the enforced detail.
 
 ## 6. The control-baseline doc set (this folder)

@@ -27,7 +27,7 @@ project-specific and authored in-repo.
 | Skill | Scope |
 |---|---|
 | `ast9-auth-routing-guard` | Auth/session/client-login routing, the client subscription gate, the `SIGNED_OUT` listener, boot routing, cache-bust tokens. |
-| `ast9-agent-boundary-git-guard` | Git/branch/PR/merge flow + the Claude(backend) vs Antigravity(frontend-visual) ownership split. |
+| `ast9-agent-boundary-git-guard` | Git/branch/PR/merge flow + Claude(audit), Codex(backend), and Antigravity(frontend) ownership boundaries. |
 | `ast9-frontend-launch-guard` | Landing page, mobile nav, Sign-In reachability, public/auth entry visibility. |
 | `ast9-realtime-smoke-guard` | Realtime / no-refresh behavior and how to test the *subscribed* state honestly. |
 | `ast9-cleanup-archive-guard` | File/folder deletion, archiving, and `git worktree` retirement safety. |

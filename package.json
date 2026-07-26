@@ -7,7 +7,9 @@
     "build": "vite build",
     "preview": "vite preview",
     "test:smoke": "playwright test",
-    "test:smoke:public": "playwright test --project=public"
+    "test:smoke:public": "playwright test --project=public",
+    "test:smoke:staging": "playwright test --project=authenticated",
+    "test:unit:staging-safety": "node --test tests/unit/staging-target.test.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.0",

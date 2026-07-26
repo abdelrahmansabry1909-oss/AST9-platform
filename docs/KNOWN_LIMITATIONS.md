@@ -5,12 +5,13 @@
 
 ---
 
-## L1 — Real authenticated save smoke requires owner manual testing
-The agent/build environment cannot run a real authenticated browser session, so
-end-to-end save flows (especially the Athletic Story / assessment saves) are
-verified at the backend layer (impersonated, rolled-back SQL) and then require an
-**owner manual save smoke** in the live app to confirm end-to-end. See
-[ISSUE_LOG.md](ISSUE_LOG.md) #1–#2.
+## L1 — Authenticated write smoke still requires staging seed/reset automation
+P3A-1 provides a production-blocked authenticated Playwright harness for disposable
+staging accounts, but the separate Supabase staging project and deterministic
+seed/reset automation are not configured yet. End-to-end write flows (assessment
+save, subscription management, program draft/publish, workout completion) still
+require owner manual smoke or backend impersonation until P3A-2. See
+[RUNBOOK.md](RUNBOOK.md) and [ISSUE_LOG.md](ISSUE_LOG.md) #1–#2.
 
 ## L2 — Automated browser visual smoke may fail (DevTools / localhost limits)
 Automated visual smoke can fail for environment reasons (no authenticated session,
@@ -19,8 +20,10 @@ bug. UI changes are verified by owner visual review. See [NOT_A_BUG.md](NOT_A_BU
 
 ## L3 — Legal text requires final lawyer review before launch
 Terms / consent / disclaimer copy is not finalized and must be reviewed by a lawyer
-before any public launch. Acceptance must also be **backend-persisted** (decision
-D3 in [DECISIONS.md](DECISIONS.md)) — currently not implemented.
+before any public launch. Backend-persisted, versioned acceptance already exists
+through `legal_documents`, append-only `legal_acceptances`, and the validated
+`record_legal_acceptance()` RPC; lawyer approval of the actual document text and
+version-release procedure remains outstanding.
 
 ## L4 — Payment integration not implemented (provider-neutral DB foundation laid)
 Billing/packages exist as a foundation, and as of **P2B** a provider-neutral
@@ -45,18 +48,17 @@ Non-blocking and expected; do not chase it green. See [NOT_A_BUG.md](NOT_A_BUG.m
 markdownlint/prettier dev dependency. Docs are reviewed manually against the
 `clean-code-guard` / documentation-quality standards rather than by a linter.
 
-## L8 — Browser smoke suite covers public flows only (built output)
+## L8 — Authenticated staging smoke is harnessed but not provisioned
 The Playwright smoke net (P1F-1 — `tests/smoke/`, `.github/workflows/smoke-tests.yml`)
 runs Chromium against the **built** bundle served at the production base `/AST9_HUB/`
 (via `tests/smoke/serve-dist.mjs`), so dev-only (`vite serve`) breakage is out of
 scope. **Public** specs (landing, boot router / PR#53 bounce guard, login screen,
-the 6 legal pages, Sentry-boot safety) always run. **Authenticated** specs
-(coach/client login) self-skip unless the `AST9_E2E_*` secrets are configured
-(see [NOT_A_BUG.md](NOT_A_BUG.md) #4). Deeper scenarios — the **inactive-client
-subscription gate** and the **video-modal close regression** — are deliberately NOT
-automated yet: they couple to mutable/real prod data and would make CI cry wolf, so
-they remain **manual smoke** until a staging-backed seeded account (non-real data)
-exists.
+the 6 legal pages, Sentry-boot safety) always run. **Authenticated** specs cover
+admin, coach, active-client, inactive-client, and logout routing only when an
+isolated staging target plus synthetic accounts are configured. The harness fails
+closed on partial configuration, rejects the production project, and blocks
+production Supabase traffic. P3A-2 write workflows and the video-modal regression
+remain pending until deterministic staging seed/reset automation exists.
 
 ## L9 — `v_client_subscription_state` has no `cancelled` branch (latent, currently unreachable)
 The effective-state view (`20260530202308_subscription_grace.sql`) maps `pending`

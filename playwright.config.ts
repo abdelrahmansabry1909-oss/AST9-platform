@@ -6,10 +6,11 @@ import { defineConfig, devices } from '@playwright/test';
 // (vite preview can't serve the base — see tests/smoke/serve-dist.mjs), or
 // against an external URL via AST9_E2E_BASE_URL (e.g. the live Pages site).
 //
-// PRIVACY: the authenticated project runs with trace/screenshot/video fully
-// OFF so a login password (in the auth POST body) or a logged-in page can
-// never be written to disk. The public project keeps a trace on first retry
-// for debuggability (public pages carry no user data).
+// PRIVACY: the authenticated project runs only against an isolated staging
+// backend and keeps trace/screenshot/video fully OFF so a login password (in
+// the auth POST body) or a logged-in page can never be written to disk. The
+// staging harness also blocks every request to production Supabase. The public
+// project keeps a trace on first retry (public pages carry no user data).
 
 const PORT = 4173;
 const BASE_URL = process.env.AST9_E2E_BASE_URL || `http://localhost:${PORT}/AST9_HUB/`;
@@ -37,8 +38,9 @@ export default defineConfig({
       use: { ...chrome, trace: 'on-first-retry', screenshot: 'only-on-failure', video: 'off' },
     },
     {
-      // Authenticated specs: NO trace/screenshot/video — the auth POST body
-      // carries the password and post-login pages carry real client data.
+      // Authenticated staging specs: NO trace/screenshot/video. The auth POST
+      // body carries the password and even synthetic account pages should not
+      // be persisted as test artifacts.
       name: 'authenticated',
       testMatch: /authenticated\.spec\.ts/,
       use: { ...chrome, trace: 'off', screenshot: 'off', video: 'off' },
