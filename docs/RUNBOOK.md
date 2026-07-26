@@ -219,8 +219,9 @@ ingest — which is also route-stubbed).
 **Authenticated staging project** (P3A-1, credential-gated): admin, coach, active
 client, and inactive-client routing tests run only when an isolated Supabase
 staging project is configured. The harness rewrites the local built copy of
-`js/supabaseClient.js` in memory, blocks every request to the production project,
-and rejects any staging URL that resolves to production ref
+`js/supabaseClient.js` and `js/visitor.js` in memory, blocks production Supabase
+HTTP and WebSocket endpoints, requires the locally built frontend, and rejects
+any staging URL that resolves to production ref
 `byquokhcbagofshsclfy`. Test emails must contain the configured synthetic identity
 marker. Partial configuration fails closed before login; a completely absent
 configuration skips the authenticated project cleanly.
@@ -242,7 +243,9 @@ The active admin/coach/client fixtures must have accepted current legal versions
 The active client must resolve to `active` or `grace`; the inactive client must
 resolve to `expired`, `pending`, or `none`. Use disposable synthetic data only.
 Never configure production credentials. The authenticated Playwright project keeps
-trace/screenshot/video OFF and never persists `storageState`.
+trace/screenshot/video OFF and never persists `storageState`. CI does not upload
+Playwright reports or `test-results`; failure context remains ephemeral on the
+runner.
 
 ```bash
 npm run test:unit:staging-safety  # production-target and rewrite guard tests

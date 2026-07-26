@@ -9,7 +9,8 @@ import {
 
 // Authenticated smoke runs only against a separately configured staging
 // Supabase project. The harness rewrites the local built client in memory,
-// blocks every production Supabase request, and never persists browser state.
+// blocks production Supabase HTTP and WebSocket endpoints, and never persists
+// browser state.
 // Missing staging configuration skips this project cleanly. Partial or
 // production-targeted configuration fails before any login request is sent.
 test.describe.configure({ mode: 'serial', retries: 0 });
@@ -26,9 +27,7 @@ async function prepare(page: Page) {
 
 function credentials(emailKey: string, passwordKey: string, role: string) {
   test.skip(!STAGING, 'isolated staging Supabase project is not configured');
-  const value = getRoleCredentials(emailKey, passwordKey, role, STAGING!);
-  test.skip(!value, `${role} staging credentials are not configured`);
-  return value!;
+  return getRoleCredentials(emailKey, passwordKey, role, STAGING!);
 }
 
 async function expectRole(page: Page, role: 'admin' | 'coach' | 'client') {

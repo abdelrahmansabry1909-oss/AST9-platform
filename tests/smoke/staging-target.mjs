@@ -76,6 +76,38 @@ export function assertSyntheticIdentity(email, marker, role) {
   }
 }
 
+export function isProductionSupabaseEndpoint(value) {
+  let url;
+  try {
+    url = new URL(value);
+  } catch {
+    return false;
+  }
+
+  if (!['http:', 'https:', 'ws:', 'wss:'].includes(url.protocol)) return false;
+  const hostname = url.hostname.toLowerCase();
+  return hostname === `${PRODUCTION_SUPABASE_REF}.supabase.co`
+    || hostname === `${PRODUCTION_SUPABASE_REF}.functions.supabase.co`;
+}
+
+export function assertLocalAuthenticatedFrontend(baseUrl) {
+  if (!baseUrl?.trim()) return;
+
+  let url;
+  try {
+    url = new URL(baseUrl);
+  } catch {
+    throw new Error('AST9_E2E_BASE_URL must be a valid URL.');
+  }
+
+  const localHosts = new Set(['localhost', '127.0.0.1', '[::1]']);
+  if (!localHosts.has(url.hostname.toLowerCase())) {
+    throw new Error(
+      'Authenticated staging smoke must use the locally built frontend, not an external site.'
+    );
+  }
+}
+
 export function rewriteLegacySupabaseClient(source, config) {
   const urlPattern = /const SUPABASE_URL\s*=\s*'[^']+';/;
   const anonPattern = /const SUPABASE_ANON\s*=\s*'[^']+';/;

@@ -2,7 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   PRODUCTION_SUPABASE_REF,
+  assertLocalAuthenticatedFrontend,
   assertSyntheticIdentity,
+  isProductionSupabaseEndpoint,
   readStagingConfig,
   rewriteLegacySupabaseClient,
 } from '../smoke/staging-target.mjs';
@@ -60,6 +62,40 @@ test('requires synthetic identities to carry the configured marker', () => {
   );
 });
 
+test('detects production Supabase HTTP and WebSocket endpoints', () => {
+  assert.equal(
+    isProductionSupabaseEndpoint(`https://${PRODUCTION_SUPABASE_REF}.supabase.co`),
+    true
+  );
+  assert.equal(
+    isProductionSupabaseEndpoint(
+      `wss://${PRODUCTION_SUPABASE_REF}.supabase.co/realtime/v1/websocket`
+    ),
+    true
+  );
+  assert.equal(
+    isProductionSupabaseEndpoint(
+      `https://${PRODUCTION_SUPABASE_REF}.functions.supabase.co/function`
+    ),
+    true
+  );
+  assert.equal(
+    isProductionSupabaseEndpoint('https://stagingproject123.supabase.co'),
+    false
+  );
+});
+
+test('authenticated staging rejects an external frontend target', () => {
+  assert.doesNotThrow(() => assertLocalAuthenticatedFrontend(undefined));
+  assert.doesNotThrow(() =>
+    assertLocalAuthenticatedFrontend('http://127.0.0.1:4173/AST9_HUB/')
+  );
+  assert.throws(
+    () => assertLocalAuthenticatedFrontend('https://example.github.io/AST9_HUB/'),
+    /locally built frontend/
+  );
+});
+
 test('rewrites the legacy client without retaining the production reference', () => {
   const config = {
     url: safeEnv.AST9_E2E_STAGING_SUPABASE_URL,
@@ -78,4 +114,14 @@ const storageKey = 'sb-${PRODUCTION_SUPABASE_REF}-auth-isolated';
   assert.match(rewritten, /https:\/\/stagingproject123\.supabase\.co/);
   assert.match(rewritten, /test-anon-key-with-safe-length/);
   assert.doesNotMatch(rewritten, new RegExp(PRODUCTION_SUPABASE_REF));
+
+  const visitorSource = `
+const SUPABASE_URL = 'https://${PRODUCTION_SUPABASE_REF}.supabase.co';
+const SUPABASE_ANON = 'production-anon-placeholder';
+const FN_URL = \`\${SUPABASE_URL}/functions/v1/visitor-survey\`;
+`;
+  const rewrittenVisitor = rewriteLegacySupabaseClient(visitorSource, config);
+  assert.match(rewrittenVisitor, /https:\/\/stagingproject123\.supabase\.co/);
+  assert.match(rewrittenVisitor, /test-anon-key-with-safe-length/);
+  assert.doesNotMatch(rewrittenVisitor, new RegExp(PRODUCTION_SUPABASE_REF));
 });

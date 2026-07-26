@@ -36,13 +36,6 @@ export async function stubSentry(page: Page) {
     route.fulfill({ status: 200, contentType: 'application/json', body: '{}' }));
 }
 
-// ── Env gating for authenticated specs ───────────────────────────
-// Returns the list of missing/empty required vars (whitespace-safe). A
-// GitHub secret that isn't set maps to '' via env, so trim-check it.
-export function missingEnv(keys: string[]): string[] {
-  return keys.filter((k) => !(process.env[k] && process.env[k]!.trim()));
-}
-
 // ── Login helper (authenticated specs only) ──────────────────────
 // Uses ?login=1 so the no-session router shows the login screen instead of
 // redirecting to the landing page. Never logs the credentials.

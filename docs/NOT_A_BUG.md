@@ -35,7 +35,8 @@
 ## 4. Authenticated staging smoke skips when staging is not configured
 - **Behavior:** The authenticated Playwright project skips when all staging
   configuration is absent. Partial configuration fails; production targets are
-  rejected and production requests are blocked.
+  rejected, external frontend targets are rejected, and production Supabase HTTP
+  and WebSocket endpoints are blocked.
 - **Why intended:** P3A requires disposable staging identities. Production users
   and production data must never be used as CI fixtures.
 - **Approved / phase:** Owner — P3A-1 production-verification baseline.

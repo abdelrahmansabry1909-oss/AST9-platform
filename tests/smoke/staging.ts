@@ -1,7 +1,8 @@
 import { expect, Page } from '@playwright/test';
 import {
-  PRODUCTION_SUPABASE_REF,
+  assertLocalAuthenticatedFrontend,
   assertSyntheticIdentity,
+  isProductionSupabaseEndpoint,
   readStagingConfig,
   rewriteLegacySupabaseClient,
 } from './staging-target.mjs';
@@ -17,11 +18,10 @@ export interface ProductionRequestGuard {
   requests: string[];
 }
 
-const PRODUCTION_REQUEST =
-  new RegExp(`^https://${PRODUCTION_SUPABASE_REF}(?:\\.functions)?\\.supabase\\.co/`, 'i');
-
 export function getStagingConfig(): StagingConfig | null {
-  return readStagingConfig(process.env);
+  const config = readStagingConfig(process.env);
+  if (config) assertLocalAuthenticatedFrontend(process.env.AST9_E2E_BASE_URL);
+  return config;
 }
 
 export function getRoleCredentials(
@@ -32,7 +32,6 @@ export function getRoleCredentials(
 ) {
   const email = process.env[emailKey]?.trim() || '';
   const password = process.env[passwordKey]?.trim() || '';
-  if (!email && !password) return null;
   if (!email || !password) {
     throw new Error(`${role} staging credentials are incomplete.`);
   }
@@ -46,14 +45,31 @@ export async function installStagingBackend(
   config: StagingConfig
 ): Promise<ProductionRequestGuard> {
   const guard: ProductionRequestGuard = { requests: [] };
+  const recordProductionEndpoint = (url: string) => {
+    if (isProductionSupabaseEndpoint(url)) guard.requests.push(url);
+  };
 
   page.on('request', (request) => {
-    if (PRODUCTION_REQUEST.test(request.url())) guard.requests.push(request.url());
+    recordProductionEndpoint(request.url());
   });
+  page.on('websocket', (websocket) => recordProductionEndpoint(websocket.url()));
 
-  await page.route(PRODUCTION_REQUEST, (route) => route.abort('blockedbyclient'));
+  await page.route(
+    (url) => isProductionSupabaseEndpoint(url.href),
+    (route) => route.abort('blockedbyclient')
+  );
+  await page.routeWebSocket(
+    (url) => isProductionSupabaseEndpoint(url.href),
+    async (websocket) => {
+      recordProductionEndpoint(websocket.url());
+      await websocket.close({
+        code: 1008,
+        reason: 'Production Supabase is blocked in authenticated staging smoke.',
+      });
+    }
+  );
 
-  await page.route(/\/js\/supabaseClient\.js(?:\?.*)?$/i, async (route) => {
+  await page.route(/\/js\/(?:supabaseClient|visitor)\.js(?:\?.*)?$/i, async (route) => {
     const response = await route.fetch();
     const source = await response.text();
     const body = rewriteLegacySupabaseClient(source, config);

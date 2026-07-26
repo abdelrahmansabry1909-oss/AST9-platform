@@ -57,8 +57,9 @@ the 6 legal pages, Sentry-boot safety) always run. **Authenticated** specs cover
 admin, coach, active-client, inactive-client, and logout routing only when an
 isolated staging target plus synthetic accounts are configured. The harness fails
 closed on partial configuration, rejects the production project, and blocks
-production Supabase traffic. P3A-2 write workflows and the video-modal regression
-remain pending until deterministic staging seed/reset automation exists.
+production Supabase HTTP and WebSocket endpoints. Authenticated CI artifacts are
+not uploaded. P3A-2 write workflows and the video-modal regression remain pending
+until deterministic staging seed/reset automation exists.
 
 ## L9 — `v_client_subscription_state` has no `cancelled` branch (latent, currently unreachable)
 The effective-state view (`20260530202308_subscription_grace.sql`) maps `pending`
