@@ -25,10 +25,10 @@ export function readStagingConfig(env = process.env) {
   const relevantKeys = [...STAGING_CONFIG_KEYS, ...AUTH_CREDENTIAL_KEYS];
   if (!relevantKeys.some((key) => hasValue(env, key))) return null;
 
-  const missing = STAGING_CONFIG_KEYS.filter((key) => !hasValue(env, key));
+  const missing = relevantKeys.filter((key) => !hasValue(env, key));
   if (missing.length) {
     throw new Error(
-      `Authenticated E2E configuration is incomplete. Missing staging safety keys: ${missing.join(', ')}`
+      `Authenticated E2E configuration is incomplete. Missing staging keys: ${missing.join(', ')}`
     );
   }
 

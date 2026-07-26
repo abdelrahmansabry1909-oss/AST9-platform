@@ -20,7 +20,14 @@ test('returns null when authenticated staging is not configured', () => {
 test('rejects partial authenticated configuration', () => {
   assert.throws(
     () => readStagingConfig({ AST9_E2E_COACH_EMAIL: 'ast9-e2e-coach@example.test' }),
-    /Missing staging safety keys/
+    /Missing staging keys/
+  );
+});
+
+test('requires the complete synthetic role fixture matrix', () => {
+  assert.throws(
+    () => readStagingConfig(safeEnv),
+    /AST9_E2E_ADMIN_EMAIL/
   );
 });
 
@@ -28,6 +35,14 @@ test('rejects the production Supabase project', () => {
   assert.throws(
     () => readStagingConfig({
       ...safeEnv,
+      AST9_E2E_ADMIN_EMAIL: 'admin+ast9-e2e@example.test',
+      AST9_E2E_ADMIN_PASSWORD: 'admin-password',
+      AST9_E2E_COACH_EMAIL: 'coach+ast9-e2e@example.test',
+      AST9_E2E_COACH_PASSWORD: 'coach-password',
+      AST9_E2E_CLIENT_EMAIL: 'client+ast9-e2e@example.test',
+      AST9_E2E_CLIENT_PASSWORD: 'client-password',
+      AST9_E2E_INACTIVE_CLIENT_EMAIL: 'inactive+ast9-e2e@example.test',
+      AST9_E2E_INACTIVE_CLIENT_PASSWORD: 'inactive-password',
       AST9_E2E_STAGING_SUPABASE_URL:
         `https://${PRODUCTION_SUPABASE_REF}.supabase.co`,
     }),
@@ -46,7 +61,12 @@ test('requires synthetic identities to carry the configured marker', () => {
 });
 
 test('rewrites the legacy client without retaining the production reference', () => {
-  const config = readStagingConfig(safeEnv);
+  const config = {
+    url: safeEnv.AST9_E2E_STAGING_SUPABASE_URL,
+    anonKey: safeEnv.AST9_E2E_STAGING_SUPABASE_ANON_KEY,
+    projectRef: 'stagingproject123',
+    identityMarker: safeEnv.AST9_E2E_IDENTITY_MARKER,
+  };
   const source = `
 // Project URL: https://${PRODUCTION_SUPABASE_REF}.supabase.co
 const SUPABASE_URL  = 'https://${PRODUCTION_SUPABASE_REF}.supabase.co';
