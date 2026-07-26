@@ -252,10 +252,56 @@ npm run test:unit:staging-safety  # production-target and rewrite guard tests
 npm run test:smoke:staging       # staging role-routing smoke (gated)
 ```
 
-P3A-1 covers role routing, inactive takeover, and real logout. Deterministic write
-flows (subscription changes, assessment save, program draft/publish, workout
-completion) remain P3A-2 and must not be added until staging seed/reset automation
-exists.
+### Deterministic staging fixtures (P3A-2A)
+
+The repository now includes guarded local tooling for four stable synthetic
+fixtures: admin, coach, active client, and inactive client. The tooling never
+deletes auth users. `reset` removes only write-test rows anchored to the two
+validated fixture client UUIDs, then reconciles the same users and verifies the
+baseline.
+
+This repository does **not** contain a complete historical baseline schema.
+Creating a fresh Supabase project from `supabase/migrations/` alone will leave
+required tables missing. Before using these commands, the owner must create an
+isolated staging project with a schema cloned from the current application schema.
+The tools probe required tables and fail clearly when the staging schema is
+incomplete.
+
+Use a local, ignored environment file or temporary shell environment. Never put a
+staging service-role key in GitHub Actions, a PR body, a committed file, agent
+chat, browser storage, or frontend code. In addition to the P3A-1 variables and
+secrets above, local mutation commands require:
+
+- `AST9_E2E_STAGING_SERVICE_ROLE_KEY` — isolated staging service-role key
+- `AST9_STAGING_SEED_CONFIRM` — exact staging project ref, typed as confirmation
+
+The synthetic identity marker must contain at least six characters and must
+appear in the local part of every fixture email. All four emails must be distinct.
+
+```bash
+npm run staging:validate  # offline configuration/safety validation; no connection
+npm run staging:seed      # create/reconcile stable users and deterministic baseline
+npm run staging:verify    # read-only verification of roles, legal state, and access state
+npm run staging:reset     # scoped write-artifact cleanup, reseed, and verification
+```
+
+Run `staging:validate` first. Then run `staging:seed` once, followed by
+`staging:verify`. Use `staging:reset` before and after authenticated write-flow
+tests. Output contains role labels only; fixture emails, passwords, URLs, anon
+keys, and service-role keys are not printed.
+
+The current reset contract covers the P3A-2 write targets only: subscriptions,
+rehab assessments, RPM graphs, program versions, and workout sessions. It does
+not reset appointments, community, notifications, daily routines, progress
+snapshots, or Athletic Performance records. Add a UUID-scoped, dependency-ordered
+reset step before extending authenticated write tests to any of those modules.
+
+P3A-1 covers role routing, inactive takeover, and real logout. P3A-2A supplies
+the seed/reset safety foundation, but no staging project has been provisioned or
+contacted by this implementation. P3A-2 browser write flows (subscription changes,
+assessment save, program draft/publish, workout completion) remain pending until
+the owner provisions the isolated schema, runs the fixture commands, and configures
+the credential-gated authenticated smoke.
 
 **CI:** `.github/workflows/smoke-tests.yml` (`workflow_dispatch` + PRs to `main`;
 `permissions: contents: read`). The Sentry **privacy** raw-envelope smoke above is a

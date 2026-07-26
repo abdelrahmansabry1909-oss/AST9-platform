@@ -14,6 +14,8 @@ blob-report/
 .env
 .env.local
 .env.*.local
+.env.staging
+.env.staging.*
 
 # OS / editor noise
 .DS_Store
@@ -35,4 +37,6 @@ supabase/.temp/
 
 # Local agent/skill tooling artifacts (AI_WORKFLOW_GUARDRAILS.md §6 — never commit)
 .agents/
+.codex/
+docs/research/
 skills-lock.json

@@ -16,6 +16,34 @@ Verification legend:
 
 ---
 
+## Phase P3A-2A — Deterministic staging fixture foundation
+
+- **Date:** 2026-07-26 · branch `codex/p3a-staging-fixture-foundation`
+- **What:** Added local `validate`, `seed`, `verify`, and `reset` commands for
+  stable synthetic admin, coach, active-client, and inactive-client staging
+  fixtures. Seed reconciles auth users, profiles, legal acceptance, coach package,
+  and deterministic subscription states, replacing only the two fixture clients'
+  subscription rows through the shared UUID guard. Reset removes only assessment,
+  RPM, program-version, and workout rows scoped to those same client UUIDs, then
+  restores and verifies the baseline.
+- **Safety:** Every mutation independently rejects the production project, requires
+  a staging service-role key distinct from the anon key, requires exact project-ref
+  confirmation, validates a six-character synthetic marker in each email local
+  part, rejects duplicate fixture emails, and refuses empty or invalid UUID
+  filters. Auth users are never deleted and sensitive values are redacted.
+- **Smoke correction:** The authenticated harness now targets the exact sign-out
+  control and expects the client-specific dashboard section for active clients.
+- **Scope:** Test tooling, package scripts, ignore rules, and control documentation
+  only. No app code, schema migration, RLS, Edge Function, billing, Paymob, scoring,
+  or visual change.
+- **Verification:** Offline contract tests, staging-target safety tests, JavaScript
+  syntax checks, public Playwright smoke, production build, and whitespace check.
+- **Remaining:** Owner must create an isolated schema-complete staging project,
+  configure credentials locally/repository secrets as appropriate, run
+  `staging:seed` and `staging:verify`, then authorize P3A-2 write-flow browser tests.
+
+---
+
 ## Phase P3A-1 — Authenticated staging safety foundation
 
 - **Date:** 2026-07-26 · branch `codex/p3a-authenticated-production-verification`
