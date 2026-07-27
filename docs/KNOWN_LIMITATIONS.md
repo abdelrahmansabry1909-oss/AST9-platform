@@ -5,16 +5,16 @@
 
 ---
 
-## L1 — Authenticated write smoke still requires staging provisioning
+## L1 — Authenticated write flows are not fully implemented
 P3A-1 provides a production-blocked authenticated Playwright harness, and P3A-2A
-adds deterministic local seed/verify/reset tooling for four stable synthetic
-accounts. P3A-2B adds a reviewed schema-only baseline and an offline, production-
-blocked provisioning command emitter, but the separate Supabase staging project
-is not yet provisioned or configured. End-to-end write flows (assessment save,
-subscription management, program draft/publish, workout completion) still require
-owner manual smoke or backend impersonation until the owner applies the baseline
-to a brand-new isolated project and runs the fixture tooling. See
-[RUNBOOK.md](RUNBOOK.md) and [ISSUE_LOG.md](ISSUE_LOG.md) #1–#2.
+adds deterministic local seed/verify/reset tooling for stable synthetic accounts.
+P3A-2B adds a reviewed schema-only baseline and an offline, production-blocked
+provisioning command emitter. P3A-2C provisioned the separate Free staging project
+and verified authenticated role routing. P3A-2D0 expands the deterministic
+baseline to five synthetic identities and 18 reset relations. End-to-end write
+specs for subscription management, assessment save, and program draft/publish
+remain pending. Workout completion additionally requires the database gate in
+L12. See [RUNBOOK.md](RUNBOOK.md) and [ISSUE_LOG.md](ISSUE_LOG.md) #13.
 
 ## L2 — Automated browser visual smoke may fail (DevTools / localhost limits)
 Automated visual smoke can fail for environment reasons (no authenticated session,
@@ -56,7 +56,7 @@ There is no markdownlint/prettier dev dependency. Docs are reviewed manually
 against the `clean-code-guard` / documentation-quality standards rather than by
 a linter.
 
-## L8 — Authenticated staging foundation exists but is not provisioned
+## L8 — Authenticated staging is provisioned; write specs remain pending
 The Playwright smoke net (P1F-1 — `tests/smoke/`, `.github/workflows/smoke-tests.yml`)
 runs Chromium against the **built** bundle served at the production base `/AST9_HUB/`
 (via `tests/smoke/serve-dist.mjs`), so dev-only (`vite serve`) breakage is out of
@@ -69,9 +69,10 @@ production Supabase HTTP and WebSocket endpoints. Authenticated CI artifacts are
 not uploaded. P3A-2A adds production-blocked seed/verify/reset commands with
 strict synthetic identities, typed project confirmation, scoped UUID deletion,
 and stable auth users. P3A-2B adds the single-use schema baseline, 60-version
-repair manifest, and offline guard; it does not create or configure the remote
-staging project. P3A-2 write workflows and the video-modal regression remain
-pending until the owner provisions the isolated schema and fixtures.
+repair manifest, and offline guard. P3A-2C provisioned the isolated Free project;
+P3A-2D0 added the unassigned authorization fixture and deterministic cleanup for
+all currently planned write targets. The write-flow browser specs and the
+video-modal regression remain pending.
 
 ## L9 — `v_client_subscription_state` has no `cancelled` branch (latent, currently unreachable)
 The effective-state view (`20260530202308_subscription_grace.sql`) maps `pending`
@@ -94,3 +95,11 @@ database schema only. Role-routing and PostgREST smoke do not need those functio
 Program generation and other flows that invoke `generate-program` remain blocked
 until a separate staging function-deployment plan defines function scope, synthetic
 secrets, and proof that no production key is reused.
+
+## L12 — Inactive-client write protection is frontend-only
+The inactive-subscription takeover prevents protected workout actions through the
+normal UI, but `workout_sessions_client_own` authorizes writes by client ownership
+only. An authenticated inactive client could submit a direct PostgREST write.
+P3A-2D4 workout-write coverage is blocked until a separately reviewed forward
+migration adds database-level effective-subscription enforcement. Do not weaken
+the test to assert only UI reachability and describe it as database security.

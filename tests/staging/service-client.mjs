@@ -14,20 +14,25 @@ const SCHEMA_PROBES = Object.freeze([
   ['v_client_subscription_state', 'client_id'],
 ]);
 
-const RESET_SCHEMA_PROBES = Object.freeze([
+export const RESET_SCHEMA_PROBES = Object.freeze([
   ['workout_sessions', 'client_id'],
   ['workout_exercise_logs', 'session_id'],
+  ['exercise_alternative_requests', 'client_id'],
+  ['client_routines', 'client_id'],
   ['client_program_versions', 'client_id'],
   ['client_program_revisions', 'client_id'],
   ['client_programs', 'client_id'],
   ['rpm_graphs', 'client_id'],
   ['rpm_phases', 'graph_id'],
   ['rpm_phase_exercises', 'phase_id'],
+  ['progress_snapshots', 'client_id'],
   ['assessments', 'client_id'],
   ['rehab_objective_assessments', 'assessment_id'],
   ['body_map_states', 'client_id'],
   ['gait_assessments', 'client_id'],
   ['subjective_assessments', 'client_id'],
+  ['sessions', 'client_id'],
+  ['notifications', 'recipient_id'],
 ]);
 
 export function createStagingServiceClient(contract, env = process.env) {

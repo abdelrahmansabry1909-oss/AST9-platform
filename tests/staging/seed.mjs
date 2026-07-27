@@ -49,7 +49,10 @@ export async function seedFixtures(contract, client, env = process.env) {
     full_name: fixture.fullName,
     role: fixture.role,
     current_phase: 'Phase 1',
-    assigned_coach: fixture.role === 'client' ? coachId : null,
+    assigned_coach:
+      fixture.key === 'activeClient' || fixture.key === 'inactiveClient'
+        ? coachId
+        : null,
     onboarding_completed_at:
       fixture.role === 'admin' || fixture.role === 'coach' ? now : null,
   }));
@@ -109,7 +112,11 @@ export async function seedFixtures(contract, client, env = process.env) {
     }
   }
 
-  const clientIds = [users.activeClient.id, users.inactiveClient.id];
+  const clientIds = [
+    users.activeClient.id,
+    users.inactiveClient.id,
+    users.unassignedClient.id,
+  ];
   await deleteScoped(
     client,
     contract,
