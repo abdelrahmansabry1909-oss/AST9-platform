@@ -254,11 +254,11 @@ npm run test:smoke:staging       # staging role-routing smoke (gated)
 
 ### Deterministic staging fixtures (P3A-2A)
 
-The repository now includes guarded local tooling for four stable synthetic
-fixtures: admin, coach, active client, and inactive client. The tooling never
-deletes auth users. `reset` removes only write-test rows anchored to the two
-validated fixture client UUIDs, then reconciles the same users and verifies the
-baseline.
+The repository now includes guarded local tooling for five stable synthetic
+fixtures: admin, coach, active client, inactive client, and an unassigned client
+used for authorization-denial tests. The tooling never deletes auth users.
+`reset` removes only write-test rows anchored to the three validated fixture
+client UUIDs, then reconciles the same users and verifies the baseline.
 
 This repository does **not** contain a complete historical baseline schema.
 Creating a fresh Supabase project from `supabase/migrations/` alone will leave
@@ -274,9 +274,12 @@ secrets above, local mutation commands require:
 
 - `AST9_E2E_STAGING_SERVICE_ROLE_KEY` — isolated staging service-role key
 - `AST9_STAGING_SEED_CONFIRM` — exact staging project ref, typed as confirmation
+- `AST9_E2E_UNASSIGNED_CLIENT_EMAIL`,
+  `AST9_E2E_UNASSIGNED_CLIENT_PASSWORD` — local fixture-tooling credentials;
+  browser smoke does not consume them until P3A-2D1
 
 The synthetic identity marker must contain at least six characters and must
-appear in the local part of every fixture email. All four emails must be distinct.
+appear in the local part of every fixture email. All five emails must be distinct.
 
 ```bash
 npm run staging:validate  # offline configuration/safety validation; no connection
@@ -290,16 +293,21 @@ Run `staging:validate` first. Then run `staging:seed` once, followed by
 tests. Output contains role labels only; fixture emails, passwords, URLs, anon
 keys, and service-role keys are not printed.
 
-The current reset contract covers the P3A-2 write targets only: subscriptions,
-rehab assessments, RPM graphs, program versions, and workout sessions. It does
-not reset appointments, community, notifications, daily routines, progress
-snapshots, or Athletic Performance records. Add a UUID-scoped, dependency-ordered
-reset step before extending authenticated write tests to any of those modules.
+The current reset contract covers the P3A-2 write targets only. Its 18 probed
+relations cover workout sessions/logs; program versions, revisions, current
+programs, routines, and alternative requests; RPM graphs/phases/exercises;
+assessment, objective, gait, body-map, subjective, progress-snapshot, and legacy
+session rows; plus fixture-recipient notifications. Cleanup is UUID-scoped and
+dependency ordered. It does not reset appointments, community, daily routines,
+or Athletic Performance records. Add a separately reviewed scoped reset step
+before extending authenticated write tests to any other module.
 
 P3A-1 covers role routing, inactive takeover, and real logout. P3A-2A supplies
 the seed/reset safety foundation. P3A-2C provisioned a separate Free Nano staging
 project in Frankfurt, applied the reviewed baseline plus the two forward
-migrations, and seeded and verified all four synthetic roles. Credentials remain
+migrations, and seeded and verified the initial four synthetic routing roles.
+P3A-2D0 added the unassigned authorization fixture and verified all five fixtures
+across three consecutive reset cycles. Credentials remain
 Windows-user encrypted outside the repository. P3A-2 browser write flows
 (subscription changes, assessment save, program draft/publish, workout
 completion) remain pending.
@@ -336,8 +344,13 @@ Review its output, then run one command at a time. The first emitted `psql`
 command uses one transaction to refuse any existing object in `public` before
 applying the baseline. Its host is derived from the validated staging ref; `psql`
 prompts for the database password without storing it in the repository or command
-output. The emitted guard command is safe to paste in PowerShell, Git Bash, or a
-POSIX shell. The next 60 commands mark the retained historical versions as applied.
+output. This direct path requires the derived database hostname to resolve and
+accept TCP connections on port 5432. The emitted guard command is safe to paste
+in PowerShell, Git Bash, or a POSIX shell. If that endpoint is unavailable, use
+the linked Supabase Management API fallback documented below; submit the
+empty-schema guard and baseline together in one explicit transaction, never as
+separate best-effort statements. The next 60 commands mark the retained historical
+versions as applied.
 The final `db push` must report only these two new forward migrations:
 
 - `20260727000000_auth_user_trigger.sql`
@@ -365,7 +378,10 @@ compute size in Frankfurt, and was created without a billing or payment step.
 PostgreSQL 17 client tools are installed locally. The reviewed baseline was
 applied to an empty `public` schema in one explicit transaction through the
 linked Supabase Management API because the direct database hostname was not
-resolvable from the provisioning network.
+resolvable from the provisioning network. The same SQL payload executed the
+empty-schema refusal guard before any baseline statement, so the fallback
+preserved the emitter's fail-closed precondition rather than relying only on the
+project being newly created.
 
 Post-provision checks confirmed:
 

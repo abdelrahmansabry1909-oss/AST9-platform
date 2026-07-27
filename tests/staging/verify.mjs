@@ -39,7 +39,7 @@ export async function verifyFixtures(
     .select('id,role,assigned_coach,full_name,onboarding_completed_at')
     .in('id', fixtureIds);
   const profiles = requireResult(profileResult, contract, 'profile verification', env) || [];
-  assert(profiles.length === 4, 'Fixture verification expected four profiles.');
+  assert(profiles.length === 5, 'Fixture verification expected five profiles.');
 
   const profileById = new Map(profiles.map((profile) => [profile.id, profile]));
   for (const { id, fixture } of Object.values(users)) {
@@ -56,6 +56,10 @@ export async function verifyFixtures(
       `${users[key].fixture.label} is not assigned to the fixture coach.`
     );
   }
+  assert(
+    profileById.get(users.unassignedClient.id)?.assigned_coach === null,
+    'Unassigned client fixture must not have an assigned coach.'
+  );
   assert(
     Boolean(profileById.get(coachId)?.onboarding_completed_at),
     'Coach onboarding must be completed for deterministic smoke.'
@@ -118,7 +122,11 @@ export async function verifyFixtures(
     assert(matching, `${fixture.label} is missing current seeded legal acceptance.`);
   }
 
-  const clientIds = [users.activeClient.id, users.inactiveClient.id];
+  const clientIds = [
+    users.activeClient.id,
+    users.inactiveClient.id,
+    users.unassignedClient.id,
+  ];
   const subscriptionResult = await client
     .from('subscriptions')
     .select('client_id,status,plan,start_date,end_date,grace_days')
@@ -130,12 +138,16 @@ export async function verifyFixtures(
     env
   ) || [];
   assert(subscriptions.length === 2, 'Fixture clients must have exactly two subscription rows.');
-  for (const clientId of clientIds) {
+  for (const clientId of [users.activeClient.id, users.inactiveClient.id]) {
     assert(
       subscriptions.filter((row) => row.client_id === clientId).length === 1,
       'Each fixture client must have exactly one subscription row.'
     );
   }
+  assert(
+    subscriptions.every((row) => row.client_id !== users.unassignedClient.id),
+    'Unassigned client fixture must not have a baseline subscription.'
+  );
 
   const effectiveResult = await client
     .from('v_client_subscription_state')

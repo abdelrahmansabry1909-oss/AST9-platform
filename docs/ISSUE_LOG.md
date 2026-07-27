@@ -157,3 +157,18 @@
 - **Verified:** Authenticated staging smoke passes 4/4: admin routing, coach
   routing plus real logout, active-client routing, and inactive-client takeover.
 - **Remaining:** None.
+
+## 13. Write-flow reset gaps and inactive-client database enforcement
+- **Symptoms:** The P3A-2 write-test plan could leave legacy sessions, progress
+  snapshots, program side effects, and notifications behind. Inactive clients
+  were also blocked from workout writes only by frontend routing.
+- **Root cause:** The original reset contract predated assessment snapshots,
+  client routines, exercise alternatives, and notification side effects.
+  `workout_sessions_client_own` checks ownership but not effective subscription
+  state.
+- **Fix in P3A-2D0:** Added an unassigned synthetic client and expanded the
+  UUID-scoped reset contract to 18 relations. Added dependency-order and probe
+  coverage tests. Verified the five-role baseline across three reset cycles.
+- **Remaining:** Design and independently audit a forward migration that enforces
+  inactive-client write restrictions in PostgreSQL before P3A-2D4 workout-write
+  coverage. Do not represent the frontend takeover screen as database security.

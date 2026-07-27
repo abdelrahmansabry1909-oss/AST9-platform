@@ -5,6 +5,13 @@ import {
   PRODUCTION_SUPABASE_REF,
 } from '../smoke/staging-target.mjs';
 import {
+  RESET_SCHEMA_PROBES,
+} from '../staging/service-client.mjs';
+import {
+  RESET_STAGE_ORDER,
+  runResetStages,
+} from '../staging/reset.mjs';
+import {
   SERVICE_ROLE_KEY,
   SEED_CONFIRM_KEY,
   assertMutationBoundary,
@@ -25,6 +32,8 @@ const safeEnv = {
   AST9_E2E_CLIENT_PASSWORD: 'client-password',
   AST9_E2E_INACTIVE_CLIENT_EMAIL: 'inactive+ast9e2e@example.test',
   AST9_E2E_INACTIVE_CLIENT_PASSWORD: 'inactive-password',
+  AST9_E2E_UNASSIGNED_CLIENT_EMAIL: 'unassigned+ast9e2e@example.test',
+  AST9_E2E_UNASSIGNED_CLIENT_PASSWORD: 'unassigned-password',
 };
 
 const mutationEnv = {
@@ -42,6 +51,7 @@ test('validate builds the complete fixture contract without a service-role key',
       { key: 'coach', role: 'coach' },
       { key: 'activeClient', role: 'client' },
       { key: 'inactiveClient', role: 'client' },
+      { key: 'unassignedClient', role: 'client' },
     ]
   );
 });
@@ -155,4 +165,114 @@ test('seed and reset modules cannot bypass the scoped deletion helper', () => {
     );
     assert.doesNotMatch(source, /\.delete\s*\(/);
   }
+});
+
+test('reset schema probes cover every authenticated write-flow cleanup table', () => {
+  const probeByTable = new Map(RESET_SCHEMA_PROBES);
+  assert.deepEqual(
+    [...probeByTable.keys()],
+    [
+      'workout_sessions',
+      'workout_exercise_logs',
+      'exercise_alternative_requests',
+      'client_routines',
+      'client_program_versions',
+      'client_program_revisions',
+      'client_programs',
+      'rpm_graphs',
+      'rpm_phases',
+      'rpm_phase_exercises',
+      'progress_snapshots',
+      'assessments',
+      'rehab_objective_assessments',
+      'body_map_states',
+      'gait_assessments',
+      'subjective_assessments',
+      'sessions',
+      'notifications',
+    ]
+  );
+  assert.equal(probeByTable.get('notifications'), 'recipient_id');
+  assert.equal(probeByTable.get('progress_snapshots'), 'client_id');
+});
+
+function createRecordingClient(rowsByTable = {}) {
+  const operations = [];
+  return {
+    operations,
+    from(table) {
+      return {
+        select() {
+          return {
+            in(column, values) {
+              operations.push({ action: 'select', table, column, values });
+              return Promise.resolve({
+                data: rowsByTable[table] || [],
+                error: null,
+              });
+            },
+          };
+        },
+        delete() {
+          return {
+            in(column, values) {
+              operations.push({ action: 'delete', table, column, values });
+              return Promise.resolve({ data: null, error: null });
+            },
+          };
+        },
+      };
+    },
+  };
+}
+
+test('reset stage order keeps RPM cleanup before referenced assessments', () => {
+  assert.deepEqual(
+    RESET_STAGE_ORDER,
+    ['workout', 'program', 'rpm', 'assessment']
+  );
+});
+
+test('reset stage runner executes dependency-ordered scoped deletes', async () => {
+  const clientId = '11111111-1111-4111-8111-111111111111';
+  const sessionId = '22222222-2222-4222-8222-222222222222';
+  const graphId = '33333333-3333-4333-8333-333333333333';
+  const phaseId = '44444444-4444-4444-8444-444444444444';
+  const assessmentId = '55555555-5555-4555-8555-555555555555';
+  const client = createRecordingClient({
+    workout_sessions: [{ id: sessionId }],
+    rpm_graphs: [{ id: graphId }],
+    rpm_phases: [{ id: phaseId }],
+    assessments: [{ id: assessmentId }],
+  });
+  const contract = { config: {} };
+
+  await runResetStages(client, contract, [clientId], {});
+
+  const deletedTables = client.operations
+    .filter(({ action }) => action === 'delete')
+    .map(({ table, column }) => `${table}.${column}`);
+  assert.deepEqual(
+    deletedTables,
+    [
+      'workout_exercise_logs.session_id',
+      'workout_sessions.client_id',
+      'exercise_alternative_requests.client_id',
+      'client_routines.client_id',
+      'client_program_versions.client_id',
+      'client_program_revisions.client_id',
+      'client_programs.client_id',
+      'rpm_phase_exercises.phase_id',
+      'rpm_phases.graph_id',
+      'rpm_graphs.client_id',
+      'progress_snapshots.client_id',
+      'progress_snapshots.assessment_id',
+      'rehab_objective_assessments.assessment_id',
+      'body_map_states.client_id',
+      'gait_assessments.client_id',
+      'subjective_assessments.client_id',
+      'assessments.client_id',
+      'sessions.client_id',
+    ]
+  );
 });

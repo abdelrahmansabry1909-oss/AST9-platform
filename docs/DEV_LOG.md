@@ -400,3 +400,30 @@ Verification legend:
   real logout control. The active-client assertion now targets the current
   `#nc-tabbar` shell instead of the removed `#client-mobile-tabs` ID. No app
   behavior changed. The final authenticated staging smoke passes 4/4.
+
+---
+
+## P3A-2D0 - Authenticated write-flow fixture and reset foundation
+
+- **Date:** 2026-07-27
+- **Scope:** Staging fixture/reset tooling, safety tests, and documentation only.
+  No application source, frontend, migration, RLS, Edge Function, Paymob, or
+  production change.
+- **Fixture extension:** Added one unassigned synthetic client for coach
+  authorization-denial tests. The fixture has no assigned coach and no baseline
+  subscription. Credentials remain Windows-user encrypted outside the repository.
+- **Reset coverage:** Expanded the probed cleanup contract to 18 relations,
+  including legacy sessions, progress snapshots, client routines, exercise
+  alternative requests, and fixture-recipient notifications. All deletes remain
+  UUID-scoped and dependency ordered.
+- **Safety:** RPM graphs are removed before the objective and subjective
+  assessments they reference. Progress snapshots are removed by both fixture
+  client ID and referenced assessment ID before assessments; program side-effect
+  rows are removed before current program rows. Auth users are never deleted.
+- **Verification:** Staging safety tests pass 32/32. A one-time seed created the
+  fifth fixture, then three consecutive reset-and-verify cycles passed for all
+  five roles. A final post-audit reset-and-verify cycle also passed after the
+  dependency-order guards were added.
+- **Deferred blocker:** Workout-write coverage remains blocked until a separate
+  audited backend migration enforces inactive-client write restrictions at the
+  database layer. The current frontend-only gate is not treated as DB security.

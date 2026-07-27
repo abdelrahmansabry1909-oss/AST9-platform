@@ -44,6 +44,14 @@ const FIXTURE_DEFINITIONS = Object.freeze([
     passwordKey: 'AST9_E2E_INACTIVE_CLIENT_PASSWORD',
     fullName: 'AST9 E2E Inactive Client',
   },
+  {
+    key: 'unassignedClient',
+    label: 'unassigned client',
+    role: 'client',
+    emailKey: 'AST9_E2E_UNASSIGNED_CLIENT_EMAIL',
+    passwordKey: 'AST9_E2E_UNASSIGNED_CLIENT_PASSWORD',
+    fullName: 'AST9 E2E Unassigned Client',
+  },
 ]);
 
 function requiredValue(env, key) {
