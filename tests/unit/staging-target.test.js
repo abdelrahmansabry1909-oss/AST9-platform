@@ -62,6 +62,24 @@ test('requires synthetic identities to carry the configured marker', () => {
   );
 });
 
+test('rejects a five-character staging identity marker', () => {
+  assert.throws(
+    () => readStagingConfig({
+      ...safeEnv,
+      AST9_E2E_IDENTITY_MARKER: 'five5',
+      AST9_E2E_ADMIN_EMAIL: 'admin+five5@example.test',
+      AST9_E2E_ADMIN_PASSWORD: 'admin-password',
+      AST9_E2E_COACH_EMAIL: 'coach+five5@example.test',
+      AST9_E2E_COACH_PASSWORD: 'coach-password',
+      AST9_E2E_CLIENT_EMAIL: 'client+five5@example.test',
+      AST9_E2E_CLIENT_PASSWORD: 'client-password',
+      AST9_E2E_INACTIVE_CLIENT_EMAIL: 'inactive+five5@example.test',
+      AST9_E2E_INACTIVE_CLIENT_PASSWORD: 'inactive-password',
+    }),
+    /at least six/
+  );
+});
+
 test('detects production Supabase HTTP and WebSocket endpoints', () => {
   assert.equal(
     isProductionSupabaseEndpoint(`https://${PRODUCTION_SUPABASE_REF}.supabase.co`),

@@ -343,3 +343,33 @@ Verification legend:
   5. Refactored `ActivationChart` in `src/neucore/simulation/ActivationChart.js` directly with clean bright-mode support, utilizing soft porcelain-emerald gridlines (`rgba(24, 28, 50, 0.06)`), high contrast dark text `#181C32`, and clinical legend colors.
 - **Files:** `app.html`, `src/main.js`, `src/neucore/gait/GaitAnalysisPage.js`, `src/neucore/simulation/ActivationChart.js`, `css/neucore-premium.css`, `docs/DESIGN_SYSTEM.md`, `docs/DEV_LOG.md`.
 - **Verification:** Built successfully (`npm run build`), and verified layout/simulation render and user workflows in Playwright.
+
+---
+
+## P3A-2B — Isolated staging schema baseline foundation
+
+- **Date:** 2026-07-27
+- **Scope:** Backend tooling, schema artifact, forward migrations, tests, and
+  documentation only. No frontend, workflow, Edge Function, credential, or remote
+  provisioning changes.
+- **Baseline:** Added the independently privacy-reviewed, schema-only production
+  `public` dump outside `supabase/migrations/`. Its SHA-256 is pinned and verified
+  offline before commands are emitted. A path-specific Git attribute disables
+  line-ending normalization so the reviewed artifact remains byte-identical when
+  staged and checked out.
+- **History safety:** Retained all 60 historical migrations byte-for-byte,
+  including the ten registry markers. Added an exact 60-version repair manifest.
+- **Forward fixes:** Added an idempotent `auth.users` trigger repair for
+  `public.handle_new_user()` and idempotent metadata-only legal document rows.
+- **Provisioning guard:** Added an offline command emitter that rejects production,
+  requires typed staging-ref confirmation, verifies baseline/manifest integrity,
+  and prints an atomic empty-schema baseline command plus migration repair/push
+  commands without executing them. After Claude's final audit, the guard SQL
+  literals were changed to PostgreSQL dollar quoting so the emitted command keeps
+  identical semantics in PowerShell, Git Bash, and POSIX shells.
+- **Consistency:** Raised the authenticated-smoke identity marker minimum from four
+  to six characters to match fixture tooling.
+- **Limit:** The remote staging project and Edge Functions remain unprovisioned.
+- **Verification:** `test:unit:staging-safety` passes 29/29; `npm run build`
+  succeeds; public smoke passes 11/11; authenticated smoke remains correctly
+  credential-gated at 4 skipped.

@@ -59,19 +59,34 @@ Files `20260505124526_…sql` through `20260506071204_…sql` exist now as **no-
 - **On production**: the CLI sees the version as already-registered → skips → no impact.
 - **On a fresh preview / branch database**: the CLI runs the stub → no-op → **the preview will be missing the schema these migrations originally created** (`profiles`, `subjective_assessments`, `case_shares`, the early RLS pass, etc.).
 
-To get full preview parity, run **once** against production:
-```
-supabase db pull --schema public
-```
+Do **not** delete these markers. Production records all ten versions, and removing
+their matching local files would create production migration-history drift.
 
-That generates a single consolidated initial migration reflecting the live schema. After that, the 10 markers can be deleted and the consolidated migration becomes the new baseline. The rest of the migrations (the F1–F6 + Sweep + Stabilization ones, which all have real SQL preserved) layer on top correctly.
+P3A-2B adds a reviewed schema-only artifact at
+`supabase/baseline/production_public_schema.sql`. It deliberately sits outside
+`supabase/migrations/`: the dump represents the current schema and is not
+idempotent, so it must never be treated as a forward migration or pushed to
+production.
+
+For a brand-new staging project, use the guarded command emitter documented in
+`supabase/baseline/README.md`. The safe order is:
+
+1. Apply the baseline once to an empty `public` schema.
+2. Mark all 60 retained historical versions as applied using
+   `supabase/baseline/repair-versions.txt`.
+3. Run `supabase db push` to apply only later forward migrations.
+
+Never replay the 60 historical files over the current-schema baseline.
 
 ## Current state
 
-- **26 remote registry rows ↔ 26 local files. Exact 1-to-1 match.**
-- The 16 files with real SQL (post-2026-05-15) will run correctly on a fresh preview.
-- The 10 marker stubs (pre-2026-05-15) will no-op on a fresh preview — preview parity requires the one-time `db pull` above.
-- Production is unaffected. No DDL was changed. No data was touched. Only filenames + the registry pointer rows were realigned.
+- **60 retained historical versions:** 10 registry-alignment markers and 50
+  migrations with real SQL.
+- The marker files remain load-bearing for production history reconciliation.
+- The baseline artifact is single-use, staging-only, and structurally unreachable
+  by `supabase db push`.
+- New forward migrations continue to use normal 14-digit filenames and are
+  applied incrementally after baseline provisioning.
 
 ## How to add new migrations going forward
 

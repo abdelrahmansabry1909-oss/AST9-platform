@@ -303,6 +303,60 @@ assessment save, program draft/publish, workout completion) remain pending until
 the owner provisions the isolated schema, runs the fixture commands, and configures
 the credential-gated authenticated smoke.
 
+### Isolated staging schema baseline (P3A-2B)
+
+The reviewed, schema-only production baseline is stored at
+`supabase/baseline/production_public_schema.sql`, outside the migration directory.
+Its reviewed SHA-256 is:
+
+`a057aee18df15bdb05cb6e0bbc2fcb03e6dad99c6cdbee4d717111ffa5fd220f`
+
+It contains no exported rows, credentials, production project ref, auth/storage
+schema, or health data. It is **single-use and empty-database-only**. Never move
+it under `supabase/migrations/`, run it against production, or reapply it.
+
+Prerequisites for owner-run provisioning:
+
+- brand-new isolated Supabase project;
+- Supabase CLI installed from the pinned project dependency;
+- PostgreSQL `psql` client available;
+- repository linked to that isolated project with
+  `npx supabase link --project-ref <staging-ref>`;
+- `AST9_STAGING_SEED_CONFIRM` exactly matching the isolated staging project ref.
+
+The command emitter is offline and executes nothing:
+
+```powershell
+$env:AST9_STAGING_SEED_CONFIRM = "<staging-ref>"
+npm run staging:provision-check -- --ref <staging-ref>
+```
+
+Review its output, then run one command at a time. The first emitted `psql`
+command uses one transaction to refuse any existing object in `public` before
+applying the baseline. Its host is derived from the validated staging ref; `psql`
+prompts for the database password without storing it in the repository or command
+output. The emitted guard command is safe to paste in PowerShell, Git Bash, or a
+POSIX shell. The next 60 commands mark the retained historical versions as applied.
+The final `db push` must report only these two new forward migrations:
+
+- `20260727000000_auth_user_trigger.sql`
+- `20260727000100_legal_documents_reference_data.sql`
+
+Stop if any historical migration is pending. A partial or failed baseline is
+rolled back by deleting and recreating the disposable staging project, not by
+reapplying the dump.
+
+`pg_cron`, `pg_net`, and `supabase_vault` are optional for P3A-2B because the
+baseline disables function-body validation while creating the four ops-health
+functions that reference them. Enable them later for parity if those functions
+will be tested. Staging must contain **zero cron jobs**; scheduled expiry work can
+mutate fixture state between seed and smoke.
+
+The repository contains Edge Functions that are not deployed by this phase.
+Role-routing and PostgREST smoke do not require them. Program generation and
+publish flows that invoke `generate-program` remain blocked until a separately
+reviewed staging function-deployment phase.
+
 **CI:** `.github/workflows/smoke-tests.yml` (`workflow_dispatch` + PRs to `main`;
 `permissions: contents: read`). The Sentry **privacy** raw-envelope smoke above is a
 separate check (it verifies scrubbing, not app boot) and stays owner/harness-run.

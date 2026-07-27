@@ -10,7 +10,8 @@
     "test:smoke:public": "playwright test --project=public",
     "test:smoke:staging": "playwright test --project=authenticated",
     "test:unit:staging-fixtures": "node --test tests/unit/fixture-contract.test.js",
-    "test:unit:staging-safety": "node --test tests/unit/staging-target.test.js tests/unit/fixture-contract.test.js",
+    "test:unit:staging-safety": "node --test tests/unit/staging-target.test.js tests/unit/fixture-contract.test.js tests/unit/provision-guard.test.js",
+    "staging:provision-check": "node scripts/staging-provision.mjs --check",
     "staging:validate": "node tests/staging/cli.mjs validate",
     "staging:seed": "node tests/staging/cli.mjs seed",
     "staging:verify": "node tests/staging/cli.mjs verify",
@@ -23,6 +24,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.61.1",
+    "supabase": "2.109.1",
     "vite": "^5.0.0"
   }
 }

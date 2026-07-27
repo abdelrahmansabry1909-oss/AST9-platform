@@ -1,0 +1,6 @@
+# Local CLI identity only. Remote project refs are supplied interactively with
+# `supabase link` and must never be committed here.
+project_id = "ast9-hub-local"
+
+[db]
+major_version = 17
