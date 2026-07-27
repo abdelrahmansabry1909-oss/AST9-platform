@@ -78,6 +78,7 @@ test.describe('authenticated staging: coach', () => {
     await expectRole(page, 'coach');
     await expect(page.locator('#nav-programs')).toBeVisible();
 
+    await page.locator('.sidebar').hover();
     await page.locator('.logout-icon[title="Sign out"]').click();
     await expect(page).toHaveURL(/index\.html/);
 
@@ -98,7 +99,7 @@ test.describe('authenticated staging: active client', () => {
     await login(page, account.email, account.password);
     await expectActiveApp(page, '#section-client-dashboard');
     await expectRole(page, 'client');
-    await expect(page.locator('#client-mobile-tabs')).toBeAttached();
+    await expect(page.locator('#nc-tabbar')).toBeAttached();
 
     assertNoProductionRequests(productionGuard);
     assertNoErrors(consoleGuard);

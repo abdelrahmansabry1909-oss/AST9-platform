@@ -297,11 +297,12 @@ snapshots, or Athletic Performance records. Add a UUID-scoped, dependency-ordere
 reset step before extending authenticated write tests to any of those modules.
 
 P3A-1 covers role routing, inactive takeover, and real logout. P3A-2A supplies
-the seed/reset safety foundation, but no staging project has been provisioned or
-contacted by this implementation. P3A-2 browser write flows (subscription changes,
-assessment save, program draft/publish, workout completion) remain pending until
-the owner provisions the isolated schema, runs the fixture commands, and configures
-the credential-gated authenticated smoke.
+the seed/reset safety foundation. P3A-2C provisioned a separate Free Nano staging
+project in Frankfurt, applied the reviewed baseline plus the two forward
+migrations, and seeded and verified all four synthetic roles. Credentials remain
+Windows-user encrypted outside the repository. P3A-2 browser write flows
+(subscription changes, assessment save, program draft/publish, workout
+completion) remain pending.
 
 ### Isolated staging schema baseline (P3A-2B)
 
@@ -356,6 +357,32 @@ The repository contains Edge Functions that are not deployed by this phase.
 Role-routing and PostgREST smoke do not require them. Program generation and
 publish flows that invoke `generate-program` remain blocked until a separately
 reviewed staging function-deployment phase.
+
+### Isolated staging provisioning (P3A-2C)
+
+The isolated project is under a separate staging organization, uses the Free Nano
+compute size in Frankfurt, and was created without a billing or payment step.
+PostgreSQL 17 client tools are installed locally. The reviewed baseline was
+applied to an empty `public` schema in one explicit transaction through the
+linked Supabase Management API because the direct database hostname was not
+resolvable from the provisioning network.
+
+Post-provision checks confirmed:
+
+- all 60 historical versions repaired as applied;
+- only the two P3A-2B forward migrations pushed;
+- 62 total migration-history rows;
+- all fixture and reset-contract relations present;
+- exactly one enabled `auth.users` profile trigger;
+- six current legal-document metadata rows, four required;
+- `pg_cron` disabled, therefore zero scheduled jobs;
+- deterministic admin, coach, active-client, and inactive-client fixtures seeded
+  and verified.
+
+No project ref, URL, API key, database password, fixture email, or fixture
+password is committed. Keys and passwords were not printed. Local secrets are
+Windows-user encrypted outside the repository. Production was not linked,
+queried, or mutated.
 
 **CI:** `.github/workflows/smoke-tests.yml` (`workflow_dispatch` + PRs to `main`;
 `permissions: contents: read`). The Sentry **privacy** raw-envelope smoke above is a

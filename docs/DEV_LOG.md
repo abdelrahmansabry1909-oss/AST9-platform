@@ -373,3 +373,30 @@ Verification legend:
 - **Verification:** `test:unit:staging-safety` passes 29/29; `npm run build`
   succeeds; public smoke passes 11/11; authenticated smoke remains correctly
   credential-gated at 4 skipped.
+
+---
+
+## P3A-2C - Isolated staging provisioning
+
+- **Date:** 2026-07-27
+- **Environment:** Created a separate staging organization and one Free Nano
+  project in Frankfurt. No billing or payment step was accepted.
+- **Local tooling:** Installed verified PostgreSQL 17.10 command-line tools. The
+  installer SHA-256 matched the trusted WinGet manifest before execution.
+- **Schema:** Applied the reviewed schema-only baseline to an empty `public`
+  schema in one explicit transaction, repaired all 60 historical migration
+  versions, and pushed only the two audited P3A-2B forward migrations.
+- **Verification:** Confirmed 62 migration rows, all fixture/reset relations,
+  exactly one enabled auth profile trigger, six current legal-document metadata
+  rows, and `pg_cron` disabled. Seeded and verified synthetic admin, coach,
+  active-client, and inactive-client fixtures.
+- **Credential safety:** No staging ref, URL, key, password, or fixture email was
+  committed. Keys and passwords were not printed. Local secrets are Windows-user
+  encrypted outside the repository. Production was not linked, queried, or
+  mutated.
+- **Smoke finding:** Authenticated admin routing passed. Coach routing also
+  passed, but the logout assertion targeted a sign-out icon hidden by the
+  collapsed sidebar. The smoke now hovers the sidebar before clicking the same
+  real logout control. The active-client assertion now targets the current
+  `#nc-tabbar` shell instead of the removed `#client-mobile-tabs` ID. No app
+  behavior changed. The final authenticated staging smoke passes 4/4.
