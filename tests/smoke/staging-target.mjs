@@ -55,8 +55,8 @@ export function readStagingConfig(env = process.env) {
   }
 
   const identityMarker = env.AST9_E2E_IDENTITY_MARKER.trim().toLowerCase();
-  if (identityMarker.length < 4) {
-    throw new Error('AST9_E2E_IDENTITY_MARKER must contain at least four characters.');
+  if (identityMarker.length < 6) {
+    throw new Error('AST9_E2E_IDENTITY_MARKER must contain at least six characters.');
   }
 
   return {

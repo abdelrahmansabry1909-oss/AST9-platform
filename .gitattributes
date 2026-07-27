@@ -1,0 +1,1 @@
+supabase/baseline/production_public_schema.sql -text whitespace=-blank-at-eol,-blank-at-eof

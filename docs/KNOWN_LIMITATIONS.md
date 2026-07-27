@@ -8,13 +8,13 @@
 ## L1 — Authenticated write smoke still requires staging provisioning
 P3A-1 provides a production-blocked authenticated Playwright harness, and P3A-2A
 adds deterministic local seed/verify/reset tooling for four stable synthetic
-accounts. The separate Supabase staging project is not provisioned or configured
-yet, and this repository lacks a complete historical baseline schema for creating
-one from migrations alone. End-to-end write flows (assessment save, subscription
-management, program draft/publish, workout completion) still require owner manual
-smoke or backend impersonation until the owner clones the current schema into an
-isolated project and runs the fixture tooling. See [RUNBOOK.md](RUNBOOK.md) and
-[ISSUE_LOG.md](ISSUE_LOG.md) #1–#2.
+accounts. P3A-2B adds a reviewed schema-only baseline and an offline, production-
+blocked provisioning command emitter, but the separate Supabase staging project
+is not yet provisioned or configured. End-to-end write flows (assessment save,
+subscription management, program draft/publish, workout completion) still require
+owner manual smoke or backend impersonation until the owner applies the baseline
+to a brand-new isolated project and runs the fixture tooling. See
+[RUNBOOK.md](RUNBOOK.md) and [ISSUE_LOG.md](ISSUE_LOG.md) #1–#2.
 
 ## L2 — Automated browser visual smoke may fail (DevTools / localhost limits)
 Automated visual smoke can fail for environment reasons (no authenticated session,
@@ -43,15 +43,20 @@ See root `BUSINESS_MODEL_AUTH_BILLING_PLAN.md`.
 The Athletic lane is an admin-only locked preview (PR #72). It must not be exposed
 to coaches/clients until fully smoked. See [DECISIONS.md](DECISIONS.md) D1/D6.
 
-## L6 — Supabase Preview CI check always fails (baseline gap)
-Non-blocking and expected; do not chase it green. See [NOT_A_BUG.md](NOT_A_BUG.md) #3.
+## L6 — Supabase Preview CI does not consume the staging-only baseline
+The reviewed baseline intentionally sits outside `supabase/migrations/` so a
+normal `db push` can never apply it to production. Automated Supabase Preview
+therefore still cannot reconstruct the historic schema from the 10 no-op markers.
+This remains non-blocking until a separate preview-safe provisioning design is
+approved; do not move the baseline into the migration sequence to chase this
+check green. See [NOT_A_BUG.md](NOT_A_BUG.md) #3.
 
 ## L7 — No markdown lint tooling in the repo
-`package.json` defines only Vite scripts (`dev`/`build`/`preview`); there is no
-markdownlint/prettier dev dependency. Docs are reviewed manually against the
-`clean-code-guard` / documentation-quality standards rather than by a linter.
+There is no markdownlint/prettier dev dependency. Docs are reviewed manually
+against the `clean-code-guard` / documentation-quality standards rather than by
+a linter.
 
-## L8 — Authenticated staging tooling exists but is not provisioned
+## L8 — Authenticated staging foundation exists but is not provisioned
 The Playwright smoke net (P1F-1 — `tests/smoke/`, `.github/workflows/smoke-tests.yml`)
 runs Chromium against the **built** bundle served at the production base `/AST9_HUB/`
 (via `tests/smoke/serve-dist.mjs`), so dev-only (`vite serve`) breakage is out of
@@ -63,9 +68,10 @@ closed on partial configuration, rejects the production project, and blocks
 production Supabase HTTP and WebSocket endpoints. Authenticated CI artifacts are
 not uploaded. P3A-2A adds production-blocked seed/verify/reset commands with
 strict synthetic identities, typed project confirmation, scoped UUID deletion,
-and stable auth users. No staging environment was contacted during implementation.
-P3A-2 write workflows and the video-modal regression remain pending until the
-owner provisions the isolated schema and fixtures.
+and stable auth users. P3A-2B adds the single-use schema baseline, 60-version
+repair manifest, and offline guard; it does not create or configure the remote
+staging project. P3A-2 write workflows and the video-modal regression remain
+pending until the owner provisions the isolated schema and fixtures.
 
 ## L9 — `v_client_subscription_state` has no `cancelled` branch (latent, currently unreachable)
 The effective-state view (`20260530202308_subscription_grace.sql`) maps `pending`
@@ -81,3 +87,10 @@ secondary review of Phase A.
 
 ## L10 — Static authenticated-fixture limitation in Playwright visual verification
 Visual screenshot verification of authenticated platform shells (such as the coach dashboard, objective assessment, and programs views) uses a DOM-only static fixture in Playwright tests (`loginScreen.classList.add('hidden')`, `appScreen.style.display = 'block'`, `body.nc-bright`) without invoking Supabase, auth APIs, or live backend endpoints. Live session state rendering and database-persisted save flows still require owner manual testing in the live application.
+
+## L11 — Staging Edge Functions are not deployed
+The repository contains 12 Edge Functions plus `_shared`, but P3A-2B provisions
+database schema only. Role-routing and PostgREST smoke do not need those functions.
+Program generation and other flows that invoke `generate-program` remain blocked
+until a separate staging function-deployment plan defines function scope, synthetic
+secrets, and proof that no production key is reused.

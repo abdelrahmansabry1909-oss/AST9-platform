@@ -30,6 +30,7 @@ Thumbs.db
 # Transient artifacts produced by Claude Code sessions
 .session-backup-do-not-commit/
 .pr-body.md
+scratch/
 
 # Deno / Supabase CLI transients
 deno.lock
