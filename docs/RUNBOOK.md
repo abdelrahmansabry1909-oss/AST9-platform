@@ -286,12 +286,43 @@ npm run staging:validate  # offline configuration/safety validation; no connecti
 npm run staging:seed      # create/reconcile stable users and deterministic baseline
 npm run staging:verify    # read-only verification of roles, legal state, and access state
 npm run staging:reset     # scoped write-artifact cleanup, reseed, and verification
+npm run staging:authz-subscriptions  # subscription write authorization matrix (P3A-2D1)
 ```
 
 Run `staging:validate` first. Then run `staging:seed` once, followed by
 `staging:verify`. Use `staging:reset` before and after authenticated write-flow
-tests. Output contains role labels only; fixture emails, passwords, URLs, anon
-keys, and service-role keys are not printed.
+tests. Output contains role labels and case names only; fixture emails,
+passwords, URLs, anon keys, service-role keys, and server payloads are not
+printed.
+
+### Subscription write authorization (P3A-2D1)
+
+`staging:authz-subscriptions` proves the subscription write rules at the
+**database** layer. It signs each fixture role in with the **anon** key and calls
+`create_client_subscription` / `update_client_subscription` over PostgREST — the
+same path the browser uses. It never uses the service-role key for an actor,
+because a service-role client bypasses RLS and SECURITY DEFINER authorization
+entirely and would report every case as allowed.
+
+It runs 23 ordered cases covering: admin and assigned-coach writes succeed; a
+coach is refused on an unassigned client; a client cannot self-provision or edit
+their own access; a signed-out caller cannot reach the RPC at all; `cancelled` is
+refused on both RPCs (see L9); only an admin may expire; and every documented
+range check (months, dates, plan-name length, notes length, grace days). Each
+denial asserts the **specific** server message, so a case cannot pass on an
+unrelated failure.
+
+The suite creates extra subscription rows on purpose and therefore always runs
+`reset` afterwards, including after a failure. Run `staging:verify` before it to
+confirm the baseline, and expect the baseline restored when it finishes. Do not
+run it against a project that holds real client data — the mutation boundary and
+typed project confirmation must both pass first.
+
+Browser-level subscription UI coverage is deliberately **not** part of this
+suite. Authorization is proven above, at the layer that enforces it; a UI spec
+would only show what the interface exposes. `AUTH_CREDENTIAL_KEYS` in
+`tests/smoke/staging-target.mjs` still lists four roles, so the unassigned
+fixture is local-tooling only until a browser spec needs it.
 
 The current reset contract covers the P3A-2 write targets only. Its 18 probed
 relations cover workout sessions/logs; program versions, revisions, current
@@ -307,10 +338,11 @@ the seed/reset safety foundation. P3A-2C provisioned a separate Free Nano stagin
 project in Frankfurt, applied the reviewed baseline plus the two forward
 migrations, and seeded and verified the initial four synthetic routing roles.
 P3A-2D0 added the unassigned authorization fixture and verified all five fixtures
-across three consecutive reset cycles. Credentials remain
-Windows-user encrypted outside the repository. P3A-2 browser write flows
-(subscription changes, assessment save, program draft/publish, workout
-completion) remain pending.
+across three consecutive reset cycles. P3A-2D1 adds the database-layer
+subscription write authorization matrix described above. Credentials remain
+Windows-user encrypted outside the repository. Remaining P3A-2 write flows
+(assessment save, program draft/publish, workout completion) and all browser-level
+write specs remain pending.
 
 ### Isolated staging schema baseline (P3A-2B)
 

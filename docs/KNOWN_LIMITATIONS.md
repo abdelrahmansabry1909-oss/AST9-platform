@@ -11,10 +11,13 @@ adds deterministic local seed/verify/reset tooling for stable synthetic accounts
 P3A-2B adds a reviewed schema-only baseline and an offline, production-blocked
 provisioning command emitter. P3A-2C provisioned the separate Free staging project
 and verified authenticated role routing. P3A-2D0 expands the deterministic
-baseline to five synthetic identities and 18 reset relations. End-to-end write
-specs for subscription management, assessment save, and program draft/publish
-remain pending. Workout completion additionally requires the database gate in
-L12. See [RUNBOOK.md](RUNBOOK.md) and [ISSUE_LOG.md](ISSUE_LOG.md) #13.
+baseline to five synthetic identities and 18 reset relations. P3A-2D1 adds a
+database-layer subscription write authorization matrix (`staging:authz-subscriptions`),
+which is owner-run and has not yet been executed against staging. Write specs for
+assessment save and program draft/publish remain pending, as does all
+browser-level write coverage. Workout completion additionally requires the
+database gate in L12. See [RUNBOOK.md](RUNBOOK.md) and
+[ISSUE_LOG.md](ISSUE_LOG.md) #13–#14.
 
 ## L2 — Automated browser visual smoke may fail (DevTools / localhost limits)
 Automated visual smoke can fail for environment reasons (no authenticated session,
@@ -71,8 +74,15 @@ strict synthetic identities, typed project confirmation, scoped UUID deletion,
 and stable auth users. P3A-2B adds the single-use schema baseline, 60-version
 repair manifest, and offline guard. P3A-2C provisioned the isolated Free project;
 P3A-2D0 added the unassigned authorization fixture and deterministic cleanup for
-all currently planned write targets. The write-flow browser specs and the
+all currently planned write targets; P3A-2D1 added the subscription write
+authorization matrix at the database layer. The write-flow browser specs and the
 video-modal regression remain pending.
+
+The isolated staging project lives in a **separate Supabase organization** from
+production. That isolation is deliberate, but it means staging execution evidence
+is owner-attested only: any agent or tool connected to the production
+organization cannot see, reach, or verify the staging project. Treat reported
+staging results as reported, never as independently confirmed.
 
 ## L9 — `v_client_subscription_state` has no `cancelled` branch (latent, currently unreachable)
 The effective-state view (`20260530202308_subscription_grace.sql`) maps `pending`

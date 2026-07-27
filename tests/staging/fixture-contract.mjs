@@ -4,7 +4,13 @@ import {
   readStagingConfig,
 } from '../smoke/staging-target.mjs';
 
-export const STAGING_COMMANDS = Object.freeze(['validate', 'seed', 'verify', 'reset']);
+export const STAGING_COMMANDS = Object.freeze([
+  'validate',
+  'seed',
+  'verify',
+  'reset',
+  'authz-subscriptions',
+]);
 export const SERVICE_ROLE_KEY = 'AST9_E2E_STAGING_SERVICE_ROLE_KEY';
 export const SEED_CONFIRM_KEY = 'AST9_STAGING_SEED_CONFIRM';
 

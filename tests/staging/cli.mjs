@@ -11,6 +11,18 @@ function printSuccess(command, roles) {
   );
 }
 
+// Case names only. Fixture emails, ids, and server payloads are never printed.
+function printCaseOutcomes(command, results) {
+  const allowed = results.filter(({ outcome }) => outcome === 'allowed').length;
+  const denied = results.length - allowed;
+  for (const { name, outcome } of results) {
+    process.stdout.write(`  ${outcome === 'allowed' ? 'allowed' : 'denied '}  ${name}\n`);
+  }
+  process.stdout.write(
+    `Staging ${command} passed ${results.length} cases (${allowed} allowed, ${denied} denied).\n`
+  );
+}
+
 let activeContract = null;
 
 async function run() {
@@ -41,6 +53,17 @@ async function run() {
     const result = await verifyFixtures(contract, client, process.env);
     printSuccess(command, result.roles);
     return;
+  }
+
+  if (command === 'authz-subscriptions') {
+    const { runSubscriptionWriteSuite } = await import('./subscription-writes.mjs');
+    const results = await runSubscriptionWriteSuite(contract, client, process.env);
+    printCaseOutcomes(command, results);
+    return;
+  }
+
+  if (command !== 'reset') {
+    throw new Error(`Staging command has no handler: ${command}`);
   }
 
   const { resetFixtures } = await import('./reset.mjs');

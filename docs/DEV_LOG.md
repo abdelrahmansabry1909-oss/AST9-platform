@@ -427,3 +427,40 @@ Verification legend:
 - **Deferred blocker:** Workout-write coverage remains blocked until a separate
   audited backend migration enforces inactive-client write restrictions at the
   database layer. The current frontend-only gate is not treated as DB security.
+
+---
+
+## P3A-2D1 - Subscription write authorization coverage
+
+- **Date:** 2026-07-27
+- **Scope:** Staging authorization tooling, safety tests, and documentation only.
+  No application source, frontend, migration, RLS, Edge Function, Paymob, or
+  production change. The subscription RPCs are exercised as they already exist.
+- **Approach:** Authorization is proven at the database layer, not through UI
+  reachability. Each fixture role signs in with the **anon** key and calls
+  `create_client_subscription` / `update_client_subscription` over PostgREST.
+  Actor clients never use the service-role key, which would bypass RLS and
+  SECURITY DEFINER authorization and report every case as allowed.
+- **Coverage:** 23 ordered cases. Admin and assigned-coach writes succeed; a
+  coach is refused on the unassigned client; clients cannot self-provision or
+  edit their own access; signed-out callers cannot reach the RPC; `cancelled` is
+  refused on both RPCs (L9); only an admin may expire; every documented range
+  check is asserted. Every denial asserts the specific server message, so no case
+  can pass on an unrelated failure.
+- **Determinism:** The suite creates extra subscription rows deliberately and
+  always runs `reset` afterwards, including after a failure, so the verify
+  baseline is restored.
+- **Defect fixed in passing:** `tests/staging/cli.mjs` previously fell through to
+  `reset` for any command without an explicit branch, so adding a command would
+  have silently run a destructive reset. Unhandled commands now throw.
+- **Verification:** Staging safety tests pass 45/45 and the production build
+  passes, both re-run locally. Two deliberate mutations (dropping a captured id,
+  rewording a denial pattern) were confirmed to fail the new tests, so the
+  ordering and message-contract guards are not vacuous.
+- **Not verified:** No staging execution. The isolated staging project lives in a
+  separate Supabase organization that is not reachable from the available
+  connection, so `staging:authz-subscriptions` is owner-run and owner-attested.
+- **Deliberately deferred:** Browser-level subscription UI coverage, and the
+  `AUTH_CREDENTIAL_KEYS` extension it would require. Adding those keys now would
+  make them mandatory for every authenticated Playwright run before any spec
+  consumes them.

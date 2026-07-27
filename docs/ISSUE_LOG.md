@@ -172,3 +172,23 @@
 - **Remaining:** Design and independently audit a forward migration that enforces
   inactive-client write restrictions in PostgreSQL before P3A-2D4 workout-write
   coverage. Do not represent the frontend takeover screen as database security.
+
+## 14. Subscription write authorization was never proven at the database layer
+- **Symptoms:** Subscription create/edit rules (assigned-coach scoping, admin-only
+  expiry, rejected `cancelled` status, range checks) existed only in the SQL of
+  two SECURITY DEFINER RPCs. No automated test exercised them as a real
+  authenticated caller, so a permission regression would have reached production
+  undetected.
+- **Root cause:** The staging fixture tooling authenticated with the service-role
+  key, which bypasses RLS and SECURITY DEFINER authorization. It could seed and
+  verify state but could not prove who is allowed to change it.
+- **Fix in P3A-2D1:** Added anon-key fixture sign-in and a 23-case authorization
+  matrix run over PostgREST, plus offline tests that pin case ordering, forbid
+  generic denial assertions, and check every asserted message against the
+  `RAISE EXCEPTION` text in the migration that defines the RPCs.
+- **Also fixed:** `tests/staging/cli.mjs` fell through to `reset` for any command
+  lacking an explicit branch; unhandled commands now throw instead of running a
+  destructive cleanup.
+- **Remaining:** Owner must run `staging:authz-subscriptions` against the isolated
+  staging project; it has not been executed. The same database-layer approach is
+  still needed for workout writes, which stay blocked by L12.
