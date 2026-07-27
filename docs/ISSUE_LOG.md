@@ -141,3 +141,19 @@
 - **Fix:** Replaced all 5 remaining `material-symbols-outlined` text spans in `app.html` with 100% native inline `<svg>` elements.
 - **Verified:** Full Playwright smoke and visual verification suites executed with Google Fonts network requests blocked (`context.route(/fonts\.googleapis\.com|fonts\.gstatic\.com/, route => route.abort())`); zero icon text flashes or raw string fallbacks.
 - **Remaining:** None.
+
+## 12. Authenticated smoke used stale client-shell interaction assumptions
+- **Symptoms:** The isolated staging smoke passed admin routing and coach routing,
+  then first timed out while clicking `.logout-icon[title="Sign out"]`. After
+  that was corrected, active-client routing passed but the test waited for the
+  removed `#client-mobile-tabs` ID.
+- **Root cause:** The desktop sidebar intentionally hides footer controls until
+  hover or focus, and the current client shell renamed its tab bar to
+  `#nc-tabbar`. The smoke retained assumptions from the older frontend.
+- **Fix:** Hover `.sidebar` before clicking the existing sign-out control. This is
+  a test-only interaction correction. Assert the attached current `#nc-tabbar`
+  client shell instead of the removed ID. App HTML, CSS, auth, and routing are
+  unchanged.
+- **Verified:** Authenticated staging smoke passes 4/4: admin routing, coach
+  routing plus real logout, active-client routing, and inactive-client takeover.
+- **Remaining:** None.
