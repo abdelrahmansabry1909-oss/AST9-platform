@@ -288,6 +288,7 @@ npm run staging:verify    # read-only verification of roles, legal state, and ac
 npm run staging:reset     # scoped write-artifact cleanup, reseed, and verification
 npm run staging:authz-subscriptions  # subscription write authorization matrix (P3A-2D1)
 npm run staging:authz-system-rpcs    # system-only RPC execution boundaries (P3A-2D1)
+npm run staging:authz-workout-writes # inactive-client workout write gate (L12)
 ```
 
 Run `staging:validate` first. Then run `staging:seed` once, followed by
@@ -344,6 +345,39 @@ suite. Authorization is proven above, at the layer that enforces it; a UI spec
 would only show what the interface exposes. `AUTH_CREDENTIAL_KEYS` in
 `tests/smoke/staging-target.mjs` still lists four roles, so the unassigned
 fixture is local-tooling only until a browser spec needs it.
+
+### Inactive-client workout write gate (L12)
+
+`20260728010000_workout_write_subscription_gate.sql` adds
+`client_has_write_access()` and **RESTRICTIVE** INSERT/UPDATE/DELETE policies on
+`workout_sessions` and `workout_exercise_logs`. Restrictive matters: PostgreSQL
+ANDs those policies with the existing permissive ones, so no coach or admin path
+is modified. A permissive policy here would be OR'd instead and would block
+nothing — the offline suite fails if `AS RESTRICTIVE` is ever dropped.
+
+`SELECT` is deliberately not gated. The locked rule is active/grace → write,
+expired/pending/none → **view only**, so a lapsed client must keep read access to
+their own history; the suite asserts that too.
+
+Apply order, isolated staging only:
+
+```bash
+npm run staging:verify               # baseline intact before the change
+# apply 20260728010000_workout_write_subscription_gate.sql
+npm run staging:authz-workout-writes # 7 cases; must pass before production
+npm run staging:verify               # baseline restored
+```
+
+`staging:authz-workout-writes` proves the block (a lapsed client refused on both
+tables), that nothing else regressed (active client writes, coach and admin write
+for a lapsed client), and that read access survives. Denials must report
+`violates row-level security policy` — do not accept a generic error, and do not
+substitute a UI-reachability assertion. Every case writes real rows, so the suite
+always runs fixture reset afterwards, including after a failure.
+
+Roll back with `supabase/rollbacks/20260728010000_workout_write_subscription_gate_down.sql`,
+which drops only what the migration adds. Rolling back restores the frontend-only
+protection described in L12 — record why if you do.
 
 The current reset contract covers the P3A-2 write targets only. Its 18 probed
 relations cover workout sessions/logs; program versions, revisions, current

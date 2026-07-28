@@ -234,3 +234,19 @@
   manifest so future isolated projects cannot recreate role-grant drift. Do not
   classify every differing ACL as exploitable without examining its internal
   authorization.
+
+## 17. Ownership-only client write policies beyond workout tracking
+- **Symptoms:** L12 work found that `effective_status` appeared in no RLS policy at
+  all. Workout tables are now gated, but several other tables still authorize
+  client writes on `client_id = auth.uid()` alone.
+- **Affected:** `daily_routine_logs`, `progress_logs`, `phase_submissions`,
+  `subjective_assessments`, `client_questions`, `exercise_alternative_requests`,
+  and the legacy `workout_logs` table.
+- **Impact:** A client whose subscription has lapsed can still write to these
+  through direct PostgREST calls. Severity varies by table and none of them is the
+  paid-feature surface workout tracking is, so this was scoped out of L12 rather
+  than bundled into a single large RLS change.
+- **Remaining:** Decide per table whether write access should follow effective
+  subscription state, then extend the same RESTRICTIVE pattern and add cases to
+  `staging:authz-workout-writes` or a sibling command. Do not gate `SELECT`; the
+  locked rule is view-only, not no-access.
