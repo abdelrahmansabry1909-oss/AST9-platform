@@ -562,8 +562,9 @@ Verification legend:
 - **Application mechanism:** Applied as a single Management-API SQL execution of
   that one file, followed by an explicit `schema_migrations` row pinned to
   `20260728010000`. **`supabase db push` was deliberately not used.** Repository
-  filenames and production versions diverged from 2026-06-14 onward: 26 repository
-  versions are absent from production history, and 22 of those are already applied
+  filenames and production versions diverged from 2026-06-14 onward: at the time
+  of this apply, 26 repository versions were absent from production history, and
+  22 of those were already applied
   under different version strings (for example repo `20260710000000` versus
   production `20260710161851`). A version-based push would therefore have replayed
   22 already-live migrations, including the payments foundation and the 152-row

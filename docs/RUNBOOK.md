@@ -402,7 +402,7 @@ database-level verification only.**
 
 > **Do not apply production migrations with `supabase db push` or
 > `supabase migration up`.** Repository filenames and production versions diverged
-> from 2026-06-14 onward: 26 repository versions are absent from production
+> from 2026-06-14 onward: 25 repository versions are absent from production
 > history and 22 of those are already applied under different version strings. A
 > version-based push would replay 22 live migrations, including the payments
 > foundation and the 152-row exercise library. Apply one reviewed file explicitly
