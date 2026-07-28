@@ -172,3 +172,65 @@
 - **Remaining:** Design and independently audit a forward migration that enforces
   inactive-client write restrictions in PostgreSQL before P3A-2D4 workout-write
   coverage. Do not represent the frontend takeover screen as database security.
+
+## 14. Subscription write authorization was never proven at the database layer
+- **Symptoms:** Subscription create/edit rules (assigned-coach scoping, admin-only
+  expiry, rejected `cancelled` status, range checks) existed only in the SQL of
+  two SECURITY DEFINER RPCs. No automated test exercised them as a real
+  authenticated caller, so a permission regression would have reached production
+  undetected.
+- **Root cause:** The staging fixture tooling authenticated with the service-role
+  key, which bypasses RLS and SECURITY DEFINER authorization. It could seed and
+  verify state but could not prove who is allowed to change it.
+- **Fix in P3A-2D1:** Added anon-key fixture sign-in and a 23-case authorization
+  matrix run over PostgREST, plus offline tests that pin case ordering, forbid
+  generic denial assertions, and check every asserted message against the
+  `RAISE EXCEPTION` text in the migration that defines the RPCs.
+- **Also fixed:** `tests/staging/cli.mjs` fell through to `reset` for any command
+  lacking an explicit branch; unhandled commands now throw instead of running a
+  destructive cleanup.
+- **Live result:** The first isolated-staging run passed 22/23 cases. Every
+  unauthorized write was denied, but the signed-out case exposed the ACL drift
+  tracked in issue #15.
+- **Remaining:** Correct and rerun the signed-out execution boundary. The same
+  database-layer approach is still needed for workout writes, which stay blocked
+  by L12.
+
+## 15. Isolated staging baseline lost security-critical function revocations
+- **Symptoms:** A signed-out caller reached `create_client_subscription` and was
+  rejected by its internal coach/admin check, instead of being blocked at
+  function execution.
+- **Impact:** No unauthorized subscription write occurred. The same baseline
+  pattern also affected the paid-package application RPC and global
+  stale-workout sweep, whose ACL is their primary caller boundary.
+- **Root cause:** The schema baseline revokes the RPCs from `PUBLIC` and grants
+  trusted roles, but does not explicitly revoke Supabase's `anon` role. The
+  historical migration did, and that body is not replayed when the isolated
+  project is provisioned from the baseline.
+- **Fix applied to staging:** A forward migration reasserts `PUBLIC`/`anon` revocation on
+  both subscription RPCs while preserving `authenticated`/`service_role`
+  execution. It separately revokes `PUBLIC`/`anon`/`authenticated` from the two
+  system-only RPCs and preserves `service_role`. Offline tests pin all four exact
+  signatures and grant sets.
+- **Verification:** The corrected subscription matrix passed 24/24. Separate
+  execution probes proved both system RPCs reject `anon` and authenticated
+  callers, followed by successful fixture reset and five-role verification.
+- **Durable control:** `staging:authz-system-rpcs` commits those four execution
+  checks and guarantees reset after success or failure. Its isolated-staging run
+  passed 4/4, followed by successful five-role verification.
+- **Remaining:** Re-audit and merge the durable command and atomic migration
+  wrapper before closing this issue.
+
+## 16. Baseline function ACL fidelity needs a complete inventory
+- **Symptoms:** The P3A-2D1 correction audit found many baseline function ACL
+  entries that revoke `PUBLIC` without retaining explicit `anon` or
+  `authenticated` revocations from their historical migrations.
+- **Current containment:** The four security-critical RPCs identified during this
+  gate are covered by a forward migration and offline ACL guards. Production
+  already has the intended grants.
+- **Remaining:** Perform a dedicated function-by-function inventory comparing
+  baseline ACLs, historical migrations, SECURITY DEFINER bodies, and intended
+  caller roles. Correct baseline generation or add a reviewed post-baseline ACL
+  manifest so future isolated projects cannot recreate role-grant drift. Do not
+  classify every differing ACL as exploitable without examining its internal
+  authorization.

@@ -427,3 +427,78 @@ Verification legend:
 - **Deferred blocker:** Workout-write coverage remains blocked until a separate
   audited backend migration enforces inactive-client write restrictions at the
   database layer. The current frontend-only gate is not treated as DB security.
+
+---
+
+## P3A-2D1 - Subscription write authorization coverage
+
+- **Date:** 2026-07-27
+- **Scope:** Staging authorization tooling, safety tests, and documentation only.
+  No application source, frontend, migration, RLS, Edge Function, Paymob, or
+  production change. The subscription RPCs are exercised as they already exist.
+- **Approach:** Authorization is proven at the database layer, not through UI
+  reachability. Each fixture role signs in with the **anon** key and calls
+  `create_client_subscription` / `update_client_subscription` over PostgREST.
+  Actor clients never use the service-role key, which would bypass RLS and
+  SECURITY DEFINER authorization and report every case as allowed.
+- **Coverage:** Initially 23 ordered cases, now 24 after adding separate
+  signed-out execution checks for both RPCs. Admin and assigned-coach writes succeed; a
+  coach is refused on the unassigned client; clients cannot self-provision or
+  edit their own access; signed-out callers cannot reach the RPC; `cancelled` is
+  refused on both RPCs (L9); only an admin may expire; every documented range
+  check is asserted. Every denial asserts the specific server message, so no case
+  can pass on an unrelated failure.
+- **Determinism:** The suite creates extra subscription rows deliberately and
+  always runs `reset` afterwards, including after a failure, so the verify
+  baseline is restored.
+- **Defect fixed in passing:** `tests/staging/cli.mjs` previously fell through to
+  `reset` for any command without an explicit branch, so adding a command would
+  have silently run a destructive reset. Unhandled commands now throw.
+- **Verification:** Staging safety tests pass 45/45 and the production build
+  passes, both re-run locally. Two deliberate mutations (dropping a captured id,
+  rewording a denial pattern) were confirmed to fail the new tests, so the
+  ordering and message-contract guards are not vacuous.
+- **Live staging result (2026-07-28):** Validation and the initial five-role
+  baseline verification passed. The matrix passed 22/23 cases. The signed-out
+  create was denied by the RPC's internal role check, but reached the SECURITY
+  DEFINER function instead of receiving PostgreSQL's function-permission denial.
+  The suite restored fixtures in `finally`, and a separate post-failure
+  `staging:verify` passed for all five roles.
+- **Deliberately deferred:** Browser-level subscription UI coverage, and the
+  `AUTH_CREDENTIAL_KEYS` extension it would require. Adding those keys now would
+  make them mandatory for every authenticated Playwright run before any spec
+  consumes them.
+
+## P3A-2D1 follow-up - Security-critical RPC execute ACL hardening
+
+- **Date:** 2026-07-28
+- **Root cause:** The schema baseline records production's effective ACLs but
+  omits explicit browser-role revocations that matter on a fresh Supabase
+  project, where default privileges can grant function execution. Historical
+  migration bodies contain the correct revocations but are not replayed after
+  baseline provisioning and migration-history repair.
+- **Correction:** Added a forward migration that revokes both subscription RPCs
+  from `PUBLIC` and `anon`, then explicitly preserves `authenticated` and
+  `service_role` execution. The same migration revokes `PUBLIC`, `anon`, and
+  `authenticated` from the paid-package application RPC and global stale-workout
+  sweep, preserving `service_role` only. Those system RPCs have no caller-JWT
+  authorization and depend on their ACL. Offline tests pin all four complete
+  signatures and their intended grants.
+- **Safety:** No unauthorized subscription was created. No production target was
+  contacted or modified.
+- **Staging proof:** The linked target matched the encrypted staging
+  configuration, and the dry run listed only this migration. Apply succeeded.
+  `validate -> verify -> authz-subscriptions -> verify` then passed, including
+  all 24 subscription cases. Four execution probes confirmed both system RPCs
+  reject `anon` and authenticated callers at function permission. Fixture reset
+  and the final five-role verification passed afterward.
+- **Durable control:** Added `staging:authz-system-rpcs`, which preserves the same
+  four execution-level checks and always resets fixtures after the probe.
+  Wrapped the migration in `BEGIN`/`COMMIT` so SQL-editor or Management-API
+  application cannot leave a partial ACL. The committed-form command passed 4/4
+  on isolated staging, followed by a successful five-role verification.
+- **Remaining gate:** Re-audit the durable command and transaction wrapper,
+  rerun its committed form, then push the corrected PR head. No merge yet.
+- **PR/CI evidence:** Head `d74e181` was pushed after Claude approval. Playwright
+  smoke passed. Supabase Preview skipped despite the migration, so it provided
+  no preview-database ACL evidence; the PR and RUNBOOK state that explicitly.

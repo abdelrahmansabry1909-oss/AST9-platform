@@ -11,10 +11,17 @@ adds deterministic local seed/verify/reset tooling for stable synthetic accounts
 P3A-2B adds a reviewed schema-only baseline and an offline, production-blocked
 provisioning command emitter. P3A-2C provisioned the separate Free staging project
 and verified authenticated role routing. P3A-2D0 expands the deterministic
-baseline to five synthetic identities and 18 reset relations. End-to-end write
-specs for subscription management, assessment save, and program draft/publish
-remain pending. Workout completion additionally requires the database gate in
-L12. See [RUNBOOK.md](RUNBOOK.md) and [ISSUE_LOG.md](ISSUE_LOG.md) #13.
+baseline to five synthetic identities and 18 reset relations. P3A-2D1 adds a
+database-layer subscription write authorization matrix (`staging:authz-subscriptions`),
+whose first staging run exposed an `anon` EXECUTE grant drift. After the forward
+ACL-hardening migration, the corrected matrix passed 24/24 and both system-only
+RPC boundaries rejected `anon` and authenticated probes. Durable system-RPC
+execution coverage is prepared in the current P3A-2D1 branch but remains
+unmerged. Write specs for assessment save and program draft/publish remain
+pending, as does all
+browser-level write coverage. Workout completion additionally requires the
+database gate in L12. See [RUNBOOK.md](RUNBOOK.md) and
+[ISSUE_LOG.md](ISSUE_LOG.md) #13–#15.
 
 ## L2 — Automated browser visual smoke may fail (DevTools / localhost limits)
 Automated visual smoke can fail for environment reasons (no authenticated session,
@@ -71,8 +78,19 @@ strict synthetic identities, typed project confirmation, scoped UUID deletion,
 and stable auth users. P3A-2B adds the single-use schema baseline, 60-version
 repair manifest, and offline guard. P3A-2C provisioned the isolated Free project;
 P3A-2D0 added the unassigned authorization fixture and deterministic cleanup for
-all currently planned write targets. The write-flow browser specs and the
-video-modal regression remain pending.
+all currently planned write targets; P3A-2D1 added the subscription write
+authorization matrix at the database layer. Its first live run denied every
+unauthorized write but exposed that signed-out callers could enter the
+subscription SECURITY DEFINER RPC before its internal role check. The ACL
+hardening is applied to staging; the 24/24 rerun and four system-RPC boundary
+probes passed. The durable system-RPC command remains unmerged. The write-flow
+browser specs and the video-modal regression remain pending.
+
+The isolated staging project lives in a **separate Supabase organization** from
+production. That isolation is deliberate, but it means staging execution evidence
+is owner-attested only: any agent or tool connected to the production
+organization cannot see, reach, or verify the staging project. Treat reported
+staging results as reported, never as independently confirmed.
 
 ## L9 — `v_client_subscription_state` has no `cancelled` branch (latent, currently unreachable)
 The effective-state view (`20260530202308_subscription_grace.sql`) maps `pending`
@@ -103,3 +121,14 @@ only. An authenticated inactive client could submit a direct PostgREST write.
 P3A-2D4 workout-write coverage is blocked until a separately reviewed forward
 migration adds database-level effective-subscription enforcement. Do not weaken
 the test to assert only UI reachability and describe it as database security.
+
+## L13 - Baseline function ACL fidelity audit remains pending
+Fresh Supabase projects can inherit explicit function execution grants from
+platform default privileges. The production schema baseline records effective
+production ACLs, but some entries retain only `REVOKE FROM PUBLIC` and therefore
+do not reproduce historical `anon` or `authenticated` revocations on an isolated
+project. P3A-2D1 hardens the four security-critical RPCs identified at its gate:
+subscription create/update, paid-package application, and global stale-workout
+expiry. A dedicated inventory of all remaining function ACLs is still required.
+Do not assume every baseline difference is exploitable; compare intended caller
+roles and internal authorization function by function.
