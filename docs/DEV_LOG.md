@@ -553,8 +553,39 @@ Verification legend:
   `staging:authz-workout-writes` passed 7/7 cases with the required split:
   5 allowed and 2 denied. Post-run fixture verification passed for admin, coach,
   active client, inactive client, and unassigned client.
-- **Production status:** Not applied. PR #134 remains unmerged pending final
-  review of this staging evidence.
+- **Production status:** Applied 2026-07-28 under explicit owner approval, after
+  PR #134 merged as `e775de5`. Registered as version `20260728010000`, the 64th
+  migration row.
+- **Application mechanism:** Applied as a single Management-API SQL execution of
+  that one file, followed by an explicit `schema_migrations` row pinned to
+  `20260728010000`. **`supabase db push` was deliberately not used.** Repository
+  filenames and production versions diverged from 2026-06-14 onward: 26 repository
+  versions are absent from production history, and 22 of those are already applied
+  under different version strings (for example repo `20260710000000` versus
+  production `20260710161851`). A version-based push would therefore have replayed
+  22 already-live migrations, including the payments foundation and the 152-row
+  exercise library. The local CLI stayed linked to isolated staging throughout.
+  Only the outer `BEGIN;`/`COMMIT;` were removed from the submitted payload,
+  because the execution channel supplies transaction semantics; the committed
+  migration file is unchanged.
+- **Production verification:** Version row exactly 1. `client_has_write_access` is
+  SECURITY DEFINER, STABLE, with `search_path=public, pg_temp`. `anon` cannot
+  execute it; `authenticated` and `service_role` can. Policy counts: 6 RESTRICTIVE
+  (INSERT/UPDATE/DELETE on both tables), 5 pre-existing PERMISSIVE retained,
+  0 RESTRICTIVE `SELECT` or `ALL`. Behavioral probes ran as impersonated roles
+  inside rolled-back transactions: lapsed-client session insert denied `42501`;
+  lapsed-client log insert into a session created while active denied `42501`;
+  lapsed-client read returned their history; active-client insert allowed;
+  assigned-coach insert for their client allowed. Session and log row counts were
+  unchanged afterwards and no probe row persisted. Security advisors reported no
+  new ERROR-level finding — `client_has_write_access` appears only under the
+  signed-in SECURITY DEFINER lint, not the anon one, which is the intended grant.
+- **Honesty note:** Real authenticated smoke was not performed. Production
+  verification was database-level only.
+- **Measured impact:** Of 5 client profiles, 4 resolve to `active` and retain
+  write access. Exactly 1 has no subscription row, resolves to `none`, and newly
+  loses write access with 0 open active sessions — the intended rule, measured
+  before the apply rather than discovered after.
 - **Scoped out:** The same ownership-only pattern on `daily_routine_logs`,
   `progress_logs`, `phase_submissions`, `subjective_assessments`,
   `client_questions`, `exercise_alternative_requests`, and legacy `workout_logs`.
