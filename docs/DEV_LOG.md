@@ -494,9 +494,12 @@ Verification legend:
   and the final five-role verification passed afterward.
 - **Durable control:** Added `staging:authz-system-rpcs`, which preserves the same
   four execution-level checks and always resets fixtures after the probe.
-  Wrapped the migration in `BEGIN`/`COMMIT` so SQL-editor or Management-API
-  application cannot leave a partial ACL. The committed-form command passed 4/4
-  on isolated staging, followed by a successful five-role verification.
+  Wrapped the migration in `BEGIN`/`COMMIT` for channels that execute the file
+  directly. The Management API transaction model was not independently proven;
+  future applies must verify the channel model and avoid nesting transaction
+  wrappers. The committed-form command passed 4/4 on isolated staging, followed
+  by a successful five-role verification, and structural checks found no partial
+  ACL state.
 - **Remaining gate:** Re-audit the durable command and transaction wrapper,
   rerun its committed form, then push the corrected PR head. No merge yet.
 - **PR/CI evidence:** Head `d74e181` was pushed after Claude approval. Playwright

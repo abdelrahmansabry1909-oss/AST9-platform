@@ -263,22 +263,25 @@
   locked rule is view-only, not no-access.
 
 ## 18. Repository migration versions diverged from production history
-- **Symptoms:** Found during the L12 production-apply readiness audit. 26
-  repository migration versions are absent from production's migration history,
-  but 22 of them are **already applied** under different version strings. The
-  repository uses rounded timestamps; production recorded actual apply times — for
-  example repo `20260614000000_coach_packages_foundation` versus production
-  `20260614080301`, and repo `20260710000000_client_subscription_management`
-  versus production `20260710161851`. The filenames match; only the versions differ.
+- **Symptoms:** The L12 production-apply readiness audit initially found 26
+  repository migration versions absent from production history. L12 itself was
+  the 26th and is now correctly registered as `20260728010000`, leaving **25**
+  absent repository versions. Of those, 22 are already applied under different
+  version strings. The repository uses rounded timestamps; production recorded
+  actual apply times — for example repo
+  `20260614000000_coach_packages_foundation` versus production `20260614080301`,
+  and repo `20260710000000_client_subscription_management` versus production
+  `20260710161851`. The filenames match; only the versions differ.
 - **Impact:** `supabase db push` and `supabase migration up` select work by
-  version, so both would treat all 26 as pending and replay 22 already-live
+  version, so both would treat all 25 as pending and replay 22 already-live
   migrations, including the provider-neutral payments foundation, the 152-row
   system exercise library, and client subscription management. Not all are
   idempotent. This is a production-incident path, not merely a slow one.
 - **Containment:** L12 was applied as a single explicit statement plus a pinned
-  `schema_migrations` row, never via a version-based push. Nothing was repaired,
-  because repairing 22 versions is a separate reviewed change.
-- **Genuinely unapplied:** Only 3 other repository migrations are truly absent
+  `schema_migrations` row and is now correctly registered, never via a
+  version-based push. Nothing else was repaired because reconciling the remaining
+  25 versions is a separate reviewed change.
+- **Genuinely unapplied:** The remaining 3 repository migrations are truly absent
   from production — `20260727000000_auth_user_trigger`,
   `20260727000100_legal_documents_reference_data`, and
   `20260728000000_rpc_execute_acl_hardening`. All three were verified to be no-ops
@@ -286,7 +289,8 @@
   document rows already exist, and all four hardened RPC ACLs already match the
   intended grants (`anon` execute counts are 0). They need reconciliation, not
   application.
-- **Remaining:** Reconcile the 22 divergent entries with
-  `supabase migration repair --status applied <version>` per version, as a
-  reviewed task, then re-audit. Until then, treat any version-based push against
-  production as unsafe.
+- **Remaining:** Design and review a reconciliation for all 25 absent repository
+  versions: map the 22 already-live migrations to their historical production
+  versions and separately account for the 3 equivalent/no-op migrations. Do not
+  run `migration repair` until that mapping and its rollback are audited. Until
+  then, treat any version-based push against production as unsafe.
