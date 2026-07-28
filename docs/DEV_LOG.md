@@ -502,3 +502,60 @@ Verification legend:
 - **PR/CI evidence:** Head `d74e181` was pushed after Claude approval. Playwright
   smoke passed. Supabase Preview skipped despite the migration, so it provided
   no preview-database ACL evidence; the PR and RUNBOOK state that explicitly.
+
+---
+
+## L12 - Database-level workout write gate
+
+- **Date:** 2026-07-28
+- **Scope:** One forward migration, its rollback, a durable staging command, and
+  offline guards. No application source, frontend, Edge Function, Paymob, or
+  production configuration change.
+- **Problem:** `workout_sessions_client_own` authorized client writes on ownership
+  alone, and `effective_status` appeared in **no** policy anywhere in the schema.
+  The inactive-subscription takeover was frontend-only, so a lapsed client could
+  write workout sessions and logs through direct PostgREST calls.
+- **Design:** RESTRICTIVE policies, which PostgreSQL ANDs with the existing
+  permissive ones. No existing policy is modified, so coach and admin paths cannot
+  regress and the rollback drops only what the migration adds. A permissive policy
+  would have been OR'd instead and would block nothing; the offline suite fails if
+  `AS RESTRICTIVE` is dropped.
+- **Deliberate non-goals:** `SELECT` is not gated, preserving view-only access for
+  a lapsed client. Coach and admin writes on behalf of a lapsed client are
+  unchanged; the suite asserts this so narrowing it stays a decision, not an
+  accident.
+- **Behavior change:** a client with **no** subscription row loses write access.
+  This matches the locked rule (none -> view only) and the login gate, but it is a
+  change and is recorded here rather than discovered.
+- **Coverage:** `staging:authz-workout-writes` runs 7 cases - lapsed client refused
+  on both gated tables, active client still writes to both, coach and admin still
+  write for a lapsed client, and the lapsed client keeps read access. Denials must
+  report `violates row-level security policy`.
+- **Audit correction:** the admin probe inserts a `completed` session because the
+  coach probe already occupies the partial unique index permitting one active
+  session per client. The denied lapsed-client probe also uses `completed`, so a
+  missing RLS gate reports an unexpected successful write rather than a
+  unique-index error. The suite resets fixtures before and after execution so an
+  interrupted prior run cannot create a false authorization failure.
+- **Deliberate RPC exception:** `expire_my_stale_workout_sessions()` remains
+  callable by authenticated users. As a SECURITY DEFINER maintenance path it is
+  outside the table RLS gate, but it can only abandon already-stale manageable
+  sessions; it cannot create workout sessions or exercise logs. L12 therefore
+  claims protection for direct table writes and normal workout write flows, not
+  removal of every lifecycle RPC.
+- **Verification:** Offline suite 65/65 and the production build pass, both re-run
+  locally. Seven deliberate mutations were each confirmed to fail the guards,
+  including turning the policies permissive, gating SELECT, dropping the logs
+  gate, weakening the anon revoke, weakening the denial regex, resetting only on
+  success, and flipping the lapsed denial to allowed.
+- **Staging verification:** Applied only to the isolated staging project on
+  2026-07-28. Migration history registered `20260728010000` as the 64th row.
+  `staging:authz-workout-writes` passed 7/7 cases with the required split:
+  5 allowed and 2 denied. Post-run fixture verification passed for admin, coach,
+  active client, inactive client, and unassigned client.
+- **Production status:** Not applied. PR #134 remains unmerged pending final
+  review of this staging evidence.
+- **Scoped out:** The same ownership-only pattern on `daily_routine_logs`,
+  `progress_logs`, `phase_submissions`, `subjective_assessments`,
+  `client_questions`, `exercise_alternative_requests`, and legacy `workout_logs`.
+  Tracked as ISSUE_LOG #17.

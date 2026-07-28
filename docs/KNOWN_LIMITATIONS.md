@@ -114,13 +114,45 @@ Program generation and other flows that invoke `generate-program` remain blocked
 until a separate staging function-deployment plan defines function scope, synthetic
 secrets, and proof that no production key is reused.
 
-## L12 — Inactive-client write protection is frontend-only
-The inactive-subscription takeover prevents protected workout actions through the
-normal UI, but `workout_sessions_client_own` authorizes writes by client ownership
-only. An authenticated inactive client could submit a direct PostgREST write.
-P3A-2D4 workout-write coverage is blocked until a separately reviewed forward
-migration adds database-level effective-subscription enforcement. Do not weaken
-the test to assert only UI reachability and describe it as database security.
+## L12 — Inactive-client write protection: staging proven, production pending
+The inactive-subscription takeover prevented protected workout actions through the
+normal UI only. `workout_sessions_client_own` authorized writes by client ownership
+alone, and no policy in the schema referenced effective subscription state, so an
+authenticated client whose access had lapsed could submit a direct PostgREST write.
+
+`20260728010000_workout_write_subscription_gate.sql` closes this by adding
+`client_has_write_access()` plus **RESTRICTIVE** INSERT/UPDATE/DELETE policies on
+`workout_sessions` and `workout_exercise_logs`. Existing permissive policies are
+untouched, so coach and admin paths cannot regress, and the rollback drops only
+what the migration adds. `SELECT` is deliberately not gated: the locked rule is
+active/grace → write, expired/pending/none → **view only**.
+
+This gate applies to direct table INSERT/UPDATE/DELETE operations and normal
+workout creation/logging paths. It deliberately does not revoke
+`expire_my_stale_workout_sessions()`: that authenticated SECURITY DEFINER
+maintenance RPC may mark only the caller's own already-stale active sessions as
+`abandoned` (or sessions the caller may manage as staff). It cannot create a
+session, add exercise logs, or grant paid-feature value. Keeping stale-session
+cleanup available prevents lapsed clients from being left with permanently open
+sessions; treat it as a narrow lifecycle exception, not proof that every
+client-callable RPC is covered by the table policies.
+
+The migration was applied to the isolated staging project on 2026-07-28 and is
+registered as migration `20260728010000`. The authenticated database matrix passed
+all 7 cases: 5 allowed and 2 denied. Active clients retained session/log writes;
+coach and admin writes for a lapsed client remained allowed; lapsed-client
+session/log writes were denied by RLS; and lapsed-client read access survived.
+Fixture verification passed after the suite reset. Production remains unchanged,
+so this protection is staging-proven but not yet deployed.
+
+Coach and admin writes on behalf of a lapsed client remain allowed — that is
+existing product behavior, deliberately preserved, and is asserted by the suite so
+a future change is a decision rather than an accident.
+
+The same ownership-only pattern still exists on `daily_routine_logs`,
+`progress_logs`, `phase_submissions`, `subjective_assessments`, `client_questions`,
+`exercise_alternative_requests`, and the legacy `workout_logs` table. Those were
+scoped out of this change; see [ISSUE_LOG.md](ISSUE_LOG.md) #17.
 
 ## L13 - Baseline function ACL fidelity audit remains pending
 Fresh Supabase projects can inherit explicit function execution grants from

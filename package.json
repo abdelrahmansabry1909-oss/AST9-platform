@@ -10,14 +10,15 @@
     "test:smoke:public": "playwright test --project=public",
     "test:smoke:staging": "playwright test --project=authenticated",
     "test:unit:staging-fixtures": "node --test tests/unit/fixture-contract.test.js",
-    "test:unit:staging-safety": "node --test tests/unit/staging-target.test.js tests/unit/fixture-contract.test.js tests/unit/provision-guard.test.js tests/unit/subscription-writes.test.js tests/unit/system-rpc-boundaries.test.js",
+    "test:unit:staging-safety": "node --test tests/unit/staging-target.test.js tests/unit/fixture-contract.test.js tests/unit/provision-guard.test.js tests/unit/subscription-writes.test.js tests/unit/system-rpc-boundaries.test.js tests/unit/workout-write-gate.test.js",
     "staging:provision-check": "node scripts/staging-provision.mjs --check",
     "staging:validate": "node tests/staging/cli.mjs validate",
     "staging:seed": "node tests/staging/cli.mjs seed",
     "staging:verify": "node tests/staging/cli.mjs verify",
     "staging:reset": "node tests/staging/cli.mjs reset",
     "staging:authz-subscriptions": "node tests/staging/cli.mjs authz-subscriptions",
-    "staging:authz-system-rpcs": "node tests/staging/cli.mjs authz-system-rpcs"
+    "staging:authz-system-rpcs": "node tests/staging/cli.mjs authz-system-rpcs",
+    "staging:authz-workout-writes": "node tests/staging/cli.mjs authz-workout-writes"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.0",

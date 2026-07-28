@@ -69,6 +69,13 @@ async function run() {
     return;
   }
 
+  if (command === 'authz-workout-writes') {
+    const { runWorkoutGateSuite } = await import('./workout-write-gate.mjs');
+    const results = await runWorkoutGateSuite(contract, client, process.env);
+    printCaseOutcomes(command, results);
+    return;
+  }
+
   if (command !== 'reset') {
     throw new Error(`Staging command has no handler: ${command}`);
   }
