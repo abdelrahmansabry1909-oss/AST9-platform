@@ -309,6 +309,15 @@ the signed-out call was denied by the RPC's internal authorization, but reached
 the SECURITY DEFINER function because `anon` retained `EXECUTE`. Do not weaken
 the expected `permission denied for function` assertion. Apply the audited
 forward ACL-hardening migration, then rerun the full sequence; 24/24 is required.
+Also use non-mutating calls to prove `anon` and an authenticated fixture receive
+function-permission denial from both `apply_paid_coach_package_period_system` and
+`expire_stale_workout_sessions_all`. Do not supply valid payment or workout
+mutation inputs for these execution-boundary probes.
+
+Because this correction adds a file under `supabase/migrations/`, Supabase
+Preview CI will run instead of skip. L6 documents the known historical-baseline
+reconstruction gap, so that check may fail for the existing non-blocking reason;
+review its log and do not describe an unrelated failure as proof of this ACL.
 
 It runs 24 ordered cases covering: admin and assigned-coach writes succeed; a
 coach is refused on an unassigned client; a client cannot self-provision or edit

@@ -469,19 +469,25 @@ Verification legend:
   make them mandatory for every authenticated Playwright run before any spec
   consumes them.
 
-## P3A-2D1 follow-up - Subscription RPC anonymous-execute hardening
+## P3A-2D1 follow-up - Security-critical RPC execute ACL hardening
 
 - **Date:** 2026-07-28
-- **Root cause:** The schema baseline revokes these RPCs from `PUBLIC` but did not
-  explicitly revoke Supabase's `anon` role. The historical migration contains
-  that explicit revoke, but isolated provisioning from the baseline does not
-  replay the historical migration body.
+- **Root cause:** The schema baseline records production's effective ACLs but
+  omits explicit browser-role revocations that matter on a fresh Supabase
+  project, where default privileges can grant function execution. Historical
+  migration bodies contain the correct revocations but are not replayed after
+  baseline provisioning and migration-history repair.
 - **Correction:** Added a forward migration that revokes both subscription RPCs
   from `PUBLIC` and `anon`, then explicitly preserves `authenticated` and
-  `service_role` execution. Added an offline contract test for both complete
-  signatures and both sides of the ACL.
+  `service_role` execution. The same migration revokes `PUBLIC`, `anon`, and
+  `authenticated` from the paid-package application RPC and global stale-workout
+  sweep, preserving `service_role` only. Those system RPCs have no caller-JWT
+  authorization and depend on their ACL. Offline tests pin all four complete
+  signatures and their intended grants.
 - **Safety:** No unauthorized subscription was created. No production target was
   contacted or modified.
 - **Pending proof:** Claude audit, isolated-staging migration apply, then
   `validate -> verify -> authz-subscriptions -> verify`. The corrected matrix now
   contains 24 cases, so P3A-2D1 is not merge-ready until the rerun is 24/24.
+  Non-mutating execution probes must also confirm both system RPCs reject `anon`
+  and `authenticated`.

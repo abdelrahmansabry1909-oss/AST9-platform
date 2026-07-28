@@ -183,7 +183,7 @@ test('both RPC names exist in the migration that defines them', () => {
 test('forward hardening denies anon RPC execution and preserves trusted grants', () => {
   const migration = readFileSync(
     new URL(
-      '../../supabase/migrations/20260728000000_subscription_rpc_anon_execute_hardening.sql',
+      '../../supabase/migrations/20260728000000_rpc_execute_acl_hardening.sql',
       import.meta.url
     ),
     'utf8'
@@ -205,6 +205,35 @@ test('forward hardening denies anon RPC execution and preserves trusted grants',
         `GRANT EXECUTE ON FUNCTION public\\.${signature} TO authenticated, service_role;`,
         'i'
       )
+    );
+  }
+});
+
+test('forward hardening keeps system-only RPCs inaccessible to browser roles', () => {
+  const migration = readFileSync(
+    new URL(
+      '../../supabase/migrations/20260728000000_rpc_execute_acl_hardening.sql',
+      import.meta.url
+    ),
+    'utf8'
+  ).replace(/\s+/g, ' ');
+
+  const paymentSignature =
+    'apply_paid_coach_package_period_system\\( text, text, uuid, text, integer, '
+    + 'timestamptz, timestamptz, integer, text, text, text, jsonb \\)';
+  const expirySignature = 'expire_stale_workout_sessions_all\\(\\)';
+
+  for (const signature of [paymentSignature, expirySignature]) {
+    assert.match(
+      migration,
+      new RegExp(
+        `REVOKE ALL ON FUNCTION public\\.${signature} FROM PUBLIC, anon, authenticated;`,
+        'i'
+      )
+    );
+    assert.match(
+      migration,
+      new RegExp(`GRANT EXECUTE ON FUNCTION public\\.${signature} TO service_role;`, 'i')
     );
   }
 });

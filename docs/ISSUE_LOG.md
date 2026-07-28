@@ -196,19 +196,37 @@
   database-layer approach is still needed for workout writes, which stay blocked
   by L12.
 
-## 15. Isolated staging baseline left subscription RPCs executable by `anon`
+## 15. Isolated staging baseline lost security-critical function revocations
 - **Symptoms:** A signed-out caller reached `create_client_subscription` and was
   rejected by its internal coach/admin check, instead of being blocked at
   function execution.
-- **Impact:** No unauthorized write occurred, but one intended defense-in-depth
-  boundary was absent in isolated staging.
+- **Impact:** No unauthorized subscription write occurred. The same baseline
+  pattern also affected the paid-package application RPC and global
+  stale-workout sweep, whose ACL is their primary caller boundary.
 - **Root cause:** The schema baseline revokes the RPCs from `PUBLIC` and grants
   trusted roles, but does not explicitly revoke Supabase's `anon` role. The
   historical migration did, and that body is not replayed when the isolated
   project is provisioned from the baseline.
 - **Fix prepared:** A forward migration reasserts `PUBLIC`/`anon` revocation on
   both subscription RPCs while preserving `authenticated`/`service_role`
-  execution. An offline test pins the exact signatures and grants.
+  execution. It separately revokes `PUBLIC`/`anon`/`authenticated` from the two
+  system-only RPCs and preserves `service_role`. Offline tests pin all four exact
+  signatures and grant sets.
 - **Remaining:** Claude audit, isolated-staging migration apply, and a complete
   24/24 authorization rerun are required before this issue is closed. The new
-  case separately verifies signed-out execution of the update RPC.
+  case separately verifies signed-out execution of the update RPC. Non-mutating
+  probes must also prove both system RPCs reject `anon` and `authenticated`.
+
+## 16. Baseline function ACL fidelity needs a complete inventory
+- **Symptoms:** The P3A-2D1 correction audit found many baseline function ACL
+  entries that revoke `PUBLIC` without retaining explicit `anon` or
+  `authenticated` revocations from their historical migrations.
+- **Current containment:** The four security-critical RPCs identified during this
+  gate are covered by a forward migration and offline ACL guards. Production
+  already has the intended grants.
+- **Remaining:** Perform a dedicated function-by-function inventory comparing
+  baseline ACLs, historical migrations, SECURITY DEFINER bodies, and intended
+  caller roles. Correct baseline generation or add a reviewed post-baseline ACL
+  manifest so future isolated projects cannot recreate role-grant drift. Do not
+  classify every differing ACL as exploitable without examining its internal
+  authorization.

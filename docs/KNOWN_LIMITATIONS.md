@@ -119,3 +119,14 @@ only. An authenticated inactive client could submit a direct PostgREST write.
 P3A-2D4 workout-write coverage is blocked until a separately reviewed forward
 migration adds database-level effective-subscription enforcement. Do not weaken
 the test to assert only UI reachability and describe it as database security.
+
+## L13 - Baseline function ACL fidelity audit remains pending
+Fresh Supabase projects can inherit explicit function execution grants from
+platform default privileges. The production schema baseline records effective
+production ACLs, but some entries retain only `REVOKE FROM PUBLIC` and therefore
+do not reproduce historical `anon` or `authenticated` revocations on an isolated
+project. P3A-2D1 hardens the four security-critical RPCs identified at its gate:
+subscription create/update, paid-package application, and global stale-workout
+expiry. A dedicated inventory of all remaining function ACLs is still required.
+Do not assume every baseline difference is exploitable; compare intended caller
+roles and internal authorization function by function.
