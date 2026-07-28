@@ -499,3 +499,6 @@ Verification legend:
   on isolated staging, followed by a successful five-role verification.
 - **Remaining gate:** Re-audit the durable command and transaction wrapper,
   rerun its committed form, then push the corrected PR head. No merge yet.
+- **PR/CI evidence:** Head `d74e181` was pushed after Claude approval. Playwright
+  smoke passed. Supabase Preview skipped despite the migration, so it provided
+  no preview-database ACL evidence; the PR and RUNBOOK state that explicitly.

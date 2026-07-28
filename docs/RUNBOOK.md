@@ -319,10 +319,11 @@ provider that fails before any write if the ACL regresses. The zero-argument
 global-expiry RPC has no intrinsically non-mutating call, so the suite always
 runs fixture reset afterward, including on failure.
 
-Because this correction adds a file under `supabase/migrations/`, Supabase
-Preview CI will run instead of skip. L6 documents the known historical-baseline
-reconstruction gap, so that check may fail for the existing non-blocking reason;
-review its log and do not describe an unrelated failure as proof of this ACL.
+Supabase Preview was **skipped** on the corrected PR head despite the migration,
+so CI did not validate this ACL against a preview database. This is separate from
+the L6 historical-baseline reconstruction gap. The evidence for this correction
+is the audited migration, offline ACL guards, isolated-staging apply, 24/24
+subscription matrix, and 4/4 system-RPC matrix.
 
 It runs 24 ordered cases covering: admin and assigned-coach writes succeed; a
 coach is refused on an unassigned client; a client cannot self-provision or edit

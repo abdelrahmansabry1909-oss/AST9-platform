@@ -85,19 +85,22 @@ export async function runSystemRpcBoundaryCases(contract, env = process.env) {
 export async function runSystemRpcBoundarySuite(
   contract,
   serviceClient,
-  env = process.env
+  env = process.env,
+  dependencies = {}
 ) {
+  const runCases = dependencies.runCases ?? runSystemRpcBoundaryCases;
+  const reset = dependencies.reset ?? resetFixtures;
   let caseFailure = null;
   let results = null;
 
   try {
-    results = await runSystemRpcBoundaryCases(contract, env);
+    results = await runCases(contract, env);
   } catch (error) {
     caseFailure = error;
   }
 
   try {
-    await resetFixtures(contract, serviceClient, env);
+    await reset(contract, serviceClient, env);
   } catch (resetFailure) {
     if (!caseFailure) throw resetFailure;
     throw new Error(

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
 import {
+  runSystemRpcBoundarySuite,
   SYSTEM_RPC_BOUNDARY_CASES,
   SYSTEM_RPC_DENIED,
 } from '../staging/system-rpc-boundaries.mjs';
@@ -35,11 +35,34 @@ test('paid-package probes use an invalid provider before any write path', () => 
   }
 });
 
-test('system RPC suite always resets fixtures after execution', () => {
-  const source = readFileSync(
-    new URL('../staging/system-rpc-boundaries.mjs', import.meta.url),
-    'utf8'
+test('system RPC suite resets fixtures after a boundary case fails', async () => {
+  let resetCalls = 0;
+  await assert.rejects(
+    () =>
+      runSystemRpcBoundarySuite({}, {}, {}, {
+        runCases: async () => {
+          throw new Error('boundary case failed');
+        },
+        reset: async () => {
+          resetCalls += 1;
+        },
+      }),
+    /boundary case failed/
   );
-  assert.match(source, /await resetFixtures\(contract, serviceClient, env\)/);
-  assert.match(source, /if \(caseFailure\) throw caseFailure/);
+  assert.equal(resetCalls, 1);
+});
+
+test('system RPC suite reports both case and reset failures', async () => {
+  await assert.rejects(
+    () =>
+      runSystemRpcBoundarySuite({}, {}, {}, {
+        runCases: async () => {
+          throw new Error('boundary case failed');
+        },
+        reset: async () => {
+          throw new Error('fixture reset failed');
+        },
+      }),
+    /boundary case failed[\s\S]*fixture reset failed/
+  );
 });
