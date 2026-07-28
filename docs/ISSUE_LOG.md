@@ -189,6 +189,26 @@
 - **Also fixed:** `tests/staging/cli.mjs` fell through to `reset` for any command
   lacking an explicit branch; unhandled commands now throw instead of running a
   destructive cleanup.
-- **Remaining:** Owner must run `staging:authz-subscriptions` against the isolated
-  staging project; it has not been executed. The same database-layer approach is
-  still needed for workout writes, which stay blocked by L12.
+- **Live result:** The first isolated-staging run passed 22/23 cases. Every
+  unauthorized write was denied, but the signed-out case exposed the ACL drift
+  tracked in issue #15.
+- **Remaining:** Correct and rerun the signed-out execution boundary. The same
+  database-layer approach is still needed for workout writes, which stay blocked
+  by L12.
+
+## 15. Isolated staging baseline left subscription RPCs executable by `anon`
+- **Symptoms:** A signed-out caller reached `create_client_subscription` and was
+  rejected by its internal coach/admin check, instead of being blocked at
+  function execution.
+- **Impact:** No unauthorized write occurred, but one intended defense-in-depth
+  boundary was absent in isolated staging.
+- **Root cause:** The schema baseline revokes the RPCs from `PUBLIC` and grants
+  trusted roles, but does not explicitly revoke Supabase's `anon` role. The
+  historical migration did, and that body is not replayed when the isolated
+  project is provisioned from the baseline.
+- **Fix prepared:** A forward migration reasserts `PUBLIC`/`anon` revocation on
+  both subscription RPCs while preserving `authenticated`/`service_role`
+  execution. An offline test pins the exact signatures and grants.
+- **Remaining:** Claude audit, isolated-staging migration apply, and a complete
+  24/24 authorization rerun are required before this issue is closed. The new
+  case separately verifies signed-out execution of the update RPC.

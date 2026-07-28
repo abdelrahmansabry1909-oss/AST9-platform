@@ -441,7 +441,8 @@ Verification legend:
   `create_client_subscription` / `update_client_subscription` over PostgREST.
   Actor clients never use the service-role key, which would bypass RLS and
   SECURITY DEFINER authorization and report every case as allowed.
-- **Coverage:** 23 ordered cases. Admin and assigned-coach writes succeed; a
+- **Coverage:** Initially 23 ordered cases, now 24 after adding separate
+  signed-out execution checks for both RPCs. Admin and assigned-coach writes succeed; a
   coach is refused on the unassigned client; clients cannot self-provision or
   edit their own access; signed-out callers cannot reach the RPC; `cancelled` is
   refused on both RPCs (L9); only an admin may expire; every documented range
@@ -457,10 +458,30 @@ Verification legend:
   passes, both re-run locally. Two deliberate mutations (dropping a captured id,
   rewording a denial pattern) were confirmed to fail the new tests, so the
   ordering and message-contract guards are not vacuous.
-- **Not verified:** No staging execution. The isolated staging project lives in a
-  separate Supabase organization that is not reachable from the available
-  connection, so `staging:authz-subscriptions` is owner-run and owner-attested.
+- **Live staging result (2026-07-28):** Validation and the initial five-role
+  baseline verification passed. The matrix passed 22/23 cases. The signed-out
+  create was denied by the RPC's internal role check, but reached the SECURITY
+  DEFINER function instead of receiving PostgreSQL's function-permission denial.
+  The suite restored fixtures in `finally`, and a separate post-failure
+  `staging:verify` passed for all five roles.
 - **Deliberately deferred:** Browser-level subscription UI coverage, and the
   `AUTH_CREDENTIAL_KEYS` extension it would require. Adding those keys now would
   make them mandatory for every authenticated Playwright run before any spec
   consumes them.
+
+## P3A-2D1 follow-up - Subscription RPC anonymous-execute hardening
+
+- **Date:** 2026-07-28
+- **Root cause:** The schema baseline revokes these RPCs from `PUBLIC` but did not
+  explicitly revoke Supabase's `anon` role. The historical migration contains
+  that explicit revoke, but isolated provisioning from the baseline does not
+  replay the historical migration body.
+- **Correction:** Added a forward migration that revokes both subscription RPCs
+  from `PUBLIC` and `anon`, then explicitly preserves `authenticated` and
+  `service_role` execution. Added an offline contract test for both complete
+  signatures and both sides of the ACL.
+- **Safety:** No unauthorized subscription was created. No production target was
+  contacted or modified.
+- **Pending proof:** Claude audit, isolated-staging migration apply, then
+  `validate -> verify -> authz-subscriptions -> verify`. The corrected matrix now
+  contains 24 cases, so P3A-2D1 is not merge-ready until the rerun is 24/24.

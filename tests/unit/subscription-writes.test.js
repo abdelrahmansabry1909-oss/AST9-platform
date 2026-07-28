@@ -180,6 +180,44 @@ test('both RPC names exist in the migration that defines them', () => {
   }
 });
 
+test('forward hardening denies anon RPC execution and preserves trusted grants', () => {
+  const migration = readFileSync(
+    new URL(
+      '../../supabase/migrations/20260728000000_subscription_rpc_anon_execute_hardening.sql',
+      import.meta.url
+    ),
+    'utf8'
+  ).replace(/\s+/g, ' ');
+
+  const signatures = [
+    'create_client_subscription\\( uuid, text, integer, date, date, text, text \\)',
+    'update_client_subscription\\( uuid, text, integer, date, date, text, text, integer \\)',
+  ];
+
+  for (const signature of signatures) {
+    assert.match(
+      migration,
+      new RegExp(`REVOKE ALL ON FUNCTION public\\.${signature} FROM PUBLIC, anon;`, 'i')
+    );
+    assert.match(
+      migration,
+      new RegExp(
+        `GRANT EXECUTE ON FUNCTION public\\.${signature} TO authenticated, service_role;`,
+        'i'
+      )
+    );
+  }
+});
+
+test('signed-out coverage exercises both subscription RPC execution boundaries', () => {
+  const anonymousOperations = SUBSCRIPTION_WRITE_CASES
+    .filter(({ actor }) => actor === 'anonymous')
+    .map(({ operation }) => operation)
+    .sort();
+
+  assert.deepEqual(anonymousOperations, ['create', 'update']);
+});
+
 test('the coach-versus-unassigned denial is covered, since the fixture exists for it', () => {
   const covered = SUBSCRIPTION_WRITE_CASES.some(
     (testCase) =>

@@ -304,9 +304,15 @@ same path the browser uses. It never uses the service-role key for an actor,
 because a service-role client bypasses RLS and SECURITY DEFINER authorization
 entirely and would report every case as allowed.
 
-It runs 23 ordered cases covering: admin and assigned-coach writes succeed; a
+The first isolated-staging run passed 22 of 23 cases and exposed an ACL drift:
+the signed-out call was denied by the RPC's internal authorization, but reached
+the SECURITY DEFINER function because `anon` retained `EXECUTE`. Do not weaken
+the expected `permission denied for function` assertion. Apply the audited
+forward ACL-hardening migration, then rerun the full sequence; 24/24 is required.
+
+It runs 24 ordered cases covering: admin and assigned-coach writes succeed; a
 coach is refused on an unassigned client; a client cannot self-provision or edit
-their own access; a signed-out caller cannot reach the RPC at all; `cancelled` is
+their own access; a signed-out caller cannot reach either RPC; `cancelled` is
 refused on both RPCs (see L9); only an admin may expire; and every documented
 range check (months, dates, plan-name length, notes length, grace days). Each
 denial asserts the **specific** server message, so a case cannot pass on an

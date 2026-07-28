@@ -13,11 +13,14 @@ provisioning command emitter. P3A-2C provisioned the separate Free staging proje
 and verified authenticated role routing. P3A-2D0 expands the deterministic
 baseline to five synthetic identities and 18 reset relations. P3A-2D1 adds a
 database-layer subscription write authorization matrix (`staging:authz-subscriptions`),
-which is owner-run and has not yet been executed against staging. Write specs for
-assessment save and program draft/publish remain pending, as does all
+which has been executed against staging with 22 of 23 cases passing. The final
+signed-out case exposed an `anon` EXECUTE grant drift in the isolated baseline;
+a forward ACL-hardening migration is prepared, but its staging apply and 24/24
+rerun remain pending. Write specs for assessment save and program draft/publish
+remain pending, as does all
 browser-level write coverage. Workout completion additionally requires the
 database gate in L12. See [RUNBOOK.md](RUNBOOK.md) and
-[ISSUE_LOG.md](ISSUE_LOG.md) #13–#14.
+[ISSUE_LOG.md](ISSUE_LOG.md) #13–#15.
 
 ## L2 — Automated browser visual smoke may fail (DevTools / localhost limits)
 Automated visual smoke can fail for environment reasons (no authenticated session,
@@ -75,8 +78,11 @@ and stable auth users. P3A-2B adds the single-use schema baseline, 60-version
 repair manifest, and offline guard. P3A-2C provisioned the isolated Free project;
 P3A-2D0 added the unassigned authorization fixture and deterministic cleanup for
 all currently planned write targets; P3A-2D1 added the subscription write
-authorization matrix at the database layer. The write-flow browser specs and the
-video-modal regression remain pending.
+authorization matrix at the database layer. Its first live run denied every
+unauthorized write but exposed that signed-out callers could enter the
+subscription SECURITY DEFINER RPC before its internal role check. The forward
+ACL-hardening migration and a 24/24 staging rerun remain pending. The write-flow
+browser specs and the video-modal regression remain pending.
 
 The isolated staging project lives in a **separate Supabase organization** from
 production. That isolation is deliberate, but it means staging execution evidence

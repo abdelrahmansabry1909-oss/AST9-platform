@@ -251,6 +251,14 @@ export const SUBSCRIPTION_WRITE_CASES = Object.freeze([
     args: (ctx) => updateArgs(ctx.captured.adminSubId, { p_status: 'expired' }),
   },
   {
+    name: 'signed-out callers cannot reach the update RPC',
+    actor: 'anonymous',
+    operation: 'update',
+    expect: 'denied',
+    reason: DENIAL_REASONS.anonBlocked,
+    args: (ctx) => updateArgs(ctx.captured.adminSubId),
+  },
+  {
     name: 'signed-out callers cannot reach the create RPC',
     actor: 'anonymous',
     operation: 'create',
