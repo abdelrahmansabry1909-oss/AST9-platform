@@ -566,7 +566,9 @@ Verification legend:
   22 already-live migrations, including the payments foundation and the 152-row
   exercise library. The local CLI stayed linked to isolated staging throughout.
   Only the outer `BEGIN;`/`COMMIT;` were removed from the submitted payload,
-  because the execution channel supplies transaction semantics; the committed
+  to avoid unsafe nesting if the execution channel wraps statements. The
+  channel's transaction model was not independently proven; complete structural
+  verification confirmed that no partial L12 state remained. The committed
   migration file is unchanged.
 - **Production verification:** Version row exactly 1. `client_has_write_access` is
   SECURITY DEFINER, STABLE, with `search_path=public, pg_temp`. `anon` cannot

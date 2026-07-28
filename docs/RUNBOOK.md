@@ -408,19 +408,21 @@ database-level verification only.**
 > foundation and the 152-row exercise library. Apply one reviewed file explicitly
 > and record its version, as L12 was. See [ISSUE_LOG.md](ISSUE_LOG.md) #18.
 
-Applying a single approved migration to production:
+The L12 Management-API apply was an exceptional, separately audited operation,
+not a generic migration procedure. Do not copy it for another migration. Before
+any future production DDL:
 
-```bash
-# 1. Confirm the version is absent and the objects it creates do not exist.
-# 2. Execute the migration file's statements as one payload, removing only the
-#    outer BEGIN;/COMMIT; if the execution channel supplies its own transaction.
-#    Never edit the committed migration file to do this.
-# 3. Record the version explicitly, pinned to the file's own timestamp:
-#    INSERT INTO supabase_migrations.schema_migrations (version, name, created_by, statements)
-#    VALUES ('<version>', '<name>', '<owner>', ARRAY[...])
-#    ON CONFLICT (version) DO NOTHING;
-# 4. Re-run the structural and behavioral verification before declaring success.
-```
+1. reconcile or explicitly account for issue #18;
+2. prove that the selected channel applies exactly one reviewed file;
+3. prove how that channel records the file's exact version;
+4. stop if either guarantee is unavailable; and
+5. run migration-specific structural, behavioral, and rollback verification.
+
+Do not hand-write a migration-history row from a template or use
+`ON CONFLICT DO NOTHING` to suppress a version collision. Either can make the
+registry claim a state that was not actually applied. L12's exact-version record
+was verified after its one-off apply; that evidence does not authorize repeating
+the mechanism.
 
 Roll back with `supabase/rollbacks/20260728010000_workout_write_subscription_gate_down.sql`,
 which drops only what the migration adds and drops the policies before the
