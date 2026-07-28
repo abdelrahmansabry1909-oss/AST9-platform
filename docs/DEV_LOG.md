@@ -486,8 +486,16 @@ Verification legend:
   signatures and their intended grants.
 - **Safety:** No unauthorized subscription was created. No production target was
   contacted or modified.
-- **Pending proof:** Claude audit, isolated-staging migration apply, then
-  `validate -> verify -> authz-subscriptions -> verify`. The corrected matrix now
-  contains 24 cases, so P3A-2D1 is not merge-ready until the rerun is 24/24.
-  Non-mutating execution probes must also confirm both system RPCs reject `anon`
-  and `authenticated`.
+- **Staging proof:** The linked target matched the encrypted staging
+  configuration, and the dry run listed only this migration. Apply succeeded.
+  `validate -> verify -> authz-subscriptions -> verify` then passed, including
+  all 24 subscription cases. Four execution probes confirmed both system RPCs
+  reject `anon` and authenticated callers at function permission. Fixture reset
+  and the final five-role verification passed afterward.
+- **Durable control:** Added `staging:authz-system-rpcs`, which preserves the same
+  four execution-level checks and always resets fixtures after the probe.
+  Wrapped the migration in `BEGIN`/`COMMIT` so SQL-editor or Management-API
+  application cannot leave a partial ACL. The committed-form command passed 4/4
+  on isolated staging, followed by a successful five-role verification.
+- **Remaining gate:** Re-audit the durable command and transaction wrapper,
+  rerun its committed form, then push the corrected PR head. No merge yet.

@@ -13,11 +13,12 @@ provisioning command emitter. P3A-2C provisioned the separate Free staging proje
 and verified authenticated role routing. P3A-2D0 expands the deterministic
 baseline to five synthetic identities and 18 reset relations. P3A-2D1 adds a
 database-layer subscription write authorization matrix (`staging:authz-subscriptions`),
-which has been executed against staging with 22 of 23 cases passing. The final
-signed-out case exposed an `anon` EXECUTE grant drift in the isolated baseline;
-a forward ACL-hardening migration is prepared, but its staging apply and 24/24
-rerun remain pending. Write specs for assessment save and program draft/publish
-remain pending, as does all
+whose first staging run exposed an `anon` EXECUTE grant drift. After the forward
+ACL-hardening migration, the corrected matrix passed 24/24 and both system-only
+RPC boundaries rejected `anon` and authenticated probes. Durable system-RPC
+execution coverage is prepared in the current P3A-2D1 branch but remains
+unmerged. Write specs for assessment save and program draft/publish remain
+pending, as does all
 browser-level write coverage. Workout completion additionally requires the
 database gate in L12. See [RUNBOOK.md](RUNBOOK.md) and
 [ISSUE_LOG.md](ISSUE_LOG.md) #13–#15.
@@ -80,8 +81,9 @@ P3A-2D0 added the unassigned authorization fixture and deterministic cleanup for
 all currently planned write targets; P3A-2D1 added the subscription write
 authorization matrix at the database layer. Its first live run denied every
 unauthorized write but exposed that signed-out callers could enter the
-subscription SECURITY DEFINER RPC before its internal role check. The forward
-ACL-hardening migration and a 24/24 staging rerun remain pending. The write-flow
+subscription SECURITY DEFINER RPC before its internal role check. The ACL
+hardening is applied to staging; the 24/24 rerun and four system-RPC boundary
+probes passed. The durable system-RPC command remains unmerged. The write-flow
 browser specs and the video-modal regression remain pending.
 
 The isolated staging project lives in a **separate Supabase organization** from

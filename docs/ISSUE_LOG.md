@@ -207,15 +207,19 @@
   trusted roles, but does not explicitly revoke Supabase's `anon` role. The
   historical migration did, and that body is not replayed when the isolated
   project is provisioned from the baseline.
-- **Fix prepared:** A forward migration reasserts `PUBLIC`/`anon` revocation on
+- **Fix applied to staging:** A forward migration reasserts `PUBLIC`/`anon` revocation on
   both subscription RPCs while preserving `authenticated`/`service_role`
   execution. It separately revokes `PUBLIC`/`anon`/`authenticated` from the two
   system-only RPCs and preserves `service_role`. Offline tests pin all four exact
   signatures and grant sets.
-- **Remaining:** Claude audit, isolated-staging migration apply, and a complete
-  24/24 authorization rerun are required before this issue is closed. The new
-  case separately verifies signed-out execution of the update RPC. Non-mutating
-  probes must also prove both system RPCs reject `anon` and `authenticated`.
+- **Verification:** The corrected subscription matrix passed 24/24. Separate
+  execution probes proved both system RPCs reject `anon` and authenticated
+  callers, followed by successful fixture reset and five-role verification.
+- **Durable control:** `staging:authz-system-rpcs` commits those four execution
+  checks and guarantees reset after success or failure. Its isolated-staging run
+  passed 4/4, followed by successful five-role verification.
+- **Remaining:** Re-audit and merge the durable command and atomic migration
+  wrapper before closing this issue.
 
 ## 16. Baseline function ACL fidelity needs a complete inventory
 - **Symptoms:** The P3A-2D1 correction audit found many baseline function ACL

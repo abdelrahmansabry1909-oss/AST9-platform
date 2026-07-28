@@ -62,6 +62,13 @@ async function run() {
     return;
   }
 
+  if (command === 'authz-system-rpcs') {
+    const { runSystemRpcBoundarySuite } = await import('./system-rpc-boundaries.mjs');
+    const results = await runSystemRpcBoundarySuite(contract, client, process.env);
+    printCaseOutcomes(command, results);
+    return;
+  }
+
   if (command !== 'reset') {
     throw new Error(`Staging command has no handler: ${command}`);
   }

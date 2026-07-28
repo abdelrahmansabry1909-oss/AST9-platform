@@ -287,6 +287,7 @@ npm run staging:seed      # create/reconcile stable users and deterministic base
 npm run staging:verify    # read-only verification of roles, legal state, and access state
 npm run staging:reset     # scoped write-artifact cleanup, reseed, and verification
 npm run staging:authz-subscriptions  # subscription write authorization matrix (P3A-2D1)
+npm run staging:authz-system-rpcs    # system-only RPC execution boundaries (P3A-2D1)
 ```
 
 Run `staging:validate` first. Then run `staging:seed` once, followed by
@@ -307,12 +308,16 @@ entirely and would report every case as allowed.
 The first isolated-staging run passed 22 of 23 cases and exposed an ACL drift:
 the signed-out call was denied by the RPC's internal authorization, but reached
 the SECURITY DEFINER function because `anon` retained `EXECUTE`. Do not weaken
-the expected `permission denied for function` assertion. Apply the audited
-forward ACL-hardening migration, then rerun the full sequence; 24/24 is required.
-Also use non-mutating calls to prove `anon` and an authenticated fixture receive
-function-permission denial from both `apply_paid_coach_package_period_system` and
-`expire_stale_workout_sessions_all`. Do not supply valid payment or workout
-mutation inputs for these execution-boundary probes.
+the expected `permission denied for function` assertion. After the audited
+forward migration was applied, the corrected subscription matrix passed 24/24.
+
+`staging:authz-system-rpcs` permanently checks that both `anon` and an
+authenticated fixture receive function-permission denial from
+`apply_paid_coach_package_period_system` and
+`expire_stale_workout_sessions_all`. The paid-package calls use an invalid
+provider that fails before any write if the ACL regresses. The zero-argument
+global-expiry RPC has no intrinsically non-mutating call, so the suite always
+runs fixture reset afterward, including on failure.
 
 Because this correction adds a file under `supabase/migrations/`, Supabase
 Preview CI will run instead of skip. L6 documents the known historical-baseline
