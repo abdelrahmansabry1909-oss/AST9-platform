@@ -114,7 +114,7 @@ Program generation and other flows that invoke `generate-program` remain blocked
 until a separate staging function-deployment plan defines function scope, synthetic
 secrets, and proof that no production key is reused.
 
-## L12 — Inactive-client write protection: gate written, staging apply pending
+## L12 — Inactive-client write protection: staging proven, production pending
 The inactive-subscription takeover prevented protected workout actions through the
 normal UI only. `workout_sessions_client_own` authorized writes by client ownership
 alone, and no policy in the schema referenced effective subscription state, so an
@@ -137,10 +137,13 @@ cleanup available prevents lapsed clients from being left with permanently open
 sessions; treat it as a narrow lifecycle exception, not proof that every
 client-callable RPC is covered by the table policies.
 
-The migration has **not been applied** to staging or production. Until
-`staging:authz-workout-writes` passes against the isolated project, treat the
-protection as unproven. Do not weaken the test to assert only UI reachability and
-describe it as database security.
+The migration was applied to the isolated staging project on 2026-07-28 and is
+registered as migration `20260728010000`. The authenticated database matrix passed
+all 7 cases: 5 allowed and 2 denied. Active clients retained session/log writes;
+coach and admin writes for a lapsed client remained allowed; lapsed-client
+session/log writes were denied by RLS; and lapsed-client read access survived.
+Fixture verification passed after the suite reset. Production remains unchanged,
+so this protection is staging-proven but not yet deployed.
 
 Coach and admin writes on behalf of a lapsed client remain allowed — that is
 existing product behavior, deliberately preserved, and is asserted by the suite so

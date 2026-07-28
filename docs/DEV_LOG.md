@@ -546,9 +546,13 @@ Verification legend:
   including turning the policies permissive, gating SELECT, dropping the logs
   gate, weakening the anon revoke, weakening the denial regex, resetting only on
   success, and flipping the lapsed denial to allowed.
-- **Not verified:** The migration has **not** been applied to staging or
-  production, and the staging command has never run. The gate is unproven until it
-  does.
+- **Staging verification:** Applied only to the isolated staging project on
+  2026-07-28. Migration history registered `20260728010000` as the 64th row.
+  `staging:authz-workout-writes` passed 7/7 cases with the required split:
+  5 allowed and 2 denied. Post-run fixture verification passed for admin, coach,
+  active client, inactive client, and unassigned client.
+- **Production status:** Not applied. PR #134 remains unmerged pending final
+  review of this staging evidence.
 - **Scoped out:** The same ownership-only pattern on `daily_routine_logs`,
   `progress_logs`, `phase_submissions`, `subjective_assessments`,
   `client_questions`, `exercise_alternative_requests`, and legacy `workout_logs`.

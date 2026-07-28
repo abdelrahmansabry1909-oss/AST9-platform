@@ -169,9 +169,14 @@
 - **Fix in P3A-2D0:** Added an unassigned synthetic client and expanded the
   UUID-scoped reset contract to 18 relations. Added dependency-order and probe
   coverage tests. Verified the five-role baseline across three reset cycles.
-- **Remaining:** Design and independently audit a forward migration that enforces
-  inactive-client write restrictions in PostgreSQL before P3A-2D4 workout-write
-  coverage. Do not represent the frontend takeover screen as database security.
+- **Fix in L12:** Added independently audited RESTRICTIVE database policies for
+  workout sessions and exercise logs plus a seven-case authenticated staging
+  matrix. The migration was applied only to isolated staging on 2026-07-28; all
+  7 cases passed (5 allowed, 2 denied), followed by a clean five-role fixture
+  verification.
+- **Remaining:** Merge and deploy only after final review of the staging evidence.
+  Production is unchanged. The ownership-only tables tracked in issue #17 remain
+  outside L12.
 
 ## 14. Subscription write authorization was never proven at the database layer
 - **Symptoms:** Subscription create/edit rules (assigned-coach scoping, admin-only

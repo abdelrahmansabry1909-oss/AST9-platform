@@ -384,6 +384,11 @@ owned by or manageable by the caller. It cannot create sessions or logs. Do not
 report that maintenance transition as an L12 bypass without distinguishing it
 from paid workout writes.
 
+**Staging evidence (2026-07-28):** migration `20260728010000` is registered on
+the isolated project. `staging:authz-workout-writes` passed all 7 cases
+(5 allowed, 2 denied), and the subsequent fixture verification passed for all
+five roles. This is staging evidence only; production was not accessed or changed.
+
 Roll back with `supabase/rollbacks/20260728010000_workout_write_subscription_gate_down.sql`,
 which drops only what the migration adds. Rolling back restores the frontend-only
 protection described in L12 — record why if you do.
