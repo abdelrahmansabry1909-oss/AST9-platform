@@ -127,6 +127,16 @@ untouched, so coach and admin paths cannot regress, and the rollback drops only
 what the migration adds. `SELECT` is deliberately not gated: the locked rule is
 active/grace → write, expired/pending/none → **view only**.
 
+This gate applies to direct table INSERT/UPDATE/DELETE operations and normal
+workout creation/logging paths. It deliberately does not revoke
+`expire_my_stale_workout_sessions()`: that authenticated SECURITY DEFINER
+maintenance RPC may mark only the caller's own already-stale active sessions as
+`abandoned` (or sessions the caller may manage as staff). It cannot create a
+session, add exercise logs, or grant paid-feature value. Keeping stale-session
+cleanup available prevents lapsed clients from being left with permanently open
+sessions; treat it as a narrow lifecycle exception, not proof that every
+client-callable RPC is covered by the table policies.
+
 The migration has **not been applied** to staging or production. Until
 `staging:authz-workout-writes` passes against the isolated project, treat the
 protection as unproven. Do not weaken the test to assert only UI reachability and

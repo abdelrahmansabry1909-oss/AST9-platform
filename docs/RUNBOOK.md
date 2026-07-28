@@ -362,6 +362,7 @@ their own history; the suite asserts that too.
 Apply order, isolated staging only:
 
 ```bash
+npm run staging:reset                # deterministic clean fixture baseline
 npm run staging:verify               # baseline intact before the change
 # apply 20260728010000_workout_write_subscription_gate.sql
 npm run staging:authz-workout-writes # 7 cases; must pass before production
@@ -373,7 +374,15 @@ tables), that nothing else regressed (active client writes, coach and admin writ
 for a lapsed client), and that read access survives. Denials must report
 `violates row-level security policy` — do not accept a generic error, and do not
 substitute a UI-reachability assertion. Every case writes real rows, so the suite
-always runs fixture reset afterwards, including after a failure.
+always resets fixtures before the matrix and afterwards, including after a case
+failure.
+
+The gate covers direct table writes and normal workout creation/logging. The
+existing authenticated `expire_my_stale_workout_sessions()` SECURITY DEFINER RPC
+remains a deliberate narrow exception: it can only abandon already-stale sessions
+owned by or manageable by the caller. It cannot create sessions or logs. Do not
+report that maintenance transition as an L12 bypass without distinguishing it
+from paid workout writes.
 
 Roll back with `supabase/rollbacks/20260728010000_workout_write_subscription_gate_down.sql`,
 which drops only what the migration adds. Rolling back restores the frontend-only

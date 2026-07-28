@@ -90,6 +90,15 @@ test('no case reads a captured session id before the case that captures it', () 
   }
 });
 
+test('staff probes do not collide with the one-active-session-per-client index', () => {
+  const context = syntheticContext();
+  const coachCase = WORKOUT_GATE_CASES.find((c) => c.actor === 'coach');
+  const adminCase = WORKOUT_GATE_CASES.find((c) => c.actor === 'admin');
+
+  assert.equal(coachCase.row(context).status, 'active');
+  assert.equal(adminCase.row(context).status, 'completed');
+});
+
 // Cross-artifact contract. The gate only works because the policies are
 // RESTRICTIVE; a permissive policy would be OR'd with the existing
 // ownership-only policy and would block nothing at all.
@@ -147,7 +156,7 @@ test('a matching rollback exists and removes exactly what the migration adds', (
   assert.match(rollback, /DROP FUNCTION IF EXISTS public\.client_has_write_access\(uuid\)/i);
 });
 
-test('suite resets fixtures after a case failure and keeps the original error', async () => {
+test('suite resets fixtures before and after a case failure and keeps the original error', async () => {
   let resetCalls = 0;
   await assert.rejects(
     () =>
@@ -161,10 +170,11 @@ test('suite resets fixtures after a case failure and keeps the original error', 
       }),
     /gate case failed/
   );
-  assert.equal(resetCalls, 1);
+  assert.equal(resetCalls, 2);
 });
 
 test('suite reports both the case failure and a reset failure', async () => {
+  let resetCalls = 0;
   await assert.rejects(
     () =>
       runWorkoutGateSuite({}, {}, {}, {
@@ -172,9 +182,27 @@ test('suite reports both the case failure and a reset failure', async () => {
           throw new Error('gate case failed');
         },
         reset: async () => {
-          throw new Error('fixture reset failed');
+          resetCalls += 1;
+          if (resetCalls === 2) throw new Error('fixture reset failed');
         },
       }),
     /gate case failed[\s\S]*fixture reset failed/
   );
+});
+
+test('suite refuses to run cases when the initial reset fails', async () => {
+  let caseCalls = 0;
+  await assert.rejects(
+    () =>
+      runWorkoutGateSuite({}, {}, {}, {
+        runCases: async () => {
+          caseCalls += 1;
+        },
+        reset: async () => {
+          throw new Error('initial fixture reset failed');
+        },
+      }),
+    /initial fixture reset failed/
+  );
+  assert.equal(caseCalls, 0);
 });

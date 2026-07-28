@@ -65,7 +65,10 @@ export const WORKOUT_GATE_CASES = Object.freeze([
     actor: 'admin',
     table: 'workout_sessions',
     expect: 'allowed',
-    row: (ctx) => sessionRow(ctx.users.inactiveClient.id),
+    // The coach case already creates the fixture client's one permitted active
+    // session. Use a completed row here so this authorization probe does not
+    // fail on workout_sessions_one_active_uidx before it proves admin access.
+    row: (ctx) => sessionRow(ctx.users.inactiveClient.id, { status: 'completed' }),
   },
   {
     name: 'lapsed client cannot start a workout session',
@@ -169,9 +172,9 @@ export async function runWorkoutGateCases(contract, serviceClient, env = process
   }
 }
 
-// Every case writes real rows, so the baseline is always restored -- including
-// after a failure. A reset failure must never replace the case failure that
-// caused it.
+// Every case writes real rows. Reset before the matrix so an interrupted prior
+// run cannot poison this run, then reset again afterwards. A trailing reset
+// failure must never replace the case failure that caused it.
 export async function runWorkoutGateSuite(
   contract,
   serviceClient,
@@ -182,6 +185,8 @@ export async function runWorkoutGateSuite(
   const reset = dependencies.reset ?? resetFixtures;
   let caseFailure = null;
   let results = null;
+
+  await reset(contract, serviceClient, env);
 
   try {
     results = await runCases(contract, serviceClient, env);

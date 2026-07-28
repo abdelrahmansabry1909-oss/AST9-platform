@@ -531,7 +531,17 @@ Verification legend:
   on both gated tables, active client still writes to both, coach and admin still
   write for a lapsed client, and the lapsed client keeps read access. Denials must
   report `violates row-level security policy`.
-- **Verification:** Offline suite 63/63 and the production build pass, both re-run
+- **Audit correction:** the admin probe inserts a `completed` session because the
+  coach probe already occupies the partial unique index permitting one active
+  session per client. The suite resets fixtures before and after execution so an
+  interrupted prior run cannot create a false authorization failure.
+- **Deliberate RPC exception:** `expire_my_stale_workout_sessions()` remains
+  callable by authenticated users. As a SECURITY DEFINER maintenance path it is
+  outside the table RLS gate, but it can only abandon already-stale manageable
+  sessions; it cannot create workout sessions or exercise logs. L12 therefore
+  claims protection for direct table writes and normal workout write flows, not
+  removal of every lifecycle RPC.
+- **Verification:** Offline suite 65/65 and the production build pass, both re-run
   locally. Seven deliberate mutations were each confirmed to fail the guards,
   including turning the policies permissive, gating SELECT, dropping the logs
   gate, weakening the anon revoke, weakening the denial regex, resetting only on
