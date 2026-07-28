@@ -94,9 +94,13 @@ test('staff probes do not collide with the one-active-session-per-client index',
   const context = syntheticContext();
   const coachCase = WORKOUT_GATE_CASES.find((c) => c.actor === 'coach');
   const adminCase = WORKOUT_GATE_CASES.find((c) => c.actor === 'admin');
+  const deniedClientCase = WORKOUT_GATE_CASES.find(
+    (c) => c.actor === 'inactiveClient' && c.table === 'workout_sessions'
+  );
 
   assert.equal(coachCase.row(context).status, 'active');
   assert.equal(adminCase.row(context).status, 'completed');
+  assert.equal(deniedClientCase.row(context).status, 'completed');
 });
 
 // Cross-artifact contract. The gate only works because the policies are

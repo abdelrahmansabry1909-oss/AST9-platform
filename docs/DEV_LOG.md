@@ -533,7 +533,9 @@ Verification legend:
   report `violates row-level security policy`.
 - **Audit correction:** the admin probe inserts a `completed` session because the
   coach probe already occupies the partial unique index permitting one active
-  session per client. The suite resets fixtures before and after execution so an
+  session per client. The denied lapsed-client probe also uses `completed`, so a
+  missing RLS gate reports an unexpected successful write rather than a
+  unique-index error. The suite resets fixtures before and after execution so an
   interrupted prior run cannot create a false authorization failure.
 - **Deliberate RPC exception:** `expire_my_stale_workout_sessions()` remains
   callable by authenticated users. As a SECURITY DEFINER maintenance path it is

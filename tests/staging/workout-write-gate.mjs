@@ -75,7 +75,9 @@ export const WORKOUT_GATE_CASES = Object.freeze([
     actor: 'inactiveClient',
     table: 'workout_sessions',
     expect: 'denied',
-    row: (ctx) => sessionRow(ctx.users.inactiveClient.id),
+    // Avoid the one-active-session index so a missing RLS gate is diagnosed as
+    // an unexpected successful write, not disguised as a constraint failure.
+    row: (ctx) => sessionRow(ctx.users.inactiveClient.id, { status: 'completed' }),
   },
   {
     name: 'lapsed client cannot log into a session created for them',
