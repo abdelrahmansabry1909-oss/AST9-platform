@@ -262,7 +262,7 @@
   `staging:authz-workout-writes` or a sibling command. Do not gate `SELECT`; the
   locked rule is view-only, not no-access.
 
-## 18. Repository migration versions diverged from production history
+## 18. Repository migration versions diverged from production history (resolved 2026-07-29)
 - **Symptoms:** The L12 production-apply readiness audit initially found 26
   repository migration versions absent from production history. L12 itself was
   the 26th and is now correctly registered as `20260728010000`, leaving **25**
@@ -298,8 +298,19 @@
   function/trigger inventory had no missing item, the 22-function ACL matrix had
   zero mismatches, and no partial application was found. Production remained at
   64 registry rows; no repair, migration, push, or schema/data mutation occurred.
-- **Remaining:** ISSUE #18 stays open. Claude must audit M1 at the exact PR head.
-  M2 requires separate owner approval before running the prepared
-  `migration repair` command. Until M2 is approved, executed, rolled-back if
-  needed, and independently verified, treat any version-based production push as
-  unsafe.
+- **Resolution (2026-07-29):** The separately approved M2 repair recorded the
+  approved 25 repository versions as applied, one version at a time, without
+  applying migration SQL. The registry moved from **64 to 89 rows**. All 25
+  differently versioned production rows were preserved, and the original 64
+  registry rows remained byte-for-byte unchanged.
+- **Verification:** All **64 of 64** repository migration versions are now
+  represented in production history, with **0 absent**. The added set equals the
+  approved 25 exactly. Catalog and application-row fingerprints were unchanged,
+  and the L12 contract remained 1 registry row, 6 RESTRICTIVE policies, 5
+  PERMISSIVE policies, and 0 RESTRICTIVE `SELECT`/`ALL` policies. Independent
+  read-only audit found no blocker, major, or minor issue.
+- **Remaining:** None for ISSUE #18. Production `supabase db push` and
+  `supabase migration up` remain prohibited until their target selection,
+  pending-version behavior, transaction model, rollback behavior, and complete
+  end-to-end production procedure receive separate validation. That continuing
+  restriction is no longer based on absent repository versions.

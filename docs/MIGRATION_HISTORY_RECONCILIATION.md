@@ -1,15 +1,15 @@
 # Migration History Reconciliation
 
-**Phase:** M1 - mapping and rollback plan only
+**Phase:** M1 mapping and M2 registry repair record
 
 **Date:** 2026-07-29
 
-**Status:** Ready for independent audit; ISSUE_LOG #18 remains open
+**Status:** Completed and independently verified; ISSUE_LOG #18 closed
 
 ## Safety boundary
 
-This document maps repository migration versions to production history. M1 was
-read-only:
+This document maps repository migration versions to production history and
+records the separately approved M2 registry repair. M1 was read-only:
 
 - no `supabase migration repair`;
 - no `supabase db push` or `supabase migration up`;
@@ -17,12 +17,16 @@ read-only:
 - no schema, data, RLS, function, grant, or registry mutation; and
 - no change to the repository's isolated-staging CLI link.
 
-The production migration registry contained **64 rows before and after** the
-inspection. L12, `20260728010000_workout_write_subscription_gate`, remained
-registered exactly once and is not one of the 25 versions below.
+During M1, the production migration registry contained **64 rows before and
+after** the inspection. L12,
+`20260728010000_workout_write_subscription_gate`, remained registered exactly
+once and is not one of the 25 versions below.
 
-M2 is a separate, owner-approved phase. The commands in this document are a
-review artifact and were **not executed**.
+M2 was separately owner-approved and completed on 2026-07-29. It changed only
+`supabase_migrations.schema_migrations`: the approved 25 repository versions
+were recorded as applied, one at a time, without applying migration SQL. The
+registry moved from **64 to 89 rows**. The original 64 rows and all 25
+differently versioned production rows were preserved.
 
 ## Method
 
@@ -131,11 +135,45 @@ The read-only query resolved all four complete signatures with
 | `apply_paid_coach_package_period_system` | true | false | false | true |
 | `expire_stale_workout_sessions_all` | true | false | false | true |
 
-## M2 pre-change snapshot and repair plan
+## M2 execution record
 
-M2 must not start without a separate owner approval and a second audit pinned to
-the exact PR head. It must use a reviewed production connection without changing
-the repository's isolated-staging link.
+M2 completed on 2026-07-29 with the audited Revision 7 executor, SHA-256
+`0a2ecdc3df80e894ddd219a327d52d339591f3b4ddbf6709f3393edb8eb545fd`.
+The executor used the pinned Supabase CLI `2.109.1`, an explicit database URL,
+and one-version `migration repair --status applied` calls. It never used
+`--linked`, `supabase link`, `db push`, `migration up`, handwritten registry
+SQL, or migration SQL application.
+
+Execution evidence:
+
+- sanitized report SHA-256:
+  `773354eb201f065c665e58424f97814be06a928f120c7dcb289b86b7672263b2`;
+- registry count: **64 before / 89 after**;
+- added set: exactly the approved **25 of 25** repository versions;
+- original rows: the post-execution original-row snapshot remained
+  byte-identical to the pre-change snapshot, SHA-256
+  `7b9dae553d5a550f7746c0b7d6482618d3d43632980dbc2aa7aa5c2e03fe546b`;
+- pre-change versions-only snapshot SHA-256:
+  `2633ec6dc94153dc7f5dd9788e7ad8125fe2d7e97c61c582af091cfdafe20f20`;
+- post-change versions-only snapshot SHA-256:
+  `4de1275e54b775b6294353cdfc7b3ba66a910c955eca18f45250216fdbc154d7`;
+- catalog fingerprint unchanged:
+  `8352d0584b8f145060119c691636a53b`;
+- application-row fingerprint unchanged:
+  `956c3e7ef1d8664e1e3b8976f04ea5b8`; and
+- L12 unchanged: 1 registry row, 6 RESTRICTIVE policies, 5 PERMISSIVE
+  policies, and 0 RESTRICTIVE `SELECT`/`ALL` policies.
+
+Independent read-only audit re-derived the registry sets, fingerprints, and L12
+invariants and found no blocker, major, or minor issue. No rollback was required.
+No schema, RLS, function, grant, trigger, Realtime, cron, or application-data
+change occurred.
+
+## Historical M2 pre-change plan
+
+The following plan was approved before M2 and is retained as historical evidence.
+Execution used the pinned, audited Revision 7 executor described above rather
+than the single batch command shown below.
 
 Before any repair:
 
@@ -154,13 +192,13 @@ Before any repair:
 4. Re-run the object/ACL/no-op evidence and stop on any drift or partial state.
 5. Confirm L12 still has 6 RESTRICTIVE plus 5 pre-existing PERMISSIVE policies.
 
-### Exact forward repair command - unexecuted
+### Historical forward repair command - not used as a single batch
 
 The connection variable below must contain a separately reviewed, percent-encoded
 production database URL. It must never be printed or committed.
 
 ```powershell
-# M2 ONLY - NOT EXECUTED IN M1
+# HISTORICAL M1 PLAN - M2 USED THE PINNED ONE-VERSION EXECUTOR
 supabase migration repair `
   20260614000000 20260614010000 20260614020000 20260614030000 `
   20260614040000 20260615000000 20260616000000 20260616010000 `
@@ -220,3 +258,19 @@ must remain.
 - Repair/apply/push commands executed: **none**.
 - Production project identifiers, URLs, keys, connection strings, and client
   identities recorded in this artifact: **none**.
+
+## M2 completion checks
+
+- Production registry: **64 before / 89 after**.
+- Repository migration versions represented: **64 of 64**, with **0 absent**.
+- Added registry versions: exactly the approved **25 of 25**.
+- Original registry rows: byte-for-byte unchanged.
+- Differently versioned production rows removed or rewritten: **none**.
+- Migration SQL applied: **none**.
+- Schema, RLS, function, grant, trigger, Realtime, cron, and application-data
+  changes: **none**.
+- L12 policy contract: **1 registry row, 6 RESTRICTIVE / 5 PERMISSIVE**, with no
+  RESTRICTIVE `SELECT` or `ALL`.
+- Rollback required: **no**.
+- Credentials, URLs, project references, SQL snapshots, and identities recorded
+  in this artifact: **none**.
