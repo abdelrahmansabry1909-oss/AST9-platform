@@ -114,7 +114,7 @@ Program generation and other flows that invoke `generate-program` remain blocked
 until a separate staging function-deployment plan defines function scope, synthetic
 secrets, and proof that no production key is reused.
 
-## L12 — Inactive-client write protection: staging proven, production pending
+## L12 — Inactive-client write protection: applied and verified in production
 The inactive-subscription takeover prevented protected workout actions through the
 normal UI only. `workout_sessions_client_own` authorized writes by client ownership
 alone, and no policy in the schema referenced effective subscription state, so an
@@ -142,8 +142,20 @@ registered as migration `20260728010000`. The authenticated database matrix pass
 all 7 cases: 5 allowed and 2 denied. Active clients retained session/log writes;
 coach and admin writes for a lapsed client remained allowed; lapsed-client
 session/log writes were denied by RLS; and lapsed-client read access survived.
-Fixture verification passed after the suite reset. Production remains unchanged,
-so this protection is staging-proven but not yet deployed.
+Fixture verification passed after the suite reset.
+
+It was then applied to production on 2026-07-28 under owner approval and
+registered as version `20260728010000`. Production now carries 6 RESTRICTIVE
+policies and the 5 pre-existing permissive policies, with no RESTRICTIVE `SELECT`
+or `ALL` policy. Database-level impersonation probes, each inside a rolled-back
+transaction, confirmed a lapsed client is denied on both gated tables with
+SQLSTATE `42501` while retaining read access, and that active-client, assigned-coach,
+and pre-existing-session paths still write. Real authenticated smoke was not
+performed; production verification was database-level only.
+
+One production client profile has no subscription row and therefore newly loses
+write access. That is the intended `none → view only` rule, it was measured
+before the apply, and that client had no open active session.
 
 Coach and admin writes on behalf of a lapsed client remain allowed — that is
 existing product behavior, deliberately preserved, and is asserted by the suite so

@@ -387,11 +387,51 @@ from paid workout writes.
 **Staging evidence (2026-07-28):** migration `20260728010000` is registered on
 the isolated project. `staging:authz-workout-writes` passed all 7 cases
 (5 allowed, 2 denied), and the subsequent fixture verification passed for all
-five roles. This is staging evidence only; production was not accessed or changed.
+five roles.
+
+**Production evidence (2026-07-28):** applied under explicit owner approval and
+registered as version `20260728010000`. Verified: version row exactly 1; helper
+SECURITY DEFINER, STABLE, `search_path=public, pg_temp`; `anon` cannot execute it
+while `authenticated` and `service_role` can; 6 RESTRICTIVE and 5 pre-existing
+PERMISSIVE policies with 0 RESTRICTIVE `SELECT`/`ALL`. Impersonation probes in
+rolled-back transactions denied the lapsed client on both tables with SQLSTATE
+`42501`, preserved their read access, and allowed active-client and assigned-coach
+writes. Row counts were unchanged and no probe row persisted. No new ERROR-level
+security advisor. **Real authenticated smoke was not performed; this is
+database-level verification only.**
+
+> **Do not apply production migrations with `supabase db push` or
+> `supabase migration up`.** Repository filenames and production versions diverged
+> from 2026-06-14 onward: 25 repository versions are absent from production
+> history and 22 of those are already applied under different version strings. A
+> version-based push would replay 22 live migrations, including the payments
+> foundation and the 152-row exercise library. Apply one reviewed file explicitly
+> and record its version, as L12 was. See [ISSUE_LOG.md](ISSUE_LOG.md) #18.
+
+The L12 Management-API apply was an exceptional, separately audited operation,
+not a generic migration procedure. Do not copy it for another migration. Before
+any future production DDL:
+
+1. reconcile or explicitly account for issue #18;
+2. prove that the selected channel applies exactly one reviewed file;
+3. prove how that channel records the file's exact version;
+4. stop if either guarantee is unavailable; and
+5. run migration-specific structural, behavioral, and rollback verification.
+
+Do not hand-write a migration-history row from a template or use
+`ON CONFLICT DO NOTHING` to suppress a version collision. Either can make the
+registry claim a state that was not actually applied. L12's exact-version record
+was verified after its one-off apply; that evidence does not authorize repeating
+the mechanism.
 
 Roll back with `supabase/rollbacks/20260728010000_workout_write_subscription_gate_down.sql`,
-which drops only what the migration adds. Rolling back restores the frontend-only
-protection described in L12 — record why if you do.
+which drops only what the migration adds and drops the policies before the
+function they depend on, so it is safe even after a partial apply. Rolling back
+restores the frontend-only protection described in L12 — record why if you do.
+Roll back immediately if an active client's write is denied, a coach or admin
+write regresses, `SELECT` becomes restricted, `anon` gains execute on the helper,
+the policy counts differ from 6 restrictive plus 5 permissive, or a new
+ERROR-level security advisor appears.
 
 The current reset contract covers the P3A-2 write targets only. Its 18 probed
 relations cover workout sessions/logs; program versions, revisions, current

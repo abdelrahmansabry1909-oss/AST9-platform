@@ -494,9 +494,12 @@ Verification legend:
   and the final five-role verification passed afterward.
 - **Durable control:** Added `staging:authz-system-rpcs`, which preserves the same
   four execution-level checks and always resets fixtures after the probe.
-  Wrapped the migration in `BEGIN`/`COMMIT` so SQL-editor or Management-API
-  application cannot leave a partial ACL. The committed-form command passed 4/4
-  on isolated staging, followed by a successful five-role verification.
+  Wrapped the migration in `BEGIN`/`COMMIT` for channels that execute the file
+  directly. The Management API transaction model was not independently proven;
+  future applies must verify the channel model and avoid nesting transaction
+  wrappers. The committed-form command passed 4/4 on isolated staging, followed
+  by a successful five-role verification, and structural checks found no partial
+  ACL state.
 - **Remaining gate:** Re-audit the durable command and transaction wrapper,
   rerun its committed form, then push the corrected PR head. No merge yet.
 - **PR/CI evidence:** Head `d74e181` was pushed after Claude approval. Playwright
@@ -553,8 +556,42 @@ Verification legend:
   `staging:authz-workout-writes` passed 7/7 cases with the required split:
   5 allowed and 2 denied. Post-run fixture verification passed for admin, coach,
   active client, inactive client, and unassigned client.
-- **Production status:** Not applied. PR #134 remains unmerged pending final
-  review of this staging evidence.
+- **Production status:** Applied 2026-07-28 under explicit owner approval, after
+  PR #134 merged as `e775de5`. Registered as version `20260728010000`, the 64th
+  migration row.
+- **Application mechanism:** Applied as a single Management-API SQL execution of
+  that one file, followed by an explicit `schema_migrations` row pinned to
+  `20260728010000`. **`supabase db push` was deliberately not used.** Repository
+  filenames and production versions diverged from 2026-06-14 onward: at the time
+  of this apply, 26 repository versions were absent from production history, and
+  22 of those were already applied
+  under different version strings (for example repo `20260710000000` versus
+  production `20260710161851`). A version-based push would therefore have replayed
+  22 already-live migrations, including the payments foundation and the 152-row
+  exercise library. The local CLI stayed linked to isolated staging throughout.
+  Only the outer `BEGIN;`/`COMMIT;` were removed from the submitted payload,
+  to avoid unsafe nesting if the execution channel wraps statements. The
+  channel's transaction model was not independently proven; complete structural
+  verification confirmed that no partial L12 state remained. The committed
+  migration file is unchanged.
+- **Production verification:** Version row exactly 1. `client_has_write_access` is
+  SECURITY DEFINER, STABLE, with `search_path=public, pg_temp`. `anon` cannot
+  execute it; `authenticated` and `service_role` can. Policy counts: 6 RESTRICTIVE
+  (INSERT/UPDATE/DELETE on both tables), 5 pre-existing PERMISSIVE retained,
+  0 RESTRICTIVE `SELECT` or `ALL`. Behavioral probes ran as impersonated roles
+  inside rolled-back transactions: lapsed-client session insert denied `42501`;
+  lapsed-client log insert into a session created while active denied `42501`;
+  lapsed-client read returned their history; active-client insert allowed;
+  assigned-coach insert for their client allowed. Session and log row counts were
+  unchanged afterwards and no probe row persisted. Security advisors reported no
+  new ERROR-level finding — `client_has_write_access` appears only under the
+  signed-in SECURITY DEFINER lint, not the anon one, which is the intended grant.
+- **Honesty note:** Real authenticated smoke was not performed. Production
+  verification was database-level only.
+- **Measured impact:** Of 5 client profiles, 4 resolve to `active` and retain
+  write access. Exactly 1 has no subscription row, resolves to `none`, and newly
+  loses write access with 0 open active sessions — the intended rule, measured
+  before the apply rather than discovered after.
 - **Scoped out:** The same ownership-only pattern on `daily_routine_logs`,
   `progress_logs`, `phase_submissions`, `subjective_assessments`,
   `client_questions`, `exercise_alternative_requests`, and legacy `workout_logs`.
