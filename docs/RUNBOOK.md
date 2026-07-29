@@ -401,18 +401,21 @@ security advisor. **Real authenticated smoke was not performed; this is
 database-level verification only.**
 
 > **Do not apply production migrations with `supabase db push` or
-> `supabase migration up`.** Repository filenames and production versions diverged
-> from 2026-06-14 onward: 25 repository versions are absent from production
-> history and 22 of those are already applied under different version strings. A
-> version-based push would replay 22 live migrations, including the payments
-> foundation and the 152-row exercise library. Apply one reviewed file explicitly
-> and record its version, as L12 was. See [ISSUE_LOG.md](ISSUE_LOG.md) #18.
+> `supabase migration up`.** Migration history was reconciled on 2026-07-29:
+> production now represents all 64 repository versions, while retaining the 25
+> differently versioned historical production rows, for 89 registry rows total.
+> The prior missing-version replay hazard is resolved. These commands remain
+> unapproved for production until their target selection, pending-version
+> behavior, transaction model, rollback behavior, and full end-to-end procedure
+> are separately validated. See [ISSUE_LOG.md](ISSUE_LOG.md) #18 and
+> [MIGRATION_HISTORY_RECONCILIATION.md](MIGRATION_HISTORY_RECONCILIATION.md).
 
 The L12 Management-API apply was an exceptional, separately audited operation,
 not a generic migration procedure. Do not copy it for another migration. Before
 any future production DDL:
 
-1. reconcile or explicitly account for issue #18;
+1. confirm the production registry remains reconciled and contains no unexpected
+   pending repository version;
 2. prove that the selected channel applies exactly one reviewed file;
 3. prove how that channel records the file's exact version;
 4. stop if either guarantee is unavailable; and

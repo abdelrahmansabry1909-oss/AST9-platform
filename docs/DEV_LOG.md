@@ -596,3 +596,69 @@ Verification legend:
   `progress_logs`, `phase_submissions`, `subjective_assessments`,
   `client_questions`, `exercise_alternative_requests`, and legacy `workout_logs`.
   Tracked as ISSUE_LOG #17.
+
+---
+
+## M2 - Production migration-history reconciliation
+
+- **Date:** 2026-07-29
+- **Scope:** Production migration-registry reconciliation only. No migration SQL,
+  schema, RLS, function, grant, trigger, Realtime, cron, application source, or
+  application-data change.
+- **Purpose:** Resolve ISSUE_LOG #18 by recording the 25 repository migration
+  versions whose effects were already present under divergent production
+  versions or proven equivalent/no-op states.
+- **Execution:** The approved versions were recorded as applied one at a time
+  with the pinned Supabase CLI `2.109.1` and an explicit database URL. The run
+  never used `--linked`, `supabase link`, `db push`, `migration up`, handwritten
+  registry SQL, or migration SQL application.
+- **Executor revision history:**
+  1. Revision 1 pinned CLI `2.109.1`, rejected implicit linked targeting,
+     enforced the approved version sets, sanitized output, and scoped rollback
+     to approved versions added by the run.
+  2. Revision 2 routed every post-write verification failure through one rollback
+     controller, changed rollback to reverse-order one-version operations,
+     added deterministic catalog and row-content fingerprints, formalized exit
+     outcomes, and hardened native-tool validation and report handling.
+  3. Revision 3 added an eight-check restored-baseline verifier for both
+     nothing-to-revert and completed-rollback paths, recorded actual pre/post/
+     rollback evidence, and made quiet-window drift fail closed.
+  4. Revision 4 attempted to harden the L12 snapshot contract after the first
+     gates-only transport failure by using a typed single-object result and
+     explicit property validation.
+  5. Revision 5 replaced dynamic L12 property access with validated hashtable
+     index access and added exact failure-line, command, exception-type, and stack
+     diagnostics after Revision 4 did not eliminate the failure.
+  6. Revision 6 identified and fixed the actual PowerShell case-insensitive
+     script-scope variable collision, backed by negative controls reproducing
+     both observed failures and a case-insensitive static collision check.
+  7. Revision 7 resolved the repository root explicitly, preflighted all 25
+     migration files, and ran both apply and rollback CLI calls from that root,
+     fixing the first full-run working-directory failure.
+- **Final executor:** Revision 7, SHA-256
+  `0a2ecdc3df80e894ddd219a327d52d339591f3b4ddbf6709f3393edb8eb545fd`.
+- **Outcome:** **SUCCESS**. Registry count moved from **64 to 89**. Exactly the
+  approved 25 versions were added, all 25 divergent production rows were
+  preserved, all original 64 rows remained byte-for-byte unchanged, and all
+  64 repository versions are now represented with 0 absent.
+- **Evidence:** Sanitized report SHA-256
+  `773354eb201f065c665e58424f97814be06a928f120c7dcb289b86b7672263b2`.
+  The pre-change and post-originals snapshots both hash to
+  `7b9dae553d5a550f7746c0b7d6482618d3d43632980dbc2aa7aa5c2e03fe546b`.
+  The versions-only hashes are
+  `2633ec6dc94153dc7f5dd9788e7ad8125fe2d7e97c61c582af091cfdafe20f20`
+  before and
+  `4de1275e54b775b6294353cdfc7b3ba66a910c955eca18f45250216fdbc154d7`
+  after.
+- **Independent verification:** Registry 89; approved 25 present; mapped 25
+  preserved; catalog fingerprint
+  `8352d0584b8f145060119c691636a53b` unchanged; row-content fingerprint
+  `956c3e7ef1d8664e1e3b8976f04ea5b8` unchanged; L12 remained 1 registry
+  row, 6 RESTRICTIVE policies, 5 PERMISSIVE policies, and 0 RESTRICTIVE
+  `SELECT`/`ALL` policies. Independent read-only audit found no blocker, major,
+  or minor issue.
+- **Honesty note:** M2 changed only
+  `supabase_migrations.schema_migrations`. It did not prove that production
+  `supabase db push` or `supabase migration up` is safe end to end; those
+  commands remain prohibited pending separate validation. No real authenticated
+  browser smoke was performed because M2 had no application behavior change.
