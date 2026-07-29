@@ -289,8 +289,17 @@
   document rows already exist, and all four hardened RPC ACLs already match the
   intended grants (`anon` execute counts are 0). They need reconciliation, not
   application.
-- **Remaining:** Design and review a reconciliation for all 25 absent repository
-  versions: map the 22 already-live migrations to their historical production
-  versions and separately account for the 3 equivalent/no-op migrations. Do not
-  run `migration repair` until that mapping and its rollback are audited. Until
-  then, treat any version-based push against production as unsafe.
+- **M1 mapping status (2026-07-29):** The documentation-only mapping is complete
+  in [MIGRATION_HISTORY_RECONCILIATION.md](MIGRATION_HISTORY_RECONCILIATION.md).
+  All 25 versions are accounted for with content-level evidence: 22 live
+  repository migrations map to 25 differently versioned production rows (two
+  repository files consolidate multiple production entries), and the remaining
+  3 have exact no-op proofs. The expected relation/column/constraint/index/policy/
+  function/trigger inventory had no missing item, the 22-function ACL matrix had
+  zero mismatches, and no partial application was found. Production remained at
+  64 registry rows; no repair, migration, push, or schema/data mutation occurred.
+- **Remaining:** ISSUE #18 stays open. Claude must audit M1 at the exact PR head.
+  M2 requires separate owner approval before running the prepared
+  `migration repair` command. Until M2 is approved, executed, rolled-back if
+  needed, and independently verified, treat any version-based production push as
+  unsafe.
