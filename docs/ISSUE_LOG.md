@@ -273,11 +273,27 @@
   `supabase/baseline/production_public_schema.sql`, not by any migration under
   `supabase/migrations/`, so a migration touching them cannot be validated by
   replaying repository migrations onto a fresh preview database.
-- **Remaining:** The isolated-staging authorization cases and expectation manifest
-  are now written. The gating migration itself is still outstanding, and the live
-  policy set must be re-confirmed against the real database before writing it —
-  the baseline has drifted from production before (see #15). The table/actor
-  analysis behind the decision was repository-derived, not read from production.
+- **Production catalog read (2026-07-30, read-only):** The live policy set was
+  confirmed before the migration was written, closing the baseline-drift risk
+  noted above. Findings: all seven tables have RLS enabled and **every existing
+  policy on them is PERMISSIVE** — no RESTRICTIVE policy existed, so nothing
+  partially mitigated the gap; `client_has_write_access(uuid)` is present,
+  SECURITY DEFINER, STABLE, granted to `authenticated` and `service_role` only,
+  never `anon`, so no new function is needed; `client_id` is confirmed NULLABLE
+  on `phase_submissions` and `subjective_assessments` and NOT NULL on the other
+  five, confirming the NULL trap; and neither `client_questions` nor
+  `exercise_alternative_requests` authorizes a client DELETE today, so their
+  DELETE policies are deliberately inert forward cover. Catalog metadata only —
+  no user rows were read.
+- **Cross-migration hazard:** the L12 rollback drops
+  `client_has_write_access(uuid)`, which the six live workout-table policies still
+  depend on. This phase's rollback is policy-only and drops no function; the
+  offline test asserts that explicitly so the hazard cannot be reintroduced.
+- **Remaining:** The isolated-staging authorization cases, expectation manifest,
+  21-policy gating migration, and paired policy-only rollback now exist, but
+  nothing has been applied. Apply to isolated staging and capture catalog plus
+  authenticated-matrix proof, then seek separate approval for a production
+  apply. Issue #17 remains open until those deployment steps are complete.
 
 ## 18. Repository migration versions diverged from production history (resolved 2026-07-29)
 - **Symptoms:** The L12 production-apply readiness audit initially found 26
