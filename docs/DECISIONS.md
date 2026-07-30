@@ -19,7 +19,8 @@
 ## D3 — Legal acceptance must be backend-persisted, not just a checkbox
 - **Rationale:** A client-only checkbox is not auditable or enforceable. Acceptance
   (terms/consent) must be recorded server-side with who/when.
-- **Status:** Decided; **not yet implemented** (see [KNOWN_LIMITATIONS.md](KNOWN_LIMITATIONS.md)).
+- **Status:** Implemented and in force; the legal text itself still awaits lawyer
+  approval.
 
 ## D4 — No fake medical diagnosis
 - **Rationale:** The platform must not present invented or authoritative-sounding
@@ -59,3 +60,19 @@
 - **Rationale:** Each phase is scoped, reviewed, and merged independently to keep
   production safe; documentation/control baselines (like Phase R0) precede risky work.
 - **Status:** In force. See `AI_WORKFLOW_GUARDRAILS.md` and the `.claude/skills/ast9-*` pack.
+
+## D11 — Client write access follows effective subscription state on every client-owned table
+- **Rationale:** L12 gated only `workout_sessions` and `workout_exercise_logs`. Seven
+  further tables still authorize client writes on ownership alone
+  (`client_id = auth.uid()`), so a lapsed client can still write to them through
+  direct PostgREST calls (see [ISSUE_LOG.md](ISSUE_LOG.md) #17). The locked-client
+  rule is view-only, not no-access, so `SELECT` is never gated.
+- **Decision (owner, 2026-07-30):** Extend the L12 RESTRICTIVE pattern to all seven
+  residual tables — `daily_routine_logs`, `phase_submissions`,
+  `exercise_alternative_requests`, `subjective_assessments`, `progress_logs`,
+  `client_questions`, and the legacy `workout_logs`. Reuse
+  `client_has_write_access(uuid)`; add no new function. INSERT/UPDATE/DELETE only.
+- **Also decided:** `progress_logs`, `client_questions`, and `workout_logs` have no
+  write path from any application code. They are gated now and queued for a separate
+  deprecation review; gating is not a substitute for deciding whether they should exist.
+- **Status:** Decided; implementation pending (phase P3A-2E). No migration written yet.

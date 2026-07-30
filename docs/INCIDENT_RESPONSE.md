@@ -57,7 +57,7 @@
 4. Wait for the Pages deploy to finish, then **verify the live asset** actually changed (fetch the file, confirm token/content) — do not assume.
 
 ### 4b. Database migration rollback (owner-approved only)
-1. Every migration ships a paired file in `supabase/rollbacks/*_down.sql`.
+1. Only 29 of 64 migrations have paired down-files, split between `supabase/rollbacks/` and `supabase/migrations/rollbacks/`; check [MIGRATION_ROLLBACK_INVENTORY.md](MIGRATION_ROLLBACK_INVENTORY.md) before assuming a rollback exists.
 2. **Capture before-state counts** for any table the down-file touches.
 3. Get explicit **owner approval** before running anything against production.
 4. Run the paired down-file (Supabase SQL editor / MCP).

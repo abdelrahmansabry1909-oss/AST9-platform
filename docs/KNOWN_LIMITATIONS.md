@@ -108,7 +108,7 @@ secondary review of Phase A.
 Visual screenshot verification of authenticated platform shells (such as the coach dashboard, objective assessment, and programs views) uses a DOM-only static fixture in Playwright tests (`loginScreen.classList.add('hidden')`, `appScreen.style.display = 'block'`, `body.nc-bright`) without invoking Supabase, auth APIs, or live backend endpoints. Live session state rendering and database-persisted save flows still require owner manual testing in the live application.
 
 ## L11 — Staging Edge Functions are not deployed
-The repository contains 12 Edge Functions plus `_shared`, but P3A-2B provisions
+The repository contains 11 Edge Functions plus `_shared`, but P3A-2B provisions
 database schema only. Role-routing and PostgREST smoke do not need those functions.
 Program generation and other flows that invoke `generate-program` remain blocked
 until a separate staging function-deployment plan defines function scope, synthetic

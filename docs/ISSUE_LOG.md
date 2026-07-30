@@ -203,9 +203,9 @@
 - **Live result:** The first isolated-staging run passed 22/23 cases. Every
   unauthorized write was denied, but the signed-out case exposed the ACL drift
   tracked in issue #15.
-- **Remaining:** Correct and rerun the signed-out execution boundary. The same
-  database-layer approach is still needed for workout writes, which stay blocked
-  by L12.
+- **Remaining:** None for ISSUE #14. The signed-out boundary is corrected, L12 is
+  applied to production, and `staging:authz-workout-writes` is the durable
+  database-layer workout-write check.
 
 ## 15. Isolated staging baseline lost security-critical function revocations
 - **Symptoms:** A signed-out caller reached `create_client_subscription` and was
@@ -229,8 +229,8 @@
 - **Durable control:** `staging:authz-system-rpcs` commits those four execution
   checks and guarantees reset after success or failure. Its isolated-staging run
   passed 4/4, followed by successful five-role verification.
-- **Remaining:** Re-audit and merge the durable command and atomic migration
-  wrapper before closing this issue.
+- **Remaining:** Re-audit and merge the atomic migration wrapper before closing
+  this issue.
 
 ## 16. Baseline function ACL fidelity needs a complete inventory
 - **Symptoms:** The P3A-2D1 correction audit found many baseline function ACL
@@ -257,10 +257,26 @@
   through direct PostgREST calls. Severity varies by table and none of them is the
   paid-feature surface workout tracking is, so this was scoped out of L12 rather
   than bundled into a single large RLS change.
-- **Remaining:** Decide per table whether write access should follow effective
-  subscription state, then extend the same RESTRICTIVE pattern and add cases to
-  `staging:authz-workout-writes` or a sibling command. Do not gate `SELECT`; the
-  locked rule is view-only, not no-access.
+- **Decided (owner, 2026-07-30):** All seven tables are to be gated on effective
+  subscription state, reusing `client_has_write_access(uuid)` with the L12
+  RESTRICTIVE pattern on INSERT/UPDATE/DELETE only. `SELECT` is never gated; the
+  locked rule is view-only, not no-access. See [DECISIONS.md](DECISIONS.md) D11.
+  `progress_logs`, `client_questions`, and `workout_logs` have no write path from
+  any application code and are additionally queued for a deprecation review.
+- **Two constraints for the implementing phase.** First, `phase_submissions.client_id`
+  and `subjective_assessments.client_id` are NULLABLE. L12's
+  `client_id <> (SELECT auth.uid())` evaluates to NULL on such a row, and a
+  RESTRICTIVE policy that does not evaluate TRUE denies the write — that would block
+  coaches, not just lapsed clients. Both tables need
+  `client_id IS DISTINCT FROM (SELECT auth.uid())`. Second, `progress_logs`,
+  `client_questions`, and `workout_logs` are defined only in
+  `supabase/baseline/production_public_schema.sql`, not by any migration under
+  `supabase/migrations/`, so a migration touching them cannot be validated by
+  replaying repository migrations onto a fresh preview database.
+- **Remaining:** Write the isolated-staging authorization cases first, then the
+  migration. Re-confirm the live policy set against the real database before writing
+  it — the baseline has drifted from production before (see #15). The table/actor
+  analysis behind the decision was repository-derived, not read from production.
 
 ## 18. Repository migration versions diverged from production history (resolved 2026-07-29)
 - **Symptoms:** The L12 production-apply readiness audit initially found 26
