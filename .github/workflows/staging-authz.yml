@@ -1,0 +1,63 @@
+# Isolated staging project only, never production; the fixture contract rejects
+# the production project ref.
+
+name: Isolated Staging Authorization
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: isolated-staging-authz
+  cancel-in-progress: false
+
+jobs:
+  staging-authz:
+    name: Staging authorization matrices
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      AST9_E2E_STAGING_SUPABASE_URL: ${{ vars.AST9_E2E_STAGING_SUPABASE_URL }}
+      AST9_E2E_IDENTITY_MARKER: ${{ vars.AST9_E2E_IDENTITY_MARKER }}
+      AST9_E2E_STAGING_SUPABASE_ANON_KEY: ${{ secrets.AST9_E2E_STAGING_SUPABASE_ANON_KEY }}
+      AST9_E2E_STAGING_SERVICE_ROLE_KEY: ${{ secrets.AST9_E2E_STAGING_SERVICE_ROLE_KEY }}
+      AST9_STAGING_SEED_CONFIRM: ${{ secrets.AST9_STAGING_SEED_CONFIRM }}
+      AST9_E2E_ADMIN_EMAIL: ${{ secrets.AST9_E2E_ADMIN_EMAIL }}
+      AST9_E2E_ADMIN_PASSWORD: ${{ secrets.AST9_E2E_ADMIN_PASSWORD }}
+      AST9_E2E_COACH_EMAIL: ${{ secrets.AST9_E2E_COACH_EMAIL }}
+      AST9_E2E_COACH_PASSWORD: ${{ secrets.AST9_E2E_COACH_PASSWORD }}
+      AST9_E2E_CLIENT_EMAIL: ${{ secrets.AST9_E2E_CLIENT_EMAIL }}
+      AST9_E2E_CLIENT_PASSWORD: ${{ secrets.AST9_E2E_CLIENT_PASSWORD }}
+      AST9_E2E_INACTIVE_CLIENT_EMAIL: ${{ secrets.AST9_E2E_INACTIVE_CLIENT_EMAIL }}
+      AST9_E2E_INACTIVE_CLIENT_PASSWORD: ${{ secrets.AST9_E2E_INACTIVE_CLIENT_PASSWORD }}
+      AST9_E2E_UNASSIGNED_CLIENT_EMAIL: ${{ secrets.AST9_E2E_UNASSIGNED_CLIENT_EMAIL }}
+      AST9_E2E_UNASSIGNED_CLIENT_PASSWORD: ${{ secrets.AST9_E2E_UNASSIGNED_CLIENT_PASSWORD }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Validate staging safety contract
+        run: npm run staging:validate
+      - name: Seed deterministic staging fixtures
+        run: npm run staging:seed
+      - name: Verify staging fixture baseline
+        run: npm run staging:verify
+      - name: Test subscription authorization
+        run: npm run staging:authz-subscriptions
+      - name: Test system RPC authorization
+        run: npm run staging:authz-system-rpcs
+      - name: Test workout write authorization
+        run: npm run staging:authz-workout-writes
+      - name: Test client write authorization
+        run: npm run staging:authz-client-writes
+      - name: Reset staging fixtures
+        if: always()
+        run: npm run staging:reset
