@@ -662,3 +662,17 @@ Verification legend:
   `supabase db push` or `supabase migration up` is safe end to end; those
   commands remain prohibited pending separate validation. No real authenticated
   browser smoke was performed because M2 had no application behavior change.
+
+---
+
+## O1 - Deploy gate hardening
+
+- **Date:** 2026-07-29
+- **Change:** Added a read-only `verify` job ahead of the GitHub Pages build and
+  deploy jobs, and added `main` pushes to the standalone smoke workflow triggers.
+- **Why:** Commits reaching `main` outside a pull-request checks path could
+  previously publish to production without any test gate.
+- **Deploy gates:** `npm run test:unit:staging-safety`,
+  `npx playwright install --with-deps chromium`, and
+  `npm run test:smoke:public` now run after `npm ci`. Authenticated Playwright
+  specs remain outside the deploy requirement.
