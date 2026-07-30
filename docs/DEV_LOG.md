@@ -792,3 +792,30 @@ Verification legend:
   three tables that exist only in the baseline.
 - **Scope:** Documentation only — no SQL, no application code, no file moves,
   and no production access.
+
+---
+
+## P3A-2H-R - Revoke service-role role-predicate execution
+
+- **Date:** 2026-07-30
+- **Owner decision:** Revoked `service_role` EXECUTE in the repository contract
+  for `is_admin()`, `is_coach()`, `is_coach_or_admin()`,
+  `is_admin_or_coach()` and `get_my_role()`. `service_role` holds BYPASSRLS,
+  has no call site for these predicates, and needs no grant for definer-rights
+  nesting.
+- **ACL contract:** All 51 entries are approved and none remain provisional.
+  `PUBLIC` stays revoked. The `anon` grant is deliberately preserved because
+  baseline policies without a `TO` clause evaluate these predicates for
+  signed-out requests; `authenticated` is also preserved.
+- **Evidence pass and correction:** review found the manifest and the migration
+  disagreed about `get_my_role()` — the manifest recorded `anon: false` while the
+  migration granted `anon`. A read-only pass over the baseline **plus all 66
+  migrations** (honouring `DROP POLICY`, stripping `$$` bodies) resolved **163
+  effective policies** and settled it: `get_my_role()` is referenced by two
+  no-`TO` policies on `profiles`, so `anon` EXECUTE is required and the manifest
+  was wrong. It is corrected to `anon: true` with the fingerprint updated in the
+  same commit. The earlier per-predicate counts were baseline-only and are
+  corrected to 12, 1, 3, 3 and 2 policies with no `TO` clause.
+- **Application status:** The migration is committed but applied to no database.
+  ISSUE_LOG #16 remains open pending an approved apply and production parity
+  verification.

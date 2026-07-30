@@ -9,7 +9,7 @@ const MIGRATIONS = new URL('supabase/migrations/', ROOT);
 const MANIFEST = new URL('tests/acl-expectations.json', ROOT);
 const API_ROLES = ['PUBLIC', 'anon', 'authenticated', 'service_role'];
 const ACL_CONTRACT_FINGERPRINT =
-  'aba5d1f7fde460d64eb0ec1abf9c255a0ae6168a4854d908d9b6c9d6509809f2';
+  '7b73ec3565c27a81bdecdd5ad4349ed6c9f59a16310d6c4a82215661b40afc15';
 
 function canonicalizeType(type) {
   return type
@@ -410,17 +410,9 @@ const provisionalSignatures = loadManifest()
   .sort();
 
 test(`provisional ACL decisions block remediation: ${provisionalSignatures.join(', ')}`, () => {
-  // The three trigger helpers were promoted to approved on 2026-07-30: each is
-  // reached only through CREATE TRIGGER, and PostgreSQL does not require the DML
-  // user to hold EXECUTE on a trigger function. Only the role predicates remain
-  // provisional, all on the single unresolved question of service_role.
-  assert.deepEqual(provisionalSignatures, [
-    'get_my_role()',
-    'is_admin()',
-    'is_admin_or_coach()',
-    'is_coach()',
-    'is_coach_or_admin()',
-  ]);
+  // Owner decisions on 2026-07-30 approved the trigger helpers and the five
+  // role predicates, leaving no provisional ACL contract entries.
+  assert.deepEqual(provisionalSignatures, []);
 });
 
 test('manifest signatures exactly match the effective repository inventory', () => {

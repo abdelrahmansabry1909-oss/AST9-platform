@@ -239,15 +239,13 @@
 - **Current containment:** The four security-critical RPCs identified during this
   gate are covered by a forward migration and offline ACL guards. Production
   already has the intended grants.
-- **Remaining:** Stage A is inventory-complete with decision-finalization pending
-  for provisional entries. The non-secret manifest covers all repository-declared
-  function signatures with **46 approved and 5 provisional** entries. Provisional
-  entries explicitly block and never authorize remediation. The offline guard
-  pins the full ACL contract with a deterministic fingerprint in addition to
-  inventory, signature, security-mode, and structural checks. Production parity
-  remains unverified; no live database was accessed, and issue #16 remains open
-  until the provisional decisions, separately approved comparison, and any
-  resulting remediation are complete.
+- **Remaining:** Stage A is inventory-complete and all decisions are final. The
+  non-secret manifest covers all repository-declared function signatures with
+  **51 approved and 0 provisional** entries. The offline guard pins the full ACL
+  contract with a deterministic fingerprint in addition to inventory, signature,
+  security-mode, and structural checks. Production parity remains unverified;
+  issue #16 stays open pending the separately approved migration apply and
+  production parity verification.
 - **Trigger helpers approved (owner, 2026-07-30):** `handle_updated_at()`,
   `rpm_touch_updated_at()` and `update_updated_at()` moved from provisional to
   approved with all four roles pinned false. Each is reached only through
@@ -255,16 +253,29 @@
   references in `js/`, `src/` or `supabase/functions/`, and PostgreSQL does not
   require the DML user to hold EXECUTE on a trigger function. The ACL contract
   fingerprint is unchanged by the promotion, which confirms no pinned grant moved.
-- **The 5 remaining provisional entries** are the role predicates `is_admin()`,
-  `is_coach()`, `is_coach_or_admin()`, `is_admin_or_coach()` and `get_my_role()`,
-  all blocked on one question: whether `service_role` should retain direct EXECUTE.
-  The recommendation is `false` — `service_role` holds BYPASSRLS so these
-  predicates are never evaluated for it, no `service_role` call site exists, and
-  nested calls inside a `SECURITY DEFINER` body run with the definer's rights.
-  Acting on it revokes a live grant and therefore needs its own migration. Note
-  `anon` EXECUTE on these five is **required**, not drift: each is referenced by
-  baseline policies carrying no `TO` clause, which PostgreSQL applies to `PUBLIC`
-  and evaluates as `anon` (17, 4, 3, 3 and 2 such policies).
+- **Role predicates approved (owner, 2026-07-30):** `service_role` must not have
+  direct EXECUTE on `is_admin()`, `is_coach()`, `is_coach_or_admin()`,
+  `is_admin_or_coach()` or `get_my_role()`. It holds BYPASSRLS, has no call site
+  for these predicates, and nested calls inside a `SECURITY DEFINER` body run
+  with the definer's rights. Migration
+  `20260730100000_revoke_service_role_role_predicates.sql` records that decision
+  but is **applied nowhere**. `anon` EXECUTE remains required, not drift: policies
+  without a `TO` clause apply to `PUBLIC` and evaluate as `anon` for signed-out
+  requests.
+- **Evidence pass correction (2026-07-30):** earlier policy counts in this issue
+  were derived from the baseline alone and were wrong. A full pass over the
+  baseline **plus all 66 migrations**, honouring `DROP POLICY` and stripping
+  `$$` bodies before statement splitting, resolves **163 effective policies**.
+  Corrected counts of policies with **no `TO` clause** — the ones an `anon`
+  caller evaluates: `is_admin` **12** (was reported 17), `is_coach` **1** (was 4),
+  `is_coach_or_admin` **3**, `is_admin_or_coach` **3**, `get_my_role` **2**.
+  `anon` holds table grants on every affected table, so those policies are
+  genuinely reached. All five therefore require `anon` EXECUTE; the conclusion is
+  unchanged, but it is now established rather than asserted.
+- **Manifest correction (2026-07-30):** `get_my_role()` was recorded with
+  `anon: false`. That was wrong — it is referenced by two effective no-`TO`
+  policies on `profiles`. The expectation is corrected to `anon: true`, and the
+  ACL contract fingerprint was updated in the same commit.
 
 ## 17. Ownership-only client write policies beyond workout tracking
 - **Symptoms:** L12 work found that `effective_status` appeared in no RLS policy at
