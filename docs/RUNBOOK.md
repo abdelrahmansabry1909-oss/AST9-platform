@@ -63,6 +63,21 @@ and counts — **no** headers, bodies, tokens, Vault values, or user data.
 
 ## Deploy check
 
+Every Pages deploy is gated on the `verify` job. After `npm ci`, it runs these
+three gates in order:
+
+```bash
+npm run test:unit:staging-safety
+npx playwright install --with-deps chromium
+npm run test:smoke:public
+```
+
+Only a successful `verify` starts `build`; only a successful `build` starts
+`deploy`. If the gate fails, open the workflow run, select the `Verify` job, and
+read the first failed step and its log. `Build` and `Deploy` should show as
+skipped. Fix the reported unit-safety, Chromium-install, or public-smoke failure,
+then rerun the workflow or push the correction.
+
 ```bash
 gh run list --workflow="Deploy to GitHub Pages" --limit 3
 ```
