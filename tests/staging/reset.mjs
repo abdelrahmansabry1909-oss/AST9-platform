@@ -12,6 +12,16 @@ async function deleteIfPresent(client, contract, table, column, ids, env) {
   await deleteScoped(client, contract, table, column, ids, env);
 }
 
+async function resetClientWriteGateData(client, contract, clientIds, env) {
+  // phase_submissions is a child of the RPM graph/phase rows created by the
+  // authorization probes, so remove it before the existing RPM parent stage.
+  await deleteScoped(client, contract, 'phase_submissions', 'client_id', clientIds, env);
+  await deleteScoped(client, contract, 'daily_routine_logs', 'client_id', clientIds, env);
+  await deleteScoped(client, contract, 'progress_logs', 'client_id', clientIds, env);
+  await deleteScoped(client, contract, 'client_questions', 'client_id', clientIds, env);
+  await deleteScoped(client, contract, 'workout_logs', 'client_id', clientIds, env);
+}
+
 export const RESET_STAGE_ORDER = Object.freeze([
   'workout',
   'program',
@@ -172,6 +182,7 @@ export async function resetFixtures(contract, client, env = process.env) {
     users.unassignedClient.id,
   ];
 
+  await resetClientWriteGateData(client, contract, clientIds, env);
   await runResetStages(client, contract, clientIds, env);
   await deleteScoped(
     client,

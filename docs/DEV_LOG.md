@@ -16,6 +16,26 @@ Verification legend:
 
 ---
 
+## Phase P3A-2E — Client write authorization expectation matrix
+
+- **Date:** 2026-07-30 · branch `test/p3a-2e-client-write-authz`
+- **What:** Added a non-secret expectation manifest, offline matrix guards, scoped
+  fixture cleanup, and authenticated staging cases for client writes on
+  `daily_routine_logs`, `phase_submissions`, `subjective_assessments`,
+  `exercise_alternative_requests`, `progress_logs`, `client_questions`, and the
+  legacy `workout_logs` table. The matrix pins lapsed-client write denials,
+  active-client and staff write access, and lapsed-client read access.
+- **Scope:** Tests and test documentation only. This phase writes no migration,
+  SQL, RLS policy, database function, or application code.
+- **Verification:** `test:unit:staging-safety`, production build, and whitespace
+  checks. The new `staging:authz-client-writes` command is **EXPECTED to fail**
+  until the gating migration exists; it was not run in this tests-only phase.
+- **Remaining:** Write and independently review the gating migration, re-confirm
+  the live policy set against the real database, then run the authenticated
+  staging matrix.
+
+---
+
 ## Phase P3A-2A — Deterministic staging fixture foundation
 
 - **Date:** 2026-07-26 · branch `codex/p3a-staging-fixture-foundation`
