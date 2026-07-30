@@ -230,22 +230,22 @@
     "security": "DEFINER",
     "expected": {
       "PUBLIC": false,
-      "anon": false,
+      "anon": true,
       "authenticated": true,
       "service_role": false
     },
-    "rationale": "Signed-in RLS and user-JWT edge authorization read the caller's role through auth.uid().",
+    "rationale": "Signed-out RLS evaluates this predicate: two effective policies on profiles carry no TO clause, so PostgreSQL applies them to PUBLIC and runs them as anon. Signed-in callers also reach it directly from the edge auth helper.",
     "source": "baseline",
-    "confidence": "low",
-    "decision": "provisional",
-    "ambiguity": "Should service_role retain direct execution even though its no-user-JWT calls cannot obtain a role and it bypasses RLS?",
+    "confidence": "high",
+    "decision": "approved",
     "recommendation": {
       "PUBLIC": "keep `false`. Granting to `PUBLIC` is the drift vector ISSUE #16 tracks.",
-      "anon": "keep `true` — REQUIRED, not optional. Evidence: each predicate is referenced by baseline `CREATE POLICY` statements that carry no `TO` clause, which in PostgreSQL applies the policy to `PUBLIC` and therefore evaluates its expression as the `anon` role for signed-out requests. Counts of such policies: `is_admin` 17, `is_coach` 4, `is_coach_or_admin` 3, `is_admin_or_coach` 3, `get_my_role` 2. Without EXECUTE, an anon request against those tables fails with `permission denied for function`. A tighter alternative exists — add explicit `TO authenticated` to those policies, then revoke `anon` — but that is a policy migration, not an ACL change, and is out of scope here.",
+      "anon": "keep `true` — REQUIRED. Two effective policies on `profiles` carry no TO clause, so PostgreSQL applies them to PUBLIC and evaluates them as anon; anon also holds table grants on profiles. Revoking would fail signed-out reads with permission denied for function.",
       "authenticated": "keep `true` — REQUIRED. Most referencing policies are `TO authenticated` (`is_admin` 59, `is_coach` 11, `is_coach_or_admin` 11, `get_my_role` 1). `get_my_role` additionally has a direct RPC call from `supabase/functions/_shared/auth.ts:124` via a user-JWT client.",
-      "service_role": "RECOMMEND `false`. Evidence: `service_role` holds BYPASSRLS, so these policy predicates are never evaluated for it; no direct `service_role` call site exists anywhere in `js/`, `src/`, or `supabase/functions/`; and calls made inside a `SECURITY DEFINER` body execute with the definer's rights, so no grant is needed for nested use. This is the only genuinely unresolved role, and it is why these five stay provisional: acting on it means revoking a live grant, which is a migration."
-    },
-    "blocks_remediation": true
+      "service_role": "APPROVED `false`. Evidence: `service_role` holds BYPASSRLS, so these policy predicates are never evaluated for it; no direct `service_role` call site exists anywhere in `js/`, `src/`, or `supabase/functions/`; and calls made inside a `SECURITY DEFINER` body execute with the definer's rights, so no grant is needed for nested use. The forward migration records the revoke but is applied nowhere.",
+      "owner_approved": "2026-07-30",
+      "evidence": "Corrected 2026-07-30 by a full baseline+66-migration evidence pass over 163 effective policies (DROP POLICY honoured). The earlier repository-only reading that recorded anon=false was wrong."
+    }
   },
   {
     "signature": "handle_new_user()",
@@ -309,20 +309,19 @@
       "PUBLIC": false,
       "anon": true,
       "authenticated": true,
-      "service_role": true
+      "service_role": false
     },
-    "rationale": "RLS policies for both public and signed-in queries explicitly require this role predicate, with trusted server compatibility retained.",
+    "rationale": "RLS policies for both public and signed-in queries require this role predicate; service_role bypasses RLS and needs no direct execution.",
     "source": "20260515000000_rpm_foundation.sql",
-    "confidence": "low",
-    "decision": "provisional",
-    "ambiguity": "The anon and authenticated caller contract is explicit, but should service_role keep direct execution when it normally bypasses RLS?",
+    "confidence": "high",
+    "decision": "approved",
     "recommendation": {
       "PUBLIC": "keep `false`. Granting to `PUBLIC` is the drift vector ISSUE #16 tracks.",
       "anon": "keep `true` — REQUIRED, not optional. Evidence: each predicate is referenced by baseline `CREATE POLICY` statements that carry no `TO` clause, which in PostgreSQL applies the policy to `PUBLIC` and therefore evaluates its expression as the `anon` role for signed-out requests. Counts of such policies: `is_admin` 17, `is_coach` 4, `is_coach_or_admin` 3, `is_admin_or_coach` 3, `get_my_role` 2. Without EXECUTE, an anon request against those tables fails with `permission denied for function`. A tighter alternative exists — add explicit `TO authenticated` to those policies, then revoke `anon` — but that is a policy migration, not an ACL change, and is out of scope here.",
       "authenticated": "keep `true` — REQUIRED. Most referencing policies are `TO authenticated` (`is_admin` 59, `is_coach` 11, `is_coach_or_admin` 11, `get_my_role` 1). `get_my_role` additionally has a direct RPC call from `supabase/functions/_shared/auth.ts:124` via a user-JWT client.",
-      "service_role": "RECOMMEND `false`. Evidence: `service_role` holds BYPASSRLS, so these policy predicates are never evaluated for it; no direct `service_role` call site exists anywhere in `js/`, `src/`, or `supabase/functions/`; and calls made inside a `SECURITY DEFINER` body execute with the definer's rights, so no grant is needed for nested use. This is the only genuinely unresolved role, and it is why these five stay provisional: acting on it means revoking a live grant, which is a migration."
-    },
-    "blocks_remediation": true
+      "service_role": "APPROVED `false`. Evidence: `service_role` holds BYPASSRLS, so these policy predicates are never evaluated for it; no direct `service_role` call site exists anywhere in `js/`, `src/`, or `supabase/functions/`; and calls made inside a `SECURITY DEFINER` body execute with the definer's rights, so no grant is needed for nested use. The forward migration records the revoke but is applied nowhere.",
+      "owner_approved": "2026-07-30"
+    }
   },
   {
     "signature": "is_admin_or_coach()",
@@ -332,20 +331,19 @@
       "PUBLIC": false,
       "anon": true,
       "authenticated": true,
-      "service_role": true
+      "service_role": false
     },
-    "rationale": "Legacy RLS policies expose this role predicate to signed-out and signed-in evaluation, with trusted server compatibility retained.",
+    "rationale": "Legacy RLS policies expose this role predicate to signed-out and signed-in evaluation; service_role bypasses RLS and needs no direct execution.",
     "source": "baseline",
-    "confidence": "low",
-    "decision": "provisional",
-    "ambiguity": "The anon and authenticated caller contract is explicit, but should service_role keep direct execution when it normally bypasses RLS?",
+    "confidence": "high",
+    "decision": "approved",
     "recommendation": {
       "PUBLIC": "keep `false`. Granting to `PUBLIC` is the drift vector ISSUE #16 tracks.",
       "anon": "keep `true` — REQUIRED, not optional. Evidence: each predicate is referenced by baseline `CREATE POLICY` statements that carry no `TO` clause, which in PostgreSQL applies the policy to `PUBLIC` and therefore evaluates its expression as the `anon` role for signed-out requests. Counts of such policies: `is_admin` 17, `is_coach` 4, `is_coach_or_admin` 3, `is_admin_or_coach` 3, `get_my_role` 2. Without EXECUTE, an anon request against those tables fails with `permission denied for function`. A tighter alternative exists — add explicit `TO authenticated` to those policies, then revoke `anon` — but that is a policy migration, not an ACL change, and is out of scope here.",
       "authenticated": "keep `true` — REQUIRED. Most referencing policies are `TO authenticated` (`is_admin` 59, `is_coach` 11, `is_coach_or_admin` 11, `get_my_role` 1). `get_my_role` additionally has a direct RPC call from `supabase/functions/_shared/auth.ts:124` via a user-JWT client.",
-      "service_role": "RECOMMEND `false`. Evidence: `service_role` holds BYPASSRLS, so these policy predicates are never evaluated for it; no direct `service_role` call site exists anywhere in `js/`, `src/`, or `supabase/functions/`; and calls made inside a `SECURITY DEFINER` body execute with the definer's rights, so no grant is needed for nested use. This is the only genuinely unresolved role, and it is why these five stay provisional: acting on it means revoking a live grant, which is a migration."
-    },
-    "blocks_remediation": true
+      "service_role": "APPROVED `false`. Evidence: `service_role` holds BYPASSRLS, so these policy predicates are never evaluated for it; no direct `service_role` call site exists anywhere in `js/`, `src/`, or `supabase/functions/`; and calls made inside a `SECURITY DEFINER` body execute with the definer's rights, so no grant is needed for nested use. The forward migration records the revoke but is applied nowhere.",
+      "owner_approved": "2026-07-30"
+    }
   },
   {
     "signature": "is_coach()",
@@ -355,20 +353,19 @@
       "PUBLIC": false,
       "anon": true,
       "authenticated": true,
-      "service_role": true
+      "service_role": false
     },
-    "rationale": "RLS policies for both public and signed-in queries explicitly require this role predicate, with trusted server compatibility retained.",
+    "rationale": "RLS policies for both public and signed-in queries require this role predicate; service_role bypasses RLS and needs no direct execution.",
     "source": "20260515000000_rpm_foundation.sql",
-    "confidence": "low",
-    "decision": "provisional",
-    "ambiguity": "The anon and authenticated caller contract is explicit, but should service_role keep direct execution when it normally bypasses RLS?",
+    "confidence": "high",
+    "decision": "approved",
     "recommendation": {
       "PUBLIC": "keep `false`. Granting to `PUBLIC` is the drift vector ISSUE #16 tracks.",
       "anon": "keep `true` — REQUIRED, not optional. Evidence: each predicate is referenced by baseline `CREATE POLICY` statements that carry no `TO` clause, which in PostgreSQL applies the policy to `PUBLIC` and therefore evaluates its expression as the `anon` role for signed-out requests. Counts of such policies: `is_admin` 17, `is_coach` 4, `is_coach_or_admin` 3, `is_admin_or_coach` 3, `get_my_role` 2. Without EXECUTE, an anon request against those tables fails with `permission denied for function`. A tighter alternative exists — add explicit `TO authenticated` to those policies, then revoke `anon` — but that is a policy migration, not an ACL change, and is out of scope here.",
       "authenticated": "keep `true` — REQUIRED. Most referencing policies are `TO authenticated` (`is_admin` 59, `is_coach` 11, `is_coach_or_admin` 11, `get_my_role` 1). `get_my_role` additionally has a direct RPC call from `supabase/functions/_shared/auth.ts:124` via a user-JWT client.",
-      "service_role": "RECOMMEND `false`. Evidence: `service_role` holds BYPASSRLS, so these policy predicates are never evaluated for it; no direct `service_role` call site exists anywhere in `js/`, `src/`, or `supabase/functions/`; and calls made inside a `SECURITY DEFINER` body execute with the definer's rights, so no grant is needed for nested use. This is the only genuinely unresolved role, and it is why these five stay provisional: acting on it means revoking a live grant, which is a migration."
-    },
-    "blocks_remediation": true
+      "service_role": "APPROVED `false`. Evidence: `service_role` holds BYPASSRLS, so these policy predicates are never evaluated for it; no direct `service_role` call site exists anywhere in `js/`, `src/`, or `supabase/functions/`; and calls made inside a `SECURITY DEFINER` body execute with the definer's rights, so no grant is needed for nested use. The forward migration records the revoke but is applied nowhere.",
+      "owner_approved": "2026-07-30"
+    }
   },
   {
     "signature": "is_coach_or_admin()",
@@ -378,20 +375,19 @@
       "PUBLIC": false,
       "anon": true,
       "authenticated": true,
-      "service_role": true
+      "service_role": false
     },
-    "rationale": "RLS policies for both public and signed-in queries explicitly require this role predicate, with trusted server compatibility retained.",
+    "rationale": "RLS policies for both public and signed-in queries require this role predicate; service_role bypasses RLS and needs no direct execution.",
     "source": "20260515000000_rpm_foundation.sql",
-    "confidence": "low",
-    "decision": "provisional",
-    "ambiguity": "The anon and authenticated caller contract is explicit, but should service_role keep direct execution when it normally bypasses RLS?",
+    "confidence": "high",
+    "decision": "approved",
     "recommendation": {
       "PUBLIC": "keep `false`. Granting to `PUBLIC` is the drift vector ISSUE #16 tracks.",
       "anon": "keep `true` — REQUIRED, not optional. Evidence: each predicate is referenced by baseline `CREATE POLICY` statements that carry no `TO` clause, which in PostgreSQL applies the policy to `PUBLIC` and therefore evaluates its expression as the `anon` role for signed-out requests. Counts of such policies: `is_admin` 17, `is_coach` 4, `is_coach_or_admin` 3, `is_admin_or_coach` 3, `get_my_role` 2. Without EXECUTE, an anon request against those tables fails with `permission denied for function`. A tighter alternative exists — add explicit `TO authenticated` to those policies, then revoke `anon` — but that is a policy migration, not an ACL change, and is out of scope here.",
       "authenticated": "keep `true` — REQUIRED. Most referencing policies are `TO authenticated` (`is_admin` 59, `is_coach` 11, `is_coach_or_admin` 11, `get_my_role` 1). `get_my_role` additionally has a direct RPC call from `supabase/functions/_shared/auth.ts:124` via a user-JWT client.",
-      "service_role": "RECOMMEND `false`. Evidence: `service_role` holds BYPASSRLS, so these policy predicates are never evaluated for it; no direct `service_role` call site exists anywhere in `js/`, `src/`, or `supabase/functions/`; and calls made inside a `SECURITY DEFINER` body execute with the definer's rights, so no grant is needed for nested use. This is the only genuinely unresolved role, and it is why these five stay provisional: acting on it means revoking a live grant, which is a migration."
-    },
-    "blocks_remediation": true
+      "service_role": "APPROVED `false`. Evidence: `service_role` holds BYPASSRLS, so these policy predicates are never evaluated for it; no direct `service_role` call site exists anywhere in `js/`, `src/`, or `supabase/functions/`; and calls made inside a `SECURITY DEFINER` body execute with the definer's rights, so no grant is needed for nested use. The forward migration records the revoke but is applied nowhere.",
+      "owner_approved": "2026-07-30"
+    }
   },
   {
     "signature": "notify(p_recipient_id uuid, p_type text, p_title text, p_body text, p_link_section text, p_link_params jsonb, p_severity text, p_data jsonb, p_actor_id uuid)",

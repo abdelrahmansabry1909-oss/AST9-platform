@@ -2,14 +2,18 @@
 
 ## Summary
 
-The repository contains **64** forward migrations. By the
+The repository contains **66** forward migrations. By the
 `<version>_<name>.sql` / `<version>_<name>_down.sql` naming convention,
-**29 are paired** and **35 lack a paired down-file**.
+**31 are paired** and **35 lack a paired down-file**.
 
 Rollback files are split across two directories:
-`supabase/rollbacks/` contains **15** files, and
+`supabase/rollbacks/` contains **17** files, and
 `supabase/migrations/rollbacks/` contains **14** files. There are **0 orphan**
 rollback files and **0 duplicate** rollback files across the two directories.
+
+> **Keeping this current is manual.** Nothing enforces it, and it drifted within
+> hours of being written: `20260730000000` shipped in PR #141 without an entry
+> here. If you add a migration, add its row below in the same commit.
 The directory ranges interleave, so the split follows no rule; the inventory
 must be consulted for the location of a specific rollback.
 
@@ -93,3 +97,5 @@ verification.
 | `20260727000100_legal_documents_reference_data.sql` | irreversible-by-design | — | Reference-row backfill; deleting by key could remove rows that predated this idempotent insert. |
 | `20260728000000_rpc_execute_acl_hardening.sql` | irreversible-by-design | — | Reversal would restore security-critical RPC execution grants to untrusted roles. |
 | `20260728010000_workout_write_subscription_gate.sql` | paired | `supabase/rollbacks/` | Paired down migration is present. |
+| `20260730000000_client_write_subscription_gate.sql` | paired | `supabase/rollbacks/` | Paired down migration is present. Policy-only; it deliberately does **not** drop `client_has_write_access(uuid)`, which the live L12 workout policies still depend on. |
+| `20260730100000_revoke_service_role_role_predicates.sql` | paired | `supabase/rollbacks/` | Paired down migration is present. Grants only; the rollback restores `service_role` EXECUTE and touches no function. |
