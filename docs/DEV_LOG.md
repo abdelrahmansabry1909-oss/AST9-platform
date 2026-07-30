@@ -16,6 +16,25 @@ Verification legend:
 
 ---
 
+## Phase P3A-2H Stage A — Function ACL inventory and parity guard
+
+- **Date:** 2026-07-30 · branch `test/p3a-2h-function-acl-guard`
+- **What:** Added an inventory-complete ACL manifest for every effective public
+  function signature: 43 decisions are approved and 8 remain provisional (five
+  role predicates and three trigger helpers). Provisional entries carry
+  per-role recommendations, explicitly block remediation, and remain pending
+  owner decision. The offline unit guard reconstructs the inventory from the
+  baseline plus ordered migrations, including signature normalization and
+  `DROP FUNCTION` handling, validates the decision and grant structure, and pins
+  all 51 ACL contracts with a deterministic SHA-256 fingerprint.
+- **Why:** New public functions can retain unintended API execution, and the
+  baseline snapshot cannot by itself prove the intended caller contract.
+- **Scope:** Tests, manifest, and documentation only. No ACL, schema, or
+  migration changed, and no database was accessed; production parity
+  verification remains a separately approved later stage.
+
+---
+
 ## Phase T1 — Unified test gate and orphaned-test guard
 
 - **Date:** 2026-07-30

@@ -1,0 +1,585 @@
+[
+  {
+    "signature": "_clamp_score(v numeric)",
+    "name": "_clamp_score",
+    "security": "INVOKER",
+    "expected": { "PUBLIC": false, "anon": false, "authenticated": true, "service_role": true },
+    "rationale": "The progression view evaluates this read-only arithmetic helper for signed-in and trusted server queries.",
+    "source": "20260530204349_advisor_hardening.sql",
+    "confidence": "high",
+    "decision": "approved"
+  },
+  {
+    "signature": "_profile_exists(p_id uuid)",
+    "name": "_profile_exists",
+    "security": "INVOKER",
+    "expected": { "PUBLIC": false, "anon": false, "authenticated": false, "service_role": false },
+    "rationale": "This leading-underscore helper exists only for owner-executed notification trigger functions.",
+    "source": "20260530204349_advisor_hardening.sql",
+    "confidence": "high",
+    "decision": "approved"
+  },
+  {
+    "signature": "admin_coach_business_overview()",
+    "name": "admin_coach_business_overview",
+    "security": "DEFINER",
+    "expected": { "PUBLIC": false, "anon": false, "authenticated": true, "service_role": true },
+    "rationale": "The function enforces is_admin internally and its defining migration explicitly permits signed-in and service callers.",
+    "source": "20260616020000_coach_business_profile.sql",
+    "confidence": "high",
+    "decision": "approved"
+  },
+  {
+    "signature": "admin_set_coach_package(p_coach_id uuid, p_package_key text, p_custom_qty integer, p_notes text, p_billing_interval text)",
+    "name": "admin_set_coach_package",
+    "security": "DEFINER",
+    "expected": { "PUBLIC": false, "anon": false, "authenticated": true, "service_role": true },
+    "rationale": "The package mutation checks is_admin and explicitly supports signed-in admin and trusted service execution.",
+    "source": "20260616020000_coach_business_profile.sql",
+    "confidence": "high",
+    "decision": "approved"
+  },
+  {
+    "signature": "apply_paid_coach_package_period_system(p_provider text, p_provider_event_id text, p_coach_id uuid, p_package_key text, p_client_limit integer, p_period_start timestamp with time zone, p_period_end timestamp with time zone, p_amount_minor integer, p_currency text, p_payment_status text, p_event_type text, p_summary jsonb)",
+    "name": "apply_paid_coach_package_period_system",
+    "security": "DEFINER",
+    "expected": { "PUBLIC": false, "anon": false, "authenticated": false, "service_role": true },
+    "rationale": "This payment-event mutation trusts a verified server caller and is explicitly service-role only.",
+    "source": "20260702000000_provider_neutral_payments_foundation.sql",
+    "confidence": "high",
+    "decision": "approved"
+  },
+  {
+    "signature": "check_subscription_expiry()",
+    "name": "check_subscription_expiry",
+    "security": "DEFINER",
+    "expected": { "PUBLIC": false, "anon": false, "authenticated": false, "service_role": true },
+    "rationale": "This unscoped subscription expiry mutation is a cron or server operation, never a browser RPC.",
+    "source": "baseline",
+    "confidence": "high",
+    "decision": "approved"
+  },
+  {
+    "signature": "client_has_write_access(p_client_id uuid)",
+    "name": "client_has_write_access",
+    "security": "DEFINER",
+    "expected": { "PUBLIC": false, "anon": false, "authenticated": true, "service_role": true },
+    "rationale": "Authenticated RLS policies evaluate this subscription predicate and the migration explicitly retains trusted service execution.",
+    "source": "20260728010000_workout_write_subscription_gate.sql",
+    "confidence": "high",
+    "decision": "approved"
+  },
+  {
+    "signature": "coach_slot_status(p_coach_id uuid)",
+    "name": "coach_slot_status",
+    "security": "DEFINER",
+    "expected": { "PUBLIC": false, "anon": false, "authenticated": true, "service_role": true },
+    "rationale": "Signed-in coaches query their own capacity while admin and server provisioning paths may query another coach.",
+    "source": "20260616020000_coach_business_profile.sql",
+    "confidence": "high",
+    "decision": "approved"
+  },
+  {
+    "signature": "complete_onboarding()",
+    "name": "complete_onboarding",
+    "security": "DEFINER",
+    "expected": { "PUBLIC": false, "anon": false, "authenticated": true, "service_role": false },
+    "rationale": "The tour calls this as the signed-in user and the body updates only auth.uid().",
+    "source": "20260614020000_coach_signup_onboarding.sql",
+    "confidence": "high",
+    "decision": "approved"
+  },
+  {
+    "signature": "create_client_subscription(p_client_id uuid, p_plan_name text, p_months integer, p_start date, p_end date, p_status text, p_notes text)",
+    "name": "create_client_subscription",
+    "security": "DEFINER",
+    "expected": { "PUBLIC": false, "anon": false, "authenticated": true, "service_role": true },
+    "rationale": "Assigned coaches and admins pass the internal authorization check, with the hardened contract also retaining trusted service execution.",
+    "source": "20260710000000_client_subscription_management.sql",
+    "confidence": "high",
+    "decision": "approved"
+  },
+  {
+    "signature": "enforce_profile_protected_columns()",
+    "name": "enforce_profile_protected_columns",
+    "security": "DEFINER",
+    "expected": { "PUBLIC": false, "anon": false, "authenticated": false, "service_role": false },
+    "rationale": "This protected-column guard is invoked only by its table trigger and has no direct API caller.",
+    "source": "20260531191256_profiles_protect_privileged_columns.sql",
+    "confidence": "high",
+    "decision": "approved"
+  },
+  {
+    "signature": "ensure_subscription_notifications(p_client_id uuid)",
+    "name": "ensure_subscription_notifications",
+    "security": "DEFINER",
+    "expected": { "PUBLIC": false, "anon": false, "authenticated": true, "service_role": false },
+    "rationale": "Auth initialization calls this for the signed-in client and the body rejects any other user id.",
+    "source": "20260530202555_notifications_inbox.sql",
+    "confidence": "high",
+    "decision": "approved"
+  },
+  {
+    "signature": "expire_my_stale_workout_sessions()",
+    "name": "expire_my_stale_workout_sessions",
+    "security": "DEFINER",
+    "expected": { "PUBLIC": false, "anon": false, "authenticated": true, "service_role": false },
+    "rationale": "The app invokes this signed-in RPC and its update scope is derived from auth.uid() and staff authorization.",
+    "source": "20260629160000_workout_session_auto_expire.sql",
+    "confidence": "high",
+    "decision": "approved"
+  },
+  {
+    "signature": "expire_stale_workout_sessions_all()",
+    "name": "expire_stale_workout_sessions_all",
+    "security": "DEFINER",
+    "expected": { "PUBLIC": false, "anon": false, "authenticated": false, "service_role": true },
+    "rationale": "The global stale-session sweep has no user authorization and is explicitly reserved for cron or service context.",
+    "source": "20260629160000_workout_session_auto_expire.sql",
+    "confidence": "high",
+    "decision": "approved"
+  },
+  {
+    "signature": "fn_pulse_for_alerts()",
+    "name": "fn_pulse_for_alerts",
+    "security": "DEFINER",
+    "expected": { "PUBLIC": false, "anon": false, "authenticated": false, "service_role": true },
+    "rationale": "This cross-client alert feed is documented and granted only for the service-role alert pipeline.",
+    "source": "20260611195947_s4_pulse_alerts_foundation.sql",
+    "confidence": "high",
+    "decision": "approved"
+  },
+  {
+    "signature": "get_my_role()",
+    "name": "get_my_role",
+    "security": "DEFINER",
+    "expected": { "PUBLIC": false, "anon": false, "authenticated": true, "service_role": false },
+    "rationale": "Signed-in RLS and user-JWT edge authorization read the caller's role through auth.uid().",
+    "source": "baseline",
+    "confidence": "low",
+    "decision": "provisional",
+    "ambiguity": "Should service_role retain direct execution even though its no-user-JWT calls cannot obtain a role and it bypasses RLS?",
+    "recommendation": {
+      "PUBLIC": "keep `false`. Granting to `PUBLIC` is the drift vector ISSUE #16 tracks.",
+      "anon": "keep `true` — REQUIRED, not optional. Evidence: each predicate is referenced by baseline `CREATE POLICY` statements that carry no `TO` clause, which in PostgreSQL applies the policy to `PUBLIC` and therefore evaluates its expression as the `anon` role for signed-out requests. Counts of such policies: `is_admin` 17, `is_coach` 4, `is_coach_or_admin` 3, `is_admin_or_coach` 3, `get_my_role` 2. Without EXECUTE, an anon request against those tables fails with `permission denied for function`. A tighter alternative exists — add explicit `TO authenticated` to those policies, then revoke `anon` — but that is a policy migration, not an ACL change, and is out of scope here.",
+      "authenticated": "keep `true` — REQUIRED. Most referencing policies are `TO authenticated` (`is_admin` 59, `is_coach` 11, `is_coach_or_admin` 11, `get_my_role` 1). `get_my_role` additionally has a direct RPC call from `supabase/functions/_shared/auth.ts:124` via a user-JWT client.",
+      "service_role": "RECOMMEND `false`. Evidence: `service_role` holds BYPASSRLS, so these policy predicates are never evaluated for it; no direct `service_role` call site exists anywhere in `js/`, `src/`, or `supabase/functions/`; and calls made inside a `SECURITY DEFINER` body execute with the definer's rights, so no grant is needed for nested use. This is the only genuinely unresolved role, and it is why these five stay provisional: acting on it means revoking a live grant, which is a migration."
+    },
+    "blocks_remediation": true
+  },
+  {
+    "signature": "handle_new_user()",
+    "name": "handle_new_user",
+    "security": "DEFINER",
+    "expected": { "PUBLIC": false, "anon": false, "authenticated": false, "service_role": false },
+    "rationale": "This auth-table provisioning function is reachable only through its database trigger.",
+    "source": "20260603152638_handle_new_user_force_client_role.sql",
+    "confidence": "high",
+    "decision": "approved"
+  },
+  {
+    "signature": "handle_updated_at()",
+    "name": "handle_updated_at",
+    "security": "INVOKER",
+    "expected": { "PUBLIC": false, "anon": false, "authenticated": false, "service_role": false },
+    "rationale": "This timestamp mutator is a trigger function with no direct API contract.",
+    "source": "baseline",
+    "confidence": "low",
+    "decision": "provisional",
+    "ambiguity": "No defining migration or documentation identifies whether any non-trigger caller intentionally invokes this generic helper.",
+    "recommendation": {
+      "PUBLIC": "keep `false`.",
+      "anon": "keep `false`.",
+      "authenticated": "keep `false`.",
+      "service_role": "keep `false`.",
+      "evidence": "This function is referenced only by `CREATE TRIGGER ... EXECUTE FUNCTION` (3 references) and has zero references in `js/`, `src/`, or `supabase/functions/`. PostgreSQL does not require the DML user to hold EXECUTE on a trigger function, so no API role needs it.",
+      "conclusive": true,
+      "ready_for_promotion_on_owner_signoff": true
+    },
+    "blocks_remediation": true
+  },
+  {
+    "signature": "has_accepted_current_legal(p_user_id uuid)",
+    "name": "has_accepted_current_legal",
+    "security": "DEFINER",
+    "expected": { "PUBLIC": false, "anon": false, "authenticated": true, "service_role": false },
+    "rationale": "The first-login gate calls this signed in, and the body limits reads to self or admin.",
+    "source": "20260627000000_legal_acceptance_foundation.sql",
+    "confidence": "high",
+    "decision": "approved"
+  },
+  {
+    "signature": "is_admin()",
+    "name": "is_admin",
+    "security": "DEFINER",
+    "expected": { "PUBLIC": false, "anon": true, "authenticated": true, "service_role": true },
+    "rationale": "RLS policies for both public and signed-in queries explicitly require this role predicate, with trusted server compatibility retained.",
+    "source": "20260515000000_rpm_foundation.sql",
+    "confidence": "low",
+    "decision": "provisional",
+    "ambiguity": "The anon and authenticated caller contract is explicit, but should service_role keep direct execution when it normally bypasses RLS?",
+    "recommendation": {
+      "PUBLIC": "keep `false`. Granting to `PUBLIC` is the drift vector ISSUE #16 tracks.",
+      "anon": "keep `true` — REQUIRED, not optional. Evidence: each predicate is referenced by baseline `CREATE POLICY` statements that carry no `TO` clause, which in PostgreSQL applies the policy to `PUBLIC` and therefore evaluates its expression as the `anon` role for signed-out requests. Counts of such policies: `is_admin` 17, `is_coach` 4, `is_coach_or_admin` 3, `is_admin_or_coach` 3, `get_my_role` 2. Without EXECUTE, an anon request against those tables fails with `permission denied for function`. A tighter alternative exists — add explicit `TO authenticated` to those policies, then revoke `anon` — but that is a policy migration, not an ACL change, and is out of scope here.",
+      "authenticated": "keep `true` — REQUIRED. Most referencing policies are `TO authenticated` (`is_admin` 59, `is_coach` 11, `is_coach_or_admin` 11, `get_my_role` 1). `get_my_role` additionally has a direct RPC call from `supabase/functions/_shared/auth.ts:124` via a user-JWT client.",
+      "service_role": "RECOMMEND `false`. Evidence: `service_role` holds BYPASSRLS, so these policy predicates are never evaluated for it; no direct `service_role` call site exists anywhere in `js/`, `src/`, or `supabase/functions/`; and calls made inside a `SECURITY DEFINER` body execute with the definer's rights, so no grant is needed for nested use. This is the only genuinely unresolved role, and it is why these five stay provisional: acting on it means revoking a live grant, which is a migration."
+    },
+    "blocks_remediation": true
+  },
+  {
+    "signature": "is_admin_or_coach()",
+    "name": "is_admin_or_coach",
+    "security": "DEFINER",
+    "expected": { "PUBLIC": false, "anon": true, "authenticated": true, "service_role": true },
+    "rationale": "Legacy RLS policies expose this role predicate to signed-out and signed-in evaluation, with trusted server compatibility retained.",
+    "source": "baseline",
+    "confidence": "low",
+    "decision": "provisional",
+    "ambiguity": "The anon and authenticated caller contract is explicit, but should service_role keep direct execution when it normally bypasses RLS?",
+    "recommendation": {
+      "PUBLIC": "keep `false`. Granting to `PUBLIC` is the drift vector ISSUE #16 tracks.",
+      "anon": "keep `true` — REQUIRED, not optional. Evidence: each predicate is referenced by baseline `CREATE POLICY` statements that carry no `TO` clause, which in PostgreSQL applies the policy to `PUBLIC` and therefore evaluates its expression as the `anon` role for signed-out requests. Counts of such policies: `is_admin` 17, `is_coach` 4, `is_coach_or_admin` 3, `is_admin_or_coach` 3, `get_my_role` 2. Without EXECUTE, an anon request against those tables fails with `permission denied for function`. A tighter alternative exists — add explicit `TO authenticated` to those policies, then revoke `anon` — but that is a policy migration, not an ACL change, and is out of scope here.",
+      "authenticated": "keep `true` — REQUIRED. Most referencing policies are `TO authenticated` (`is_admin` 59, `is_coach` 11, `is_coach_or_admin` 11, `get_my_role` 1). `get_my_role` additionally has a direct RPC call from `supabase/functions/_shared/auth.ts:124` via a user-JWT client.",
+      "service_role": "RECOMMEND `false`. Evidence: `service_role` holds BYPASSRLS, so these policy predicates are never evaluated for it; no direct `service_role` call site exists anywhere in `js/`, `src/`, or `supabase/functions/`; and calls made inside a `SECURITY DEFINER` body execute with the definer's rights, so no grant is needed for nested use. This is the only genuinely unresolved role, and it is why these five stay provisional: acting on it means revoking a live grant, which is a migration."
+    },
+    "blocks_remediation": true
+  },
+  {
+    "signature": "is_coach()",
+    "name": "is_coach",
+    "security": "DEFINER",
+    "expected": { "PUBLIC": false, "anon": true, "authenticated": true, "service_role": true },
+    "rationale": "RLS policies for both public and signed-in queries explicitly require this role predicate, with trusted server compatibility retained.",
+    "source": "20260515000000_rpm_foundation.sql",
+    "confidence": "low",
+    "decision": "provisional",
+    "ambiguity": "The anon and authenticated caller contract is explicit, but should service_role keep direct execution when it normally bypasses RLS?",
+    "recommendation": {
+      "PUBLIC": "keep `false`. Granting to `PUBLIC` is the drift vector ISSUE #16 tracks.",
+      "anon": "keep `true` — REQUIRED, not optional. Evidence: each predicate is referenced by baseline `CREATE POLICY` statements that carry no `TO` clause, which in PostgreSQL applies the policy to `PUBLIC` and therefore evaluates its expression as the `anon` role for signed-out requests. Counts of such policies: `is_admin` 17, `is_coach` 4, `is_coach_or_admin` 3, `is_admin_or_coach` 3, `get_my_role` 2. Without EXECUTE, an anon request against those tables fails with `permission denied for function`. A tighter alternative exists — add explicit `TO authenticated` to those policies, then revoke `anon` — but that is a policy migration, not an ACL change, and is out of scope here.",
+      "authenticated": "keep `true` — REQUIRED. Most referencing policies are `TO authenticated` (`is_admin` 59, `is_coach` 11, `is_coach_or_admin` 11, `get_my_role` 1). `get_my_role` additionally has a direct RPC call from `supabase/functions/_shared/auth.ts:124` via a user-JWT client.",
+      "service_role": "RECOMMEND `false`. Evidence: `service_role` holds BYPASSRLS, so these policy predicates are never evaluated for it; no direct `service_role` call site exists anywhere in `js/`, `src/`, or `supabase/functions/`; and calls made inside a `SECURITY DEFINER` body execute with the definer's rights, so no grant is needed for nested use. This is the only genuinely unresolved role, and it is why these five stay provisional: acting on it means revoking a live grant, which is a migration."
+    },
+    "blocks_remediation": true
+  },
+  {
+    "signature": "is_coach_or_admin()",
+    "name": "is_coach_or_admin",
+    "security": "DEFINER",
+    "expected": { "PUBLIC": false, "anon": true, "authenticated": true, "service_role": true },
+    "rationale": "RLS policies for both public and signed-in queries explicitly require this role predicate, with trusted server compatibility retained.",
+    "source": "20260515000000_rpm_foundation.sql",
+    "confidence": "low",
+    "decision": "provisional",
+    "ambiguity": "The anon and authenticated caller contract is explicit, but should service_role keep direct execution when it normally bypasses RLS?",
+    "recommendation": {
+      "PUBLIC": "keep `false`. Granting to `PUBLIC` is the drift vector ISSUE #16 tracks.",
+      "anon": "keep `true` — REQUIRED, not optional. Evidence: each predicate is referenced by baseline `CREATE POLICY` statements that carry no `TO` clause, which in PostgreSQL applies the policy to `PUBLIC` and therefore evaluates its expression as the `anon` role for signed-out requests. Counts of such policies: `is_admin` 17, `is_coach` 4, `is_coach_or_admin` 3, `is_admin_or_coach` 3, `get_my_role` 2. Without EXECUTE, an anon request against those tables fails with `permission denied for function`. A tighter alternative exists — add explicit `TO authenticated` to those policies, then revoke `anon` — but that is a policy migration, not an ACL change, and is out of scope here.",
+      "authenticated": "keep `true` — REQUIRED. Most referencing policies are `TO authenticated` (`is_admin` 59, `is_coach` 11, `is_coach_or_admin` 11, `get_my_role` 1). `get_my_role` additionally has a direct RPC call from `supabase/functions/_shared/auth.ts:124` via a user-JWT client.",
+      "service_role": "RECOMMEND `false`. Evidence: `service_role` holds BYPASSRLS, so these policy predicates are never evaluated for it; no direct `service_role` call site exists anywhere in `js/`, `src/`, or `supabase/functions/`; and calls made inside a `SECURITY DEFINER` body execute with the definer's rights, so no grant is needed for nested use. This is the only genuinely unresolved role, and it is why these five stay provisional: acting on it means revoking a live grant, which is a migration."
+    },
+    "blocks_remediation": true
+  },
+  {
+    "signature": "notify(p_recipient_id uuid, p_type text, p_title text, p_body text, p_link_section text, p_link_params jsonb, p_severity text, p_data jsonb, p_actor_id uuid)",
+    "name": "notify",
+    "security": "DEFINER",
+    "expected": { "PUBLIC": false, "anon": false, "authenticated": true, "service_role": true },
+    "rationale": "Authenticated app flows and trusted trigger or cron paths use this sole notification insert rail, which authorizes its actor internally.",
+    "source": "20260530202555_notifications_inbox.sql",
+    "confidence": "high",
+    "decision": "approved"
+  },
+  {
+    "signature": "ops_health_snapshot()",
+    "name": "ops_health_snapshot",
+    "security": "DEFINER",
+    "expected": { "PUBLIC": false, "anon": false, "authenticated": true, "service_role": false },
+    "rationale": "This operator RPC is for signed-in admins, while service callers have a separate system-only function.",
+    "source": "20260701000000_ops_health_snapshot.sql",
+    "confidence": "high",
+    "decision": "approved"
+  },
+  {
+    "signature": "ops_health_snapshot_system()",
+    "name": "ops_health_snapshot_system",
+    "security": "DEFINER",
+    "expected": { "PUBLIC": false, "anon": false, "authenticated": false, "service_role": true },
+    "rationale": "The no-user-JWT operations endpoint is explicitly separated and granted only to service_role.",
+    "source": "20260701120000_ops_health_system.sql",
+    "confidence": "high",
+    "decision": "approved"
+  },
+  {
+    "signature": "publish_program_version(p_version_id uuid, p_change_note text)",
+    "name": "publish_program_version",
+    "security": "DEFINER",
+    "expected": { "PUBLIC": false, "anon": false, "authenticated": true, "service_role": false },
+    "rationale": "Signed-in coaches and admins publish through body checks tied to auth.uid(), with no server-only caller contract.",
+    "source": "20260629000000_program_versioning_publish_rpc.sql",
+    "confidence": "high",
+    "decision": "approved"
+  },
+  {
+    "signature": "reactivate_subscription(p_client_id uuid, p_months integer, p_start date, p_notes text)",
+    "name": "reactivate_subscription",
+    "security": "DEFINER",
+    "expected": { "PUBLIC": false, "anon": false, "authenticated": true, "service_role": false },
+    "rationale": "The signed-in subscription UI invokes this RPC and the body restricts mutation to admin or assigned coach.",
+    "source": "20260530202308_subscription_grace.sql",
+    "confidence": "high",
+    "decision": "approved"
+  },
+  {
+    "signature": "record_legal_acceptance(p_versions jsonb, p_source text)",
+    "name": "record_legal_acceptance",
+    "security": "DEFINER",
+    "expected": { "PUBLIC": false, "anon": false, "authenticated": true, "service_role": false },
+    "rationale": "The first-login flow records acceptance for the signed-in auth.uid() after validating document versions.",
+    "source": "20260627000000_legal_acceptance_foundation.sql",
+    "confidence": "high",
+    "decision": "approved"
+  },
+  {
+    "signature": "rpm_touch_updated_at()",
+    "name": "rpm_touch_updated_at",
+    "security": "INVOKER",
+    "expected": { "PUBLIC": false, "anon": false, "authenticated": false, "service_role": false },
+    "rationale": "This RPM timestamp mutator is a trigger function with no direct API caller.",
+    "source": "baseline",
+    "confidence": "low",
+    "decision": "provisional",
+    "ambiguity": "The baseline is the only declaration and does not document whether any legacy code directly invokes this trigger helper.",
+    "recommendation": {
+      "PUBLIC": "keep `false`.",
+      "anon": "keep `false`.",
+      "authenticated": "keep `false`.",
+      "service_role": "keep `false`.",
+      "evidence": "This function is referenced only by `CREATE TRIGGER ... EXECUTE FUNCTION` (2 references) and has zero references in `js/`, `src/`, or `supabase/functions/`. PostgreSQL does not require the DML user to hold EXECUTE on a trigger function, so no API role needs it.",
+      "conclusive": true,
+      "ready_for_promotion_on_owner_signoff": true
+    },
+    "blocks_remediation": true
+  },
+  {
+    "signature": "set_client_phase(p_client_id uuid, p_new_phase text)",
+    "name": "set_client_phase",
+    "security": "DEFINER",
+    "expected": { "PUBLIC": false, "anon": false, "authenticated": true, "service_role": false },
+    "rationale": "Signed-in admins and assigned coaches pass the internal authorization before changing a client phase.",
+    "source": "20260531192053_set_client_phase_rpc.sql",
+    "confidence": "high",
+    "decision": "approved"
+  },
+  {
+    "signature": "tg_aer_notify_client()",
+    "name": "tg_aer_notify_client",
+    "security": "DEFINER",
+    "expected": { "PUBLIC": false, "anon": false, "authenticated": false, "service_role": false },
+    "rationale": "This notification writer is invoked only by the exercise-request trigger.",
+    "source": "20260531123907_alt_exercise_substitute.sql",
+    "confidence": "high",
+    "decision": "approved"
+  },
+  {
+    "signature": "tg_aer_notify_coach()",
+    "name": "tg_aer_notify_coach",
+    "security": "DEFINER",
+    "expected": { "PUBLIC": false, "anon": false, "authenticated": false, "service_role": false },
+    "rationale": "This notification writer is invoked only by the exercise-request trigger.",
+    "source": "20260530203157_notification_guards_and_phase_upgrade.sql",
+    "confidence": "high",
+    "decision": "approved"
+  },
+  {
+    "signature": "tg_appt_notify_client()",
+    "name": "tg_appt_notify_client",
+    "security": "DEFINER",
+    "expected": { "PUBLIC": false, "anon": false, "authenticated": false, "service_role": false },
+    "rationale": "This appointment notification function is invoked only by its table trigger.",
+    "source": "20260616000000_appointments_v1.sql",
+    "confidence": "high",
+    "decision": "approved"
+  },
+  {
+    "signature": "tg_appt_touch()",
+    "name": "tg_appt_touch",
+    "security": "INVOKER",
+    "expected": { "PUBLIC": false, "anon": false, "authenticated": false, "service_role": false },
+    "rationale": "This appointment timestamp mutator is invoked only by its table trigger.",
+    "source": "20260616000000_appointments_v1.sql",
+    "confidence": "high",
+    "decision": "approved"
+  },
+  {
+    "signature": "tg_athletic_touch()",
+    "name": "tg_athletic_touch",
+    "security": "INVOKER",
+    "expected": { "PUBLIC": false, "anon": false, "authenticated": false, "service_role": false },
+    "rationale": "This athletic-record timestamp mutator is shared only among table triggers.",
+    "source": "20260625000000_athletic_assessment_foundation.sql",
+    "confidence": "high",
+    "decision": "approved"
+  },
+  {
+    "signature": "tg_case_share_notify_admins()",
+    "name": "tg_case_share_notify_admins",
+    "security": "DEFINER",
+    "expected": { "PUBLIC": false, "anon": false, "authenticated": false, "service_role": false },
+    "rationale": "This case-share notification writer is invoked only by its database trigger.",
+    "source": "20260530203157_notification_guards_and_phase_upgrade.sql",
+    "confidence": "high",
+    "decision": "approved"
+  },
+  {
+    "signature": "tg_case_share_notify_coach()",
+    "name": "tg_case_share_notify_coach",
+    "security": "DEFINER",
+    "expected": { "PUBLIC": false, "anon": false, "authenticated": false, "service_role": false },
+    "rationale": "This case-share notification writer is invoked only by its database trigger.",
+    "source": "20260530203157_notification_guards_and_phase_upgrade.sql",
+    "confidence": "high",
+    "decision": "approved"
+  },
+  {
+    "signature": "tg_cp_revision_set()",
+    "name": "tg_cp_revision_set",
+    "security": "INVOKER",
+    "expected": { "PUBLIC": false, "anon": false, "authenticated": false, "service_role": false },
+    "rationale": "This client-program revision mutator is invoked only by its table trigger.",
+    "source": "20260615000000_program_modes.sql",
+    "confidence": "high",
+    "decision": "approved"
+  },
+  {
+    "signature": "tg_cp_revision_snap()",
+    "name": "tg_cp_revision_snap",
+    "security": "DEFINER",
+    "expected": { "PUBLIC": false, "anon": false, "authenticated": false, "service_role": false },
+    "rationale": "This revision snapshot writer is invoked only by its table trigger.",
+    "source": "20260615000000_program_modes.sql",
+    "confidence": "high",
+    "decision": "approved"
+  },
+  {
+    "signature": "tg_cpv_touch()",
+    "name": "tg_cpv_touch",
+    "security": "INVOKER",
+    "expected": { "PUBLIC": false, "anon": false, "authenticated": false, "service_role": false },
+    "rationale": "This program-version timestamp mutator is invoked only by its table trigger.",
+    "source": "20260624000000_client_program_versions.sql",
+    "confidence": "high",
+    "decision": "approved"
+  },
+  {
+    "signature": "tg_legal_touch()",
+    "name": "tg_legal_touch",
+    "security": "INVOKER",
+    "expected": { "PUBLIC": false, "anon": false, "authenticated": false, "service_role": false },
+    "rationale": "This legal-document timestamp mutator is invoked only by its table trigger.",
+    "source": "20260627000000_legal_acceptance_foundation.sql",
+    "confidence": "high",
+    "decision": "approved"
+  },
+  {
+    "signature": "tg_phase_subm_notify_client()",
+    "name": "tg_phase_subm_notify_client",
+    "security": "DEFINER",
+    "expected": { "PUBLIC": false, "anon": false, "authenticated": false, "service_role": false },
+    "rationale": "This phase-submission notification writer is invoked only by its database trigger.",
+    "source": "20260530203157_notification_guards_and_phase_upgrade.sql",
+    "confidence": "high",
+    "decision": "approved"
+  },
+  {
+    "signature": "tg_phase_subm_notify_coach()",
+    "name": "tg_phase_subm_notify_coach",
+    "security": "DEFINER",
+    "expected": { "PUBLIC": false, "anon": false, "authenticated": false, "service_role": false },
+    "rationale": "This phase-submission notification writer is invoked only by its database trigger.",
+    "source": "20260530203157_notification_guards_and_phase_upgrade.sql",
+    "confidence": "high",
+    "decision": "approved"
+  },
+  {
+    "signature": "tg_profile_phase_upgrade()",
+    "name": "tg_profile_phase_upgrade",
+    "security": "DEFINER",
+    "expected": { "PUBLIC": false, "anon": false, "authenticated": false, "service_role": false },
+    "rationale": "This profile-phase notification writer is invoked only by its database trigger.",
+    "source": "20260530203157_notification_guards_and_phase_upgrade.sql",
+    "confidence": "high",
+    "decision": "approved"
+  },
+  {
+    "signature": "touch_coach_subscriptions_updated_at()",
+    "name": "touch_coach_subscriptions_updated_at",
+    "security": "INVOKER",
+    "expected": { "PUBLIC": false, "anon": false, "authenticated": false, "service_role": false },
+    "rationale": "This coach-subscription timestamp mutator is invoked only by its table trigger.",
+    "source": "20260614010000_coach_packages_harden.sql",
+    "confidence": "high",
+    "decision": "approved"
+  },
+  {
+    "signature": "touch_workout_log_updated_at()",
+    "name": "touch_workout_log_updated_at",
+    "security": "INVOKER",
+    "expected": { "PUBLIC": false, "anon": false, "authenticated": false, "service_role": false },
+    "rationale": "This workout-log timestamp mutator is invoked only by its table trigger.",
+    "source": "20260530204349_advisor_hardening.sql",
+    "confidence": "high",
+    "decision": "approved"
+  },
+  {
+    "signature": "update_client_subscription(p_subscription_id uuid, p_plan_name text, p_months integer, p_start date, p_end date, p_status text, p_notes text, p_grace_days integer)",
+    "name": "update_client_subscription",
+    "security": "DEFINER",
+    "expected": { "PUBLIC": false, "anon": false, "authenticated": true, "service_role": true },
+    "rationale": "Assigned coaches and admins pass the internal authorization check, with the hardened contract also retaining trusted service execution.",
+    "source": "20260710000000_client_subscription_management.sql",
+    "confidence": "high",
+    "decision": "approved"
+  },
+  {
+    "signature": "update_updated_at()",
+    "name": "update_updated_at",
+    "security": "INVOKER",
+    "expected": { "PUBLIC": false, "anon": false, "authenticated": false, "service_role": false },
+    "rationale": "This generic timestamp mutator is a trigger function with no direct API contract.",
+    "source": "baseline",
+    "confidence": "low",
+    "decision": "provisional",
+    "ambiguity": "No defining migration or documentation identifies whether any legacy code directly invokes this generic helper.",
+    "recommendation": {
+      "PUBLIC": "keep `false`.",
+      "anon": "keep `false`.",
+      "authenticated": "keep `false`.",
+      "service_role": "keep `false`.",
+      "evidence": "This function is referenced only by `CREATE TRIGGER ... EXECUTE FUNCTION` (1 reference) and has zero references in `js/`, `src/`, or `supabase/functions/`. PostgreSQL does not require the DML user to hold EXECUTE on a trigger function, so no API role needs it.",
+      "conclusive": true,
+      "ready_for_promotion_on_owner_signoff": true
+    },
+    "blocks_remediation": true
+  },
+  {
+    "signature": "verify_cron_secret(p_secret text)",
+    "name": "verify_cron_secret",
+    "security": "DEFINER",
+    "expected": { "PUBLIC": false, "anon": false, "authenticated": false, "service_role": true },
+    "rationale": "Only trusted server code should compare the supplied cron secret with the vault value.",
+    "source": "20260604064909_verify_cron_secret_rpc_vault.sql",
+    "confidence": "high",
+    "decision": "approved"
+  },
+  {
+    "signature": "verify_ops_health_secret(p_secret text)",
+    "name": "verify_ops_health_secret",
+    "security": "DEFINER",
+    "expected": { "PUBLIC": false, "anon": false, "authenticated": false, "service_role": true },
+    "rationale": "Only the trusted operations server path should compare its secret with the vault value.",
+    "source": "20260701120000_ops_health_system.sql",
+    "confidence": "high",
+    "decision": "approved"
+  }
+]

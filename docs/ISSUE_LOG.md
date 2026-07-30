@@ -239,12 +239,16 @@
 - **Current containment:** The four security-critical RPCs identified during this
   gate are covered by a forward migration and offline ACL guards. Production
   already has the intended grants.
-- **Remaining:** Perform a dedicated function-by-function inventory comparing
-  baseline ACLs, historical migrations, SECURITY DEFINER bodies, and intended
-  caller roles. Correct baseline generation or add a reviewed post-baseline ACL
-  manifest so future isolated projects cannot recreate role-grant drift. Do not
-  classify every differing ACL as exploitable without examining its internal
-  authorization.
+- **Remaining:** Stage A is inventory-complete with decision-finalization pending
+  for provisional entries. The non-secret manifest covers all repository-declared
+  function signatures with 43 approved and 8 provisional entries; the provisional
+  set comprises five role predicates and three trigger helpers. Provisional
+  entries explicitly block and never authorize remediation. The offline guard
+  pins the full ACL contract with a deterministic fingerprint in addition to
+  inventory, signature, security-mode, and structural checks. Production parity
+  remains unverified; no live database was accessed, and issue #16 remains open
+  until the provisional decisions, separately approved comparison, and any
+  resulting remediation are complete.
 
 ## 17. Ownership-only client write policies beyond workout tracking
 - **Symptoms:** L12 work found that `effective_status` appeared in no RLS policy at
