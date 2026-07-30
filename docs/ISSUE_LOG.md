@@ -273,9 +273,10 @@
   `supabase/baseline/production_public_schema.sql`, not by any migration under
   `supabase/migrations/`, so a migration touching them cannot be validated by
   replaying repository migrations onto a fresh preview database.
-- **Remaining:** Write the isolated-staging authorization cases first, then the
-  migration. Re-confirm the live policy set against the real database before writing
-  it — the baseline has drifted from production before (see #15). The table/actor
+- **Remaining:** The isolated-staging authorization cases and expectation manifest
+  are now written. The gating migration itself is still outstanding, and the live
+  policy set must be re-confirmed against the real database before writing it —
+  the baseline has drifted from production before (see #15). The table/actor
   analysis behind the decision was repository-derived, not read from production.
 
 ## 18. Repository migration versions diverged from production history (resolved 2026-07-29)

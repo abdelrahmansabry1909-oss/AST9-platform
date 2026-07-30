@@ -1,0 +1,58 @@
+{
+  "rule": {
+    "clientWriteStatuses": ["active", "grace"],
+    "lapsedClientMode": "view-only",
+    "select": "SELECT is never gated"
+  },
+  "tables": [
+    {
+      "table": "daily_routine_logs",
+      "gatedVerbs": ["INSERT", "UPDATE", "DELETE"],
+      "allowedWriters": ["active-or-grace owning client", "coach", "admin"],
+      "selectGated": false,
+      "lapsedClientCanSelectOwnRows": true
+    },
+    {
+      "table": "phase_submissions",
+      "gatedVerbs": ["INSERT", "UPDATE", "DELETE"],
+      "allowedWriters": ["active-or-grace owning client", "coach", "admin"],
+      "selectGated": false,
+      "lapsedClientCanSelectOwnRows": true
+    },
+    {
+      "table": "subjective_assessments",
+      "gatedVerbs": ["INSERT", "UPDATE", "DELETE"],
+      "allowedWriters": ["active-or-grace owning client", "coach", "admin"],
+      "selectGated": false,
+      "lapsedClientCanSelectOwnRows": true
+    },
+    {
+      "table": "exercise_alternative_requests",
+      "gatedVerbs": ["INSERT", "UPDATE", "DELETE"],
+      "allowedWriters": ["active-or-grace owning client", "coach", "admin"],
+      "selectGated": false,
+      "lapsedClientCanSelectOwnRows": true
+    },
+    {
+      "table": "progress_logs",
+      "gatedVerbs": ["INSERT", "UPDATE", "DELETE"],
+      "allowedWriters": ["active-or-grace owning client", "coach", "admin"],
+      "selectGated": false,
+      "lapsedClientCanSelectOwnRows": true
+    },
+    {
+      "table": "client_questions",
+      "gatedVerbs": ["INSERT", "UPDATE", "DELETE"],
+      "allowedWriters": ["active-or-grace owning client", "coach", "admin"],
+      "selectGated": false,
+      "lapsedClientCanSelectOwnRows": true
+    },
+    {
+      "table": "workout_logs",
+      "gatedVerbs": ["INSERT", "UPDATE", "DELETE"],
+      "allowedWriters": ["active-or-grace owning client", "coach", "admin"],
+      "selectGated": false,
+      "lapsedClientCanSelectOwnRows": true
+    }
+  ]
+}

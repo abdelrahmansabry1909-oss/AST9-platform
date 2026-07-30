@@ -12,6 +12,7 @@ export const STAGING_COMMANDS = Object.freeze([
   'authz-subscriptions',
   'authz-system-rpcs',
   'authz-workout-writes',
+  'authz-client-writes',
 ]);
 export const SERVICE_ROLE_KEY = 'AST9_E2E_STAGING_SERVICE_ROLE_KEY';
 export const SEED_CONFIRM_KEY = 'AST9_STAGING_SEED_CONFIRM';

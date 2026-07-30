@@ -76,6 +76,13 @@ async function run() {
     return;
   }
 
+  if (command === 'authz-client-writes') {
+    const { runClientWriteSuite } = await import('./client-write-gate.mjs');
+    const results = await runClientWriteSuite(contract, client, process.env);
+    printCaseOutcomes(command, results);
+    return;
+  }
+
   if (command !== 'reset') {
     throw new Error(`Staging command has no handler: ${command}`);
   }
