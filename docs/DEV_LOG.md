@@ -20,15 +20,21 @@ Verification legend:
 
 - **Date:** 2026-07-30 · branch `test/p3a-2h-function-acl-guard`
 - **What:** Added an inventory-complete ACL manifest for every effective public
-  function signature: 43 decisions are approved and 8 remain provisional (five
-  role predicates and three trigger helpers). Provisional entries carry
-  per-role recommendations, explicitly block remediation, and remain pending
-  owner decision. The offline unit guard reconstructs the inventory from the
+  function signature: 46 decisions are approved and 5 remain provisional (the
+  role predicates). Provisional entries carry per-role recommendations,
+  explicitly block remediation, and remain pending owner decision. The offline unit guard reconstructs the inventory from the
   baseline plus ordered migrations, including signature normalization and
   `DROP FUNCTION` handling, validates the decision and grant structure, and pins
   all 51 ACL contracts with a deterministic SHA-256 fingerprint.
 - **Why:** New public functions can retain unintended API execution, and the
   baseline snapshot cannot by itself prove the intended caller contract.
+- **Owner decision (2026-07-30):** The three trigger helpers were promoted from
+  provisional to approved, leaving **46 approved and 5 provisional**. Evidence was
+  conclusive: each is reached only through `CREATE TRIGGER ... EXECUTE FUNCTION`
+  with no application or edge caller, and PostgreSQL does not require the DML user
+  to hold EXECUTE on a trigger function. The ACL contract fingerprint is unchanged
+  by the promotion, proving no pinned grant moved — only governance status did.
+  The five role predicates stay provisional on the single `service_role` question.
 - **Scope:** Tests, manifest, and documentation only. No ACL, schema, or
   migration changed, and no database was accessed; production parity
   verification remains a separately approved later stage.
