@@ -16,6 +16,24 @@ Verification legend:
 
 ---
 
+## Phase P3A-2F — Client write subscription gate
+
+- **Date:** 2026-07-30 · branch `feat/p3a-2f-client-write-gate`
+- **What:** Committed a paired migration and rollback adding 21 RESTRICTIVE
+  INSERT/UPDATE/DELETE policies across the seven ownership-only client-write
+  tables. The policies reuse `client_has_write_access(uuid)`, preserve staff
+  paths with null-safe `IS DISTINCT FROM`, and deliberately leave SELECT
+  unchanged. Offline tests pin the complete policy and rollback shape.
+- **Deployment:** The migration is committed but **NOT applied to any database**
+  in this phase. Applying it is a separately approved step.
+- **Verification:** `test:unit:staging-safety`, production build, and whitespace
+  checks only; no live or staging database command was run.
+- **Remaining:** Apply to isolated staging under separate approval, capture the
+  catalog and authenticated-matrix proof, then seek separate approval for any
+  production apply.
+
+---
+
 ## Phase P3A-2E — Client write authorization expectation matrix
 
 - **Date:** 2026-07-30 · branch `test/p3a-2e-client-write-authz`
