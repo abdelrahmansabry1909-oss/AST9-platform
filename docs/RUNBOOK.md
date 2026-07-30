@@ -283,9 +283,10 @@ The tools probe required tables and fail clearly when the staging schema is
 incomplete.
 
 Use a local, ignored environment file or temporary shell environment. Never put a
-staging service-role key in GitHub Actions, a PR body, a committed file, agent
-chat, browser storage, or frontend code. In addition to the P3A-1 variables and
-secrets above, local mutation commands require:
+staging service-role key in a PR body, committed file, agent chat, browser
+storage, or frontend code. In CI, configure it only as the repository secret
+documented below. In addition to the P3A-1 variables and secrets above, local
+mutation commands require:
 
 - `AST9_E2E_STAGING_SERVICE_ROLE_KEY` — isolated staging service-role key
 - `AST9_STAGING_SEED_CONFIRM` — exact staging project ref, typed as confirmation
@@ -304,6 +305,7 @@ npm run staging:reset     # scoped write-artifact cleanup, reseed, and verificat
 npm run staging:authz-subscriptions  # subscription write authorization matrix (P3A-2D1)
 npm run staging:authz-system-rpcs    # system-only RPC execution boundaries (P3A-2D1)
 npm run staging:authz-workout-writes # inactive-client workout write gate (L12)
+npm run staging:authz-client-writes  # residual client-write authorization matrix
 ```
 
 Run `staging:validate` first. Then run `staging:seed` once, followed by
@@ -311,6 +313,49 @@ Run `staging:validate` first. Then run `staging:seed` once, followed by
 tests. Output contains role labels and case names only; fixture emails,
 passwords, URLs, anon keys, service-role keys, and server payloads are not
 printed.
+
+### Isolated staging authorization CI (CI-1)
+
+The manually dispatched `Isolated Staging Authorization` workflow runs the
+fixture validation, seed, baseline verification, and all four authorization
+matrices against the isolated staging project, then always resets the fixtures.
+It is not a pull-request, push, deploy, or required-status workflow.
+
+Before dispatching it, the repository owner must configure these exact
+repository **variables**:
+
+- `AST9_E2E_STAGING_SUPABASE_URL`
+- `AST9_E2E_IDENTITY_MARKER`
+
+The owner must also configure these exact repository **secrets**:
+
+- `AST9_E2E_STAGING_SUPABASE_ANON_KEY`
+- `AST9_E2E_STAGING_SERVICE_ROLE_KEY`
+- `AST9_STAGING_SEED_CONFIRM`
+- `AST9_E2E_ADMIN_EMAIL`
+- `AST9_E2E_ADMIN_PASSWORD`
+- `AST9_E2E_COACH_EMAIL`
+- `AST9_E2E_COACH_PASSWORD`
+- `AST9_E2E_CLIENT_EMAIL`
+- `AST9_E2E_CLIENT_PASSWORD`
+- `AST9_E2E_INACTIVE_CLIENT_EMAIL`
+- `AST9_E2E_INACTIVE_CLIENT_PASSWORD`
+- `AST9_E2E_UNASSIGNED_CLIENT_EMAIL`
+- `AST9_E2E_UNASSIGNED_CLIENT_PASSWORD`
+
+Every fixture email's local part must contain the configured identity marker;
+the fixture contract enforces this. `AST9_STAGING_SEED_CONFIRM` must exactly
+equal the staging project ref, and the service-role key must not equal the anon
+key. The contract refuses to run against the production project ref.
+
+To run the suite, open the repository's **Actions** tab, select **Isolated
+Staging Authorization**, choose **Run workflow**, select the intended trusted
+branch, and dispatch it. Open the resulting run and read the first failed step:
+validation failures identify missing or rejected configuration; seed, verify,
+or matrix failures identify the phase that did not satisfy its contract. The
+final **Reset staging fixtures** step runs even after a prior failure. Inspect
+that step separately to confirm cleanup succeeded; do not treat the run as clean
+if reset also failed.
 
 ### Subscription write authorization (P3A-2D1)
 

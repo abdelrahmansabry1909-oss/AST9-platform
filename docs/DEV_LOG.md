@@ -16,6 +16,24 @@ Verification legend:
 
 ---
 
+## Phase CI-1 — Isolated staging authorization CI wiring
+
+- **Date:** 2026-07-30
+- **What:** Added a manually dispatched, serialized, least-privilege workflow
+  that validates, seeds, verifies, and runs all four staging authorization
+  matrices before an always-run fixture reset. The authenticated smoke workflow
+  now supplies the mandatory unassigned-client fixture pair.
+- **Why:** The authorization suites had no CI entry point, and authenticated
+  smoke would otherwise fail its five-role fixture contract after staging
+  configuration because the unassigned-client credentials were not wired.
+- **Owner action required:** The workflow cannot run until the owner configures
+  all repository variables and secrets listed in the RUNBOOK staging CI section,
+  and the isolated staging Supabase project must be active.
+- **Scope:** Workflow and documentation only. No secret values, application
+  source, database files, or production configuration changed.
+
+---
+
 ## Phase P3A-2F — Client write subscription gate
 
 - **Date:** 2026-07-30 · branch `feat/p3a-2f-client-write-gate`
