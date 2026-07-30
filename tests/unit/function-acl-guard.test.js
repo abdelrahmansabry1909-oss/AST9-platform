@@ -410,15 +410,16 @@ const provisionalSignatures = loadManifest()
   .sort();
 
 test(`provisional ACL decisions block remediation: ${provisionalSignatures.join(', ')}`, () => {
+  // The three trigger helpers were promoted to approved on 2026-07-30: each is
+  // reached only through CREATE TRIGGER, and PostgreSQL does not require the DML
+  // user to hold EXECUTE on a trigger function. Only the role predicates remain
+  // provisional, all on the single unresolved question of service_role.
   assert.deepEqual(provisionalSignatures, [
     'get_my_role()',
-    'handle_updated_at()',
     'is_admin()',
     'is_admin_or_coach()',
     'is_coach()',
     'is_coach_or_admin()',
-    'rpm_touch_updated_at()',
-    'update_updated_at()',
   ]);
 });
 
