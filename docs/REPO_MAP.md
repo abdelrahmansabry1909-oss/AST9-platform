@@ -17,7 +17,8 @@
 | `js/athleticService.js` | Athletic assessment/movement frontend module; **runtime-locked to admin** via dashboard gating. |
 | `src/main.js` | Vite module entry pulled into `app.html`. |
 | `supabase/migrations/` | Forward DB migrations (timestamped). |
-| `supabase/rollbacks/` | Paired rollback scripts (kept outside `migrations/` on purpose). |
+| `supabase/rollbacks/` | One of two historical locations for paired rollback scripts. |
+| `supabase/migrations/rollbacks/` | Second historical location for paired rollback scripts. |
 | `supabase/functions/` | Edge functions (Deno/TS) + `_shared/auth.ts`. |
 | `docs/` | Project documentation — this control-baseline set. |
 | `assets/`, `public/` | Static assets. |

@@ -93,7 +93,7 @@ Confirm the expected `?v=` token is live (stale token = CDN/browser cache; see
 
 ---
 
-## Automated cron health-check (P1C edge function built; P1D Action pending)
+## Automated cron health-check (P1C edge function built; P1D Action built)
 
 An automated schedule that calls the health snapshot and alerts on failure is
 built in two safe layers so a GitHub Action never holds the Supabase

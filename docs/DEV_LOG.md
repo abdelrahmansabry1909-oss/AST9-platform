@@ -676,3 +676,23 @@ Verification legend:
   `npx playwright install --with-deps chromium`, and
   `npm run test:smoke:public` now run after `npm ci`. Authenticated Playwright
   specs remain outside the deploy requirement.
+
+---
+
+## S1 - Migration rollback inventory and documentation truth pass
+
+- **Date:** 2026-07-30
+- **Change:** Added the complete 64-migration rollback inventory, corrected the
+  incident-response and repository-map rollback coverage statements, and updated
+  the specified stale issue, decision, limitation, and runbook statements.
+- **Why:** Operators and future audits need the documented rollback coverage,
+  locations, and implementation status to match the verified repository state.
+- **Also recorded:** Owner decision D11 — client write access follows effective
+  subscription state on all seven residual ownership-only tables, and the three
+  tables with no application write path are queued for a deprecation review. The
+  analysis behind it was repository-derived (baseline schema plus `js/` write
+  paths), not read from production. Two implementation constraints are carried in
+  [ISSUE_LOG.md](ISSUE_LOG.md) #17: the nullable-`client_id` NULL trap, and the
+  three tables that exist only in the baseline.
+- **Scope:** Documentation only — no SQL, no application code, no file moves,
+  and no production access.
