@@ -16,6 +16,21 @@ Verification legend:
 
 ---
 
+## Phase T1 — Unified test gate and orphaned-test guard
+
+- **Date:** 2026-07-30
+- **What:** Added `test:unit` as the complete unit suite, added `npm test` as the
+  single local gate for the full unit suite, production build, and public smoke,
+  and changed both deploy and pull-request smoke workflows to run the complete
+  unit suite.
+- **Why:** `scoring-engine-composite.test.js` was orphaned from every npm script,
+  and there was no aggregate command for verifying the whole project.
+- **Guard:** A manifest unit test compares every `tests/unit/*.test.js` file on
+  disk with the files named by `test:unit`, failing on either an unwired test or
+  a stale script entry.
+
+---
+
 ## Phase CI-1 — Isolated staging authorization CI wiring
 
 - **Date:** 2026-07-30

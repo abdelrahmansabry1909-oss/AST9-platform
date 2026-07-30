@@ -37,7 +37,7 @@ jobs:
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
       - name: Verify authenticated staging safety contract
-        run: npm run test:unit:staging-safety
+        run: npm run test:unit
       - name: Run smoke tests
         env:
           # Staging target: URL/marker are repository variables; anon key and
