@@ -36,7 +36,7 @@ jobs:
       AST9_E2E_UNASSIGNED_CLIENT_PASSWORD: ${{ secrets.AST9_E2E_UNASSIGNED_CLIENT_PASSWORD }}
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
