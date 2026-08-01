@@ -64,13 +64,25 @@ and counts — **no** headers, bodies, tokens, Vault values, or user data.
 ## Deploy check
 
 Every Pages deploy is gated on the `verify` job. After `npm ci`, it runs these
-three gates in order:
+four gates in order:
 
 ```bash
+npm run audit:ci
 npm run test:unit
 npx playwright install --with-deps chromium
 npm run test:smoke:public
 ```
+
+`audit:ci` is `npm audit --omit=dev --audit-level=high`. It fails the build on a
+**high or critical** advisory in **production** dependencies. Dev-only advisories
+do not block a deploy of a static bundle, and failing on every moderate
+transitive advisory with no fix available would create a broken-build treadmill —
+Dependabot (`.github/dependabot.yml`) surfaces those without blocking.
+
+If `audit:ci` fails: run `npm audit` locally to see the advisory, then
+`npm audit fix --package-lock-only` if a fix exists. If none exists, assess the
+actual exposure before reaching for `--force`, which can introduce breaking major
+bumps. Record the decision rather than silently lowering the threshold.
 
 Only a successful `verify` starts `build`; only a successful `build` starts
 `deploy`. If the gate fails, open the workflow run, select the `Verify` job, and

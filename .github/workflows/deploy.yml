@@ -48,6 +48,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Audit production dependencies
+        run: npm run audit:ci
+
       - name: Verify authenticated staging safety contract
         run: npm run test:unit
 
