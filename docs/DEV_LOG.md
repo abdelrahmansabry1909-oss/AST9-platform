@@ -16,6 +16,39 @@ Verification legend:
 
 ---
 
+## Phase P2C — Manual payment layer applied to production
+
+- **Date:** 2026-08-01 · branch `docs/p2c-production-applied`
+- **What:** Applied `20260803000000_manual_payment_requests` and
+  `20260804000000_server_side_package_prices` to the production database via MCP
+  `execute_sql`, each inside its own transaction, and pinned both versions in
+  `supabase_migrations.schema_migrations` so repository and database history stay
+  linear.
+- **Why:** The coach billing page was correct but inert — the tables existed only
+  in the repository, so every self-service tier rendered "not available yet".
+  Both migrations create new objects only and modify no existing table, policy,
+  column, or row, so the owner approved applying them without a staging
+  rehearsal. That reasoning is specific to these two and does not extend to the
+  D11 gate or the `service_role` revoke.
+- **Pre-flight:** confirmed the three target tables absent, the `payment_events`
+  and `apply_paid_coach_package_period_system` dependencies present, no existing
+  `request_coach_package_payment`, neither version pinned, and — because plpgsql
+  bodies are not validated at CREATE time — that every `notifications` column the
+  RPCs insert exists and that the `severity` CHECK admits `info` and `warning`.
+- **Verification:** 3 tables with RLS, 12 policies, 0 DELETE policies on
+  `coach_payment_requests`, 5 functions, 0 `anon` EXECUTE, 0 `authenticated`
+  EXECUTE on the trigger helper, exactly one `request_coach_package_payment`
+  overload with the 2-argument signature, 8 price rows with EGP unset and all
+  inactive, and security advisors returning WARN only with no ERROR.
+  Transaction-local probes confirmed an unpriced-tier request and an anonymous
+  call are both refused, leaving no rows behind.
+- **Verification boundary:** Database-level only. **Real authenticated smoke was
+  not performed** — no coach has completed a request, transfer, or approval
+  through the browser. Nothing is requestable until the owner sets the eight EGP
+  amounts, activates the tiers, and configures the payment link.
+
+---
+
 ## Phase P2C-1b — Server-side package prices
 
 - **Date:** 2026-08-01 · branch `feat/p2c1b-server-side-package-prices`

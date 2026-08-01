@@ -49,12 +49,39 @@ charge amounts. Every EGP charge ships unset and every row inactive, so the
 request path refuses a tier until the owner sets and activates that tier's EGP
 price.
 
+**Applied to production 2026-08-01 under owner approval**, registered as versions
+`20260803000000` and `20260804000000`. Verified at the database layer: 3 tables
+with RLS enabled, 12 policies and **no DELETE policy** on `coach_payment_requests`,
+5 new functions, `anon` holding **no** EXECUTE on any of them, the trigger helper
+holding no EXECUTE for any API role, and exactly **one**
+`request_coach_package_payment` overload — `(p_package_key text, p_months integer)`
+— confirming the caller-supplied-amount signature is gone rather than shadowed.
+Security advisors returned WARN only, no ERROR, and no new anon-executable
+definer function. Transaction-local probes confirmed a coach requesting an
+unpriced tier is refused (`package price is unavailable or inactive`) and an
+anonymous caller is refused (`permission denied`), leaving no rows behind.
+
+**Applied without a staging rehearsal**, which was an explicit owner decision.
+It was acceptable for these two specifically because both migrations only create
+new objects — no existing table, policy, column, or row was modified — and the
+paired rollbacks drop only what was added. The same reasoning does **not** extend
+to the D11 gate or the `service_role` revoke, which alter live tables and
+predicates and remain unapplied pending staging.
+
+**Nothing is requestable yet.** All eight `package_prices` rows ship with
+`charge_amount_minor` NULL and `active` false, and `payment_settings` ships empty
+and disabled. Until the owner sets the EGP amounts, activates the tiers, and
+configures the payment link, every self-service request is refused by design. A
+tier cannot be activated without an EGP amount — a table CHECK enforces it.
+
 **No payment provider is live** — there is no Paymob/Stripe integration, SDK,
-Edge Function, or provider key. The P2C-1 migration is **applied to no database**,
-and the P2C-1b migration is also **applied to no database**, so even the manual
-request/approval layer is not live. Payments remain
-webhook-authoritative in architecture, with owner approval standing in for a
-future verified webhook. See root `BUSINESS_MODEL_AUTH_BILLING_PLAN.md`.
+Edge Function, or provider key. Payments remain webhook-authoritative in
+architecture, with owner approval standing in for a future verified webhook. See
+root `BUSINESS_MODEL_AUTH_BILLING_PLAN.md`.
+
+**Real authenticated smoke has not been performed.** Verification is
+database-level only; no coach has completed a request, transfer, or approval
+through the browser.
 
 ## L5 — Athletic Performance is not production-ready
 The Athletic lane is an admin-only locked preview (PR #72). It must not be exposed
