@@ -22,7 +22,9 @@ must be consulted for the location of a specific rollback.
 
 **How to use this:** Before assuming a rollback exists, find the forward
 migration below. `irreversible-by-design` means an incident must use
-restore-from-backup or a forward fix, not a down migration.
+restore-from-backup or a forward fix, not a down migration. The restore path in
+[DISASTER_RECOVERY.md](DISASTER_RECOVERY.md) has not yet been tested, so a
+forward fix is currently the more reliable option.
 
 The three unpaired migrations
 `20260727000000_auth_user_trigger`,

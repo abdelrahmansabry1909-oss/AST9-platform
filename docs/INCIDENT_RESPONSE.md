@@ -78,6 +78,14 @@
 - There is currently **no in-app "disable signup" kill-switch** — flagged as a
   future feature flag; do not build it during an incident.
 
+### 4e. Disaster recovery (restore path is untested)
+
+No AST9 restore has ever been tested, and current backup coverage is unverified.
+See [DISASTER_RECOVERY.md](DISASTER_RECOVERY.md) for the recovery inventory,
+owner verification checklist, proposed objectives, and isolated-staging restore
+drill. Do not assume a usable recovery point exists, and never test a restore
+against production.
+
 ---
 
 ## 5. GitHub Pages deployment check
