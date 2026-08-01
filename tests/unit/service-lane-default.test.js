@@ -88,3 +88,28 @@ test('lane visibility rules stay scoped under the body lane classes', () => {
       `.${lane} must not be styled by an unscoped top-level rule`);
   }
 });
+
+test('a missing lane class still hides the Athletic shell', () => {
+  // Second line of defence behind the <body> default. Every other lane rule is
+  // scoped to a lane class, so without this one an absent class means no rule
+  // matches and both shells render together — the ISSUE_LOG #19 defect. This
+  // covers the runtime path the markup default cannot: a JS failure before
+  // Dashboard.setService(), or any future code that drops the class.
+  //
+  // Measured in Chromium against the real stylesheet: with no lane class the
+  // athletic nav computes to display:none and the rehab nav to flex.
+  assert.match(
+    PREMIUM_CSS,
+    /body:not\(\.service-rehab\):not\(\.service-athletic\)\s+\.athletic-only\s*\{[^}]*display:\s*none\s*!important/,
+    'a fallback rule must hide .athletic-only when <body> carries no lane class',
+  );
+
+  // The fallback must only ever hide. A rule that forces something visible is
+  // the failure mode that pinned the login overlay and leaked role nav before.
+  const fallback = PREMIUM_CSS.match(
+    /body:not\(\.service-rehab\):not\(\.service-athletic\)[^{]*\{([^}]*)\}/,
+  );
+  assert.ok(fallback, 'fallback lane rule must be present');
+  assert.doesNotMatch(fallback[1], /display:\s*(?!none)[a-z-]+/i,
+    'the fallback lane rule must only hide, never force an element visible');
+});
