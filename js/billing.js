@@ -168,8 +168,8 @@
     const isAdmin = (typeof Auth !== 'undefined' && Auth.isAdmin && Auth.isAdmin());
     host.innerHTML =
       _currentPlanCard(_status) +
-      `<div style="font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--text-tertiary);margin:0 0 12px">Plans &amp; Interval</div>` +
-      _intervalToggle() +
+      _upgradeGrid(_status) +
+      _customCalc() +
       `<div id="billing-instapay-root"><div style="padding:20px;text-align:center;color:var(--text-tertiary)"><span class="spinner"></span> Loading packages…</div></div>` +
       _footerNote(isAdmin);
 
