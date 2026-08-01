@@ -16,6 +16,22 @@ Verification legend:
 
 ---
 
+## Phase T2 — Subscription write-rule behavioral coverage
+
+- **Date:** 2026-08-01 · branch `test/t2-subscription-write-rule`
+- **What:** Added offline behavioral coverage for the browser subscription
+  service's write decision, fail-soft state reads, pill boundaries, defensive
+  filtering, status vocabulary, and the latent `cancelled` boundary. The write
+  agreement test derives the database-allowed statuses from the migration and
+  asserts that the JavaScript gate makes the same decision.
+- **Why:** Nearly all prior unit coverage was static drift guarding, while this
+  consequential client behavior had no tests and its single write rule is
+  implemented twice, in JavaScript and SQL.
+- **Verification boundary:** No application source or SQL was modified, no
+  database was accessed, and no test asserts anything about production state.
+
+---
+
 ## Phase O1 — Observability alerting
 
 - **Date:** 2026-08-01 · branch `feat/o1-observability-alerting`
