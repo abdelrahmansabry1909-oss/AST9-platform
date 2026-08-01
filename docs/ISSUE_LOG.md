@@ -378,3 +378,33 @@
   pending-version behavior, transaction model, rollback behavior, and complete
   end-to-end production procedure receive separate validation. That continuing
   restriction is no longer based on absent repository versions.
+
+## 19. Rehab and Athletic Performance shells rendered together
+- **Symptoms:** The dashboard showed both service lanes at once — Athletic
+  Performance navigation appeared inside the Rehab shell and vice versa.
+- **Root cause:** `app.html` shipped a bare `<body>` with no service-lane class.
+  Every lane visibility rule in `css/neucore-premium.css` is scoped under
+  `body.service-rehab` or `body.service-athletic`, so with neither class present
+  **no rule applied and nothing hid the other lane**. The athletic nav items'
+  only other protection was an inline `style="display:none"`, which
+  `setRoleVisibility()` in `js/dashboard.js` strips for every coach and admin
+  (`el.style.removeProperty('display')`) — and it does so ~33 lines before
+  `setService('rehab')`, the only code that ever sets the body class. On any path
+  where that profile load did not finish, the mix was permanent rather than a
+  flash. `#screen-app` carries no `hidden` class in the markup, so the shell
+  paints from the first frame.
+- **Fix:** Declare the default lane in the markup — `<body class="service-rehab">`.
+  The hide rule is then in force before any script runs, and `setService()`
+  remains idempotent. Frontend-only; no CSS file was modified, so the
+  Antigravity-owned stylesheets are untouched.
+- **Verification:** Measured in Chromium against the real stylesheets and the
+  real nav markup. With no lane class both nav items compute to `display: flex`
+  (the bug reproduces); with `service-rehab` the athletic nav computes to `none`
+  and rehab to `flex`; with `service-athletic` the reverse. Full-page browser
+  verification was **not** possible — `app.html` bounces an unauthenticated
+  visitor to `index.html`, and no authenticated session was available. Real
+  authenticated smoke was not performed.
+- **Regression guard:** `tests/unit/service-lane-default.test.js` asserts the
+  `<body>` default, that all 44 nav elements carry exactly one lane class, and
+  that the lane rules stay scoped under the body classes. Verified by removing
+  the class and watching the test fail.

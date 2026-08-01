@@ -16,6 +16,25 @@ Verification legend:
 
 ---
 
+## Fix — Service-lane default (Rehab / Athletic shells rendered together)
+
+- **Date:** 2026-08-01 · branch `fix/service-lane-default`
+- **What:** Declared the default service lane in the markup
+  (`<body class="service-rehab">`) and added
+  `tests/unit/service-lane-default.test.js` to lock the lane contract.
+- **Why:** Every lane visibility rule is scoped under `body.service-rehab` /
+  `body.service-athletic`. With a bare `<body>` no rule applied, so both shells
+  rendered together for coaches and admins — permanently on any path where the
+  profile load did not reach `setService('rehab')`. See
+  [ISSUE_LOG.md](ISSUE_LOG.md) #19.
+- **Verification boundary:** Cascade measured in Chromium against the real
+  stylesheets and nav markup; the bug reproduces without the class and resolves
+  with it. Full-page browser verification was not possible because `app.html`
+  bounces unauthenticated visitors to `index.html`. **Real authenticated smoke
+  was not performed.** No CSS file, database, or production system was touched.
+
+---
+
 ## Phase T2 — Subscription write-rule behavioral coverage
 
 - **Date:** 2026-08-01 · branch `test/t2-subscription-write-rule`

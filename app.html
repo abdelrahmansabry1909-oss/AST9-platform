@@ -25,7 +25,14 @@
   <link rel="stylesheet" href="css/neucore-premium.css?v=20260629c"/>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><defs><linearGradient id='b' x1='0' y1='0' x2='40' y2='40' gradientUnits='userSpaceOnUse'><stop stop-color='%231A2748'/><stop offset='1' stop-color='%230A1024'/></linearGradient><linearGradient id='g' x1='10' y1='9' x2='30' y2='31' gradientUnits='userSpaceOnUse'><stop stop-color='%23F6E27A'/><stop offset='.5' stop-color='%23D4AF37'/><stop offset='1' stop-color='%23B8860B'/></linearGradient></defs><rect x='2' y='2' width='36' height='36' rx='11' fill='url(%23b)'/><path d='M13 28V13l14 14V12' fill='none' stroke='url(%23g)' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/><circle cx='27' cy='12' r='2.7' fill='%232DD4BF'/></svg>"/>
 </head>
-<body>
+<!-- Default service lane. Every lane show/hide rule in neucore-premium.css is
+     scoped under body.service-rehab / body.service-athletic, so with no class
+     here NOTHING hides the other lane and both render together. Dashboard
+     .setService() sets this later, but only after setRoleVisibility() has
+     already stripped the athletic nav's inline display:none for coaches and
+     admins — and never at all on a path where that profile load does not
+     finish. Declaring the default here closes both windows. -->
+<body class="service-rehab">
 
 <!-- LOADING — Royal Premium transition screen -->
 <div id="loading-overlay">
