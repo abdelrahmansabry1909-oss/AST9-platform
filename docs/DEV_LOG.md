@@ -16,6 +16,24 @@ Verification legend:
 
 ---
 
+## Phase P2C-1 — Manual InstaPay payment requests (database layer)
+
+- **Date:** 2026-08-01 · branch `feat/p2c1-manual-payment-requests`
+- **What:** Added an owner-editable disabled-by-default payment-instructions row,
+  coach payment-request audit records, a locked coach sent-for-review transition,
+  and owner-only approval/rejection RPCs. Approval alone calls the existing
+  provider-neutral paid-period function with a deterministic manual event ID.
+  Registered all five new functions in the repository ACL manifest. The update
+  guard remains `SECURITY INVOKER` with no direct EXECUTE grant because PostgreSQL
+  invokes trigger functions as part of the table statement.
+- **Why:** Coaches can request and report an external InstaPay transfer without
+  gaining package access; the owner must independently verify receipt and approve.
+- **Verification boundary:** Repository database layer only. No frontend or
+  provider integration was added, no automated transfer verification exists, and
+  the migration is applied to no database.
+
+---
+
 ## Fix — Service-lane default (Rehab / Athletic shells rendered together)
 
 - **Date:** 2026-08-01 · branch `fix/service-lane-default`

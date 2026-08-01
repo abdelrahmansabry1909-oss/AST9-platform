@@ -2,12 +2,12 @@
 
 ## Summary
 
-The repository contains **66** forward migrations. By the
+The repository contains **67** forward migrations. By the
 `<version>_<name>.sql` / `<version>_<name>_down.sql` naming convention,
-**31 are paired** and **35 lack a paired down-file**.
+**32 are paired** and **35 lack a paired down-file**.
 
 Rollback files are split across two directories:
-`supabase/rollbacks/` contains **17** files, and
+`supabase/rollbacks/` contains **18** files, and
 `supabase/migrations/rollbacks/` contains **14** files. There are **0 orphan**
 rollback files and **0 duplicate** rollback files across the two directories.
 The directory ranges interleave, so the split follows no rule; the inventory
@@ -104,3 +104,4 @@ verification.
 | `20260728010000_workout_write_subscription_gate.sql` | paired | `supabase/rollbacks/` | Paired down migration is present. |
 | `20260730000000_client_write_subscription_gate.sql` | paired | `supabase/rollbacks/` | Paired down migration is present. Policy-only; it deliberately does **not** drop `client_has_write_access(uuid)`, which the live L12 workout policies still depend on. |
 | `20260730100000_revoke_service_role_role_predicates.sql` | paired | `supabase/rollbacks/` | Paired down migration is present. Grants only; the rollback restores `service_role` EXECUTE and touches no function. |
+| `20260803000000_manual_payment_requests.sql` | paired | `supabase/rollbacks/` | Paired down migration is present. |

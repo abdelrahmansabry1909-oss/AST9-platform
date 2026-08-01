@@ -75,6 +75,21 @@
     "decision": "approved"
   },
   {
+    "signature": "approve_coach_payment(p_request_id uuid, p_period_start timestamp with time zone, p_admin_note text)",
+    "name": "approve_coach_payment",
+    "security": "DEFINER",
+    "expected": {
+      "PUBLIC": false,
+      "anon": false,
+      "authenticated": true,
+      "service_role": false
+    },
+    "rationale": "The owner-only approval RPC checks is_admin internally and is callable only by authenticated users.",
+    "source": "20260803000000_manual_payment_requests.sql",
+    "confidence": "high",
+    "decision": "approved"
+  },
+  {
     "signature": "check_subscription_expiry()",
     "name": "check_subscription_expiry",
     "security": "DEFINER",
@@ -248,6 +263,21 @@
     }
   },
   {
+    "signature": "guard_coach_payment_request_update()",
+    "name": "guard_coach_payment_request_update",
+    "security": "INVOKER",
+    "expected": {
+      "PUBLIC": false,
+      "anon": false,
+      "authenticated": false,
+      "service_role": false
+    },
+    "rationale": "This protected-column guard is invoked only by its table trigger; DML callers do not need direct EXECUTE.",
+    "source": "20260803000000_manual_payment_requests.sql",
+    "confidence": "high",
+    "decision": "approved"
+  },
+  {
     "signature": "handle_new_user()",
     "name": "handle_new_user",
     "security": "DEFINER",
@@ -390,6 +420,21 @@
     }
   },
   {
+    "signature": "mark_coach_payment_sent(p_request_id uuid, p_reference text)",
+    "name": "mark_coach_payment_sent",
+    "security": "DEFINER",
+    "expected": {
+      "PUBLIC": false,
+      "anon": false,
+      "authenticated": true,
+      "service_role": false
+    },
+    "rationale": "Authenticated coaches use this RPC to transition only an owned pending request into owner review.",
+    "source": "20260803000000_manual_payment_requests.sql",
+    "confidence": "high",
+    "decision": "approved"
+  },
+  {
     "signature": "notify(p_recipient_id uuid, p_type text, p_title text, p_body text, p_link_section text, p_link_params jsonb, p_severity text, p_data jsonb, p_actor_id uuid)",
     "name": "notify",
     "security": "DEFINER",
@@ -476,6 +521,36 @@
     },
     "rationale": "The first-login flow records acceptance for the signed-in auth.uid() after validating document versions.",
     "source": "20260627000000_legal_acceptance_foundation.sql",
+    "confidence": "high",
+    "decision": "approved"
+  },
+  {
+    "signature": "reject_coach_payment(p_request_id uuid, p_reason text)",
+    "name": "reject_coach_payment",
+    "security": "DEFINER",
+    "expected": {
+      "PUBLIC": false,
+      "anon": false,
+      "authenticated": true,
+      "service_role": false
+    },
+    "rationale": "The owner-only rejection RPC checks is_admin internally and grants no package access.",
+    "source": "20260803000000_manual_payment_requests.sql",
+    "confidence": "high",
+    "decision": "approved"
+  },
+  {
+    "signature": "request_coach_package_payment(p_package_key text, p_months integer, p_amount_minor integer, p_currency text)",
+    "name": "request_coach_package_payment",
+    "security": "DEFINER",
+    "expected": {
+      "PUBLIC": false,
+      "anon": false,
+      "authenticated": true,
+      "service_role": false
+    },
+    "rationale": "Authenticated coaches use this RPC to create only their own pending manual payment request.",
+    "source": "20260803000000_manual_payment_requests.sql",
     "confidence": "high",
     "decision": "approved"
   },
