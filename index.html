@@ -624,7 +624,14 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<!-- Supabase JS — pinned + SRI-locked. This script holds the authenticated
+     session and issues every database call, so it is the highest-privilege
+     third-party code on the page. A floating @2 tag would run any future 2.x
+     release unreviewed. Version must stay in step with package.json /
+     package-lock.json; recompute the integrity hash when bumping. -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.111.0/dist/umd/supabase.js"
+        integrity="sha384-faMlYZUtkJj+Sh6Bmu/L0GzPcraRWN6CW+9RH3GUrK/Z0WS9tgaNNt0tHiLxsbdb"
+        crossorigin="anonymous"></script>
 <script type="module" src="js/landing.js"></script>
 <script src="js/visitor.js"></script>
 </body>
