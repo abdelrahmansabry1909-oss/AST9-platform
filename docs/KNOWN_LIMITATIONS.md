@@ -35,16 +35,18 @@ through `legal_documents`, append-only `legal_acceptances`, and the validated
 `record_legal_acceptance()` RPC; lawyer approval of the actual document text and
 version-release procedure remains outstanding.
 
-## L4 — Payment integration not implemented (provider-neutral DB foundation laid)
-Billing/packages exist as a foundation, and as of **P2B** a provider-neutral
-payments DB foundation is in place (`payment_events` idempotency ledger,
-provider-neutral columns on `coach_subscriptions`, and the service-role-only
-`apply_paid_coach_package_period_system()` RPC). **No payment provider is live
-yet** — no Paymob/Stripe code, SDK, Edge Function, or keys. Manual (admin-assign)
-billing still works and remains the fallback. Payments are **webhook-authoritative**
-by design: the frontend / a checkout redirect never grants access. Paymob
-integration is the next phase (P2C/P2D) and needs an owner-created provider account.
-See root `BUSINESS_MODEL_AUTH_BILLING_PLAN.md`.
+## L4 — Manual payment approval exists; no payment provider is live
+The provider-neutral P2B foundation now has a repository-only **P2C-1** manual
+InstaPay request/approval layer above it. A coach may request a package and mark
+an external transfer sent, but neither action grants access. The owner must
+independently verify receipt and approve before the existing paid-period function
+activates the package. This is a human step with **no automated verification**.
+
+**No payment provider is live** — there is no Paymob/Stripe integration, SDK,
+Edge Function, or provider key. The P2C-1 migration is **applied to no database**,
+so even the manual request/approval layer is not live. Payments remain
+webhook-authoritative in architecture, with owner approval standing in for a
+future verified webhook. See root `BUSINESS_MODEL_AUTH_BILLING_PLAN.md`.
 
 ## L5 — Athletic Performance is not production-ready
 The Athletic lane is an admin-only locked preview (PR #72). It must not be exposed
