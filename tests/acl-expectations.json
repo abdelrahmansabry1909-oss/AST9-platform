@@ -540,7 +540,7 @@
     "decision": "approved"
   },
   {
-    "signature": "request_coach_package_payment(p_package_key text, p_months integer, p_amount_minor integer, p_currency text)",
+    "signature": "request_coach_package_payment(p_package_key text, p_months integer)",
     "name": "request_coach_package_payment",
     "security": "DEFINER",
     "expected": {
@@ -549,8 +549,8 @@
       "authenticated": true,
       "service_role": false
     },
-    "rationale": "Authenticated coaches use this RPC to create only their own pending manual payment request.",
-    "source": "20260803000000_manual_payment_requests.sql",
+    "rationale": "Authenticated coaches use this RPC to create only their own server-priced pending manual payment request.",
+    "source": "20260804000000_server_side_package_prices.sql",
     "confidence": "high",
     "decision": "approved"
   },

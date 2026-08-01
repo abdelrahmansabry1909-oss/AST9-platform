@@ -16,6 +16,25 @@ Verification legend:
 
 ---
 
+## Phase P2C-1b — Server-side package prices
+
+- **Date:** 2026-08-01 · branch `feat/p2c1b-server-side-package-prices`
+- **What:** Added an authenticated-readable, admin-written package-price catalog
+  for the four self-service tiers and the monthly/annual durations. USD list
+  prices match the public catalog, while all EGP charge amounts ship unset and
+  inactive. Replaced the caller-priced request RPC with a two-argument RPC that
+  resolves an active EGP charge on the server and returns both charge and list
+  amounts. The unsafe four-argument overload is explicitly dropped.
+- **Why:** A coach could supply an arbitrary amount through PostgREST, causing the
+  request and eventual payment ledger to record a payer-chosen figure even though
+  owner approval remained manual.
+- **Verification boundary:** Repository database layer and offline static tests
+  only. No frontend was changed, no database was accessed, and the migration is
+  applied to no database. The request path refuses every tier until the owner sets
+  and activates its EGP price.
+
+---
+
 ## Phase P2C-1 — Manual InstaPay payment requests (database layer)
 
 - **Date:** 2026-08-01 · branch `feat/p2c1-manual-payment-requests`

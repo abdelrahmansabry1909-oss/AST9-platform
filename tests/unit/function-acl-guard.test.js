@@ -9,7 +9,7 @@ const MIGRATIONS = new URL('supabase/migrations/', ROOT);
 const MANIFEST = new URL('tests/acl-expectations.json', ROOT);
 const API_ROLES = ['PUBLIC', 'anon', 'authenticated', 'service_role'];
 const ACL_CONTRACT_FINGERPRINT =
-  '74c32120573b12e6c581b804b490dd0e82b5c4758ffcbbecaef288b383330caa';
+  'a8acef5de4147e05bfd7b168e2fcfb54bd30d5d3359c7b8460b21d5b7138c81b';
 
 function canonicalizeType(type) {
   return type

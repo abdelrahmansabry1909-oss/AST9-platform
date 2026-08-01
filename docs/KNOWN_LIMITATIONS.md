@@ -42,9 +42,17 @@ an external transfer sent, but neither action grants access. The owner must
 independently verify receipt and approve before the existing paid-period function
 activates the package. This is a human step with **no automated verification**.
 
+**P2C-1b** moves the four self-service tiers' monthly and annual prices into a
+server-side catalog, so the request RPC no longer accepts a caller-supplied
+amount. The catalog stores the authoritative USD list prices and separate EGP
+charge amounts. Every EGP charge ships unset and every row inactive, so the
+request path refuses a tier until the owner sets and activates that tier's EGP
+price.
+
 **No payment provider is live** — there is no Paymob/Stripe integration, SDK,
 Edge Function, or provider key. The P2C-1 migration is **applied to no database**,
-so even the manual request/approval layer is not live. Payments remain
+and the P2C-1b migration is also **applied to no database**, so even the manual
+request/approval layer is not live. Payments remain
 webhook-authoritative in architecture, with owner approval standing in for a
 future verified webhook. See root `BUSINESS_MODEL_AUTH_BILLING_PLAN.md`.
 
