@@ -1120,6 +1120,7 @@
       _toast('Draft saved successfully.', 'success');
       if (window.Dashboard?.reloadCurrentPrograms) window.Dashboard.reloadCurrentPrograms();
     } catch (e) {
+      window.Monitoring && window.Monitoring.captureIssue('program', 'draft_update_failed');
       _toast('Failed to save draft: ' + e.message, 'error');
     } finally {
       if (btn) { btn.disabled = false; btn.innerHTML = origHTML; }
@@ -1161,6 +1162,7 @@
 
       if (window.Dashboard?.reloadCurrentPrograms) window.Dashboard.reloadCurrentPrograms();
     } catch (e) {
+      window.Monitoring && window.Monitoring.captureIssue('program', 'draft_create_failed');
       _toast('Failed to save draft: ' + e.message, 'error');
     } finally {
       if (btn) { btn.disabled = false; btn.innerHTML = origHTML; }
@@ -1199,6 +1201,7 @@
         _versionId = verId;
         _isDraft = true;
       } catch (e) {
+        window.Monitoring && window.Monitoring.captureIssue('program', 'publish_version_create_failed');
         _toast('Failed to save program version: ' + e.message, 'error');
         return;
       }
@@ -1210,6 +1213,7 @@
           .eq('id', verId);
         if (error) throw error;
       } catch (e) {
+        window.Monitoring && window.Monitoring.captureIssue('program', 'publish_edits_save_failed');
         _toast('Failed to save in-progress edits: ' + e.message, 'error');
         return;
       }
@@ -1294,6 +1298,7 @@
         
         if (window.Dashboard?.reloadCurrentPrograms) window.Dashboard.reloadCurrentPrograms();
       } catch (e) {
+        window.Monitoring && window.Monitoring.captureIssue('program', 'publish_rpc_failed');
         console.error('[publish] RPC invocation failed:', e?.message || String(e));
         _toast('Could not publish this program. Please refresh and try again.', 'error');
       } finally {

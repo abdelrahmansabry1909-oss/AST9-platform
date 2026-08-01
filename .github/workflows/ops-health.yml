@@ -60,7 +60,7 @@ jobs:
             -w '%{http_code}' \
             -X GET \
             -H "x-ops-health-secret: ${OPS_HEALTH_SECRET}" \
-            "${OPS_HEALTH_URL}" || echo '000')"
+            "${OPS_HEALTH_URL}")" || http_code="000"
 
           echo "HTTP status: ${http_code}"
 

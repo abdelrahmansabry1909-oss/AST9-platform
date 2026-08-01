@@ -124,10 +124,11 @@
   async function abandon(sessionId) {
     if (!sessionId) return;
     if (!Auth.canWrite()) { _denyWrite(); return; }
-    await sb.from('workout_sessions').update({
+    const { error } = await sb.from('workout_sessions').update({
       status:   'abandoned',
       ended_at: new Date().toISOString(),
     }).eq('id', sessionId);
+    if (error) window.Monitoring && window.Monitoring.captureIssue('workout', 'abandon_failed');
   }
 
   async function logExercise(sessionId, {
@@ -352,6 +353,10 @@
           const programWorkouts = host._workouts || [workout];
           mountWorkouts(host, { programId, workouts: programWorkouts });
         } catch (e) {
+          window.Monitoring && window.Monitoring.captureIssue(
+            'workout',
+            e.message === 'subscription_inactive' ? 'start_denied_subscription' : 'start_failed'
+          );
           if (e.message !== 'subscription_inactive') _toast(e.message, 'error');
         }
       });
@@ -539,6 +544,10 @@
         exerciseId:    ex.exercise_id || null,    // Feature 5 — thread to log row
         sets, notes, completed,
       }).catch((e) => {
+        window.Monitoring && window.Monitoring.captureIssue(
+          'workout',
+          e.message === 'subscription_inactive' ? 'exercise_log_denied_subscription' : 'exercise_log_failed'
+        );
         if (e.message !== 'subscription_inactive') console.warn('[workout] log err:', e.message);
       });
       row.style.opacity = completed ? .75 : 1;
@@ -690,6 +699,10 @@
         close();
         if (typeof onClosed === 'function') onClosed();
       } catch (e) {
+        window.Monitoring && window.Monitoring.captureIssue(
+          'workout',
+          e.message === 'subscription_inactive' ? 'finish_denied_subscription' : 'finish_failed'
+        );
         if (e.message !== 'subscription_inactive') _toast(e.message, 'error');
       }
     };

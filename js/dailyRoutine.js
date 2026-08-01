@@ -151,11 +151,18 @@
     if (!_hasSB()) {
       // No Supabase = no persistence. Surface to the caller so the UI
       // can warn instead of silently dropping the user's check-ins.
+      window.Monitoring && window.Monitoring.captureIssue('routine', 'log_storage_unavailable');
       throw new Error('Storage unavailable — your check-in was not saved.');
     }
     const { error } = await sb.from('daily_routine_logs')
       .upsert(row, { onConflict: 'client_id,log_date' });
-    if (error) throw error;
+    if (error) {
+      window.Monitoring && window.Monitoring.captureIssue(
+        'routine',
+        error.code === '42501' ? 'log_denied_rls' : 'log_write_failed'
+      );
+      throw error;
+    }
     return row;
   }
 

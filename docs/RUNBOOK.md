@@ -187,6 +187,28 @@ rejection` wording. **Run the raw-envelope smoke (below) after every deploy** an
 verify the live `?v=` token actually updated before trusting Sentry. Edge Sentry
 remains deferred.
 
+### Alerting status
+
+The scheduled `ops-health` GitHub Actions workflow runs every six hours. It fails
+the workflow when the endpoint is unreachable or unhealthy; that workflow
+failure is what notifies the owner. It remains the uptime source of truth.
+
+Sentry now receives scrubbed handled-failure events from selected workout,
+program-publishing, and daily-routine write paths in addition to uncaught browser
+errors. **No Sentry alert rule is configured by this change, and this change
+cannot configure one.** Receiving an event does not mean the owner is notified.
+
+Owner action (not completed by this change):
+
+- [ ] In the Sentry `ast9-frontend` project, create and enable an issue alert rule
+  for new error events in the `production` environment, select the owner's
+  notification destination, and use a synthetic non-sensitive event to verify
+  delivery.
+
+Adblockers commonly block both the Sentry bundle and ingest endpoint. Therefore,
+**never** read "no Sentry events" as "no errors"; `ops-health` remains the uptime
+source of truth even after the Sentry alert rule is enabled.
+
 **Kill switches:**
 - **Emergency / instant (zero-deploy):** disable the DSN **client key** in the
   Sentry UI (Settings → Client Keys). Ingest rejects immediately; the SDK fails
