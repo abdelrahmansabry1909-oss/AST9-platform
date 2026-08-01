@@ -819,3 +819,19 @@ Verification legend:
 - **Application status:** The migration is committed but applied to no database.
   ISSUE_LOG #16 remains open pending an approved apply and production parity
   verification.
+
+---
+
+## INV-1 - Guard migration rollback inventory against drift
+
+- **Date:** 2026-07-30
+- **Change:** Added an offline unit guard that compares every forward migration,
+  rollback pairing and location, allowed inventory status, and summary count
+  against the repository filesystem. Registered it in `test:unit` and repaired
+  the inventory summary prose to describe the enforced contract.
+- **Why:** The inventory drifted twice within hours when two migrations shipped
+  without rows, and no automated check caught either omission or the stale
+  counts.
+- **Scope:** This closes the drift class rather than correcting another instance:
+  missing and stale rows, pairing and location contradictions, invalid statuses,
+  and stale filesystem-derived counts now fail the build.

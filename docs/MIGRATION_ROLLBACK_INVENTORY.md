@@ -10,12 +10,15 @@ Rollback files are split across two directories:
 `supabase/rollbacks/` contains **17** files, and
 `supabase/migrations/rollbacks/` contains **14** files. There are **0 orphan**
 rollback files and **0 duplicate** rollback files across the two directories.
-
-> **Keeping this current is manual.** Nothing enforces it, and it drifted within
-> hours of being written: `20260730000000` shipped in PR #141 without an entry
-> here. If you add a migration, add its row below in the same commit.
 The directory ranges interleave, so the split follows no rule; the inventory
 must be consulted for the location of a specific rollback.
+
+> **This inventory is enforced.**
+> `tests/unit/migration-inventory-guard.test.js` runs in `test:unit` on every PR
+> and deploy. Adding a migration without a row, or letting a count go stale,
+> fails the build. The guard exists because the inventory previously drifted
+> within hours of being written: `20260730000000` shipped in PR #141 without an
+> entry here.
 
 **How to use this:** Before assuming a rollback exists, find the forward
 migration below. `irreversible-by-design` means an incident must use
