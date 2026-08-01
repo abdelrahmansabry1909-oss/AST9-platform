@@ -16,6 +16,23 @@ Verification legend:
 
 ---
 
+## Phase O1 — Observability alerting
+
+- **Date:** 2026-08-01 · branch `feat/o1-observability-alerting`
+- **What:** Wired the existing privacy-scrubbed frontend monitoring helper into
+  selected workout, program-publishing, and daily-routine write failures; fixed
+  unreachable ops-health status capture; and added an offline regression guard
+  for literal-only call-site arguments, privacy markers, live call sites, and the
+  workflow capture form.
+- **Why:** Handled persistence failures were invisible to the owner, and curl's
+  fallback appended a second `000`, bypassing the workflow's intended
+  unreachable-endpoint diagnostic.
+- **Verification boundary:** No Sentry alert rule was configured, no Sentry
+  dashboard was accessed, no database was accessed, and no production system
+  was touched.
+
+---
+
 ## Phase D1 — Disaster recovery objectives and restore-drill procedure
 
 - **Date:** 2026-08-01 · branch `docs/d1-disaster-recovery`
