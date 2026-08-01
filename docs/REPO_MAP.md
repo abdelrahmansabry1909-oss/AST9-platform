@@ -33,6 +33,8 @@
 - `docs/NOT_A_BUG.md` — intended behaviors.
 - `docs/DECISIONS.md` — decisions of record.
 - `docs/KNOWN_LIMITATIONS.md` — current limitations.
+- `docs/DISASTER_RECOVERY.md` — unverified recovery inventory, proposed
+  objectives, owner coverage checklist, and isolated-staging restore drill.
 - `docs/TECH_STACK.md` — stack + file groupings.
 - `docs/REPO_MAP.md` — this file.
 - `docs/claude-skills/`, `docs/rehab-book/` — pre-existing reference subfolders.

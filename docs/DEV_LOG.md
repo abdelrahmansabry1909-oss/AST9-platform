@@ -16,6 +16,23 @@ Verification legend:
 
 ---
 
+## Phase D1 — Disaster recovery objectives and restore-drill procedure
+
+- **Date:** 2026-08-01 · branch `docs/d1-disaster-recovery`
+- **What:** Added a disaster-recovery runbook with an explicit unverified-status
+  banner, recovery inventory, proposed owner-approved RPO/RTO, owner backup
+  coverage checklist, and an isolated-staging restore drill. Linked it from the
+  incident-response rollback section and the migration rollback inventory, and
+  added it to the repository map.
+- **Why:** The rollback inventory directs `irreversible-by-design` incidents to
+  restore from backup or fix forward, while the incident-response documentation
+  provided no way to locate, verify, or exercise a recovery source.
+- **Verification boundary:** Documentation only. No backup was verified, no
+  restore was performed, and no database was accessed. Backup presence, scope,
+  retention, integrity, and restore capability remain open owner checks.
+
+---
+
 ## Phase S3 — CI supply-chain hardening
 
 - **Date:** 2026-08-01 · branch `security/s3-supply-chain-hardening`
