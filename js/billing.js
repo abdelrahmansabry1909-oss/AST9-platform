@@ -148,9 +148,9 @@
 
   function _footerNote(isAdmin) {
     const msg = isAdmin
-      ? 'As admin you have unlimited access. Coach packages and billing intervals are admin-assigned; online billing arrives in a future update.'
-      : 'Your plan and billing interval are assigned by your admin (shown above). The toggle below previews monthly vs annual pricing — it does not change your plan. To change your plan or interval, contact your admin. No payment is collected here and this is not a checkout.';
-    return `<div style="font-size:12px;color:var(--text-tertiary);line-height:1.6">${esc(msg)}</div>`;
+      ? 'As admin you have unlimited access. Coach packages and billing intervals are admin-assigned or managed via InstaPay requests.'
+      : 'Select a self-service package above to request InstaPay transfer details. After completing your transfer, tap "I\'ve sent it" to submit your request for owner confirmation. Package activation occurs upon owner approval.';
+    return `<div style="font-size:12px;color:var(--text-tertiary);line-height:1.6;margin-top:16px">${esc(msg)}</div>`;
   }
 
   function _wireCalc(host) {
@@ -168,12 +168,25 @@
     const isAdmin = (typeof Auth !== 'undefined' && Auth.isAdmin && Auth.isAdmin());
     host.innerHTML =
       _currentPlanCard(_status) +
-      _upgradeGrid(_status) +
-      _customCalc() +
+      `<div style="font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--text-tertiary);margin:0 0 12px">Plans &amp; Interval</div>` +
+      _intervalToggle() +
+      `<div id="billing-instapay-root"><div style="padding:20px;text-align:center;color:var(--text-tertiary)"><span class="spinner"></span> Loading packages…</div></div>` +
       _footerNote(isAdmin);
+
     host.querySelectorAll('[data-interval]').forEach((b) =>
-      b.addEventListener('click', () => { _interval = b.dataset.interval; _paint(host); }));
+      b.addEventListener('click', () => {
+        _interval = b.dataset.interval;
+        _paint(host);
+      }));
+
     _wireCalc(host);
+
+    if (typeof PaymentUI !== 'undefined' && typeof PaymentUI.renderCoachBillingSection === 'function') {
+      PaymentUI.renderCoachBillingSection('billing-instapay-root', _interval, (newInt) => {
+        _interval = newInt;
+        _paint(host);
+      });
+    }
   }
 
   async function render() {

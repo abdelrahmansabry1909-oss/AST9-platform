@@ -2037,6 +2037,16 @@ body.nc-bright:not(.nc-client) .nc-service-btn {
   border: none !important;
 }
 
+/* Fallback lane. Every rule below is scoped to a lane class on <body>, so if that
+   class is ever absent NO rule matches and both shells render together (ISSUE_LOG
+   #19). This keeps Athletic hidden whenever the lane is unknown, so a JS failure
+   before Dashboard.setService() cannot leak the other shell. It only ever HIDES —
+   it can never pin an element visible, which is the failure mode that has broken
+   this app before (login overlay, role nav). */
+body:not(.service-rehab):not(.service-athletic) .athletic-only {
+  display: none !important;
+}
+
 /* Visibility toggling by service class on body */
 body.service-rehab .rehab-only {
   display: flex !important;
@@ -5469,4 +5479,41 @@ body.nc-bright:not(.nc-client) .sidebar svg circle[fill="#2DD4BF"] {
 }
 body.nc-bright:not(.nc-client) .sidebar svg circle[stroke="#2DD4BF"] {
   stroke: #10B981 !important;
+}
+
+/* ── Phase P2C-2: Manual Payment UI Styles ──────────────────── */
+.p2c-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 999px;
+  line-height: 1.2;
+}
+.p2c-badge-amber {
+  background: rgba(245, 158, 11, 0.14);
+  color: #b9770b;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+}
+.p2c-badge-green {
+  background: rgba(16, 185, 129, 0.14);
+  color: #047857;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+.p2c-badge-rose {
+  background: rgba(239, 68, 68, 0.14);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
+.p2c-alert-amber {
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(245, 158, 11, 0.10);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  font-size: 12px;
+  color: #b9770b;
+  line-height: 1.5;
 }

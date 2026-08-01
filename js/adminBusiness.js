@@ -69,12 +69,48 @@
     _render();
   }
 
+  let _activeTab = 'roster'; // 'roster' | 'queue' | 'settings'
+
   function _render() {
     const host = $('abz-root');
     if (!host) return;
 
+    // Sub-tab Navigation Header
+    const tabBtn = (key, label) => `
+      <button type="button" class="btn btn-sm ${!_activeTab || _activeTab === key ? 'btn-emerald' : 'btn-ghost'}"
+        data-abz-tab="${key}" style="font-weight:700">
+        ${label}
+      </button>`;
+
+    const navHtml = `
+      <div style="display:flex;gap:8px;margin-bottom:16px;border-bottom:1px solid var(--border-subtle);padding-bottom:12px">
+        ${tabBtn('roster', 'Coach Roster')}
+        ${tabBtn('queue', 'InstaPay Queue')}
+        ${tabBtn('settings', 'InstaPay Settings &amp; Pricing')}
+      </div>`;
+
+    if (_activeTab === 'queue') {
+      host.innerHTML = navHtml + `<div id="abz-queue-root"><div style="padding:24px;text-align:center;color:var(--text-tertiary)"><span class="spinner"></span> Loading payment queue…</div></div>`;
+      _wireTabs(host);
+      if (typeof PaymentUI !== 'undefined' && typeof PaymentUI.renderAdminPaymentQueue === 'function') {
+        PaymentUI.renderAdminPaymentQueue('abz-queue-root');
+      }
+      return;
+    }
+
+    if (_activeTab === 'settings') {
+      host.innerHTML = navHtml + `<div id="abz-settings-root"><div style="padding:24px;text-align:center;color:var(--text-tertiary)"><span class="spinner"></span> Loading settings…</div></div>`;
+      _wireTabs(host);
+      if (typeof PaymentUI !== 'undefined' && typeof PaymentUI.renderAdminPaymentSettings === 'function') {
+        PaymentUI.renderAdminPaymentSettings('abz-settings-root');
+      }
+      return;
+    }
+
+    // Default 'roster' tab
     if (!_rows.length) {
-      host.innerHTML = `<div class="abz-empty">No coaches yet.</div>`;
+      host.innerHTML = navHtml + `<div class="abz-empty">No coaches yet.</div>`;
+      _wireTabs(host);
       return;
     }
 
@@ -111,7 +147,7 @@
         </tr>`;
     }).join('');
 
-    host.innerHTML = `
+    host.innerHTML = navHtml + `
       <div class="abz-summary">
         <div class="abz-stat"><div class="abz-stat-n">${_rows.length}</div><div class="abz-stat-l">Coaches</div></div>
         <div class="abz-stat"><div class="abz-stat-n">${totClients}</div><div class="abz-stat-l">Clients</div></div>
@@ -134,6 +170,17 @@
           <tbody>${body}</tbody>
         </table>
       </div>`;
+
+    _wireTabs(host);
+  }
+
+  function _wireTabs(host) {
+    host.querySelectorAll('[data-abz-tab]').forEach(b => {
+      b.addEventListener('click', () => {
+        _activeTab = b.dataset.abzTab;
+        _render();
+      });
+    });
   }
 
   // ── Package management (reuses admin_set_coach_package) ────────
