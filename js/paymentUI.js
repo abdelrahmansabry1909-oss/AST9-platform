@@ -116,10 +116,13 @@
 
   async function fetchCoachRequests(coachId) {
     if (typeof sb === 'undefined') return [];
+    if (!coachId) return []; // never fall back to an unscoped select
     try {
-      let q = sb.from('coach_payment_requests').select('*').order('created_at', { ascending: false });
-      if (coachId) q = q.eq('coach_id', coachId);
-      const { data, error } = await q;
+      const { data, error } = await sb
+        .from('coach_payment_requests')
+        .select('*')
+        .eq('coach_id', coachId)
+        .order('created_at', { ascending: false });
       if (error) {
         console.warn('[PaymentUI] coach_payment_requests query error:', error.message);
         return [];
@@ -954,6 +957,16 @@
     });
   }
 
+  async function fetchBillingData() {
+    const coachId = (typeof Auth !== 'undefined' && typeof Auth.getUser === 'function') ? (Auth.getUser()?.id || null) : null;
+    const [prices, settings, requests] = await Promise.all([
+      fetchActivePackagePrices(),
+      fetchPaymentSettings(),
+      fetchCoachRequests(coachId)
+    ]);
+    return { prices, settings, requests };
+  }
+
   function closeModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) modal.classList.remove('active');
@@ -961,6 +974,11 @@
 
   // Public API
   window.PaymentUI = {
+    fetchBillingData,
+    fetchActivePackagePrices,
+    fetchPaymentSettings,
+    fetchCoachRequests,
+    renderCoachStatusCard,
     renderCoachBillingSection,
     renderAdminPaymentQueue,
     renderAdminPaymentSettings,

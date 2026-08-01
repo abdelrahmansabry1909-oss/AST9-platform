@@ -1,16 +1,12 @@
 // ═══════════════════════════════════════════════════════════════
 //  js/billing.js
-//  Coach/Admin Billing tab — current package, client-slot usage, the
-//  upgrade catalog (Monthly / Annual), and the custom-tier calculator.
+//  Coach/Admin Billing tab — current package, client-slot usage, unified
+//  tier catalog grid with InstaPay self-service requests, and the custom-tier calculator.
 //
-//  Reads the server's single source of truth via the coach_slot_status
-//  RPC (so what the UI shows can never drift from what the create-user
-//  slot gate enforces). NO payment is collected or implied here — package
-//  changes are an admin action until a payment provider is wired in a
-//  later, separately-approved phase.
+//  Reads server slot status via coach_slot_status RPC and InstaPay package
+//  prices via package_prices table / request_coach_package_payment RPC.
 //
-//  Mounted by Dashboard.showSection('billing'); the route is gated to
-//  coach/admin by the Phase-1 role guard, so clients never reach it.
+//  Mounted by Dashboard.showSection('billing'); gated to coach/admin.
 // ═══════════════════════════════════════════════════════════════
 (() => {
   'use strict';
@@ -20,14 +16,14 @@
 
   const TEAL = '#14b8a6';
 
-  // View state (interval is a presentation toggle — not stored server-side
-  // yet; it will be persisted when a payment provider lands).
-  let _interval = 'monthly';   // 'monthly' | 'annual'
-  let _status   = null;        // cached coach_slot_status result
+  // View state
+  let _interval    = 'monthly'; // 'monthly' | 'annual'
+  let _status      = null;      // cached coach_slot_status result
+  let _billingData = null;      // cached { prices, settings, requests } from PaymentUI
 
   async function _fetchStatus() {
     if (typeof sb === 'undefined') return null;
-    const { data, error } = await sb.rpc('coach_slot_status');   // self
+    const { data, error } = await sb.rpc('coach_slot_status');
     if (error) { console.warn('[billing] coach_slot_status failed:', error.message); return null; }
     return data || null;
   }
@@ -41,6 +37,7 @@
 
   // ── Current-plan card ──────────────────────────────────────────
   function _currentPlanCard(s) {
+    if (!s) return '';
     const unlimited = !!s.unlimited;
     const used      = s.used ?? 0;
     const limit     = s.client_limit;
@@ -77,7 +74,7 @@
   function _intervalToggle() {
     const btn = (key, main, sub) => `
       <button type="button" data-interval="${key}"
-        style="flex:1;padding:9px 12px;border-radius:9px;border:1px solid ${_interval===key?'rgba(20,184,166,.5)':'var(--nc-border,rgba(13,24,40,.1))'};
+        style="flex:1;padding:9px 12px;border-radius:99px;border:1px solid ${_interval===key?'rgba(20,184,166,.5)':'var(--nc-border,rgba(13,24,40,.1))'};
                background:${_interval===key?'rgba(20,184,166,.12)':'transparent'};cursor:pointer;font:inherit;
                color:${_interval===key?TEAL:'var(--text-secondary)'};font-weight:700;font-size:13px">
         ${main}${sub?`<span style="font-weight:600;font-size:11px;opacity:.85"> · ${sub}</span>`:''}
@@ -89,13 +86,20 @@
       </div>`;
   }
 
-  // ── Upgrade catalog grid (interval-aware) ──────────────────────
-  function _upgradeGrid(s) {
+  // ── Unified Upgrade catalog grid (interval-aware & purchasable) ─
+  function _upgradeGrid(s, prices, openReq, settings) {
     if (typeof Packages === 'undefined') return '';
-    const current = s.package_key;
+    const current = s ? s.package_key : null;
     const annual  = _interval === 'annual';
+    const monthsNum = annual ? 12 : 1;
+
     const cards = Packages.CATALOG.map((p) => {
       const isCurrent = p.key === current;
+
+      // Check if an active package_prices row exists for this tier & duration
+      const priceRow = (prices || []).find(r => r.package_key === p.key && r.months === monthsNum && r.active);
+      const isPurchasable = !!priceRow && p.key !== 'free' && p.key !== 'custom';
+
       let priceBlock;
       if (p.key === 'custom') {
         const unit = Packages.customUnit(_interval);
@@ -104,19 +108,60 @@
         const pr = annual ? p.annual : p.monthly;
         priceBlock = `<div style="font-size:24px;font-weight:800;color:var(--text-primary)">${_money(pr.price)}<span style="font-size:12px;font-weight:600;color:var(--text-tertiary)">${_suffix()}</span>${pr.old != null ? `<span style="font-size:13px;font-weight:600;color:var(--text-tertiary);text-decoration:line-through;margin-left:8px">${_money(pr.old)}</span>` : ''}</div>`;
       }
+
       const saveNote = annual && p.key !== 'free'
-        ? `<div style="margin-top:6px;font-size:11px;font-weight:600;color:${TEAL}">2 months free</div>` : '';
+        ? `<div style="margin-top:4px;font-size:11px;font-weight:600;color:${TEAL}">2 months free</div>` : '';
+
+      // Display EGP charge amount if self-service purchasable
+      let egpBlock = '';
+      if (isPurchasable && priceRow.charge_amount_minor != null) {
+        const egpAmount = (priceRow.charge_amount_minor / 100).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+        egpBlock = `<div style="font-size:13px;font-weight:700;color:${TEAL};margin-top:6px">EGP ${egpAmount} <span style="font-size:11px;font-weight:500;color:var(--text-tertiary)">(InstaPay transfer)</span></div>`;
+      }
+
+      // Determine card action block based on per-tier rules
+      let actionBlock = '';
+      if (p.key === 'free') {
+        actionBlock = isCurrent
+          ? `<div style="font-size:12px;font-weight:600;color:var(--text-tertiary);margin-top:14px;text-align:center">Included with your plan</div>`
+          : `<div style="font-size:12px;color:var(--text-tertiary);margin-top:14px;line-height:1.4">Standard starter tier.</div>`;
+      } else if (p.key === 'custom') {
+        actionBlock = `<div style="font-size:12px;color:var(--text-tertiary);margin-top:14px;line-height:1.4">Always contact your administrator — custom tiers are admin-assigned.</div>`;
+      } else if (isPurchasable) {
+        const btnText = isCurrent ? 'Renew' : 'Select';
+        const hasOpenReq = !!openReq;
+        actionBlock = `
+          <div style="margin-top:16px">
+            <button type="button" class="btn btn-emerald" style="width:100%"
+              data-action="buy-package" data-key="${esc(p.key)}" data-months="${monthsNum}" data-is-current="${isCurrent}"
+              ${hasOpenReq ? 'disabled title="You have an open payment request in progress"' : ''}>
+              ${hasOpenReq ? 'Request Pending' : btnText}
+            </button>
+            ${hasOpenReq ? `<div style="font-size:11px;color:#b9770b;margin-top:4px;text-align:center">Open request in progress</div>` : ''}
+          </div>`;
+      } else {
+        // Muted note when no active price row exists for this tier
+        actionBlock = `<div style="font-size:12px;color:var(--text-tertiary);margin-top:14px;line-height:1.4">Self-service payment not available yet — contact your administrator.</div>`;
+      }
+
       return `
-        <div class="card" style="border:1px solid ${isCurrent ? 'rgba(20,184,166,.5)' : 'var(--nc-border,rgba(13,24,40,.1))'};${isCurrent ? 'box-shadow:0 0 0 1px rgba(20,184,166,.35)' : ''};padding:18px">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <div style="font-size:15px;font-weight:700;color:var(--text-primary)">${esc(p.label)}</div>
-            ${isCurrent ? `<span style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:999px;background:rgba(20,184,166,.14);color:${TEAL};border:1px solid rgba(20,184,166,.35)">Current</span>` : ''}
+        <div class="card" style="display:flex;flex-direction:column;justify-content:space-between;border:1px solid ${isCurrent ? 'rgba(20,184,166,.5)' : 'var(--nc-border,rgba(13,24,40,.1))'};${isCurrent ? 'box-shadow:0 0 0 1px rgba(20,184,166,.35)' : ''};padding:18px">
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div style="font-size:15px;font-weight:700;color:var(--text-primary)">${esc(p.label)}</div>
+              ${isCurrent ? `<span style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:999px;background:rgba(20,184,166,.14);color:${TEAL};border:1px solid rgba(20,184,166,.35)">Current</span>` : ''}
+            </div>
+            <div style="margin-top:10px">${priceBlock}</div>
+            ${saveNote}
+            ${egpBlock}
+            <div style="margin-top:8px;font-size:12px;color:var(--text-secondary);line-height:1.4">${esc(p.blurb)}</div>
           </div>
-          <div style="margin-top:10px">${priceBlock}</div>
-          ${saveNote}
-          <div style="margin-top:8px;font-size:12px;color:var(--text-secondary)">${esc(p.blurb)}</div>
+          <div>
+            ${actionBlock}
+          </div>
         </div>`;
     }).join('');
+
     return `
       <div style="font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--text-tertiary);margin:0 0 12px">Plans</div>
       ${_intervalToggle()}
@@ -149,7 +194,7 @@
   function _footerNote(isAdmin) {
     const msg = isAdmin
       ? 'As admin you have unlimited access. Coach packages and billing intervals are admin-assigned or managed via InstaPay requests.'
-      : 'Select a self-service package above to request InstaPay transfer details. After completing your transfer, tap "I\'ve sent it" to submit your request for owner confirmation. Package activation occurs upon owner approval.';
+      : 'Select a package tier above to request InstaPay transfer details. After completing your transfer, tap "I\'ve sent it" to submit your request for owner confirmation. Package activation occurs upon owner approval.';
     return `<div style="font-size:12px;color:var(--text-tertiary);line-height:1.6;margin-top:16px">${esc(msg)}</div>`;
   }
 
@@ -163,30 +208,93 @@
     qty.addEventListener('input', update);
   }
 
-  // Re-paint from cached status (no refetch) — used by the interval toggle.
+  // Package purchase handler
+  async function _handleBuy(btn) {
+    const key = btn.dataset.key;
+    const months = Number(btn.dataset.months);
+    const settings = _billingData ? _billingData.settings : null;
+
+    try {
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Requesting…';
+
+      // Server-side price resolution — DO NOT send p_amount_minor!
+      const reqData = await PaymentUI.requestPackagePayment(key, months);
+
+      if (typeof Dashboard !== 'undefined' && typeof Dashboard.toast === 'function') {
+        Dashboard.toast('Payment request created! Please review payment instructions.', 'success');
+      }
+
+      PaymentUI.openInstaPayModal(reqData, settings);
+
+      // Refresh billing data and view
+      if (typeof PaymentUI !== 'undefined' && typeof PaymentUI.fetchBillingData === 'function') {
+        _billingData = await PaymentUI.fetchBillingData();
+      }
+      const host = document.getElementById('billing-root');
+      if (host) _paint(host);
+    } catch (e) {
+      if (typeof Dashboard !== 'undefined' && typeof Dashboard.toast === 'function') {
+        Dashboard.toast(e.message || 'Could not create payment request', 'danger');
+      }
+      btn.disabled = false;
+      btn.innerHTML = (btn.dataset.isCurrent === 'true') ? 'Renew' : 'Select';
+    }
+  }
+
+  // Render view
   function _paint(host) {
     const isAdmin = (typeof Auth !== 'undefined' && Auth.isAdmin && Auth.isAdmin());
+    const prices = _billingData ? _billingData.prices : [];
+    const settings = _billingData ? _billingData.settings : null;
+    const requests = _billingData ? _billingData.requests : [];
+
+    const openReq = (requests || []).find(r => r.status === 'pending' || r.status === 'awaiting_review');
+    const latestReq = (requests || [])[0];
+
+    // Status Panel at top if requests exist
+    let statusHtml = '';
+    if (latestReq && typeof PaymentUI !== 'undefined' && typeof PaymentUI.renderCoachStatusCard === 'function') {
+      statusHtml = PaymentUI.renderCoachStatusCard(latestReq, settings);
+    }
+
     host.innerHTML =
       _currentPlanCard(_status) +
-      _upgradeGrid(_status) +
+      statusHtml +
+      _upgradeGrid(_status, prices, openReq, settings) +
       _customCalc() +
-      `<div id="billing-instapay-root"><div style="padding:20px;text-align:center;color:var(--text-tertiary)"><span class="spinner"></span> Loading packages…</div></div>` +
       _footerNote(isAdmin);
 
+    // Interval toggle listeners
     host.querySelectorAll('[data-interval]').forEach((b) =>
       b.addEventListener('click', () => {
         _interval = b.dataset.interval;
         _paint(host);
       }));
 
-    _wireCalc(host);
+    // Tier purchase button listeners
+    host.querySelectorAll('[data-action="buy-package"]').forEach((btn) =>
+      btn.addEventListener('click', () => _handleBuy(btn)));
 
-    if (typeof PaymentUI !== 'undefined' && typeof PaymentUI.renderCoachBillingSection === 'function') {
-      PaymentUI.renderCoachBillingSection('billing-instapay-root', _interval, (newInt) => {
-        _interval = newInt;
-        _paint(host);
+    // Reopen pending request modal listener
+    host.querySelectorAll('[data-action="reopen-instapay-modal"]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const reqId = btn.dataset.reqId;
+        const req = (requests || []).find(r => r.id === reqId);
+        if (req && typeof PaymentUI !== 'undefined' && typeof PaymentUI.openInstaPayModal === 'function') {
+          PaymentUI.openInstaPayModal({
+            request_id: req.id,
+            package_key: req.package_key,
+            months: req.months,
+            amount_minor: req.amount_minor,
+            currency: req.currency,
+            coach_reference: req.coach_reference
+          }, settings);
+        }
       });
-    }
+    });
+
+    _wireCalc(host);
   }
 
   async function render() {
@@ -194,12 +302,21 @@
     if (!host) return;
     host.innerHTML = `<div class="card" style="text-align:center;padding:40px;color:var(--text-tertiary)"><span class="spinner"></span></div>`;
 
-    _status = await _fetchStatus();
+    const [statusRes, billingRes] = await Promise.all([
+      _fetchStatus(),
+      (typeof PaymentUI !== 'undefined' && typeof PaymentUI.fetchBillingData === 'function')
+        ? PaymentUI.fetchBillingData()
+        : Promise.resolve(null)
+    ]);
+
+    _status = statusRes;
+    _billingData = billingRes;
+
     if (!_status) {
       host.innerHTML = `<div class="card" style="padding:24px;color:var(--text-secondary)">Could not load your billing status. Please refresh.</div>`;
       return;
     }
-    // Reflect the admin-assigned stored interval; the toggle still previews both.
+
     _interval = (_status.billing_interval === 'annual') ? 'annual' : 'monthly';
     _paint(host);
   }
