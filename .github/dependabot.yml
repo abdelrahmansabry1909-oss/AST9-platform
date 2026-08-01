@@ -1,0 +1,45 @@
+# Dependency and workflow supply-chain updates.
+#
+# Added after a high-severity advisory (ws, via @supabase/supabase-js ->
+# @supabase/realtime-js) sat in the production dependency tree with nothing in CI
+# to surface it. `npm run audit:ci` now fails the build on high or critical
+# advisories in production dependencies; Dependabot is the other half — it opens
+# the PRs that keep that gate green, and surfaces moderate advisories without
+# blocking a deploy.
+#
+# The github-actions ecosystem is included deliberately: every action in this
+# repository is pinned to a mutable major tag (`@v4`), so a compromised or
+# repointed tag would execute in CI. Dependabot proposes those updates, including
+# migrating off deprecated runtimes.
+
+version: 2
+
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+    commit-message:
+      prefix: "chore(deps)"
+      prefix-development: "chore(deps-dev)"
+    # Group routine bumps so review effort goes to the ones that matter.
+    groups:
+      dev-dependencies:
+        dependency-type: development
+        update-types:
+          - minor
+          - patch
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - ci
+    commit-message:
+      prefix: "ci(deps)"

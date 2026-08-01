@@ -16,6 +16,44 @@ Verification legend:
 
 ---
 
+## Phase S3 — CI supply-chain hardening
+
+- **Date:** 2026-08-01 · branch `security/s3-supply-chain-hardening`
+- **Live finding:** `ws@8.20.0` sat in the **production** dependency tree via
+  `@supabase/supabase-js` → `@supabase/realtime-js`, carrying two high-severity
+  advisories (uninitialized memory disclosure; memory-exhaustion DoS). Nothing in
+  CI would ever have surfaced it — there was no dependency audit, no Dependabot,
+  no scanning of any kind. It was found by hand.
+- **Exposure, stated honestly:** `ws` is used by realtime-js only under Node;
+  browsers use the native WebSocket, so the deployed static bundle almost
+  certainly never shipped it. The real exposure was the Node-side staging test
+  tooling. Important, not urgent.
+- **Fix:** `npm audit fix --package-lock-only` → `ws` 8.20.0 → 8.21.1.
+  `package-lock.json` only; **no declared dependency changed**. Two Vite
+  build-chain transitives were refreshed in the same pass within their existing
+  semver ranges and were not themselves flagged: `nanoid` 3.3.12 → 3.3.16 and
+  `postcss` 8.5.14 → 8.5.25. Because those affect the build, the production build
+  and the public smoke suite were re-run after the bump.
+- **Gate:** new `audit:ci` script (`npm audit --omit=dev --audit-level=high`)
+  runs in both the deploy `Verify` job and the pull-request smoke job, from a
+  single script so there is one source of truth.
+- **Threshold decision:** high/critical in production dependencies blocks. Dev-only
+  advisories do not block a static-bundle deploy, and failing on every moderate
+  transitive advisory with no available fix would create a broken-build treadmill.
+- **Dependabot:** `.github/dependabot.yml` covers npm and github-actions weekly.
+  The actions ecosystem is included deliberately — every action is pinned to a
+  mutable major tag (`@v4`), so a repointed tag would execute in CI.
+- **Verified by negative control:** restoring the vulnerable lock file makes
+  `audit:ci` exit 1; the fixed lock exits 0.
+- **Deliberately out of scope:** pinning actions to commit SHAs and bumping the
+  deprecated `checkout@v4` / `setup-node@v4`. Both need network lookups to verify
+  SHAs and version existence; Dependabot now proposes them, which is the durable
+  fix.
+- **Scope:** dependency lock, CI configuration, and documentation only. No
+  application source, schema, migration, or production change.
+
+---
+
 ## Phase P3A-2H Stage A — Function ACL inventory and parity guard
 
 - **Date:** 2026-07-30 · branch `test/p3a-2h-function-acl-guard`
