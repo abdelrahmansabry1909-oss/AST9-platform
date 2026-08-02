@@ -182,10 +182,14 @@ A frontend **errors-only** Sentry shell lives in `js/monitoring.js`, loaded from
 
 **Live (P1E-4, owner-approved):** `window.SENTRY_DSN` in `app.html` holds the real
 EU browser DSN (public by design), the `js/monitoring.js?v=` token is bumped to
-`20260702b`, and `ignoreErrors` includes the SDK-v10 `Object captured as promise
+`20260802a`, and `ignoreErrors` includes the SDK-v10 `Object captured as promise
 rejection` wording. **Run the raw-envelope smoke (below) after every deploy** and
 verify the live `?v=` token actually updated before trusting Sentry. Edge Sentry
 remains deferred.
+
+That `?v=` token is a **cache-bust token only** — it no longer has any relationship
+to the Sentry release, which now comes from the build stamp. Bump it whenever
+`js/monitoring.js` changes, and do not expect it to identify a deploy.
 
 ### Alerting status
 
@@ -208,18 +212,33 @@ shows no Sentry global and proves nothing.
 | | value | meaning |
 |---|---|---|
 | `environment` | `production` | an `environment:production` rule filter **will** match |
-| `release` | `ast9-frontend@20260702b` | **stale** — see the warning below |
+| `release` | `ast9-frontend@<commit sha>` | the deployed commit — **fixed 2026-08-02**, see below |
 | ingest host | reachable | 1 ingest request fired on a clean load |
 
 So the pipeline works end to end; only the rule is missing.
 
-> **Known defect — the release tag is frozen.** `APP_VERSION` in
-> `js/monitoring.js` is the hardcoded string `'20260702b'` and has not changed
-> since that file was last edited on 2026-07-02, despite many deploys since. Every
-> event is therefore tagged `ast9-frontend@20260702b`. Consequence: Sentry cannot
-> attribute an error to the deploy that introduced it, and "regression" /
-> "resolved in next release" workflows are meaningless. **Do not build an alert
-> rule that conditions on `release`.** Filter on `environment` until this is fixed.
+> **Fixed 2026-08-02 — the release tag now tracks the deploy.** `APP_VERSION` was
+> the hardcoded string `'20260702b'`, so every event since 2 July carried the same
+> release no matter what shipped. It now reads `window.AST9_BUILD_ID`, which a
+> Vite plugin (`inject-build-stamp` in `vite.config.js`) stamps into every HTML
+> entry at build time as the **full 40-character commit SHA** — `GITHUB_SHA` in
+> Actions, otherwise `git rev-parse HEAD`, otherwise the literal `unknown`.
+> Verified in a real browser against a production build: `release` came back as
+> `ast9-frontend@<HEAD sha>` with `environment` still correctly `development` on
+> `127.0.0.1`.
+>
+> Two consequences. **A release filter is now meaningful**, so Sentry's
+> regression / "resolved in next release" workflows work — but the alert rule
+> below still filters on `environment` only, because a release filter would need
+> updating every deploy. And `ast9-frontend@dev` or `ast9-frontend@unknown`
+> appearing on a **production** event means the build stamp did not reach the
+> page; treat it as a deploy defect, not a cosmetic one.
+>
+> Note when probing: `app.html` bounces a signed-out visitor to the landing page,
+> which does not load `monitoring.js`. Reading `window.Sentry` after that bounce
+> finds nothing and proves nothing — snapshot the client options as soon as they
+> exist (poll into `sessionStorage` from an init script) rather than reading them
+> after `waitForTimeout`.
 
 #### Owner action (cannot be automated — Sentry dashboard, requires sign-in)
 
