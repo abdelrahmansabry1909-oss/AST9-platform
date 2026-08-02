@@ -2,13 +2,13 @@
 
 ## Summary
 
-The repository contains **70** forward migrations. By the
+The repository contains **71** forward migrations. By the
 `<version>_<name>.sql` / `<version>_<name>_down.sql` naming convention,
-**35 are paired** and **35 lack a paired down-file**.
+**36 are paired** and **35 lack a paired down-file**.
 
 Rollback files are split across two directories:
 `supabase/rollbacks/` contains **19** files, and
-`supabase/migrations/rollbacks/` contains **16** files. There are **0 orphan**
+`supabase/migrations/rollbacks/` contains **17** files. There are **0 orphan**
 rollback files and **0 duplicate** rollback files across the two directories.
 The directory ranges interleave, so the split follows no rule; the inventory
 must be consulted for the location of a specific rollback.
@@ -108,3 +108,4 @@ verification.
 | `20260804000000_server_side_package_prices.sql` | paired | `supabase/rollbacks/` | Paired down migration is present. |
 | `20260805000000_coach_package_expiry_enforcement.sql` | paired | `supabase/migrations/rollbacks/` | Paired down migration is present. Replaces `coach_slot_status(uuid)` in place; the rollback restores the prior body verbatim. Signature and ACL are unchanged, so no grant moves in either direction. |
 | `20260806000000_user_delete_fk_rules.sql` | paired | `supabase/migrations/rollbacks/` | Paired down migration is present. Adds an `ON DELETE` rule to the 20 foreign keys that declared none, so account deletion stops raising a foreign-key violation. The rollback restores all 20 to their original no-clause form and **re-breaks deletion**; it cannot restore rows already removed by `CASCADE` or attribution already blanked by `SET NULL`. No function signature or ACL is touched. |
+| `20260807000000_rpm_phase_duration_weeks.sql` | paired | `supabase/migrations/rollbacks/` | Paired down migration is present. Adds a nullable `duration_weeks` integer to `rpm_phases` so the Reactive Graph axis can encode planned time, and lifts any `"(N weeks) "` prefix out of `milestone_label` back into its own column. The backfill matches **0 of 4** production rows today, so the data change is a verified no-op on current content. The rollback re-prepends the prefix before dropping the column, so no entered duration is lost. |
