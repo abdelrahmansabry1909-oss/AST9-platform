@@ -4,48 +4,87 @@
    Font: Hanken Grotesk (all roles)
 ═══════════════════════════════════════════════════════════════ */
 
-/* ── TOKENS ─────────────────────────────────────────────────── */
+/* ── TOKENS (Canonical DESIGN.md Source of Truth) ───────────── */
 :root {
-  /* Backgrounds (Deep Space Dark & Royal Navy Surfaces) */
-  --bg-void:    #03060b;
-  --bg-base:    #050b11;
-  --bg-surface: #0c121e;
-  --bg-raised:  #111a29;
-  --bg-overlay: #172236;
-  --bg-hover:   rgba(255,255,255,0.025);
+  /* Ground (Deep Emerald-Black 4-plane ground) */
+  --bg-void:        #03100B;
+  --bg-base:        #061A12;
+  --bg-surface:     #0A241A;
+  --bg-raised:      #153D2D;
+  --bg-overlay:     #172B22;
+  --bg-hover:       rgba(255, 255, 255, 0.03);
+  --hairline:       #245C46;
 
-  /* Borders (Soft Teal-tinted borders) */
-  --border-subtle:  rgba(20, 184, 166, 0.05);
-  --border-default: rgba(20, 184, 166, 0.09);
-  --border-strong:  rgba(20, 184, 166, 0.15);
+  /* Borders */
+  --border-subtle:  rgba(36, 92, 70, 0.25);
+  --border-default: rgba(36, 92, 70, 0.40);
+  --border-strong:  rgba(36, 92, 70, 0.60);
 
-  /* Brand Remapping (Electric Lime to Biomechanical Teal) */
-  --lime:       #14b8a6;
-  --lime-dim:   #0e9384;
-  --lime-glow:  rgba(20, 184, 166, 0.15);
-  --lime-ghost: rgba(20, 184, 166, 0.06);
+  /* Text / Ink */
+  --text-primary:   #F2F7F4;
+  --text-secondary: #A8C0B4;
+  --text-tertiary:  #7C9689;
+  --text-inverse:   #03100B;
 
-  /* Semantic accents */
-  --teal:       #2dd4bf;
-  --teal-glow:  rgba(45, 212, 191, 0.12);
-  --amber:      #eab308;
-  --amber-glow: rgba(234, 179, 8, 0.12);
-  --rose:       #f43f5e;
-  --rose-glow:  rgba(244, 63, 94, 0.12);
-  --blue:       #3b82f6;
-  --blue-glow:  rgba(59, 130, 246, 0.12);
+  /* Emerald Palette (DESIGN.md) */
+  --emerald-300:    #6EE7B7;
+  --emerald-400:    #34D399;
+  --emerald-500:    #10B981;
+  --emerald-700:    #047857;
+  --emerald-800:    #065F46;
 
-  /* Telemetry Extra Accentuation */
-  --cyan:       #67e8f9;
-  --cyan-glow:  rgba(103, 232, 249, 0.16);
-  --gold:       #d4af37;
-  --gold-glow:  rgba(212, 175, 55, 0.12);
+  /* Gold Palette (DESIGN.md) */
+  --gold-400:       #FBBF24;
+  --gold-500:       #D4AF37;
+  --gold-700:       #8A6D1F;
 
-  /* Text */
-  --text-primary:   #f8fafc;
-  --text-secondary: #94a3b8;
-  --text-tertiary:  #64748b;
-  --text-inverse:   #03060b;
+  /* Amethyst Palette (DESIGN.md) */
+  --amethyst-400:   #A78BFA;
+  --amethyst-700:   #6D28D9;
+
+  /* Status Palette (DESIGN.md) */
+  --rose-400:       #FB7185;
+  --rose-700:       #BE123C;
+  --amber-400:      #FBBF24;
+
+  /* Brand Remapping & Accents */
+  --lime:           #10B981;
+  --lime-dim:       #047857;
+  --lime-glow:      rgba(16, 185, 129, 0.18);
+  --lime-ghost:     rgba(16, 185, 129, 0.06);
+
+  --teal:           #10B981;
+  --teal-glow:      rgba(16, 185, 129, 0.18);
+  --cyan:           #34D399;
+  --cyan-glow:      rgba(52, 211, 153, 0.16);
+  --gold:           #D4AF37;
+  --gold-glow:      rgba(212, 175, 55, 0.12);
+  --amber:          #FBBF24;
+  --amber-glow:     rgba(251, 191, 36, 0.12);
+  --rose:           #FB7185;
+  --rose-glow:      rgba(251, 113, 133, 0.12);
+  --blue:           #3B82F6;
+  --blue-glow:      rgba(59, 130, 246, 0.12);
+
+  /* NeuCore --nc-* aliases mapping to canonical tokens */
+  --nc-bg-primary:    #061A12;
+  --nc-bg-secondary:  #0A241A;
+  --nc-bg-elevated:   #153D2D;
+  --nc-bg-card:       #0A241A;
+  --nc-text-primary:  #F2F7F4;
+  --nc-text-secondary:#A8C0B4;
+  --nc-text-muted:    #7C9689;
+  --nc-border:        #245C46;
+  --nc-border-strong: rgba(36, 92, 70, 0.60);
+  --nc-border-glow:   rgba(16, 185, 129, 0.30);
+  --nc-teal:          #10B981;
+  --nc-teal-glow:     rgba(16, 185, 129, 0.18);
+  --nc-cyan:          #34D399;
+  --nc-cyan-glow:     rgba(52, 211, 153, 0.16);
+  --nc-gold:          #D4AF37;
+  --nc-gold-soft:     rgba(212, 175, 55, 0.12);
+  --nc-rose:          #FB7185;
+  --nc-rose-glow:     rgba(251, 113, 133, 0.18);
 
   /* Typography */
   --font-display: 'Hanken Grotesk', system-ui, sans-serif;
@@ -1661,19 +1700,7 @@ body.nc-bright .mob-nav-btn.active {
    NEUCORE — Holographic Design System
    Source palette: reference skeleton image
 ═══════════════════════════════════════════ */
-:root {
-  --nc-cyan:       #00D4FF;
-  --nc-magenta:    #FF2D78;
-  --nc-teal:       #00FFF0;
-  --nc-navy:       #050D1A;
-  --nc-glass:      rgba(5,13,26,0.88);
-  --nc-glass-lt:   rgba(10,22,40,0.75);
-  --nc-border:     rgba(0,212,255,0.22);
-  --nc-border-hot: rgba(255,45,120,0.45);
-  --nc-text:       rgba(200,240,255,0.95);
-  --nc-text-dim:   rgba(0,212,255,0.55);
-  --nc-text-muted: rgba(0,212,255,0.30);
-}
+/* Holographic component utilities */
 
 /* Pop panel */
 .pop-panel {
@@ -1816,17 +1843,6 @@ body.nc-bright .mob-nav-btn.active {
 ═══════════════════════════════════════════════════════════════ */
 
 :root {
-  /* NeuCore brand accents (mirror css/landing.css) */
-  --nc-teal:        #14B8A6;
-  --nc-teal-glow:   rgba(20, 184, 166, 0.18);
-  --nc-cyan:        #67E8F9;
-  --nc-cyan-glow:   rgba(103, 232, 249, 0.16);
-  --nc-gold:        #D4AF37;
-  --nc-gold-soft:   rgba(212, 175, 55, 0.12);
-  --nc-royal-1:     #07111A;
-  --nc-royal-2:     #0E1A24;
-  --nc-royal-3:     #122130;
-
   /* Glow + glass system */
   --glow-teal:   0 0 30px rgba(20,184,166,0.22), 0 0 60px rgba(20,184,166,0.10);
   --glow-cyan:   0 0 30px rgba(103,232,249,0.22), 0 0 60px rgba(103,232,249,0.10);
@@ -5736,22 +5752,7 @@ body.nc-bright .mob-nav-btn.active {
    Cinematic clinical dashboard aesthetic matching core app.
 ═══════════════════════════════════════════════════════════════ */
 
-/* ── 1 · Global Color Variables Override for Landing Page ── */
-:root {
-  --nc-bg-primary:   #020408;   /* deep cinematic medical-tech base */
-  --nc-bg-secondary: #060913;   /* dark clinical void */
-  --nc-bg-elevated:  #0C0F1D;
-  --nc-bg-card:      rgba(10, 14, 23, 0.72);
-  
-  --nc-teal:         #2DD4BF;   /* soft recovery teal glow */
-  --nc-teal-glow:    rgba(45, 212, 191, 0.08);
-  --nc-cyan:         #38BDF8;   /* electric cyan accent */
-  --nc-cyan-glow:    rgba(56, 189, 248, 0.12);
-  
-  --nc-gold:         #38BDF8;   /* unify yellow with clinical blue */
-  --nc-gold-soft:    rgba(56, 189, 248, 0.08);
-  --nc-champagne:    #38BDF8;
-}
+/* ── 1 · Landing page overrides ── */
 
 /* ── 2 · Hero and General Buttons ── */
 .nc-btn--primary {

@@ -18,34 +18,8 @@
 ═══════════════════════════════════════════════════════════════ */
 
 
-/* ── DESIGN TOKENS (mirrors landing.css) ────────────────────── */
+/* ── DESIGN TOKENS (Canonical tokens declared in styles.css) ── */
 :root {
-  /* Core palette */
-  --nc-bg-primary:    #07111A;
-  --nc-bg-secondary:  #0E1A24;
-  --nc-bg-elevated:   #122130;
-  --nc-bg-card:       rgba(15, 23, 42, 0.7);
-
-  /* Brand accents */
-  --nc-teal:          #14B8A6;
-  --nc-teal-glow:     rgba(20, 184, 166, 0.18);
-  --nc-cyan:          #67E8F9;
-  --nc-cyan-glow:     rgba(103, 232, 249, 0.16);
-  --nc-gold:          #D4AF37;
-  --nc-gold-soft:     rgba(212, 175, 55, 0.12);
-  --nc-rose:          #F5426C;
-  --nc-rose-glow:     rgba(245, 66, 108, 0.18);
-
-  /* Text */
-  --nc-text-primary:   #F8FAFC;
-  --nc-text-secondary: #94A3B8;
-  --nc-text-muted:     #64748B;
-
-  /* Borders */
-  --nc-border:        rgba(255, 255, 255, 0.08);
-  --nc-border-strong: rgba(255, 255, 255, 0.14);
-  --nc-border-glow:   rgba(20, 184, 166, 0.3);
-
   /* Typography
      Unified to Hanken Grotesk for all roles (display, body, mono, UI). */
   --nc-font-display:  'Hanken Grotesk', system-ui, sans-serif;
