@@ -891,15 +891,16 @@
         const enabled = container.querySelector('#set-enabled').checked;
 
         try {
-          const payload = {
-            id: settings ? settings.id : undefined,
-            payment_link: link,
-            display_label: label || 'InstaPay Account',
-            enabled: enabled,
-            updated_at: new Date().toISOString()
-          };
-
-          const { error } = await sb.from('payment_settings').upsert(payload);
+          const { error } = await sb
+            .from('payment_settings')
+            .update({
+              payment_link: link,
+              display_label: label || 'InstaPay Account',
+              enabled: enabled,
+              updated_at: new Date().toISOString()
+            })
+            .eq('singleton', true)
+            .select();
           if (error) throw error;
           toast('Payment settings saved successfully!', 'success');
         } catch (err) {
@@ -931,20 +932,21 @@
         try {
           btn.disabled = true;
           btn.innerHTML = 'Saving…';
-          
-          const rowData = priceMap[`${key}_${months}`] || {};
-          const payload = {
-            id: rowData.id || undefined,
-            package_key: key,
-            months: months,
-            charge_amount_minor: minorVal,
-            charge_currency: 'EGP',
-            active: isAct,
-            updated_at: new Date().toISOString()
-          };
 
-          const { error } = await sb.from('package_prices').upsert(payload);
+          const { data, error } = await sb
+            .from('package_prices')
+            .update({
+              charge_amount_minor: minorVal,
+              charge_currency: 'EGP',
+              active: isAct,
+              updated_at: new Date().toISOString()
+            })
+            .eq('package_key', key)
+            .eq('months', months)
+            .select();
+
           if (error) throw error;
+          if (!data || data.length === 0) throw new Error(`No price row for ${key} / ${months}mo`);
 
           toast(`Saved pricing for ${key} (${months}mo)`, 'success');
         } catch (err) {
