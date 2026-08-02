@@ -198,12 +198,48 @@ program-publishing, and daily-routine write paths in addition to uncaught browse
 errors. **No Sentry alert rule is configured by this change, and this change
 cannot configure one.** Receiving an event does not mean the owner is notified.
 
-Owner action (not completed by this change):
+#### Pre-flight, verified live 2026-08-02
 
-- [ ] In the Sentry `ast9-frontend` project, create and enable an issue alert rule
-  for new error events in the `production` environment, select the owner's
-  notification destination, and use a synthetic non-sensitive event to verify
-  delivery.
+Measured against the deployed `app.html` in a real browser (the tags are set
+synchronously in `<head>`, so they are captured before the signed-out bounce to
+the landing page). Sentry is loaded on **`app.html` only** — probing `index.html`
+shows no Sentry global and proves nothing.
+
+| | value | meaning |
+|---|---|---|
+| `environment` | `production` | an `environment:production` rule filter **will** match |
+| `release` | `ast9-frontend@20260702b` | **stale** — see the warning below |
+| ingest host | reachable | 1 ingest request fired on a clean load |
+
+So the pipeline works end to end; only the rule is missing.
+
+> **Known defect — the release tag is frozen.** `APP_VERSION` in
+> `js/monitoring.js` is the hardcoded string `'20260702b'` and has not changed
+> since that file was last edited on 2026-07-02, despite many deploys since. Every
+> event is therefore tagged `ast9-frontend@20260702b`. Consequence: Sentry cannot
+> attribute an error to the deploy that introduced it, and "regression" /
+> "resolved in next release" workflows are meaningless. **Do not build an alert
+> rule that conditions on `release`.** Filter on `environment` until this is fixed.
+
+#### Owner action (cannot be automated — Sentry dashboard, requires sign-in)
+
+In the Sentry `ast9-frontend` project → **Alerts → Create Alert → Issues**:
+
+- [ ] **When:** *A new issue is created*
+- [ ] **If:** `environment` **equals** `production`
+      (do **not** add a `release` condition — see the frozen-release defect above)
+- [ ] **Then:** send a notification to the owner's destination (email, or Slack if
+      that integration is added later)
+- [ ] **Action interval / rate limit:** at most once per 30 minutes per issue, so a
+      single failing page cannot flood the inbox
+- [ ] **Environment (rule scope):** `production`
+- [ ] Save, then verify delivery with a **synthetic, non-sensitive** event and
+      confirm the notification actually arrives. A rule that is saved but whose
+      filter never matches looks identical to a working one.
+
+Filtering on `environment` matters: `js/monitoring.js` derives it from the
+hostname, so `localhost` reports `development` and anything else reports
+`preview`. Without the filter, local development noise pages the owner.
 
 Adblockers commonly block both the Sentry bundle and ingest endpoint. Therefore,
 **never** read "no Sentry events" as "no errors"; `ops-health` remains the uptime
