@@ -18,8 +18,9 @@ serve(async (req) => {
   try {
     if (req.method !== 'POST') throw new HttpError(405, 'Method not allowed')
 
-    // AuthZ: admin only. Anon key / clients / coaches rejected.
-    const { user } = await requireRole(req, ['admin'])
+    // AuthZ: admin, or a coach acting on their OWN client (ownership checked
+    // below, after the target profile is read). Anon key / clients rejected.
+    const { user, role: callerRole } = await requireRole(req, ['admin', 'coach'])
 
     let body: Record<string, unknown>
     try { body = await req.json() } catch { throw new HttpError(400, 'Invalid JSON') }
@@ -32,9 +33,19 @@ serve(async (req) => {
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     const admin = createClient(url, serviceKey, { auth: { persistSession: false } })
 
-    // Last-admin guard: never delete the final admin account.
     const { data: target } = await admin.from('profiles')
-      .select('role').eq('id', user_id).maybeSingle()
+      .select('role, assigned_coach').eq('id', user_id).maybeSingle()
+
+    // Ownership gate. A coach may delete ONLY a client assigned to them — never
+    // another coach, never an admin, never an unassigned or another coach's
+    // client. Fails closed if the target has no profile row.
+    if (callerRole === 'coach') {
+      if (!target || target.role !== 'client' || target.assigned_coach !== user.id) {
+        throw new HttpError(403, 'You may only delete a client assigned to you')
+      }
+    }
+
+    // Last-admin guard: never delete the final admin account.
     if (target?.role === 'admin') {
       const { count } = await admin.from('profiles')
         .select('id', { count: 'exact', head: true }).eq('role', 'admin')

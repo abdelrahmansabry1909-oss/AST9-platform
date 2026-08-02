@@ -130,7 +130,7 @@
       "service_role": true
     },
     "rationale": "Signed-in coaches query their own capacity while admin and server provisioning paths may query another coach.",
-    "source": "20260616020000_coach_business_profile.sql",
+    "source": "20260805000000_coach_package_expiry_enforcement.sql",
     "confidence": "high",
     "decision": "approved"
   },
