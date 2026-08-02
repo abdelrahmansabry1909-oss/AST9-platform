@@ -200,7 +200,11 @@
       p_months: Number(months)
     });
     if (error) throw new Error(error.message || 'Payment request failed');
-    return data;
+    return {
+      ...data,
+      package_key: packageKey,
+      months: Number(months)
+    };
   }
 
   // Coach: declare transfer sent with optional reference note
@@ -341,7 +345,7 @@
           btn.innerHTML = '<span class="spinner"></span> Requesting…';
           const reqData = await requestPackagePayment(key, months);
           toast('Payment request created! Please review payment instructions.', 'success');
-          openInstaPayModal(reqData, settings);
+          openInstaPayModal({ ...reqData, package_key: key, months: Number(months) }, settings);
           renderCoachBillingSection(containerId, currentInterval, onIntervalChange);
         } catch (e) {
           toast(e.message || 'Could not create payment request', 'danger');
@@ -424,7 +428,7 @@
     if (!modal) {
       modal = document.createElement('div');
       modal.id = 'modal-instapay-instructions';
-      modal.className = 'modal-overlay';
+      modal.className = 'modal-overlay hidden';
       document.body.appendChild(modal);
     }
 
@@ -437,10 +441,10 @@
     const amountEGP = formatEGP(reqData.amount_minor);
 
     modal.innerHTML = `
-      <div class="modal-card" style="max-width:520px;width:92%">
+      <div class="modal" style="max-width:520px;width:92%">
         <div class="modal-header">
           <h3 style="font-size:18px;font-weight:800;color:var(--text-primary)">InstaPay Transfer Instructions</h3>
-          <button type="button" class="modal-close" onclick="PaymentUI.closeModal('modal-instapay-instructions')">&times;</button>
+          <button type="button" class="btn-icon" onclick="PaymentUI.closeModal('modal-instapay-instructions')">✕</button>
         </div>
         <div class="modal-body" style="padding:20px">
           <div style="margin-bottom:16px;padding:14px;border-radius:10px;background:var(--nc-bg-surface,rgba(13,24,40,.04));border:1px solid var(--nc-border,rgba(13,24,40,.1))">
@@ -489,7 +493,7 @@
         </div>
       </div>`;
 
-    modal.classList.add('active');
+    modal.classList.remove('hidden');
 
     // Copy link handler
     const copyBtn = modal.querySelector('#btn-copy-payment-link');
@@ -521,6 +525,7 @@
           }
         } catch (e) {
           toast(e.message || 'Could not submit confirmation', 'danger');
+        } finally {
           sentBtn.disabled = false;
           sentBtn.innerHTML = "I've sent it";
         }
@@ -633,15 +638,15 @@
     if (!modal) {
       modal = document.createElement('div');
       modal.id = 'modal-admin-approve-payment';
-      modal.className = 'modal-overlay';
+      modal.className = 'modal-overlay hidden';
       document.body.appendChild(modal);
     }
 
     modal.innerHTML = `
-      <div class="modal-card" style="max-width:480px;width:92%">
+      <div class="modal" style="max-width:480px;width:92%">
         <div class="modal-header">
           <h3 style="font-size:18px;font-weight:800;color:var(--text-primary)">Approve Coach Payment</h3>
-          <button type="button" class="modal-close" onclick="PaymentUI.closeModal('modal-admin-approve-payment')">&times;</button>
+          <button type="button" class="btn-icon" onclick="PaymentUI.closeModal('modal-admin-approve-payment')">✕</button>
         </div>
         <div class="modal-body" style="padding:20px">
           <!-- VISIBLE REMINDER TO CHECK INSTAPAY ACCOUNT BEFORE APPROVING -->
@@ -668,7 +673,7 @@
         </div>
       </div>`;
 
-    modal.classList.add('active');
+    modal.classList.remove('hidden');
 
     modal.querySelector('#btn-submit-approve').addEventListener('click', async () => {
       const noteInput = modal.querySelector('#p2c-admin-note');
@@ -679,13 +684,13 @@
         btn.disabled = true;
         btn.innerHTML = '<span class="spinner"></span> Approving…';
         const res = await approvePayment(data.id, noteVal);
-        
+
         if (res && res.duplicate) {
           toast('This request was already approved and the period was not extended again.', 'info');
         } else {
           toast('Payment approved! Package activated.', 'success');
         }
-        
+
         closeModal('modal-admin-approve-payment');
         // Refresh admin queue & business overview
         if (typeof AdminBusiness !== 'undefined' && typeof AdminBusiness.load === 'function') {
@@ -693,6 +698,7 @@
         }
       } catch (e) {
         toast(e.message || 'Could not approve payment', 'danger');
+      } finally {
         btn.disabled = false;
         btn.innerHTML = 'Confirm &amp; Activate Package';
       }
@@ -705,15 +711,15 @@
     if (!modal) {
       modal = document.createElement('div');
       modal.id = 'modal-admin-reject-payment';
-      modal.className = 'modal-overlay';
+      modal.className = 'modal-overlay hidden';
       document.body.appendChild(modal);
     }
 
     modal.innerHTML = `
-      <div class="modal-card" style="max-width:480px;width:92%">
+      <div class="modal" style="max-width:480px;width:92%">
         <div class="modal-header">
           <h3 style="font-size:18px;font-weight:800;color:var(--text-primary)">Reject Payment Request</h3>
-          <button type="button" class="modal-close" onclick="PaymentUI.closeModal('modal-admin-reject-payment')">&times;</button>
+          <button type="button" class="btn-icon" onclick="PaymentUI.closeModal('modal-admin-reject-payment')">✕</button>
         </div>
         <div class="modal-body" style="padding:20px">
           <div style="margin-bottom:16px;font-size:13px;color:var(--text-secondary)">
@@ -736,7 +742,7 @@
         </div>
       </div>`;
 
-    modal.classList.add('active');
+    modal.classList.remove('hidden');
 
     modal.querySelector('#btn-submit-reject').addEventListener('click', async () => {
       const reasonInput = modal.querySelector('#p2c-reject-reason');
@@ -759,6 +765,7 @@
         }
       } catch (e) {
         toast(e.message || 'Could not reject payment', 'danger');
+      } finally {
         btn.disabled = false;
         btn.innerHTML = 'Reject Request';
       }
@@ -971,7 +978,7 @@
 
   function closeModal(modalId) {
     const modal = document.getElementById(modalId);
-    if (modal) modal.classList.remove('active');
+    if (modal) modal.classList.add('hidden');
   }
 
   // Public API
