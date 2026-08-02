@@ -197,10 +197,22 @@ The scheduled `ops-health` GitHub Actions workflow runs every six hours. It fail
 the workflow when the endpoint is unreachable or unhealthy; that workflow
 failure is what notifies the owner. It remains the uptime source of truth.
 
-Sentry now receives scrubbed handled-failure events from selected workout,
+Sentry receives scrubbed handled-failure events from selected workout,
 program-publishing, and daily-routine write paths in addition to uncaught browser
-errors. **No Sentry alert rule is configured by this change, and this change
-cannot configure one.** Receiving an event does not mean the owner is notified.
+errors.
+
+**An issue alert rule is now LIVE and delivery-verified — 2026-08-02.** It fires
+on *a new issue is created* filtered to `environment: production`, notifies the
+owner by email, and is rate-limited to once per 30 minutes per issue. Verified by
+firing a synthetic, non-sensitive error at the live `app.html`: Sentry accepted
+the envelope (HTTP 200), the event carried `environment: production` and
+`release: ast9-frontend@384198c0…`, and **the email arrived**. Both halves are
+therefore proven — the pipeline delivers, and the rule matches.
+
+The rule lives only in the Sentry dashboard. It is not in this repository, it is
+not backed up, and nothing here would detect its deletion. If Sentry alerting is
+ever expected and silent, check that the rule still exists before assuming the
+application is healthy.
 
 #### Pre-flight, verified live 2026-08-02
 
@@ -215,7 +227,8 @@ shows no Sentry global and proves nothing.
 | `release` | `ast9-frontend@<commit sha>` | the deployed commit — **fixed 2026-08-02**, see below |
 | ingest host | reachable | 1 ingest request fired on a clean load |
 
-So the pipeline works end to end; only the rule is missing.
+So the pipeline works end to end. The rule that consumes it is now live and
+delivery-verified — see the previous section.
 
 > **Fixed 2026-08-02 — the release tag now tracks the deploy.** `APP_VERSION` was
 > the hardcoded string `'20260702b'`, so every event since 2 July carried the same
@@ -240,21 +253,32 @@ So the pipeline works end to end; only the rule is missing.
 > exist (poll into `sessionStorage` from an init script) rather than reading them
 > after `waitForTimeout`.
 
-#### Owner action (cannot be automated — Sentry dashboard, requires sign-in)
+#### The configured rule (Sentry dashboard — done 2026-08-02)
 
-In the Sentry `ast9-frontend` project → **Alerts → Create Alert → Issues**:
+In the Sentry `ast9-frontend` project → **Alerts → Create Alert → Issues**. Recorded
+here because the rule exists only in the dashboard; this is the record to rebuild
+it from if the project is ever recreated.
 
-- [ ] **When:** *A new issue is created*
-- [ ] **If:** `environment` **equals** `production`
-      (do **not** add a `release` condition — see the frozen-release defect above)
-- [ ] **Then:** send a notification to the owner's destination (email, or Slack if
-      that integration is added later)
-- [ ] **Action interval / rate limit:** at most once per 30 minutes per issue, so a
+- [x] **When:** *A new issue is created*
+- [x] **If:** `environment` **equals** `production`
+- [x] **Then:** send a notification to the owner by email
+- [x] **Action interval / rate limit:** at most once per 30 minutes per issue, so a
       single failing page cannot flood the inbox
-- [ ] **Environment (rule scope):** `production`
-- [ ] Save, then verify delivery with a **synthetic, non-sensitive** event and
-      confirm the notification actually arrives. A rule that is saved but whose
-      filter never matches looks identical to a working one.
+- [x] **Environment (rule scope):** `production`
+- [x] **Delivery verified** with a synthetic, non-sensitive event — the email
+      arrived. A rule that is saved but whose filter never matches looks identical
+      to a working one, so this step is not optional when rebuilding.
+
+The rule filters on `environment` only. A `release` filter is now *technically*
+meaningful — the release tag tracks the deployed commit as of 2026-08-02 — but it
+would need editing on every deploy, so it stays out.
+
+**To re-verify delivery after any change to `js/monitoring.js`, the DSN, or the
+rule:** fire one uniquely-stamped synthetic error at the live `app.html`. It must
+be unique or Sentry groups it with an existing issue and *"a new issue is created"*
+never fires; it must avoid every string in `ignoreErrors`; and it must be captured
+before `app.html` bounces a signed-out visitor to the landing page, which does not
+load `monitoring.js`.
 
 Filtering on `environment` matters: `js/monitoring.js` derives it from the
 hostname, so `localhost` reports `development` and anything else reports
