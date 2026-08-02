@@ -2079,52 +2079,52 @@ body.service-athletic {
   background-attachment: fixed !important;
 
   /* Theme tokens */
-  --nc-bg-primary:     #0F0F12 !important;
-  --nc-bg-secondary:   #16161A !important;
-  --nc-bg-elevated:    #1E1E24 !important;
-  --nc-bg-card:        rgba(26, 26, 32, 0.75) !important;
+  --nc-bg-primary:     #0F0F12;
+  --nc-bg-secondary:   #16161A;
+  --nc-bg-elevated:    #1E1E24;
+  --nc-bg-card:        rgba(26, 26, 32, 0.75);
 
-  --nc-text-primary:   #FFFFFF !important;
-  --nc-text-secondary: #C5C9D0 !important;
-  --nc-text-muted:     #7E8490 !important;
+  --nc-text-primary:   #FFFFFF;
+  --nc-text-secondary: #C5C9D0;
+  --nc-text-muted:     #7E8490;
 
-  --nc-border:         rgba(225, 29, 72, 0.16) !important;
-  --nc-border-strong:  rgba(225, 29, 72, 0.28) !important;
-  --nc-border-glow:    rgba(225, 29, 72, 0.35) !important;
+  --nc-border:         rgba(225, 29, 72, 0.16);
+  --nc-border-strong:  rgba(225, 29, 72, 0.28);
+  --nc-border-glow:    rgba(225, 29, 72, 0.35);
 
   /* Ruby branding accents */
-  --nc-teal:           #E11D48 !important;
-  --nc-teal-glow:      rgba(225, 29, 72, 0.20) !important;
-  --nc-cyan:           #FB7185 !important;
-  --nc-cyan-glow:      rgba(251, 113, 133, 0.18) !important;
+  --nc-teal:           #E11D48;
+  --nc-teal-glow:      rgba(225, 29, 72, 0.20);
+  --nc-cyan:           #FB7185;
+  --nc-cyan-glow:      rgba(251, 113, 133, 0.18);
 
-  --nc-indigo:         #E11D48 !important;
-  --nc-indigo-ink:     #9F1239 !important;
-  --nc-indigo-soft:    rgba(225, 29, 72, 0.12) !important;
-  --nc-violet:         #FB7185 !important;
-  --nc-violet-soft:    rgba(251, 113, 133, 0.12) !important;
-  --nc-lavender:       #210D11 !important;
+  --nc-indigo:         #E11D48;
+  --nc-indigo-ink:     #9F1239;
+  --nc-indigo-soft:    rgba(225, 29, 72, 0.12);
+  --nc-violet:         #FB7185;
+  --nc-violet-soft:    rgba(251, 113, 133, 0.12);
+  --nc-lavender:       #210D11;
 
-  --nc-glass-bg:       rgba(24, 24, 30, 0.75) !important;
-  --nc-glass-border:   rgba(225, 29, 72, 0.18) !important;
+  --nc-glass-bg:       rgba(24, 24, 30, 0.75);
+  --nc-glass-border:   rgba(225, 29, 72, 0.18);
 
   /* Legacy bridge tokens override */
-  --bg-void:           #0A0A0C !important;
-  --bg-base:           #0F0F12 !important;
-  --bg-surface:        #16161A !important;
-  --bg-raised:         #202026 !important;
-  --bg-overlay:        #202026 !important;
-  --bg-hover:          rgba(225, 29, 72, 0.08) !important;
+  --bg-void:           #0A0A0C;
+  --bg-base:           #0F0F12;
+  --bg-surface:        #16161A;
+  --bg-raised:         #202026;
+  --bg-overlay:        #202026;
+  --bg-hover:          rgba(225, 29, 72, 0.08);
 
-  --border-subtle:     rgba(225, 29, 72, 0.12) !important;
-  --border-default:    rgba(225, 29, 72, 0.18) !important;
-  --border-strong:     rgba(225, 29, 72, 0.30) !important;
+  --border-subtle:     rgba(225, 29, 72, 0.12);
+  --border-default:    rgba(225, 29, 72, 0.18);
+  --border-strong:     rgba(225, 29, 72, 0.30);
 
-  --text-primary:      #FFFFFF !important;
-  --text-secondary:    #C5C9D0 !important;
-  --text-tertiary:     #7E8490 !important;
+  --text-primary:      #FFFFFF;
+  --text-secondary:    #C5C9D0;
+  --text-tertiary:     #7E8490;
 
-  --shadow-card:       0 4px 20px rgba(0, 0, 0, 0.45), 0 0 1px rgba(225, 29, 72, 0.25) !important;
+  --shadow-card:       0 4px 20px rgba(0, 0, 0, 0.45), 0 0 1px rgba(225, 29, 72, 0.25);
 }
 
 /* Service Switcher overrides in Athletic mode */
@@ -2156,16 +2156,16 @@ body.service-athletic .sidebar-overlay + .sidebar {
   background: linear-gradient(180deg, #1A0A0D 0%, #0E0406 100%) !important;
   border-right: 1px solid rgba(225, 29, 72, 0.18) !important;
   box-shadow: 4px 0 24px rgba(0, 0, 0, 0.5) !important;
-  --bg-surface:        #1E0C0F !important;
-  --bg-raised:         #281014 !important;
-  --bg-hover:          rgba(225, 29, 72, 0.10) !important;
-  --border-subtle:     rgba(225, 29, 72, 0.12) !important;
-  --border-default:    rgba(225, 29, 72, 0.20) !important;
-  --border-strong:     rgba(225, 29, 72, 0.30) !important;
-  --text-primary:      #FFF0F2 !important;
-  --text-secondary:    #D4C3C5 !important;
-  --text-tertiary:     #8A7376 !important;
-  --nc-fg:             #FFF0F2 !important;
+  --bg-surface:        #1E0C0F;
+  --bg-raised:         #281014;
+  --bg-hover:          rgba(225, 29, 72, 0.10);
+  --border-subtle:     rgba(225, 29, 72, 0.12);
+  --border-default:    rgba(225, 29, 72, 0.20);
+  --border-strong:     rgba(225, 29, 72, 0.30);
+  --text-primary:      #FFF0F2;
+  --text-secondary:    #D4C3C5;
+  --text-tertiary:     #8A7376;
+  --nc-fg:             #FFF0F2;
 }
 
 /* Active navigation item styling in Athletic mode */
@@ -3236,60 +3236,66 @@ body.nc-client #section-client-coach > div:first-child {
 
 body.nc-bright:not(.nc-client) {
   /* Porcelain Emerald color variables mapped inside app shell scope */
-  --nc-bg-primary:    #F8F9F9 !important;   /* porcelain canvas base */
-  --nc-bg-secondary:  #FFFFFF !important;   /* crisp white panels */
-  --nc-bg-elevated:   #FFFFFF !important;   /* elevated white */
-  --nc-bg-card:       #FFFFFF !important;
+  --nc-bg-primary:    #F8F9F9;   /* porcelain canvas base */
+  --nc-bg-secondary:  #FFFFFF;   /* crisp white panels */
+  --nc-bg-elevated:   #FFFFFF;   /* elevated white */
+  --nc-bg-card:       #FFFFFF;
 
-  --nc-text-primary:   #181C32 !important;  /* dark primary text */
-  --nc-text-secondary: #4B5565 !important;  /* secondary comfortable text */
-  --nc-text-muted:     #7E8299 !important;  /* muted comfortable slate */
+  --nc-text-primary:   #181C32;  /* dark primary text */
+  --nc-text-secondary: #4B5565;  /* secondary comfortable text */
+  --nc-text-muted:     #7E8299;  /* muted comfortable slate */
 
-  --nc-border:        rgba(24, 28, 50, 0.06) !important;  /* subtle dark slate hairline */
-  --nc-border-strong: rgba(24, 28, 50, 0.12) !important;
+  --nc-border:        rgba(24, 28, 50, 0.06);  /* subtle dark slate hairline */
+  --nc-border-strong: rgba(24, 28, 50, 0.12);
 
-  --nc-shadow-sm:   0 1px 2px rgba(24, 28, 50, 0.015) !important;
-  --nc-shadow-md:   0 3px 8px rgba(24, 28, 50, 0.02) !important;
-  --nc-shadow-lg:   0 8px 18px rgba(24, 28, 50, 0.02) !important;
-  --nc-shadow-card: 0 1px 2px rgba(24, 28, 50, 0.015), 0 3px 8px rgba(24, 28, 50, 0.02) !important;
+  --nc-shadow-sm:   0 1px 2px rgba(24, 28, 50, 0.015);
+  --nc-shadow-md:   0 3px 8px rgba(24, 28, 50, 0.02);
+  --nc-shadow-lg:   0 8px 18px rgba(24, 28, 50, 0.02);
+  --nc-shadow-card: 0 1px 2px rgba(24, 28, 50, 0.015), 0 3px 8px rgba(24, 28, 50, 0.02);
 
-  --nc-glass-bg:     rgba(255, 255, 255, 0.95) !important;
-  --nc-glass-border: rgba(24, 28, 50, 0.06) !important;
+  --nc-glass-bg:     rgba(255, 255, 255, 0.95);
+  --nc-glass-border: rgba(24, 28, 50, 0.06);
 
-  /* Accent overrides - map main brand actions to luxurious emerald */
-  --nc-indigo:        #047857 !important; /* luxurious emerald */
-  --nc-indigo-ink:    #035E43 !important; /* strong emerald hover */
-  --nc-indigo-soft:   rgba(4, 120, 87, 0.06) !important;
-  --nc-violet:        #18A058 !important; /* soft emerald accent */
-  --nc-violet-soft:   rgba(24, 160, 88, 0.06) !important;
-  --nc-lavender:      #EEF8F4 !important;
-  --nc-amber-soft:    rgba(212, 175, 55, 0.08) !important;
+  /* Accent overrides - map main brand actions to luxurious emerald (Emerald 700 per DESIGN.md contrast rules) */
+  --emerald-500:      #047857;
+  --emerald-700:      #047857;
+  --emerald-800:      #065F46;
+  --gold-500:         #8A6D1F;
+  --gold-700:         #8A6D1F;
+
+  --nc-indigo:        #047857; /* luxurious emerald */
+  --nc-indigo-ink:    #035E43; /* strong emerald hover */
+  --nc-indigo-soft:   rgba(4, 120, 87, 0.06);
+  --nc-violet:        #18A058; /* soft emerald accent */
+  --nc-violet-soft:   rgba(24, 160, 88, 0.06);
+  --nc-lavender:      #EEF8F4;
+  --nc-amber-soft:    rgba(212, 175, 55, 0.08);
 
   /* Legacy layout token mappings */
-  --bg-void:    #F8F9F9 !important;
-  --bg-base:    #F8F9F9 !important;
-  --bg-surface: #FFFFFF !important;
-  --bg-raised:  #FFFFFF !important;
-  --bg-overlay: #FFFFFF !important;
-  --bg-hover:   rgba(24, 28, 50, 0.01) !important;
+  --bg-void:    #F8F9F9;
+  --bg-base:    #F8F9F9;
+  --bg-surface: #FFFFFF;
+  --bg-raised:  #FFFFFF;
+  --bg-overlay: #FFFFFF;
+  --bg-hover:   rgba(24, 28, 50, 0.01);
 
-  --border-subtle:  rgba(24, 28, 50, 0.03) !important;
-  --border-default: rgba(24, 28, 50, 0.06) !important;
-  --border-strong:  rgba(24, 28, 50, 0.12) !important;
+  --border-subtle:  rgba(24, 28, 50, 0.03);
+  --border-default: rgba(24, 28, 50, 0.06);
+  --border-strong:  rgba(24, 28, 50, 0.12);
 
-  --text-primary:   #181C32 !important;
-  --text-secondary: #4B5565 !important;
-  --text-tertiary:  #7E8299 !important;
+  --text-primary:   #181C32;
+  --text-secondary: #4B5565;
+  --text-tertiary:  #7E8299;
 
-  --lime:           #047857 !important;
-  --lime-dim:       #035E43 !important;
-  --lime-glow:      rgba(4, 120, 87, 0.05) !important;
-  --lime-ghost:     rgba(4, 120, 87, 0.02) !important;
+  --lime:           #047857;
+  --lime-dim:       #035E43;
+  --lime-glow:      rgba(4, 120, 87, 0.05);
+  --lime-ghost:     rgba(4, 120, 87, 0.02);
 
-  --teal:           #047857 !important;
-  --teal-glow:      rgba(4, 120, 87, 0.05) !important;
+  --teal:           #047857;
+  --teal-glow:      rgba(4, 120, 87, 0.05);
 
-  background: var(--nc-bg-primary) !important;
+  background: var(--nc-bg-primary);
 }
 
 /* Base body background override */
@@ -5462,7 +5468,7 @@ body.nc-bright:not(.nc-client) .loader-bar::before {
 /* Sidebar Standardized Width variable override */
 @media (min-width: 901px) {
   body.nc-bright:not(.nc-client) {
-    --sidebar-w: var(--sidebar-w-collapsed, 64px) !important;
+    --sidebar-w: var(--sidebar-w-collapsed, 64px);
   }
 }
 
