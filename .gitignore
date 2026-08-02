@@ -36,6 +36,13 @@ scratch/
 deno.lock
 supabase/.temp/
 
+# Database dumps (docs/DATABASE_BACKUP.md). scripts/db-backup.mjs already refuses
+# to write inside any git working tree; this is the second line of defence, because
+# this repository is public and a dump contains every client health record.
+ast9-backup-*/
+.incomplete-*/
+backup-status.json
+
 # Local agent/skill tooling artifacts (AI_WORKFLOW_GUARDRAILS.md §6 — never commit)
 .agents/
 .codex/
