@@ -43,11 +43,46 @@
     const limit     = s.client_limit;
     const remaining = s.remaining;
     const pkgLabel  = (typeof Packages !== 'undefined') ? Packages.label(s.package_key) : s.package_key;
+    const isExpired = !!s.expired || s.status === 'expired';
+    const endDate   = s.current_period_end ? new Date(s.current_period_end).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }) : null;
+
     const pct       = unlimited || !limit ? 100 : Math.min(100, Math.round((used / limit) * 100));
-    const slotsLine = unlimited
-      ? `${used} active · <span style="color:${TEAL}">unlimited</span>`
-      : `${used} of ${limit} client slots used · <b style="color:${TEAL}">${remaining}</b> remaining`;
-    const atLimit   = !unlimited && remaining === 0;
+
+    let slotsLine;
+    if (isExpired) {
+      slotsLine = `<span style="color:#ef4444;font-weight:700">Package Expired</span> · ${used} assigned client${used === 1 ? '' : 's'} active · <b style="color:#ef4444">0 new slots</b>`;
+    } else if (unlimited) {
+      slotsLine = `${used} active · <span style="color:${TEAL}">unlimited</span>`;
+    } else {
+      slotsLine = `${used} of ${limit} client slots used · <b style="color:${TEAL}">${remaining}</b> remaining`;
+    }
+
+    const atLimit = !unlimited && remaining === 0 && !isExpired;
+
+    const statusBadge = isExpired
+      ? `<span style="font-size:11px;font-weight:600;padding:3px 10px;border-radius:999px;background:rgba(239,68,68,.14);color:#ef4444;border:1px solid rgba(239,68,68,.35)">EXPIRED</span>`
+      : `<span style="font-size:11px;font-weight:600;padding:3px 10px;border-radius:999px;background:rgba(20,184,166,.14);color:${TEAL};border:1px solid rgba(20,184,166,.35)">${esc(s.status || 'active')}</span>`;
+
+    const billingDesc = isExpired
+      ? (endDate ? `Expired on ${esc(endDate)}` : `Package expired`)
+      : `Billed ${s.billing_interval === 'annual' ? 'annually' : 'monthly'} · admin-assigned`;
+
+    let alertBlock = '';
+    if (isExpired) {
+      alertBlock = `
+        <div style="margin-top:14px;padding:14px;border-radius:10px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);font-size:12.5px;color:var(--text-secondary);line-height:1.5">
+          <div style="font-weight:700;color:#ef4444;margin-bottom:4px">Your ${esc(pkgLabel)} package expired${endDate ? ` on ${esc(endDate)}` : ''}.</div>
+          <div>Existing assigned clients continue to work normally. However, you cannot add new clients until you renew your package.</div>
+          <div style="margin-top:10px">
+            <button type="button" class="btn btn-emerald btn-sm" onclick="const el=document.getElementById('billing-catalog');if(el)el.scrollIntoView({behavior:'smooth'})">Renew Package Below ↓</button>
+          </div>
+        </div>`;
+    } else if (atLimit) {
+      alertBlock = `
+        <div style="margin-top:14px;padding:12px 14px;border-radius:10px;background:rgba(245,158,11,.10);border:1px solid rgba(245,158,11,.35);font-size:12px;color:#b9770b;line-height:1.5">
+          <b>You have used ${used} of ${limit} client slots.</b> Upgrade your plan to add more clients.
+        </div>`;
+    }
 
     return `
       <div class="card" style="margin-bottom:var(--sp-5)">
@@ -56,17 +91,16 @@
             <div style="font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text-tertiary)">Current plan</div>
             <div style="display:flex;align-items:center;gap:10px;margin-top:6px">
               <span style="font-size:26px;font-weight:800;letter-spacing:-.5px;color:var(--text-primary)">${esc(pkgLabel)}</span>
-              <span style="font-size:11px;font-weight:600;padding:3px 10px;border-radius:999px;background:rgba(20,184,166,.14);color:${TEAL};border:1px solid rgba(20,184,166,.35)">${esc(s.status || 'active')}</span>
+              ${statusBadge}
             </div>
-            <div style="font-size:12px;color:var(--text-tertiary);margin-top:5px">Billed ${s.billing_interval === 'annual' ? 'annually' : 'monthly'} · admin-assigned</div>
+            <div style="font-size:12px;color:var(--text-tertiary);margin-top:5px">${billingDesc}</div>
           </div>
         </div>
         <div style="margin-top:18px;font-size:13px;color:var(--text-secondary)">${slotsLine}</div>
         <div style="height:8px;border-radius:99px;background:var(--nc-track,rgba(13,24,40,.1));overflow:hidden;margin-top:10px">
-          <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#14b8a6,#2dd4bf);transition:width .4s ease"></div>
+          <div style="height:100%;width:${pct}%;background:${isExpired ? '#ef4444' : 'linear-gradient(90deg,#14b8a6,#2dd4bf)'};transition:width .4s ease"></div>
         </div>
-        ${atLimit ? `<div style="margin-top:14px;padding:12px 14px;border-radius:10px;background:rgba(245,158,11,.10);border:1px solid rgba(245,158,11,.35);font-size:12px;color:#b9770b;line-height:1.5">
-          <b>You have used ${used} of ${limit} client slots.</b> Upgrade your plan to add more clients.</div>` : ''}
+        ${alertBlock}
       </div>`;
   }
 
@@ -261,7 +295,9 @@
     host.innerHTML =
       _currentPlanCard(_status) +
       statusHtml +
+      `<div id="billing-catalog">` +
       _upgradeGrid(_status, prices, openReq, settings) +
+      `</div>` +
       _customCalc() +
       _footerNote(isAdmin);
 
