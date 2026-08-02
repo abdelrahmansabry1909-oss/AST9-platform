@@ -4,9 +4,10 @@ import { bus } from '../core/JointBus.js';
 import { JOINT_LABELS } from '../core/JointRegistry.js';
 
 export class PopPanel {
-  constructor(containerEl) {
-    this.container = containerEl;
-    this._panels   = new Map();  // jointKey → DOM element
+  constructor(containerEl, mountEl = containerEl) {
+    this.container   = containerEl;
+    this.mountTarget = mountEl || containerEl;
+    this._panels     = new Map();  // jointKey → DOM element
 
     bus.on('joint:select',   ({ jointKey }) => this._open(jointKey));
     bus.on('joint:deselect', ({ jointKey }) => this._close(jointKey));
@@ -20,22 +21,21 @@ export class PopPanel {
     el.className = 'pop-panel';
     el.dataset.joint = jointKey;
     el.style.cssText = `
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%) scale(0.3);
-      opacity: 0;
-      z-index: 100;
-      min-width: 240px;
-      max-width: 320px;
+      position: relative;
+      margin-top: 12px;
+      width: 100%;
       padding: 16px;
+      box-sizing: border-box;
+      z-index: 10;
       pointer-events: auto;
+      transform: translateY(10px) scale(0.95);
+      opacity: 0;
       transition: transform 280ms cubic-bezier(.34,1.56,.64,1),
                   opacity 200ms ease;
     `;
 
     el.innerHTML = this._buildContent(jointKey);
-    this.container.appendChild(el);
+    this.mountTarget.appendChild(el);
     this._panels.set(jointKey, el);
 
     // Close button
@@ -45,17 +45,20 @@ export class PopPanel {
 
     this._bindPanelEvents(el, jointKey);
 
-    // Trigger spring animation
+    // Trigger spring animation and bring into view if below fold
     requestAnimationFrame(() => {
-      el.style.transform = 'translate(-50%, -50%) scale(1)';
+      el.style.transform = 'translateY(0) scale(1)';
       el.style.opacity   = '1';
+      try {
+        el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      } catch (e) { /* non-fatal */ }
     });
   }
 
   _close(jointKey) {
     const el = this._panels.get(jointKey);
     if (!el) return;
-    el.style.transform = 'translate(-50%, -50%) scale(0.3)';
+    el.style.transform = 'translateY(10px) scale(0.95)';
     el.style.opacity   = '0';
     setTimeout(() => {
       el.remove();
