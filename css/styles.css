@@ -50,7 +50,7 @@
   /* Typography */
   --font-display: 'Hanken Grotesk', system-ui, sans-serif;
   --font-body:    'Hanken Grotesk', system-ui, sans-serif;
-  --font-mono:    'Hanken Grotesk', system-ui, sans-serif;
+  --font-mono:    ui-monospace, 'SF Mono', 'Cascadia Mono', 'Roboto Mono', Menlo, Consolas, monospace;
 
   /* Spacing scale */
   --sp-1:  4px;
