@@ -222,7 +222,7 @@
   // Owner ONLY: approve coach payment
   async function approvePayment(requestId, adminNote) {
     if (typeof sb === 'undefined') throw new Error('Database connection unavailable');
-    const payload = { p_request_id: requestId, p_period_start: null };
+    const payload = { p_request_id: requestId };
     if (adminNote && adminNote.trim()) {
       payload.p_admin_note = adminNote.trim().substring(0, 500);
     }
