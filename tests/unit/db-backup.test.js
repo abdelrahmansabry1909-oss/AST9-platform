@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
+import { PRODUCTION_SUPABASE_REF } from '../smoke/staging-target.mjs';
 import {
   BACKUP_PREFIX,
   DEFAULT_KEEP,
@@ -9,6 +10,7 @@ import {
   DUMP_ARTIFACTS,
   RUN_PREFIX,
   assertDestinationSafe,
+  assertLinkedProjectIsProduction,
   buildDumpArgs,
   findGitAncestor,
   formatBackupStamp,
@@ -73,6 +75,29 @@ test('destination outside every working tree is accepted and normalised', () => 
   assert.equal(
     assertDestinationSafe(`  ${outsideDestination}  `, fakeRepoRoot, noGitAnywhere),
     outsideDestination
+  );
+});
+
+test('a backup refuses to run against any project that is not production', () => {
+  // Observed 2026-08-02: supabase/.temp/project-ref pointed at a project that is
+  // not the production database. Unchecked, that produces a complete, verified,
+  // correctly-named backup of the wrong data.
+  assert.equal(
+    assertLinkedProjectIsProduction(PRODUCTION_SUPABASE_REF),
+    PRODUCTION_SUPABASE_REF
+  );
+  assert.equal(
+    assertLinkedProjectIsProduction(`  ${PRODUCTION_SUPABASE_REF.toUpperCase()}\n`),
+    PRODUCTION_SUPABASE_REF
+  );
+  assert.throws(
+    () => assertLinkedProjectIsProduction('someotherprojectref'),
+    /not the production database/
+  );
+  assert.throws(() => assertLinkedProjectIsProduction(''), /is required/);
+  assert.throws(
+    () => assertLinkedProjectIsProduction(`${PRODUCTION_SUPABASE_REF}x`),
+    /not the production database/
   );
 });
 

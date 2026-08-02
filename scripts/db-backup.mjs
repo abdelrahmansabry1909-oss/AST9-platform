@@ -26,6 +26,7 @@ import {
 } from 'node:fs';
 import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { PRODUCTION_SUPABASE_REF } from '../tests/smoke/staging-target.mjs';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const CLI_ENTRY = resolve(REPO_ROOT, 'node_modules/supabase/dist/supabase.js');
@@ -216,6 +217,25 @@ function readRepoCommit() {
   return result.status === 0 ? result.stdout.trim() : null;
 }
 
+/**
+ * `db dump --linked` backs up whatever `supabase link` last pointed at. On
+ * 2026-08-02 that was a project which is not production, so an unchecked run
+ * would have produced a complete, verified, correctly-named backup of the wrong
+ * database — the one backup failure that looks exactly like success. The linked
+ * ref is therefore compared against the single source of truth every time.
+ */
+export function assertLinkedProjectIsProduction(linkedRef, expectedRef = PRODUCTION_SUPABASE_REF) {
+  const actual = requiredValue(linkedRef, 'Linked Supabase project ref').toLowerCase();
+  if (actual !== expectedRef) {
+    throw new Error(
+      'The Supabase CLI is linked to a project that is not the production database, '
+        + 'so this backup would capture the wrong data. Re-link with '
+        + `"npx supabase link --project-ref ${expectedRef}" and run again.`
+    );
+  }
+  return actual;
+}
+
 function assertToolchainReady() {
   if (!existsSync(CLI_ENTRY)) {
     throw new Error('Supabase CLI is not installed — run "npm ci" in the repository first.');
@@ -223,6 +243,7 @@ function assertToolchainReady() {
   if (!existsSync(LINK_STATE)) {
     throw new Error('No linked Supabase project — run "npx supabase link" in the repository first.');
   }
+  assertLinkedProjectIsProduction(readFileSync(LINK_STATE, 'utf8'));
   const docker = spawnSync('docker', ['info', '--format', '{{.ServerVersion}}'], { encoding: 'utf8' });
   if (docker.error || docker.status !== 0) {
     throw new Error(
@@ -324,6 +345,7 @@ function executeBackup(config) {
 
 function printCheckReport(config) {
   console.log('AST9 database backup pre-flight passed.');
+  console.log(`  linked project  : ${PRODUCTION_SUPABASE_REF} (verified as production)`);
   console.log(`  destination     : ${config.destination}`);
   console.log(`  retained copies : ${config.keep}`);
   console.log(`  artifacts       : ${DUMP_ARTIFACTS.map((spec) => spec.file).join(', ')}`);

@@ -58,8 +58,20 @@ Restated in every `manifest.json` so a future operator cannot assume otherwise:
 1. **Docker Desktop must be running.** `supabase db dump` executes `pg_dump`
    inside a `supabase/postgres` container; it does not use a local `pg_dump`.
    Set Docker Desktop to start on login, or the scheduled run fails.
-2. **The repository must be linked** (`supabase/.temp/project-ref` present). If
-   not: `npx supabase link` once, interactively.
+2. **The repository must be linked to production**, not to some other project.
+   The script reads `supabase/.temp/project-ref` and refuses to run unless it
+   matches `PRODUCTION_SUPABASE_REF`:
+
+   ```bash
+   npx supabase link --project-ref byquokhcbagofshsclfy
+   ```
+
+   > **Why this check exists.** On 2026-08-02 the CLI in this repository was
+   > linked to a project that is **not** the production database. `db dump
+   > --linked` backs up whatever the link points at, so an unchecked run would
+   > have produced a complete, verified, correctly-named backup of the wrong
+   > data — the one backup failure that is indistinguishable from success until
+   > you try to restore. Never bypass this guard; re-link instead.
 3. `npm ci` has been run, so `node_modules/supabase` exists.
 
 The script pre-flights all three and fails with the specific fix.
