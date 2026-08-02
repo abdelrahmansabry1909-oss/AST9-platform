@@ -1,10 +1,16 @@
 # AST9 Disaster Recovery
 
-> **UNVERIFIED — owner action required.** No AST9 restore has ever been tested.
-> Current backup coverage, retention, recovery-point availability, and restore
-> capability have not been verified. The RPO and RTO below are proposals awaiting
-> owner approval, not current guarantees. Do not treat this document as evidence
-> that a usable backup exists.
+> **NO BACKUPS EXIST — verified 2026-08-02.** The coverage checklist below has now
+> been answered from the live platform. The Supabase organisation is on the
+> **Free** plan, which has **no automated backups and no PITR**, and no scheduled
+> export exists anywhere in this repository. There is currently **no recovery
+> point for production data**, and the 69 migrations do not replay onto an empty
+> database, so the repository cannot rebuild the schema either.
+>
+> No AST9 restore has ever been tested, because there is nothing to restore from.
+> The RPO and RTO below remain proposals with no evidence behind them. Do not
+> treat this document as evidence that a usable backup exists — it currently
+> documents the opposite.
 
 Use this runbook only after the owner has completed the coverage checklist and an
 isolated staging project is available. Never perform the drill against production.
@@ -46,37 +52,76 @@ The owner must approve or replace both values after verifying available recovery
 features and completing a timed drill. Until then, there is no approved or
 demonstrated RPO or RTO.
 
-## Backup coverage checklist (owner)
+## Backup coverage — answered 2026-08-02
 
-Record evidence dates and dashboard/settings locations, but never copy secret
-values, client records, credentials, project references, or recovery artifacts
-into this document.
+> ## ⚠ The production database has no backups of any kind.
+>
+> The Supabase organisation is on the **Free** plan. Per the
+> [Database Backups guide](https://supabase.com/docs/guides/platform/backups),
+> automated daily backups cover **"all Pro, Team, and Enterprise Plan projects"**
+> — Free is not included, and the same page tells free-tier projects to
+> *"regularly export their data … and maintain off-site backups."* No such export
+> is scheduled anywhere in this repository.
+>
+> **There is currently no recovery point for production data. A destructive event
+> means total, permanent loss of every client, coach, assessment, program and
+> payment record.**
 
-- [ ] Which database backup or export mechanisms are enabled today? Answer: ______
-- [ ] What exactly does each mechanism include: application schemas and rows,
-      `auth` users/identities, Vault, cron definitions/history, or other schemas?
+Answers below were gathered from the live platform, the repository, and the
+Supabase documentation. Twelve of the thirteen questions no longer need the
+owner; the residual questions are in the next section. No secret values, client
+records, or credentials are reproduced here.
+
+| # | Question | Answer (2026-08-02) |
+|---|---|---|
+| 1 | Which backup/export mechanisms are enabled today? | **None.** Free plan has no automated backups. No scheduled `db dump` exists in the repo or in any workflow. |
+| 2 | What would a mechanism include? | N/A — none runs. A manual `supabase db dump` covers schemas and rows, and `auth` only if explicitly included. **Storage API objects are never in a database backup** (the DB holds only metadata). |
+| 3 | What recovery points are visible, and when do they expire? | **Zero.** |
+| 4 | Is PITR available and enabled? | **Not available.** PITR is a Pro/Team/Enterprise add-on (~$100/mo at 7-day retention). Not enabled; not purchasable on Free. |
+| 5 | Can the mechanism restore to an isolated project? | No platform restore path exists at all. A manual dump could be restored to any project, isolated or not. |
+| 6 | Where are restore instructions? | [Backup & restore](https://supabase.com/docs/guides/platform/migrating-within-supabase/backup-restore) — CLI `db dump` / `psql` restore. Untested here. |
+| 7 | Is there a recent off-platform encrypted copy? | **Owner-only — see residual questions.** Nothing automated produces one. |
+| 8 | Are auth records included in a recoverable copy? | No copy exists. Any future dump must include the `auth` schema explicitly, or every login is lost while application rows survive — a partial restore that leaves orphaned `profiles` rows. |
+| 9 | Are Vault values recoverable? | Two secrets exist (`cron_secret`, `ops_health_secret`). Values are **not readable and not recoverable** — if the project is lost they must be regenerated *and* re-synced to their consumers (pg_cron, and the `OPS_HEALTH_SECRET` GitHub secret). |
+| 10 | Are Edge Function runtime secrets recorded elsewhere? | Eight names are referenced in code: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` (platform-injected, regenerate automatically) and `RESEND_API_KEY`, `RESEND_FROM`, `FROM_EMAIL`, `GEMINI_API_KEY`, `ALLOWED_ORIGINS` (**owner-set; recorded nowhere in this repo** — see residual questions). |
+| 11 | What protects the repository? | Public repo, default branch `main`, not archived, 0 forks. Branch protection on `main`: force-pushes **blocked**, deletion **blocked**, one required check (`Playwright smoke (Chromium)`), **no required reviews**, and `enforce_admins` **false** — so the owner can bypass all of it. Being public means the code survives as long as GitHub does; it also means nothing secret may ever be committed. |
+| 12 | What Pages/Actions settings would need recreating? | Pages builds from a **workflow** (not a branch), source `main` `/`, HTTPS enforced, public. Actions secret `OPS_HEALTH_SECRET` must be re-created and matched to the Vault value. |
+| 13 | Do the mechanisms meet the proposed 24h RPO / 8h RTO? | **No — by a wide margin.** With zero recovery points the effective RPO is *unbounded* (total loss), not 24 hours. RTO is undefined because there is nothing to restore from. |
+
+### A second, independent gap: the schema cannot be rebuilt from the repository
+
+Even with the full repository intact, the 69 migrations in `supabase/migrations/`
+**do not replay onto an empty database.** Verified on 2026-08-02 against PR #172:
+the Supabase Preview check fails at the first migration with
+`ERROR: relation "profiles" does not exist (SQLSTATE 42P01)`, because early
+migrations assume tables that were created outside the migration history and no
+baseline migration exists. See
+[MIGRATION_HISTORY_RECONCILIATION.md](MIGRATION_HISTORY_RECONCILIATION.md).
+
+So the repository is **not** a recovery path for the database structure either.
+Rebuilding today would mean reconstructing the schema by hand from a live
+introspection that, in a real disaster, would no longer be available.
+
+## Residual questions — genuinely owner-only
+
+- [ ] Does any manual database export exist? If so: where is it held, who can
+      reach it, is it encrypted, and when was it last restored to prove it works?
       Answer: ______
-- [ ] What recovery points are currently visible, and what are their creation and
-      expiration times? Answer: ______
-- [ ] Is point-in-time recovery available and enabled for this project? Answer: ______
-- [ ] Can the available mechanism restore to an isolated project, or does it require
-      a different import/restore path? Answer: ______
-- [ ] Where are restore instructions for the mechanism that is actually available?
+- [ ] Are the five owner-set Edge Function secrets (`RESEND_API_KEY`,
+      `RESEND_FROM`, `FROM_EMAIL`, `GEMINI_API_KEY`, `ALLOWED_ORIGINS`) recorded
+      in a password manager or other secured store outside Supabase? Answer: ______
+- [ ] Are the two Vault secret **values** recorded outside the platform, or is
+      regeneration-and-resync the accepted recovery path? Answer: ______
+- [ ] **Decision required.** Choose one and record the date:
+      (a) accept an unbounded RPO for now and state that explicitly;
+      (b) upgrade to Pro (~$25/mo) for daily backups with 7-day retention;
+      (c) add a scheduled off-platform `supabase db dump` (needs a secured
+      destination and a restore test — untested exports are not backups).
       Answer: ______
-- [ ] Is there a recent off-platform encrypted database copy? Where is its custody,
-      how is access controlled, and when was its integrity last checked? Answer: ______
-- [ ] Are auth records included in a recoverable copy? Answer: ______
-- [ ] Are Vault values recoverable, or is there a separate secured source from
-      which the owner can re-enter them? Answer: ______
-- [ ] Are Edge Function runtime secrets and deployment settings recorded in a
-      separate secured source? Answer: ______
-- [ ] In GitHub settings, what protects the repository itself (additional clone or
-      mirror, access recovery, branch protection), and when was that protection
-      checked? Answer: ______
-- [ ] In GitHub Pages/Actions settings, which deployment source, permissions, and
-      environment settings would have to be recreated? Answer: ______
-- [ ] Do the verified mechanisms plausibly meet the proposed 24-hour RPO and
-      8-hour RTO? Evidence/decision: ______
+
+Until (d) one of those is chosen and a drill is run, the RPO and RTO in the
+previous section remain **proposals with no evidence behind them**, and the
+honest public statement is that the service has no disaster recovery capability.
 
 ## Restore drill procedure — isolated staging only
 
