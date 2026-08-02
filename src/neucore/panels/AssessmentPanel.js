@@ -7,8 +7,8 @@ import { JOINT_ASSESSMENT_MAP } from '../skeleton/BoneDefinitions.js';
 import { painToColor } from '../core/MaterialFactory.js';
 
 export class AssessmentPanel extends PopPanel {
-  constructor(containerEl, skeletonBuilder, assessmentStore) {
-    super(containerEl);
+  constructor(containerEl, skeletonBuilder, assessmentStore, mountEl) {
+    super(containerEl, mountEl);
     this.skeleton = skeletonBuilder;
     this.store    = assessmentStore ?? {};  // { jointKey: { pain_scale, fields } }
   }

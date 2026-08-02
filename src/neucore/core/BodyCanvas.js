@@ -165,8 +165,15 @@ export class BodyCanvas {
   }
 
   _bindEvents() {
+    this.renderer.domElement.addEventListener('pointerdown', (e) => {
+      this._downAt = { x: e.clientX, y: e.clientY };
+    });
     this.renderer.domElement.addEventListener('pointermove', (e) => this._onMove(e));
-    this.renderer.domElement.addEventListener('click',       (e) => this._onClick(e));
+    this.renderer.domElement.addEventListener('click', (e) => {
+      const d = this._downAt;
+      if (d && Math.hypot(e.clientX - d.x, e.clientY - d.y) > 5) return;
+      this._onClick(e);
+    });
     window.addEventListener('resize', () => this._onResize());
   }
 

@@ -116,7 +116,7 @@ function _initMainSkeleton() {
       mainCanvas._skeleton = mainSkeleton;
       mainCanvas._fxLayer  = mainFX;
       // Assessment pop-out panels live inside the 3D container
-      assessPanel = new AssessmentPanel(wrap, mainSkeleton, assessStore);
+      assessPanel = new AssessmentPanel(wrap, mainSkeleton, assessStore, wrap?.parentNode || wrap);
     })
     .catch((err) => {
       console.error('[NeuCore] skeleton load failed:', err);
@@ -172,7 +172,7 @@ function _initObjectiveSidebar() {
         const sideFX = new FXLayer(sideCanvas, sideSkel);
         sideCanvas._skeleton = sideSkel;
         sideCanvas._fxLayer  = sideFX;
-        new AssessmentPanel(sideWrap, sideSkel, assessStore);
+        new AssessmentPanel(sideWrap, sideSkel, assessStore, sideWrap.parentNode);
         // Two-way bind the Objective form to this body map.
         if (objectiveSync) objectiveSync.setSkeleton(sideSkel);
         // E2 — anatomy-zone navigation. Self-guards: no rail root in the
