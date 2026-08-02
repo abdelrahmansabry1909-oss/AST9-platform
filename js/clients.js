@@ -33,7 +33,9 @@ const Clients = (() => {
     const coachMap = {};
     (coaches || []).forEach(c => { coachMap[c.id] = c.full_name || c.email; });
 
-    const isAdmin = (typeof Auth !== 'undefined' && Auth.isAdmin && Auth.isAdmin());
+    const isAdmin = !!(typeof Auth !== 'undefined' && Auth.isAdmin && Auth.isAdmin());
+    const currentUserId = (typeof Auth !== 'undefined' && typeof Auth.getUser === 'function') ? Auth.getUser()?.id : null;
+
     tbody.innerHTML = data.map(c => {
       const sub = subMap[c.id];
       const subBadge = sub
@@ -41,6 +43,7 @@ const Clients = (() => {
         : `<span class="badge badge-expired">No sub</span>`;
       const phaseCls = _phaseBadge(c.current_phase);
       const coachName = c.assigned_coach ? (coachMap[c.assigned_coach] || '–') : '–';
+      const canDelete = isAdmin || (!!currentUserId && c.assigned_coach === currentUserId);
       return `
       <tr>
         <td>
@@ -64,7 +67,8 @@ const Clients = (() => {
             <button class="btn btn-teal btn-xs"
               ${c.current_phase === 'Phase 3' ? 'disabled title="Already at top phase"' : `onclick="Clients.prepPhaseUpgrade('${c.id}','${_esc(c.full_name||c.email)}')"`}>⬆ Phase</button>
             ${isAdmin ? `
-            <button class="btn btn-ghost btn-xs" onclick="Clients.openEditClient('${c.id}')" title="Edit profile">✎ Edit</button>
+            <button class="btn btn-ghost btn-xs" onclick="Clients.openEditClient('${c.id}')" title="Edit profile">✎ Edit</button>` : ''}
+            ${canDelete ? `
             <button class="btn btn-rose btn-xs" onclick="Clients.removeClient('${c.id}','${_esc(c.full_name||c.email)}')" title="Delete account">🗑</button>` : ''}
           </div>
         </td>
@@ -407,13 +411,46 @@ const Clients = (() => {
     finally { _resetBtn(btn, 'Save Changes'); }
   }
 
-  // Deletes the auth account (cascades the profile). delete-user is admin-gated
+  // Deletes the auth account (cascades the profile). delete-user is admin/assigned-coach gated
   // server-side and refuses self/last-admin; we surface its verdict honestly.
   async function removeClient(clientId, name) {
-    if (!(typeof Auth !== 'undefined' && Auth.isAdmin && Auth.isAdmin())) {
-      Dashboard.toast('Only admins can delete client accounts', 'error'); return;
+    const isAdmin = !!(typeof Auth !== 'undefined' && Auth.isAdmin && Auth.isAdmin());
+    const currentUserId = (typeof Auth !== 'undefined' && typeof Auth.getUser === 'function') ? Auth.getUser()?.id : null;
+
+    let targetClient = null;
+    if (typeof sb !== 'undefined') {
+      const { data } = await sb.from('profiles')
+        .select('id, full_name, assigned_coach')
+        .eq('id', clientId)
+        .single();
+      targetClient = data;
     }
-    if (!confirm(`Delete ${name}'s account?\n\nThis permanently removes their sign-in, profile, and access. Their training history stays in the database but will no longer be reachable from the app.\n\nThis cannot be undone.`)) return;
+
+    if (!targetClient) {
+      Dashboard.toast('Could not load that client profile', 'error');
+      return;
+    }
+
+    const isAssignedCoach = !!(currentUserId && targetClient && targetClient.assigned_coach === currentUserId);
+    if (!isAdmin && !isAssignedCoach) {
+      Dashboard.toast('You do not have permission to delete this client', 'error');
+      return;
+    }
+
+    const cleanName = (name || targetClient?.full_name || 'this client').trim();
+    const typed = prompt(
+      `PERMANENT DELETION WARNING:\n\n` +
+      `Deleting ${cleanName} will PERMANENTLY REMOVE their user account, profile, assessments, programs, gait analysis, and workout logs from the database.\n\n` +
+      `This action CANNOT BE UNDONE and the data cannot be recovered.\n\n` +
+      `To confirm permanent deletion, type "${cleanName}" below:`
+    );
+    if (!typed || typed.trim().toLowerCase() !== cleanName.toLowerCase()) {
+      if (typed !== null) {
+        Dashboard.toast('Name confirmation did not match. Deletion cancelled.', 'warning');
+      }
+      return;
+    }
+
     try {
       const token = (await sb.auth.getSession()).data.session?.access_token;
       const res = await fetch(`${SUPABASE_URL}/functions/v1/delete-user`, {
@@ -423,8 +460,14 @@ const Clients = (() => {
       });
       const out = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(out.error || 'Failed to delete the account');
-      Dashboard.toast(`${name}'s account deleted`, 'info');
-      loadAll();
+      Dashboard.toast(`${cleanName}'s account deleted`, 'info');
+      await loadAll();
+      if (typeof window.Billing !== 'undefined' && typeof window.Billing.render === 'function') {
+        window.Billing.render();
+      }
+      if (typeof window.PaymentUI !== 'undefined' && typeof window.PaymentUI.fetchBillingData === 'function') {
+        window.PaymentUI.fetchBillingData().catch(() => {});
+      }
     } catch (e) { Dashboard.toast(e.message, 'error'); }
   }
 
