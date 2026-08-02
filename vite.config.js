@@ -19,6 +19,35 @@
 import { defineConfig } from 'vite';
 import { resolve }      from 'path';
 import { cpSync, existsSync } from 'node:fs';
+import { execSync }     from 'node:child_process';
+
+function resolveBuildId() {
+  const envSha = process.env.GITHUB_SHA ? process.env.GITHUB_SHA.trim() : '';
+  if (envSha) return envSha;
+  try {
+    const gitSha = execSync('git rev-parse HEAD', { encoding: 'utf8' }).trim();
+    if (gitSha) return gitSha;
+  } catch (e) {
+    // fallback to 'unknown' if git command fails
+  }
+  return 'unknown';
+}
+
+function buildStampPlugin() {
+  const buildId = resolveBuildId();
+  return {
+    name: 'inject-build-stamp',
+    transformIndexHtml() {
+      return [
+        {
+          tag: 'script',
+          children: `window.AST9_BUILD_ID = ${JSON.stringify(buildId)};`,
+          injectTo: 'head-prepend',
+        },
+      ];
+    },
+  };
+}
 
 export default defineConfig(({ command }) => ({
   base: command === 'build' ? '/AST9_HUB/' : '/',
@@ -33,6 +62,7 @@ export default defineConfig(({ command }) => ({
     },
   },
   plugins: [
+    buildStampPlugin(),
     {
       // Vite only bundles ES-module scripts (`<script type="module">`).
       // The 28 classic `<script src="js/*.js">` tags in app.html — the

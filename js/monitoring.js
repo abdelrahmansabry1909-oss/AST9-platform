@@ -26,8 +26,10 @@
 (function () {
   'use strict';
 
-  // Keep in sync with the js/monitoring.js?v= token in app.html.
-  var APP_VERSION = '20260702b';
+  // Release identifier injected by Vite via window.AST9_BUILD_ID (git SHA or GITHUB_SHA).
+  // Falls back to 'dev' when running outside Vite or without build-stamp injection,
+  // or 'unknown' when git SHA resolution failed at build time.
+  var APP_VERSION = (typeof window !== 'undefined' && window.AST9_BUILD_ID) ? window.AST9_BUILD_ID : 'dev';
 
   // ── envFromHost(): derive the Sentry environment from the hostname so
   //  localhost / preview builds never report as 'production' now the DSN
