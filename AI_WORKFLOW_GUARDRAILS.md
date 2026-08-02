@@ -9,8 +9,8 @@
 - Build: `npm run build`. Syntax gate: `node --check <file>`.
 - Deploy: pushing to **`main`** triggers `.github/workflows/deploy.yml` → GitHub Pages at `https://abdelrahmansabry1909-oss.github.io/AST9_HUB/`. There is no separate staging deploy.
 - Backend: Supabase (Postgres + RLS + Edge Functions + pg_cron). Live verification is done against the project DB.
-- Guard skills live in `.agents/skills/` (`clean-code-guard`, `docs-guard`, `test-guard`, `woo-guard`, `wp-guard`).
-- There is currently **no in-repo automated test suite**; behavioral verification is done with browser smoke harnesses.
+- Guard skills: the general-purpose pack (`clean-code-guard`, `docs-guard`, `test-guard`, `woo-guard`, `wp-guard`) plus the seven project-authored AST9 skills, whose canonical tracked copy is [`docs/claude-skills/ast9-skill-pack/`](docs/claude-skills/ast9-skill-pack/README.md). Runtime copies live in gitignored paths (`.claude/skills/`, `.agents/skills/`), so the `docs/` tree is the source of truth.
+- There **is** an in-repo test suite: `npm run test:unit` (142 tests) plus a Playwright smoke project (`npm run test:smoke:public`). It covers migrations, RLS contracts, ACL manifests and guards — it does **not** execute any `js/*.js` UI module, so behavioural UI verification still requires a browser harness. A green suite is not evidence that a UI change works.
 
 ---
 

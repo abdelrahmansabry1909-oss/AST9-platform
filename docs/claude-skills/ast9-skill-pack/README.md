@@ -6,12 +6,12 @@ Claude guard skills. The skills run from `.claude/skills/`, but that path is git
 so the runtime copy is local-only and would be lost if the worktree is removed. This tracked
 copy under `docs/` preserves them and lets anyone reinstall or review them.
 
-Parent workflow doc: [`AI_WORKFLOW_GUARDRAILS.md`](../../../AI_WORKFLOW_GUARDRAILS.md). These six
+Parent workflow doc: [`AI_WORKFLOW_GUARDRAILS.md`](../../../AI_WORKFLOW_GUARDRAILS.md). These seven
 skills are the project-specific extension of those mandatory guardrails.
 
 ## 1. What the AST9 skills pack is
 
-A set of six project-authored Claude skills that encode the **real regressions and process
+A set of seven project-authored Claude skills that encode the **real regressions and process
 mistakes already hit during AST9/NeuCore development**, and force the correct checklist before
 similar changes are made again. Each skill is a directory containing a `SKILL.md` with YAML
 frontmatter (`name`, `description`) whose `description` is a trigger paragraph that lets Claude
@@ -22,7 +22,7 @@ These are **separate** from the general-purpose marketplace guard skills already
 from `amElnagdy/guard-skills` and are tracked by `skills-lock.json`. The AST9 pack is
 project-specific and authored in-repo.
 
-## 2. The six skills
+## 2. The seven skills
 
 | Skill | Scope |
 |---|---|
@@ -32,6 +32,7 @@ project-specific and authored in-repo.
 | `ast9-realtime-smoke-guard` | Realtime / no-refresh behavior and how to test the *subscribed* state honestly. |
 | `ast9-cleanup-archive-guard` | File/folder deletion, archiving, and `git worktree` retirement safety. |
 | `ast9-production-verification-guard` | Post-merge/deploy verification and honest smoke labeling (no overclaiming). |
+| `ast9-frontend-delivery-guard` | Writing and reporting frontend changes: prove every identifier exists, edit minimally, test in a browser, and never label an unrun check as passed. |
 
 ## 3. Which AST9 failure each skill prevents
 
@@ -54,6 +55,14 @@ project-specific and authored in-repo.
   `D:\ASThub` (legacy) mix-up.
 - **`ast9-production-verification-guard`** — calling a change "production-safe" from a build-only check,
   verifying before the GitHub Pages deploy finished, or trusting the repo artifact instead of the live asset.
+- **`ast9-frontend-delivery-guard`** — the 2026-08-02 payments/clients UI rounds, where every defect passed
+  `test:unit` **and** `build`: an undeclared `_allClients` that threw `ReferenceError` on every call and
+  regressed the **working** admin delete while being reported as "PASS (Code Verified)"; a `#billing-catalog`
+  scroll target that never existed; a `PACKAGE_EXPIRED` code the server never sends; a `padding:16px`
+  silently dropped while rewriting a style block; a panel docked 35% below the fold at 1366×768 taking the
+  Save button off-screen; and the same change reported as done in two consecutive rounds while absent from
+  the diff both times. Enforces: grep every identifier before referencing it, edit minimally, run the code
+  in a browser, and never write "PASS (Code Verified)".
 
 ## 4. Active runtime location
 
