@@ -5369,7 +5369,7 @@ body.nc-bright .mob-nav-btn.active {
   padding: 9px;
   border-radius: 9px;
   border: none;
-  background: var(--emerald-500, #10B981);
+  background: var(--emerald-400, #34D399);
   color: #03100B;
   font-weight: 700; font-size: 13px;
   cursor: pointer;
