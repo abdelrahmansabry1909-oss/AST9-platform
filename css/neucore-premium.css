@@ -3235,65 +3235,88 @@ body.nc-client #section-client-coach > div:first-child {
    ───────────────────────────────────────────────────────────── */
 
 body.nc-bright:not(.nc-client) {
-  /* Porcelain Emerald color variables mapped inside app shell scope */
-  --nc-bg-primary:    #F8F9F9;   /* porcelain canvas base */
+  /* Ground (Porcelain ground with faint emerald cast per DESIGN.md §2) */
+  --bg-void:          #EEF3F0;   /* page porcelain base */
+  --bg-base:          #EEF3F0;   /* page porcelain base (1.12:1 vs card) */
+  --bg-surface:       #FFFFFF;   /* card and reading surface */
+  --bg-raised:        #F6FAF8;   /* tint for nested chrome (1.05:1 vs surface, NOT an elevation step) */
+  --bg-sunken:        #E7EEEA;   /* inputs and recessed wells (1.18:1 vs surface) */
+  --bg-overlay:       #FFFFFF;
+  --bg-hover:         rgba(11, 36, 27, 0.03);
+
+  --nc-bg-primary:    #EEF3F0;   /* porcelain canvas base */
   --nc-bg-secondary:  #FFFFFF;   /* crisp white panels */
-  --nc-bg-elevated:   #FFFFFF;   /* elevated white */
+  --nc-bg-elevated:   #F6FAF8;   /* elevated tint */
   --nc-bg-card:       #FFFFFF;
 
-  --nc-text-primary:   #181C32;  /* dark primary text */
-  --nc-text-secondary: #4B5565;  /* secondary comfortable text */
-  --nc-text-muted:     #7E8299;  /* muted comfortable slate */
+  /* Ink / Text (DESIGN.md §2) */
+  --text-primary:     #0B241B;   /* 16.38:1 on surface */
+  --text-secondary:   #3D5A4C;   /* 7.59:1 on surface */
+  --text-tertiary:    #54705F;   /* 5.44:1 on surface, 4.85:1 on base */
+  --text-inverse:     #FFFFFF;
 
-  --nc-border:        rgba(24, 28, 50, 0.06);  /* subtle dark slate hairline */
-  --nc-border-strong: rgba(24, 28, 50, 0.12);
+  --ink-primary:      #0B241B;
+  --ink-secondary:    #3D5A4C;
+  --ink-tertiary:     #54705F;
 
-  --nc-shadow-sm:   0 1px 2px rgba(24, 28, 50, 0.015);
-  --nc-shadow-md:   0 3px 8px rgba(24, 28, 50, 0.02);
-  --nc-shadow-lg:   0 8px 18px rgba(24, 28, 50, 0.02);
-  --nc-shadow-card: 0 1px 2px rgba(24, 28, 50, 0.015), 0 3px 8px rgba(24, 28, 50, 0.02);
+  --nc-text-primary:  #0B241B;
+  --nc-text-secondary:#3D5A4C;
+  --nc-text-muted:    #54705F;
 
-  --nc-glass-bg:     rgba(255, 255, 255, 0.95);
-  --nc-glass-border: rgba(24, 28, 50, 0.06);
+  /* Lines & Hairlines (DESIGN.md §2) */
+  --hairline:         #D6E2DB;   /* 1.33:1 quiet divider */
+  --border-subtle:    #D6E2DB;
+  --border-default:   #D6E2DB;
+  --border-strong:    #B9CDC2;   /* 1.67:1 interactive boundary */
 
-  /* Accent overrides - map main brand actions to luxurious emerald (Emerald 700 per DESIGN.md contrast rules) */
-  --emerald-500:      #047857;
-  --emerald-700:      #047857;
-  --emerald-800:      #065F46;
-  --gold-500:         #8A6D1F;
-  --gold-700:         #8A6D1F;
+  --nc-border:        #D6E2DB;
+  --nc-border-strong: #B9CDC2;
 
-  --nc-indigo:        #047857; /* luxurious emerald */
-  --nc-indigo-ink:    #035E43; /* strong emerald hover */
-  --nc-indigo-soft:   rgba(4, 120, 87, 0.06);
-  --nc-violet:        #18A058; /* soft emerald accent */
-  --nc-violet-soft:   rgba(24, 160, 88, 0.06);
+  --nc-shadow-sm:     0 1px 2px rgba(11, 36, 27, 0.04);
+  --nc-shadow-md:     0 3px 8px rgba(11, 36, 27, 0.06);
+  --nc-shadow-lg:     0 8px 18px rgba(11, 36, 27, 0.08);
+  --nc-shadow-card:   0 1px 2px rgba(11, 36, 27, 0.04), 0 3px 8px rgba(11, 36, 27, 0.06);
+
+  --nc-glass-bg:       rgba(255, 255, 255, 0.95);
+  --nc-glass-border:   #D6E2DB;
+
+  /* Emerald & Gold Inverted Ramp Rule (DESIGN.md §2) */
+  /* Text/Icons use the DARK end; Fills use the BRIGHT end with dark ink on top */
+  --emerald-300:      #6EE7B7;
+  --emerald-400:      #34D399;   /* 8.52:1 fill with dark ink on top */
+  --emerald-500:      #047857;   /* text/icon emerald */
+  --emerald-700:      #047857;   /* 5.48:1 text/icon on white */
+  --emerald-800:      #065F46;   /* 7.68:1 text/icon on white */
+
+  --gold-400:         #E4C563;   /* distinct gold fill token */
+  --gold-500:         #D4AF37;   /* 7.79:1 fill with dark ink on top */
+  --gold-700:         #8A6D1F;   /* 4.90:1 text/icon on white */
+
+  --amethyst-400:     #A78BFA;
+  --amethyst-700:     #6D28D9;   /* 7.10:1 on surface */
+
+  /* Status Tokens (DESIGN.md §2) */
+  --rose-400:         #FB7185;   /* status fill */
+  --rose-700:         #BE123C;   /* 6.29:1 status text */
+  --amber-400:        #FBBF24;   /* status fill */
+  --amber-700:        #B45309;   /* 5.02:1 status text */
+
+  /* Brand Accents & Aliases */
+  --nc-indigo:        #047857;
+  --nc-indigo-ink:    #065F46;
+  --nc-indigo-soft:   rgba(4, 120, 87, 0.08);
+  --nc-violet:        #047857;
+  --nc-violet-soft:   rgba(4, 120, 87, 0.08);
   --nc-lavender:      #EEF8F4;
-  --nc-amber-soft:    rgba(212, 175, 55, 0.08);
+  --nc-amber-soft:    rgba(180, 83, 9, 0.08);
 
-  /* Legacy layout token mappings */
-  --bg-void:    #F8F9F9;
-  --bg-base:    #F8F9F9;
-  --bg-surface: #FFFFFF;
-  --bg-raised:  #FFFFFF;
-  --bg-overlay: #FFFFFF;
-  --bg-hover:   rgba(24, 28, 50, 0.01);
+  --lime:             #047857;
+  --lime-dim:         #065F46;
+  --lime-glow:        rgba(4, 120, 87, 0.08);
+  --lime-ghost:       rgba(4, 120, 87, 0.03);
 
-  --border-subtle:  rgba(24, 28, 50, 0.03);
-  --border-default: rgba(24, 28, 50, 0.06);
-  --border-strong:  rgba(24, 28, 50, 0.12);
-
-  --text-primary:   #181C32;
-  --text-secondary: #4B5565;
-  --text-tertiary:  #7E8299;
-
-  --lime:           #047857;
-  --lime-dim:       #035E43;
-  --lime-glow:      rgba(4, 120, 87, 0.05);
-  --lime-ghost:     rgba(4, 120, 87, 0.02);
-
-  --teal:           #047857;
-  --teal-glow:      rgba(4, 120, 87, 0.05);
+  --teal:             #047857;
+  --teal-glow:        rgba(4, 120, 87, 0.08);
 
   background: var(--nc-bg-primary);
 }
