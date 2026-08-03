@@ -215,3 +215,37 @@ subscription create/update, paid-package application, and global stale-workout
 expiry. A dedicated inventory of all remaining function ACLs is still required.
 Do not assume every baseline difference is exploitable; compare intended caller
 roles and internal authorization function by function.
+
+## L14 - The RPM timeline canvas has never had an authenticated smoke
+The horizontal timeline (PR #190) was measured extensively in a real browser -
+16 viewport/phase-count combinations for overlap, reachability, proportional
+width, height and contrast - but the probe **injects the component's markup into
+the built page**. It never signs in, never loads a real client, and never drives
+the wizard. So the live path is unexercised: `_renderLadder` firing, phase click
+-> popup, `+ Add phase`, the AI generate flow, and saving. Geometry and contrast
+are trustworthy; the interaction path is not yet evidence-backed. One coach
+session with the RPM Graph Builder open closes this.
+
+## L15 - No gate parses the plain `<script src>` JavaScript
+`npm run build` only parses what is in the Vite module graph, and `test:unit`
+only parses what it imports. Several shipped files are neither - they are classic
+IIFEs loaded directly by `app.html`, including `js/rpm/graph-builder.js` and
+`js/monitoring.js`. A syntax error in any of them passes every current CI gate
+and reaches production as a dead feature; this happened on 2026-08-03 and was
+caught only by a manual `node --check` (ISSUE_LOG #22).
+**Cheapest fix:** a unit test that runs `node --check` over every `js/**/*.js`
+file referenced by a `<script src>` tag in `app.html`. Not yet implemented.
+
+## L16 - The Sentry alert rule exists only in the dashboard
+The issue alert rule (new issue -> `environment:production` -> email, 30-minute
+rate limit) is live and its email delivery was verified end-to-end on 2026-08-02.
+It is **not represented in this repository in any form**, so if someone deletes
+or disables it, nothing here would detect that and alerting would fail silently.
+Re-verifying it is a manual dashboard check. See DEV_LOG O2.
+
+## L17 - The backup script has never produced a restore
+`scripts/db-backup.mjs` is guard-verified (it refuses a non-production link, a
+destination inside the repo, or a destination inside any git tree) but **no real
+backup and no real restore has been performed**. A backup path that has not been
+restored from is an assumption, not a recovery capability. The owner must run
+`npx supabase link --project-ref <prod>`, take one backup, and restore it once.

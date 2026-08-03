@@ -76,3 +76,44 @@
   write path from any application code. They are gated now and queued for a separate
   deprecation review; gating is not a substitute for deciding whether they should exist.
 - **Status:** Decided; implementation pending (phase P3A-2E). No migration written yet.
+
+## D12 — Porcelain (light) is the product surface, not the dark theme
+- **Rationale:** `_showApp()` adds `body.nc-bright` to **every** authenticated
+  user — coach, admin and client alike. The dark `:root` block governs only the
+  login screen and the transition into the app. The first `DESIGN.md` was written
+  against a dark ground and was simply wrong about what the product looks like.
+- **Consequence for anyone measuring tokens:** they are declared on
+  `body.nc-bright`, so `getComputedStyle(document.body)` is the only correct read.
+  `documentElement` returns the dark login values.
+- **The Inverted Ramp Rule:** on a light ground the **dark** end of a colour ramp
+  carries text (emerald-700 5.48:1, gold-700 4.90:1) and the **bright** end is a
+  fill with dark ink on top (emerald-400 8.52:1, gold-500 7.79:1). Emerald-500 as
+  text on white is 2.54:1 — a contrast bug, not a stylistic choice.
+- **Status:** In force. `DESIGN.md` rebuilt for light in PR #187; ramp applied in
+  PR #188.
+
+## D13 — The RPM graph is a horizontal timeline, not a diagonal axis
+- **Rationale:** The diagonal offered one dimension of space in which to place
+  two-dimensional cards. Measured against the shipped CSS, **five phases collided
+  at every width tested including 2560×1440** — and five is the default the AI
+  generator produces. Percentage padding, alternating sides and a z-index raise
+  were each attempted and each measured failing. Contiguous tiling makes overlap
+  impossible by construction rather than merely unlikely.
+- **Consequence:** duration is encoded as block **width**, not as position along
+  an axis. When the 44px WCAG touch floor would shrink a short phase below
+  tappable size, proportionality is sacrificed and the track scrolls — an
+  accessible block beats an accurate ratio.
+- **Status:** In force (PR #190). Do not reintroduce a positional axis without
+  re-measuring the five-phase case first.
+
+## D14 — Delegated frontend work is audited by measurement, never by report
+- **Rationale:** Across four review rounds on the timeline canvas alone, three
+  rounds contained a defect that the delivery report described as fixed —
+  including a file that did not parse while the report cited a passing build and
+  163 passing tests. Both citations were true and both were irrelevant, because
+  the file is not in the Vite module graph.
+- **Consequence:** a delivery claim is not evidence. Ratios come from
+  `getBoundingClientRect` on a rendered page; contrast from `getComputedStyle`;
+  reachability from `elementFromPoint`; parse status from `node --check`. "Build
+  passed" is only evidence for files the build actually parses.
+- **Status:** In force. See ISSUE_LOG #22 and KNOWN_LIMITATIONS L15.

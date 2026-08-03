@@ -1,13 +1,18 @@
 # PROJECT_STATUS.md — NeuCore Platform
 
-## ▶ CURRENT STATE (2026-06-19)
+## ▶ CURRENT STATE (2026-08-03)
 
-**Live:** `origin/main` @ `1f4dc4d` · GitHub Pages <https://abdelrahmansabry1909-oss.github.io/AST9_HUB/> (auto-deployed by `.github/workflows/deploy.yml`).
-**Supabase:** `byquokhcbagofshsclfy` (eu-central-1, Postgres 17) · **48 migrations** · **11 edge functions** · **owner-only admin verified live (`admin_count = 1`)**.
+> **Start here instead:** [`docs/PROJECT_INDEX.md`](docs/PROJECT_INDEX.md) is the
+> maintained entry point, with [`docs/DEV_LOG.md`](docs/DEV_LOG.md) for what
+> shipped and [`docs/KNOWN_LIMITATIONS.md`](docs/KNOWN_LIMITATIONS.md) for what is
+> missing. This file is kept for its historical phase ledger.
+
+**Live:** `origin/main` @ `9763c02` · GitHub Pages <https://abdelrahmansabry1909-oss.github.io/AST9_HUB/> (auto-deployed by `.github/workflows/deploy.yml`).
+**Supabase:** `byquokhcbagofshsclfy` (eu-central-1, Postgres 17) · **71 migrations** · **11 edge functions** · **163 unit tests** · **owner-only admin verified live (`admin_count = 1`)**.
 
 > The detailed body below this section is an older **handoff snapshot (2026-06-09)** written in the legacy `Feature 1–8 (F-N)` numbering and frozen at the F1–F6 era. Everything from **Phase 2 onward** uses the newer `Phase N` scheme summarized here. When the two disagree, trust this section + the per-phase docs.
 
-**Two-agent split (since 2026-06-19):** Claude Code owns backend / product-logic / security (DB, migrations, RLS, edge functions, data contracts); **Antigravity** owns frontend visual/UI (CSS, layout, `js/neucore-ui.js`). See `feedback_agent_role_boundaries` in memory.
+**Two-agent split (updated 2026-08-01):** Claude Code owns backend / product-logic / security (DB, migrations, RLS, edge functions, data contracts) **and all audit/verification**; **Antigravity** owns frontend visual/UI (CSS, layout, `js/neucore-ui.js`) and implements from a plan and prompt written by Claude, who then audits the result by measurement rather than by report. See [`docs/PROJECT_INDEX.md`](docs/PROJECT_INDEX.md) §5 and [`docs/DECISIONS.md`](docs/DECISIONS.md) D14.
 
 ### Phase ledger (shipped to `main`)
 

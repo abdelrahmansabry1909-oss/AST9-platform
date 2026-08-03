@@ -20,6 +20,23 @@ vanilla-JS single-page authenticated shell (`app.html`) backed by Supabase
 
 ## 2. Current production status
 
+> **As of 2026-08-03**, `origin/main` @ `9763c02` · 71 migrations · 11 edge
+> functions · 163 unit tests. Deployed to GitHub Pages on merge.
+
+**Landed 2026-08-02 → 08-03** (see [DEV_LOG.md](DEV_LOG.md) O2, BK1, FK1, DS1,
+RPM2, BIZ1 for the detail):
+
+- **Applied to production:** the account-deletion foreign-key rules (deletion had
+  never worked for a real user), the D11/L12 client write gate (27 restrictive
+  policies, previously merged but dormant), and `rpm_phases.duration_weeks`.
+- **Observability is live:** Sentry carries the real commit SHA as its release,
+  and an issue alert rule emails on new production issues — delivery verified.
+- **Design system reskin:** the webfont is finally delivered, the token layer is
+  consolidated (86 `!important` custom properties → 0), and the porcelain light
+  ramp is live. `PRODUCT.md` and `DESIGN.md` are at the repo root.
+- **The RPM graph is now a horizontal timeline**, not a diagonal — see
+  [DECISIONS.md](DECISIONS.md) D13.
+
 - **Rehab platform = the production focus.** It is the shipped, in-use product:
   assessments, programs, workout tracking, appointments, community, exercise
   library, coach/admin business tracking.
@@ -55,13 +72,40 @@ See [DEV_LOG.md](DEV_LOG.md) for the full chronological log with PRs/commits.
   explicitly resumes it. See `BUSINESS_MODEL_AUTH_BILLING_PLAN.md`.
 - Athletic Performance stays frozen as admin-only preview until fully smoked.
 
+### What is missing, in priority order (2026-08-03)
+
+Nothing below is a hidden defect — each is tracked. Full detail in
+[KNOWN_LIMITATIONS.md](KNOWN_LIMITATIONS.md).
+
+1. **No gate parses the plain `<script src>` files** (L15). A syntax error in
+   `graph-builder.js` or `monitoring.js` passes every current CI check and ships
+   a dead feature. This already happened once. The fix is small: run `node --check`
+   over every script `app.html` references, as a unit test.
+2. **The backup has never been restored** (L17). A backup path with no restore
+   behind it is an assumption, not a recovery capability. Needs `supabase link`,
+   one backup, one restore.
+3. **No authenticated smoke anywhere** (L1, L14). Playwright never signs in, so
+   every write path — including the timeline canvas just shipped — is verified by
+   backend reproduction and DOM measurement, not by a real session.
+4. **Legal text still needs a lawyer** (L3). The enforcement machinery is done and
+   live; the words are not.
+5. **No payment provider is live** (L4). Manual InstaPay approval only.
+6. **Alerting is dashboard-only** (L16). Deleting the Sentry rule would silently
+   end alerting with no repository trace.
+7. **Owner action outstanding:** rotate the `cli_login_*` token exposed on
+   2026-08-02 (ISSUE_LOG #23) and delete the synthetic Sentry test issue.
+
 ## 5. Agent boundaries (mandatory)
 
 | Agent | Owns |
 |---|---|
-| **Claude** | Read-only audit, planning, risk review, and revision review |
-| **Codex** | Backend, auth, data contracts, RLS, security, CI/test infrastructure |
-| **Antigravity** | Frontend / UI / CSS / visual screens / interaction polish |
+| **Claude** | Audit and verification, **plus** backend, auth, data contracts, RLS, migrations, security and CI/test infrastructure (absorbed the Codex lane on 2026-07-27). Writes the plan and the ready-to-paste prompt for every frontend task, then audits the result — but never implements frontend itself (2026-08-01). |
+| **Codex** | Dormant. Delegated backend implementation only, on an approved brief, when explicitly dispatched. |
+| **Antigravity** | Frontend / UI / CSS / visual screens / interaction polish — implements from Claude's plan. |
+
+**Delivered work is audited by measurement, never by report** — see
+[DECISIONS.md](DECISIONS.md) D14 and [ISSUE_LOG.md](ISSUE_LOG.md) #22 for why
+that rule exists.
 
 Strict no-overwrite rule between all agents. See `AI_WORKFLOW_GUARDRAILS.md` (repo
 root) and the `.claude/skills/ast9-*` guard pack for the enforced detail.

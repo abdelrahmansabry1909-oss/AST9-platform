@@ -1012,3 +1012,179 @@ Verification legend:
 - **Scope:** This closes the drift class rather than correcting another instance:
   missing and stale rows, pairing and location contradictions, invalid statuses,
   and stale filesystem-derived counts now fail the build.
+
+---
+
+## O2 - Sentry release tag unfrozen and alert rule live
+
+- **Date:** 2026-08-02
+- **Change:** `js/monitoring.js` read a hardcoded `APP_VERSION = '20260702b'`, so
+  every event in Sentry carried the same release regardless of what was deployed.
+  A Vite `inject-build-stamp` plugin now head-prepends `window.AST9_BUILD_ID`
+  (the 40-char commit SHA from `GITHUB_SHA`, falling back to `git rev-parse HEAD`,
+  then `unknown`), and monitoring reads it.
+- **Why head-prepend:** `monitoring.js` is a classic IIFE loaded as a plain
+  `<script src>`. Vite never parses it, so a build-time `define` or an import
+  would not have reached it. The global must exist before the script runs.
+- **Alerting:** An issue alert rule (new issue -> `environment:production` ->
+  email, 30-minute rate limit) is live and **email delivery was verified
+  end-to-end**.
+- **Not in the repo:** The rule lives in the Sentry dashboard only. Nothing in
+  this repository would detect its deletion. See KNOWN_LIMITATIONS L15.
+- **PRs:** #178 (build stamp), #179 (rule documented).
+- **Verification trap worth remembering:** `app.html` redirects signed-out
+  visitors to the landing page, which does not load `monitoring.js`. Reading
+  `window.Sentry` after that bounce proves nothing - the check has to snapshot
+  state via `addInitScript` before navigation.
+
+---
+
+## BK1 - Local off-platform database backup
+
+- **Date:** 2026-08-02
+- **Change:** `scripts/db-backup.mjs` produces a local dump outside the platform,
+  covering the "provider account is lost" case that PITR does not.
+- **Design:** Uses `supabase db dump --linked` so **no credential is ever passed
+  on argv or through the environment**. Guards refuse to write inside the
+  repository (it is public) or inside any git working tree, and `sanitizeOutput()`
+  redacts connection strings and `PG*` exports from captured output.
+- **`assertLinkedProjectIsProduction`:** the CLI silently falls back to whatever
+  project is linked when no target flag is given. The script now refuses to run
+  unless the linked ref matches `PRODUCTION_SUPABASE_REF`.
+- **PRs:** #177, #181 (the production-ref assertion).
+- **Owner action still required:** `npx supabase link --project-ref <prod>` before
+  the script will run, then one real backup and one real restore. Neither has
+  been done - the script is verified against its guards, not against a restore.
+
+---
+
+## FK1 - Account deletion foreign-key rules (applied to production)
+
+- **Date:** 2026-08-02
+- **Problem:** Deleting a user had **never worked for a real account.** 20 foreign
+  keys pointing at user-owned data had no `ON DELETE` clause, which means
+  `NO ACTION` - so deleting anyone with a program, workout log, assessment or
+  comment raised a raw FK error.
+- **Why it stayed hidden:** it only reproduces for a user who has actually used
+  the product. Test accounts with no data deleted cleanly.
+- **The part that made it subtle:** 5 of the 20 were **transitive** blockers one
+  level down a cascade chain. Scanning only the FKs that point directly at
+  `profiles` / `auth.users` finds 15 of them and merely moves the failure one
+  table further along.
+- **Change:** `20260806000000_user_delete_fk_rules.sql` - 4 `CASCADE`,
+  16 `SET NULL`.
+- **Applied to production** and verified: 0 `NO ACTION` FKs remain; 75 CASCADE /
+  68 SET NULL / 1 RESTRICT; all 144 validated.
+- **PR:** #180.
+
+---
+
+## D11/L12 - Client write gate applied to production
+
+- **Date:** 2026-08-02
+- **Change:** The 27 restrictive gate policies (21 D11 + 6 L12) were applied to
+  production. They had been merged but dormant.
+- **Verified behaviourally,** not by reading the catalog: an impersonated `INSERT`
+  inside a rolled-back transaction - active subscription ALLOWED, no subscription
+  DENIED.
+- **Read this before extending the gate:** `client_has_write_access` is
+  `COALESCE(..., false)`, so **any client missing from
+  `v_client_subscription_state` is blocked**. Measure the affected population
+  before adding a table to the gate.
+
+---
+
+## DS1 - Design system reskin (font, tokens, porcelain ramp)
+
+- **Date:** 2026-08-02 -> 2026-08-03
+- **Context:** Owner rejected the platform's look - icons, spacing, and font.
+  Staged deliberately rather than as one sweep.
+- **The font was never delivered.** The platform referenced a typeface `app.html`
+  never loaded. Fixed with the real face plus a genuine monospace stack for
+  `--font-mono` (PR #182).
+- **Token layer consolidated** to one source of truth: `--bg-surface` had been
+  declared 6 times and `--text-primary` 7. **86 `!important` custom properties
+  -> 0** (PR #185).
+- **`PRODUCT.md` and `DESIGN.md`** written at the repo root (PR #183), then
+  `DESIGN.md` rebuilt (PR #187) - see DECISIONS D12.
+- **Porcelain light ramp** applied (PR #188): fixed an AA failure
+  (`--text-tertiary` 3.79:1 -> 5.44:1) and an invisible layer (`--bg-raised` was
+  byte-identical to `--bg-surface`). 12/12 tokens and 12/12 contrast pairs
+  verified in a browser.
+- **The measurement trap that cost two wrong readings:** these tokens are set on
+  `body.nc-bright`, **not** on `:root`.
+  `getComputedStyle(document.documentElement)` returns the dark login-screen
+  values and looks exactly like a failure. Read `document.body`.
+
+---
+
+## RPM2 - Phase durations and the horizontal timeline canvas
+
+- **Date:** 2026-08-02 -> 2026-08-03
+- **`rpm_phases.duration_weeks`** added (`integer`, `> 0 and <= 260`), backfilled
+  from the `"(N weeks) "` prefix that had been embedded in `milestone_label` and
+  stripped from the label. **Applied to production**; the backfill matched 0 of 4
+  existing rows, which is expected - none carried the prefix. (PR #184.)
+- **The diagonal canvas was replaced by a horizontal timeline** (PR #186, #189,
+  #190). Phase blocks tile a single track, so overlap is impossible by
+  construction, and duration is encoded as block **width** rather than position.
+- **Why it was replaced:** measured against the shipped CSS, **5 phases collided
+  at every width including 2560x1440** - and 5 is what the AI generator produces
+  by default. Percentage padding, alternating sides, and a z-index raise were each
+  tried and each measured failing.
+- **Verified in Chromium** across 3/5/7-phase programs at 2560x1440, 1920x1080,
+  1600x900 and 1366x768 - 16 cases: zero unreachable blocks, zero overlaps,
+  6wk/2wk = 3.000x, 6wk/1wk = 6.002x, canvas height 760/669.6/558/480px, week
+  ticks within 1.1px, and no permanent scrollbar.
+- **Deliberate trade-off:** when the 44px WCAG touch floor would shrink a short
+  phase below tappable size, proportionality degrades and the track scrolls. An
+  accessible block beats an accurate ratio.
+- **Four CSS traps this cost four review rounds to find** - all worth knowing
+  before touching the track:
+  1. `flex: <n> 0 0%` is **not** proportional. Flex distributes *free* space, then
+     each item adds its own padding and border back on top (26px here), so a
+     6wk/2wk pair measured 2.55x instead of 3.0x. Use a percentage `width` with
+     `box-sizing: border-box`.
+  2. `width: max-content` and `fit-content` on a flex track size to the **child
+     text**, not to any floor. Blocks 135.9px wide still forced a 953px track
+     inside a 585px container and pushed phases out of reach. The correct rule is
+     `width: 100%; min-width: 0`.
+  3. `overflow: hidden` on the track **swallowed** the floor overflow - content
+     was clipped and `scrollWidth` never grew, so it could not be scrolled to.
+  4. A tick at `left: 100%` with `translateX(-50%)` overhangs by 21.6px and
+     produces a **permanent scrollbar on every render**. Clamp the end ticks flush.
+- **Not verified:** no authenticated smoke. See KNOWN_LIMITATIONS L14.
+
+---
+
+## BIZ1 - Coach package, payment and client-delete UI fixes
+
+- **Date:** 2026-08-02
+- **Change:** A batch of admin/coach business-surface repairs - admin package
+  price save, the payment modal shell, approval period start, coach package
+  expiry plus coach delete, and the coach-facing client delete UI. NeuCore orbit
+  controls were also repaired.
+- **PRs:** #168, #169, #170, #171, #172, #173.
+- **Note:** these landed as individual frontend fixes rather than one coordinated
+  phase; they are grouped here so the log does not imply a release that did not
+  happen.
+
+---
+
+## DOC1 - Documentation-only PRs of 2026-08-02
+
+- **Date:** 2026-08-02
+- **PR #174:** Added the `ast9-frontend-delivery-guard` skill, which encodes the
+  frontend delivery failures observed that day - an undeclared `_allClients` that
+  threw on every call while being reported as passing, a scroll target that never
+  existed, a server error code that is never actually sent, and changes reported
+  as done that were absent from the diff twice.
+- **PR #175:** Specified the Sentry issue alert rule before it was created, so the
+  dashboard-only configuration has a written source. Made live and verified in
+  PR #179 (DEV_LOG O2).
+- **PR #176:** Answered the disaster-recovery backup-coverage question in
+  [DISASTER_RECOVERY.md](DISASTER_RECOVERY.md) - specifically what PITR does and
+  does not protect against, which is what motivated the off-platform local backup
+  script in BK1.
+- **Recorded here** only so every merged PR in the 2026-08-02/03 window is
+  traceable from this log. No code shipped in any of the three.
