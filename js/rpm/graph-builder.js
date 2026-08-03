@@ -823,7 +823,7 @@
     const containerStyle = minWidthPx ? `min-width:${minWidthPx}px;` : '';
 
     // Diagonal endpoints (percentage coords). A bottom-left, B top-right
-    const ax = 12, ay = 82, bx = 88, by = 18;
+    const ax = 12, ay = 76, bx = 88, by = 22;
 
     nodes.forEach(n => {
       n.x = ax + n.t * (bx - ax);
@@ -843,13 +843,8 @@
         <div class="nc-dgraph ${isScrollable ? 'nc-dgraph--scrollable' : ''}" id="nc-dgraph" style="${containerStyle}">
           <!-- Solid Emerald Axis Line (DESIGN.md) -->
           <svg class="nc-dgraph-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
-            <line class="nc-dgraph-axis-bg" x1="${ax}" y1="${ay}" x2="${bx}" y2="${by}"/>
-            <line class="nc-dgraph-axis"    x1="${ax}" y1="${ay}" x2="${bx}" y2="${by}"/>
-            ${weekTicks.map(tick => {
-              const tx = ax + tick.t * (bx - ax);
-              const ty = ay + tick.t * (by - ay);
-              return `<circle cx="${tx}" cy="${ty}" r="0.75" fill="var(--emerald-500, #10B981)"/>`;
-            }).join('')}
+            <line class="nc-dgraph-axis-bg" vector-effect="non-scaling-stroke" x1="${ax}" y1="${ay}" x2="${bx}" y2="${by}"/>
+            <line class="nc-dgraph-axis"    vector-effect="non-scaling-stroke" x1="${ax}" y1="${ay}" x2="${bx}" y2="${by}"/>
           </svg>
 
           <!-- Week Milestone Markers along the Axis -->
@@ -881,11 +876,12 @@
             </div>
           </div>
 
-          <!-- Defect 3 Fix: Content directly on Node (Index, Name, and Duration) -->
+          <!-- Phase Node Pins and Cards (Pin sits ON the axis line; Card sits OFFSET ABOVE axis) -->
           ${nodes.map(n => {
             const isUnscheduled = n.dur == null;
             const durLabel = isUnscheduled ? 'Unscheduled' : `${n.dur} ${n.dur === 1 ? 'week' : 'weeks'}`;
             return `
+              <div class="nc-dgraph-node-pin" style="left:${n.x}%;top:${n.y}%"></div>
               <div class="nc-dgraph-node-card ${isUnscheduled ? 'unscheduled' : ''} ${n.p.status || ''}"
                    data-node-id="${n.p.id}" style="left:${n.x}%;top:${n.y}%" role="button" tabindex="0"
                    aria-label="Phase ${n.p.phase_index}: ${escHtml(n.p.stage_name || 'Phase')} (${durLabel})">
