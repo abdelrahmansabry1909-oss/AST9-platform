@@ -815,7 +815,13 @@ textarea.form-input { resize: vertical; min-height: 88px; line-height: 1.6; }
   font-family: var(--font-body);
 }
 .tab-btn:hover { color: var(--text-primary); }
-.tab-btn.active { color: var(--lime); border-bottom-color: var(--lime); }
+.tab-btn.active {
+  color: var(--emerald-500, #10B981);
+  border-bottom-color: var(--emerald-500, #10B981);
+  font-weight: 700;
+  background: rgba(16,185,129,0.06);
+  border-radius: 6px 6px 0 0;
+}
 
 .tab-panel { display: none; }
 .tab-panel.active { display: block; animation: section-in 0.25s var(--ease-out) both; }
@@ -5029,21 +5035,27 @@ body.nc-bright .mob-nav-btn.active {
   letter-spacing: -0.015em;
 }
 
-/* The diagonal canvas */
+/* The diagonal canvas container */
+.nc-dgraph-scroll-wrap {
+  width: 100%;
+  border-radius: var(--r-lg);
+  position: relative;
+}
 .nc-dgraph {
   position: relative;
   width: 100%;
   aspect-ratio: 3 / 2;
-  min-height: 460px;
+  min-height: 480px;
   border-radius: var(--r-lg);
   background:
-    linear-gradient(rgba(20,184,166,0.05) 1px, transparent 1px) 0 0 / 100% 14.28%,
-    linear-gradient(90deg, rgba(20,184,166,0.05) 1px, transparent 1px) 0 0 / 14.28% 100%,
-    linear-gradient(160deg, rgba(15,23,42,0.55), rgba(7,17,26,0.95));
-  overflow: visible;
+    linear-gradient(rgba(16,185,129,0.04) 1px, transparent 1px) 0 0 / 100% 14.28%,
+    linear-gradient(90deg, rgba(16,185,129,0.04) 1px, transparent 1px) 0 0 / 14.28% 100%,
+    linear-gradient(160deg, #04141A, #061A12);
+  border: 1px solid var(--hairline, #245C46);
+  overflow: hidden;
 }
 
-/* SVG line layer */
+/* SVG line layer (Solid Emerald Axis per DESIGN.md) */
 .nc-dgraph-svg {
   position: absolute;
   inset: 0;
@@ -5053,15 +5065,34 @@ body.nc-bright .mob-nav-btn.active {
   overflow: visible;
 }
 .nc-dgraph-axis {
-  stroke: url(#nc-dgraph-grad);
-  stroke-width: 3;
+  stroke: var(--emerald-500, #10B981);
+  stroke-width: 3.5;
   stroke-linecap: round;
-  filter: drop-shadow(0 0 6px rgba(20,184,166,0.4));
+  filter: drop-shadow(0 0 6px rgba(16,185,129,0.35));
 }
 .nc-dgraph-axis-bg {
-  stroke: var(--nc-fg-10);
-  stroke-width: 10;
+  stroke: rgba(36,92,70,0.35);
+  stroke-width: 9;
   stroke-linecap: round;
+}
+
+/* Week Milestone Ticks along Axis */
+.nc-dgraph-tick {
+  position: absolute;
+  transform: translate(-50%, 12px);
+  pointer-events: none;
+  z-index: 2;
+}
+.nc-dgraph-tick-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-tertiary, #7C9689);
+  background: rgba(6,26,18,0.85);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(36,92,70,0.35);
+  white-space: nowrap;
 }
 
 /* Endpoint markers (A / B) */
@@ -5076,32 +5107,31 @@ body.nc-bright .mob-nav-btn.active {
 .nc-dgraph-endpoint--a { /* bottom-left */ }
 .nc-dgraph-endpoint--b { flex-direction: row-reverse; }
 .nc-dgraph-endpoint-dot {
-  width: 46px; height: 46px;
+  width: 44px; height: 44px;
   border-radius: 50%;
   display: inline-flex; align-items: center; justify-content: center;
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Hanken Grotesk', sans-serif;
   font-weight: 800;
   font-size: 16px;
   flex-shrink: 0;
   border: 2px solid currentColor;
 }
 .nc-dgraph-endpoint--a .nc-dgraph-endpoint-dot {
-  color: #FCA5A5;
-  background: radial-gradient(circle at 35% 35%, rgba(245,66,108,0.30), rgba(245,66,108,0.08));
-  box-shadow: 0 0 20px rgba(245,66,108,0.25);
+  color: var(--rose-400, #FB7185);
+  background: rgba(251,113,133,0.12);
+  box-shadow: 0 0 16px rgba(251,113,133,0.25);
 }
 .nc-dgraph-endpoint--b .nc-dgraph-endpoint-dot {
-  color: var(--nc-gold);
-  background: radial-gradient(circle at 35% 35%, rgba(212,175,55,0.32), rgba(212,175,55,0.08));
-  box-shadow: 0 0 22px rgba(212,175,55,0.3);
+  color: var(--gold-500, #D4AF37);
+  background: rgba(212,175,55,0.12);
+  box-shadow: 0 0 18px rgba(212,175,55,0.25);
 }
 .nc-dgraph-endpoint-label {
   max-width: 190px;
   padding: 8px 12px;
-  background: rgba(7,17,26,0.85);
-  border: 1px solid var(--glass-border);
+  background: rgba(10,36,26,0.92);
+  border: 1px solid var(--hairline, #245C46);
   border-radius: 10px;
-  backdrop-filter: blur(10px);
 }
 .nc-dgraph-endpoint-label small {
   display: block;
@@ -5109,12 +5139,12 @@ body.nc-bright .mob-nav-btn.active {
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--text-tertiary);
+  color: var(--text-tertiary, #7C9689);
   margin-bottom: 2px;
 }
 .nc-dgraph-endpoint-label span {
   font-size: 12px;
-  color: var(--text-primary);
+  color: var(--text-primary, #F2F7F4);
   line-height: 1.4;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -5122,70 +5152,134 @@ body.nc-bright .mob-nav-btn.active {
   overflow: hidden;
 }
 
-/* Phase nodes on the diagonal */
-.nc-dgraph-node {
+/* Phase Node Card directly on canvas (Index, Name, Duration) */
+.nc-dgraph-node-card {
   position: absolute;
   transform: translate(-50%, -50%);
   z-index: 4;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 6px;
+  gap: 5px;
+  padding: 10px 14px;
+  min-width: 140px;
+  max-width: 200px;
+  background: var(--bg-surface, #0A241A);
+  border: 1px solid var(--hairline, #245C46);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
   cursor: pointer;
-  background: none;
-  border: none;
-  padding: 0;
+  transition: transform 0.2s var(--ease-out), border-color 0.2s var(--ease-out), box-shadow 0.2s var(--ease-out);
+  outline: none;
 }
-.nc-dgraph-node-dot {
-  width: 48px; height: 48px;
+.nc-dgraph-node-card:hover,
+.nc-dgraph-node-card:focus-visible,
+.nc-dgraph-node-card.selected {
+  border-color: var(--emerald-500, #10B981);
+  box-shadow: 0 0 0 2px rgba(16,185,129,0.25), 0 8px 24px rgba(0,0,0,0.5);
+  transform: translate(-50%, -54%);
+}
+.nc-dgraph-node-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.nc-dgraph-node-idx {
+  width: 22px; height: 22px;
   border-radius: 50%;
+  background: var(--emerald-500, #10B981);
+  color: #03100B;
+  font-weight: 700;
+  font-size: 11px;
   display: inline-flex; align-items: center; justify-content: center;
-  font-family: 'Space Grotesk', sans-serif;
-  font-weight: 800;
-  font-size: 19px;
-  color: #04141A;
-  background: linear-gradient(135deg, var(--nc-teal), var(--nc-cyan));
-  border: 3px solid rgba(7,17,26,0.9);
-  box-shadow: 0 0 0 1px var(--nc-teal), 0 6px 18px rgba(20,184,166,0.35);
-  transition: transform 0.2s var(--ease-spring), box-shadow 0.2s var(--ease-out);
+  flex-shrink: 0;
 }
-.nc-dgraph-node:hover .nc-dgraph-node-dot,
-.nc-dgraph-node.selected .nc-dgraph-node-dot {
-  transform: scale(1.14);
-  box-shadow: 0 0 0 2px var(--nc-cyan), 0 0 28px rgba(103,232,249,0.5);
-}
-.nc-dgraph-node-label {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 11.5px;
+.nc-dgraph-node-dur {
+  font-family: var(--font-mono);
+  font-size: 10px;
   font-weight: 600;
-  letter-spacing: -0.01em;
-  color: var(--text-primary);
-  background: rgba(7,17,26,0.82);
-  padding: 3px 9px;
+  color: var(--emerald-500, #10B981);
+  background: rgba(16,185,129,0.12);
+  padding: 2px 7px;
   border-radius: 999px;
-  border: 1px solid var(--glass-border);
+  border: 1px solid rgba(16,185,129,0.25);
   white-space: nowrap;
-  max-width: 150px;
+}
+.nc-dgraph-node-dur.is-unscheduled {
+  color: var(--text-tertiary, #7C9689);
+  background: rgba(124,150,137,0.1);
+  border: 1px dashed rgba(124,150,137,0.35);
+}
+.nc-dgraph-node-card.unscheduled {
+  border-style: dashed;
+  border-color: rgba(124,150,137,0.4);
+}
+.nc-dgraph-node-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary, #F2F7F4);
+  line-height: 1.35;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
-/* viewer status variants */
-.nc-dgraph-node.locked .nc-dgraph-node-dot {
-  background: var(--nc-fg-10);
-  color: var(--text-tertiary);
-  box-shadow: 0 0 0 1px var(--glass-border);
+.nc-dgraph-node-sub {
+  font-size: 11px;
+  color: var(--text-secondary, #A8C0B4);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-.nc-dgraph-node.active .nc-dgraph-node-dot {
-  background: linear-gradient(135deg, var(--nc-teal), var(--nc-cyan));
-  animation: nc-dgraph-pulse 2.4s var(--ease-out) infinite;
+
+/* Actionable Empty State */
+.nc-dgraph-empty {
+  min-height: 440px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-base, #061A12);
+  border: 1px dashed var(--hairline, #245C46);
+  border-radius: 16px;
+  padding: 32px 24px;
+  text-align: center;
 }
-.nc-dgraph-node.completed .nc-dgraph-node-dot {
-  background: linear-gradient(135deg, var(--nc-gold), #b8941f);
-  box-shadow: 0 0 0 1px var(--nc-gold), 0 6px 18px rgba(212,175,55,0.35);
+.nc-dgraph-empty-content {
+  max-width: 440px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
 }
-@keyframes nc-dgraph-pulse {
-  0%,100% { box-shadow: 0 0 0 1px var(--nc-teal), 0 0 24px rgba(20,184,166,0.4); }
-  50%     { box-shadow: 0 0 0 2px var(--nc-cyan), 0 0 40px rgba(103,232,249,0.6); }
+.nc-dgraph-empty-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--emerald-500, #10B981);
+  background: rgba(16,185,129,0.1);
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(16,185,129,0.25);
+}
+.nc-dgraph-empty-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary, #F2F7F4);
+  margin: 4px 0 0;
+}
+.nc-dgraph-empty-sub {
+  font-size: 13px;
+  color: var(--text-secondary, #A8C0B4);
+  line-height: 1.6;
+  margin: 0;
+}
+.nc-dgraph-empty-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 /* Node detail popup */
@@ -5193,10 +5287,10 @@ body.nc-bright .mob-nav-btn.active {
   position: absolute;
   z-index: 20;
   width: 270px;
-  background: var(--glass-bg-strong);
-  border: 1px solid var(--nc-border-glow);
+  background: var(--bg-surface, #0A241A);
+  border: 1px solid var(--hairline, #245C46);
   border-radius: 14px;
-  box-shadow: var(--glow-teal), 0 24px 60px rgba(0,0,0,0.6);
+  box-shadow: 0 24px 60px rgba(0,0,0,0.6);
   padding: 16px;
   transform: translate(-50%, 12px);
   animation: nc-dgraph-pop 0.22s var(--ease-spring) both;
@@ -5207,9 +5301,9 @@ body.nc-bright .mob-nav-btn.active {
   top: -7px; left: 50%;
   transform: translateX(-50%) rotate(45deg);
   width: 12px; height: 12px;
-  background: var(--glass-bg-strong);
-  border-left: 1px solid var(--nc-border-glow);
-  border-top: 1px solid var(--nc-border-glow);
+  background: var(--bg-surface, #0A241A);
+  border-left: 1px solid var(--hairline, #245C46);
+  border-top: 1px solid var(--hairline, #245C46);
 }
 @keyframes nc-dgraph-pop {
   from { opacity: 0; transform: translate(-50%, 4px) scale(0.95); }
@@ -5221,7 +5315,7 @@ body.nc-bright .mob-nav-btn.active {
 }
 .nc-dgraph-popup-phase {
   font-size: 10px; font-weight: 700; letter-spacing: 0.12em;
-  text-transform: uppercase; color: var(--nc-teal);
+  text-transform: uppercase; color: var(--emerald-500, #10B981);
 }
 .nc-dgraph-popup-close {
   background: none; border: none; cursor: pointer;
@@ -5229,7 +5323,6 @@ body.nc-bright .mob-nav-btn.active {
 }
 .nc-dgraph-popup-close:hover { color: var(--text-primary); }
 .nc-dgraph-popup-title {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 16px; font-weight: 700; letter-spacing: -0.02em;
   color: var(--text-primary); margin-bottom: 8px; line-height: 1.25;
 }
@@ -5243,7 +5336,7 @@ body.nc-bright .mob-nav-btn.active {
 }
 .nc-dgraph-popup-meta span {
   font-size: 10px; padding: 2px 8px; border-radius: 999px;
-  background: var(--nc-fg-10); border: 1px solid var(--glass-border);
+  background: var(--bg-raised, #153D2D); border: 1px solid var(--hairline, #245C46);
   color: var(--text-tertiary);
 }
 .nc-dgraph-popup-expand {
@@ -5252,15 +5345,14 @@ body.nc-bright .mob-nav-btn.active {
   padding: 9px;
   border-radius: 9px;
   border: none;
-  background: linear-gradient(135deg, var(--nc-teal), var(--nc-cyan));
-  color: #04141A;
-  font-family: 'Space Grotesk', sans-serif;
+  background: var(--emerald-500, #10B981);
+  color: #03100B;
   font-weight: 700; font-size: 13px;
   cursor: pointer;
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
   transition: transform 0.15s var(--ease-out);
 }
-.nc-dgraph-popup-expand:hover { transform: translateY(-1px); }
+.nc-dgraph-popup-expand:hover { transform: translateY(-1px); background: var(--emerald-400, #34D399); }
 
 /* Full phase editor overlay (Expand) */
 .nc-dgraph-editor-overlay {
@@ -5272,41 +5364,38 @@ body.nc-bright .mob-nav-btn.active {
   justify-content: center;
   padding: 40px 20px;
   overflow-y: auto;
-  background: rgba(4,10,20,0.78);
-  backdrop-filter: blur(12px) saturate(140%);
-  -webkit-backdrop-filter: blur(12px) saturate(140%);
-  animation: nc-modal-fade 0.22s var(--ease-out);
+  background: rgba(3,16,11,0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 .nc-dgraph-editor {
   width: 100%;
   max-width: 720px;
-  background: var(--glass-bg-strong);
-  border: 1px solid var(--glass-border);
+  background: var(--bg-surface, #0A241A);
+  border: 1px solid var(--hairline, #245C46);
   border-radius: 20px;
-  box-shadow: var(--glow-teal), 0 32px 100px rgba(0,0,0,0.65);
+  box-shadow: 0 32px 100px rgba(0,0,0,0.65);
   overflow: hidden;
-  animation: nc-visitor-pop 0.3s cubic-bezier(0.34,1.56,0.64,1);
 }
 .nc-dgraph-editor-head {
   display: flex; align-items: center; justify-content: space-between;
   padding: 18px 22px;
-  border-bottom: 1px solid var(--glass-border);
-  background: linear-gradient(90deg, rgba(20,184,166,0.08), transparent);
+  border-bottom: 1px solid var(--hairline, #245C46);
+  background: rgba(16,185,129,0.06);
 }
 .nc-dgraph-editor-head h3 {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 17px; font-weight: 700; letter-spacing: -0.02em;
   color: var(--text-primary); margin: 0;
 }
 .nc-dgraph-editor-close {
   width: 34px; height: 34px;
   border-radius: 999px;
-  border: 1px solid var(--glass-border);
-  background: var(--nc-fg-10);
+  border: 1px solid var(--hairline, #245C46);
+  background: var(--bg-raised, #153D2D);
   color: var(--text-secondary);
   cursor: pointer; font-size: 17px;
 }
-.nc-dgraph-editor-close:hover { color: var(--text-primary); background: var(--nc-fg-10); }
+.nc-dgraph-editor-close:hover { color: var(--text-primary); }
 .nc-dgraph-editor-body { padding: 20px 22px; }
 
 /* "+ Add phase" floating button on the graph */
@@ -5319,10 +5408,10 @@ body.nc-bright .mob-nav-btn.active {
 @media (max-width: 640px) {
   .nc-dgraph { aspect-ratio: 1 / 1; min-height: 420px; }
   .nc-dgraph-endpoint-label { max-width: 120px; }
-  .nc-dgraph-node-dot { width: 40px; height: 40px; font-size: 16px; }
+  .nc-dgraph-node-card { min-width: 120px; padding: 8px 10px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .nc-dgraph-node.active .nc-dgraph-node-dot { animation: none; }
+  .nc-dgraph-node-card { transition: none; }
 }
 
 /* ═══════════════════════════════════════════════════════════════
