@@ -148,6 +148,7 @@
       phase_index:     phase.phase_index,
       stage_name:      phase.stage_name,
       milestone_label: phase.milestone_label || null,
+      duration_weeks:  (phase.duration_weeks != null && Number(phase.duration_weeks) > 0) ? Number(phase.duration_weeks) : null,
       emotional_win:   phase.emotional_win || null,
       tripwire_test:   phase.tripwire_test || null,
       load_tolerance:  phase.load_tolerance || null,
@@ -166,10 +167,10 @@
       return data;
     }
     const { data, error } = await _sb()
-      .from('rpm_phases')
-      .upsert(row, { onConflict: 'graph_id,phase_index' })
-      .select()
-      .single();
+        .from('rpm_phases')
+        .upsert(row, { onConflict: 'graph_id,phase_index' })
+        .select()
+        .single();
     if (error) throw error;
     return data;
   }
@@ -184,6 +185,7 @@
       phase_index:     p.phase_index ?? (i + 1),
       stage_name:      p.stage_name,
       milestone_label: p.milestone_label || null,
+      duration_weeks:  (p.duration_weeks != null && Number(p.duration_weeks) > 0) ? Number(p.duration_weeks) : null,
       emotional_win:   p.emotional_win || null,
       tripwire_test:   p.tripwire_test || null,
       load_tolerance:  p.load_tolerance || null,
