@@ -11,6 +11,7 @@
   --bg-base:        #061A12;
   --bg-surface:     #0A241A;
   --bg-raised:      #153D2D;
+  --bg-sunken:      #03100B;
   --bg-overlay:     #172B22;
   --bg-hover:       rgba(255, 255, 255, 0.03);
   --hairline:       #245C46;
@@ -25,6 +26,9 @@
   --text-secondary: #A8C0B4;
   --text-tertiary:  #7C9689;
   --text-inverse:   #03100B;
+  --ink-primary:    #F2F7F4;
+  --ink-secondary:  #A8C0B4;
+  --ink-tertiary:   #7C9689;
 
   /* Emerald Palette (DESIGN.md) */
   --emerald-300:    #6EE7B7;
@@ -34,7 +38,7 @@
   --emerald-800:    #065F46;
 
   /* Gold Palette (DESIGN.md) */
-  --gold-400:       #FBBF24;
+  --gold-400:       #E4C563;
   --gold-500:       #D4AF37;
   --gold-700:       #8A6D1F;
 
