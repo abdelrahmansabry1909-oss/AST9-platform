@@ -772,136 +772,146 @@
     return null; // NULL means UNSCHEDULED
   }
 
-  function _renderDiagonalGraph(host) {
-    const g  = state.graph;
-    const pb = (g?.point_b_dream)   || state.draft.point_b_dream   || '';
-    const pa = (g?.point_a_summary) || state.draft.point_a_summary || '';
-    const phases = state.phases.slice().sort((a, b) => (a.phase_index ?? 0) - (b.phase_index ?? 0));
-    const N = phases.length;
-
-    // Defect 4 Fix: Actionable Empty State (Primary "+ Add phase", Secondary "✦ Generate from assessment")
-    if (!N) {
-      host.innerHTML = `
-        <div class="nc-dgraph nc-dgraph-empty" id="nc-dgraph">
-          <div class="nc-dgraph-empty-content">
-            <div class="nc-dgraph-empty-badge">REACTIVE GRAPH</div>
-            <h3 class="nc-dgraph-empty-title">No Rehab Phases Created Yet</h3>
-            <p class="nc-dgraph-empty-sub">Build your graded exposure ladder from Point A to Point B by hand, or generate a 5-stage starting plan from assessment findings.</p>
-            <div class="nc-dgraph-empty-actions">
-              <button class="nc-rpm-ai-btn nc-dgraph-btn-primary" id="rpm-empty-add" style="padding:10px 20px">+ Add phase</button>
-              <button class="nc-w-add nc-dgraph-btn-secondary" id="rpm-empty-gen" ${state.aiBusy ? 'disabled' : ''} style="padding:10px 20px">
-                ${state.aiBusy ? 'Generating…' : '✦ Generate from assessment'}
-              </button>
-            </div>
+  function _renderEmptyState(host) {
+    host.innerHTML = `
+      <div class="nc-dgraph nc-dgraph-empty" id="nc-dgraph">
+        <div class="nc-dgraph-empty-content">
+          <div class="nc-dgraph-empty-badge">REACTIVE GRAPH</div>
+          <h3 class="nc-dgraph-empty-title">No Rehab Phases Created Yet</h3>
+          <p class="nc-dgraph-empty-sub">Build your graded exposure ladder from Point A to Point B by hand, or generate a 5-stage starting plan from assessment findings.</p>
+          <div class="nc-dgraph-empty-actions">
+            <button class="nc-rpm-ai-btn nc-dgraph-btn-primary" id="rpm-empty-add" style="padding:10px 20px">+ Add phase</button>
+            <button class="nc-w-add nc-dgraph-btn-secondary" id="rpm-empty-gen" ${state.aiBusy ? 'disabled' : ''} style="padding:10px 20px">
+              ${state.aiBusy ? 'Generating…' : '✦ Generate from assessment'}
+            </button>
           </div>
         </div>
-      `;
-      $('#rpm-empty-add')?.addEventListener('click', _addBlankPhase);
-      $('#rpm-empty-gen')?.addEventListener('click', _generatePhasesViaAI);
+      </div>
+    `;
+    $('#rpm-empty-add')?.addEventListener('click', _addBlankPhase);
+    $('#rpm-empty-gen')?.addEventListener('click', _generatePhasesViaAI);
+  }
+
+  function _renderDiagonalGraph(host) {
+    const activePhases = (state.phases || [])
+      .filter(p => p.status !== 'archived')
+      .sort((a, b) => (a.phase_index ?? 0) - (b.phase_index ?? 0));
+
+    if (!activePhases.length) {
+      _renderEmptyState(host);
       return;
     }
 
-    // Defect 2 Fix: Cumulative Duration Spacing
+    const N = activePhases.length;
     const DEFAULT_LAYOUT_WEEKS = 2; // fallback spacing step for unscheduled phases
-    const durList = phases.map(p => _getPhaseDuration(p));
-    const phaseWeights = durList.map(d => (d != null && d > 0) ? d : DEFAULT_LAYOUT_WEEKS);
-    const totalWeeks = phaseWeights.reduce((a, b) => a + b, 0) || 1;
-
     let accum = 0;
-    const nodes = phases.map((p, i) => {
-      const w = phaseWeights[i];
-      const dur = durList[i]; // null if unscheduled
-      const midWk = accum + (w / 2);
+    const nodes = activePhases.map(p => {
+      const dur = _getPhaseDuration(p); // null if unscheduled
+      const w = (dur != null && dur > 0) ? dur : DEFAULT_LAYOUT_WEEKS;
+      const startWk = accum;
       accum += w;
-      const t = midWk / totalWeeks;
-      return { p, dur, w, midWk, t };
+      const endWk = accum;
+      const midWk = startWk + w / 2;
+      return { p, dur, w, startWk, endWk, midWk };
     });
 
-    // 8+ phases: Enable horizontal scrolling canvas
-    const isScrollable = N >= 8;
-    const minWidthPx = isScrollable ? Math.max(1000, N * 150) : null;
-    const containerStyle = minWidthPx ? `min-width:${minWidthPx}px;` : '';
+    const totalWeeks = accum || 1;
+    const g = state.graph;
+    const pb = (g?.point_b_dream) || state.draft?.point_b_dream || state.draft?.point_b_description || '';
+    const pa = (g?.point_a_summary) || state.draft?.point_a_summary || state.draft?.point_a_description || '';
 
-    // Diagonal endpoints (percentage coords). A bottom-left, B top-right
-    const ax = 12, ay = 76, bx = 88, by = 22;
-
-    nodes.forEach(n => {
-      n.x = ax + n.t * (bx - ax);
-      n.y = ay + n.t * (by - ay);
-    });
-
-    // Week Milestone Ticks along cumulative axis
-    const weekTicks = [{ wk: 0, t: 0, label: 'Wk 0' }];
+    // Cumulative week boundary ticks: Wk 0, Wk 2, Wk 8, ...
+    const weekTicks = [{ wk: 0, pct: 0, label: 'Wk 0' }];
     let curW = 0;
     nodes.forEach(n => {
       curW += n.w;
-      weekTicks.push({ wk: curW, t: curW / totalWeeks, label: `Wk ${curW}` });
+      const pct = (curW / totalWeeks) * 100;
+      weekTicks.push({ wk: curW, pct, label: `Wk ${curW}` });
     });
 
+    // NOTE ON MIN WIDTH (WCAG / Touch Target Floor):
+    // min-width: 44px on .nc-dgraph-block enforces the WCAG minimum touch/tap target size.
+    // When the sum of block floor widths exceeds available track width (e.g. narrow screens
+    // or short 1-week phases), the track container scrolls horizontally (overflow-x: auto).
+    // Below this floor, block width is no longer strictly proportional to duration_weeks;
+    // an accessible, tappable block is prioritized over an un-tappable sub-44px ratio.
+
     host.innerHTML = `
-      <div class="nc-dgraph-scroll-wrap" style="${isScrollable ? 'overflow-x:auto;-webkit-overflow-scrolling:touch;' : ''}">
-        <div class="nc-dgraph ${isScrollable ? 'nc-dgraph--scrollable' : ''}" id="nc-dgraph" style="${containerStyle}">
-          <!-- Solid Emerald Axis Line (DESIGN.md) -->
-          <svg class="nc-dgraph-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
-            <line class="nc-dgraph-axis-bg" vector-effect="non-scaling-stroke" x1="${ax}" y1="${ay}" x2="${bx}" y2="${by}"/>
-            <line class="nc-dgraph-axis"    vector-effect="non-scaling-stroke" x1="${ax}" y1="${ay}" x2="${bx}" y2="${by}"/>
-          </svg>
-
-          <!-- Week Milestone Markers along the Axis -->
-          ${weekTicks.map(tick => {
-            const tx = ax + tick.t * (bx - ax);
-            const ty = ay + tick.t * (by - ay);
-            return `
-              <div class="nc-dgraph-tick" style="left:${tx}%;top:${ty}%">
-                <span class="nc-dgraph-tick-label">${tick.label}</span>
-              </div>
-            `;
-          }).join('')}
-
-          <!-- Endpoint Point A -->
-          <div class="nc-dgraph-endpoint nc-dgraph-endpoint--a" style="left:${ax}%;top:${ay}%">
-            <span class="nc-dgraph-endpoint-dot">A</span>
-            <div class="nc-dgraph-endpoint-label">
-              <small>Point A · Initial State</small>
-              <span>${escHtml(pa || 'Set Point A in left panel')}</span>
+      <div class="nc-dgraph-scroll-wrap">
+        <div class="nc-dgraph" id="nc-dgraph">
+          <!-- Timeline Header -->
+          <div class="nc-dgraph-head">
+            <div class="nc-dgraph-head-info">
+              <span class="nc-dgraph-head-badge">TIMELINE CANVAS</span>
+              <h3 class="nc-dgraph-head-title">Draft Graph — ${N} ${N === 1 ? 'phase' : 'phases'} (${totalWeeks} weeks total)</h3>
             </div>
+            <button class="nc-w-add nc-dgraph-addphase" id="rpm-add-blank">+ Add phase</button>
           </div>
 
-          <!-- Endpoint Point B -->
-          <div class="nc-dgraph-endpoint nc-dgraph-endpoint--b" style="left:${bx}%;top:${by}%">
-            <span class="nc-dgraph-endpoint-dot">B</span>
-            <div class="nc-dgraph-endpoint-label">
-              <small>Point B · Outcome</small>
-              <span>${escHtml(pb || 'Set Point B in left panel')}</span>
+          <!-- Timeline Track Body: Point A (left) | Track Blocks (center) | Point B (right) -->
+          <div class="nc-dgraph-timeline-wrap">
+            <!-- Point A Endcap -->
+            <div class="nc-dgraph-endpoint nc-dgraph-endpoint--a">
+              <span class="nc-dgraph-endpoint-dot">A</span>
+              <div class="nc-dgraph-endpoint-label">
+                <small>Point A · Initial State</small>
+                <span>${escHtml(pa || 'Set Point A in left panel')}</span>
+              </div>
+            </div>
+
+            <!-- Main Timeline Track Container -->
+            <div class="nc-dgraph-track-container">
+              <div class="nc-dgraph-track">
+                ${nodes.map(n => {
+                  const isUnscheduled = n.dur == null;
+                  const durLabel = isUnscheduled ? 'Unscheduled' : `${n.dur} ${n.dur === 1 ? 'week' : 'weeks'}`;
+                  return `
+                    <div class="nc-dgraph-block ${isUnscheduled ? 'unscheduled' : ''} ${n.p.status || ''}"
+                         data-node-id="${n.p.id}"
+                         style="width:${((n.w / totalWeeks) * 100).toFixed(4)}%; min-width:44px; flex:0 0 auto;"
+                         role="button" tabindex="0"
+                         aria-label="Phase ${n.p.phase_index}: ${escHtml(n.p.stage_name || 'Phase')} (${durLabel})">
+                      <div class="nc-dgraph-block-header">
+                        <span class="nc-dgraph-block-idx">${n.p.phase_index}</span>
+                        <span class="nc-dgraph-block-dur ${isUnscheduled ? 'is-unscheduled' : ''}">${durLabel}</span>
+                      </div>
+                      <div class="nc-dgraph-block-title">${escHtml(n.p.stage_name || 'Phase')}</div>
+                      ${n.p.tripwire_test ? `<div class="nc-dgraph-block-sub">${escHtml(n.p.tripwire_test)}</div>` : ''}
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+
+              <!-- Week Markers along the Rail (outside blocks) -->
+              <div class="nc-dgraph-rail-ticks">
+                ${weekTicks.map((tick, idx) => {
+                  let alignStyle = 'transform: translateX(-50%);';
+                  if (idx === 0) alignStyle = 'transform: translateX(0);';
+                  else if (idx === weekTicks.length - 1) alignStyle = 'transform: translateX(-100%);';
+                  return `
+                    <div class="nc-dgraph-tick" style="left:${tick.pct}%; ${alignStyle}">
+                      <span class="nc-dgraph-tick-label">${tick.label}</span>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+
+            <!-- Point B Endcap -->
+            <div class="nc-dgraph-endpoint nc-dgraph-endpoint--b">
+              <span class="nc-dgraph-endpoint-dot">B</span>
+              <div class="nc-dgraph-endpoint-label">
+                <small>Point B · Outcome</small>
+                <span>${escHtml(pb || 'Set Point B in left panel')}</span>
+              </div>
             </div>
           </div>
-
-          <!-- Phase Node Pins and Cards (Pin sits ON the axis line; Card sits OFFSET ABOVE axis) -->
-          ${nodes.map(n => {
-            const isUnscheduled = n.dur == null;
-            const durLabel = isUnscheduled ? 'Unscheduled' : `${n.dur} ${n.dur === 1 ? 'week' : 'weeks'}`;
-            return `
-              <div class="nc-dgraph-node-pin" style="left:${n.x}%;top:${n.y}%"></div>
-              <div class="nc-dgraph-node-card ${isUnscheduled ? 'unscheduled' : ''} ${n.p.status || ''}"
-                   data-node-id="${n.p.id}" style="left:${n.x}%;top:${n.y}%" role="button" tabindex="0"
-                   aria-label="Phase ${n.p.phase_index}: ${escHtml(n.p.stage_name || 'Phase')} (${durLabel})">
-                <div class="nc-dgraph-node-header">
-                  <span class="nc-dgraph-node-idx">${n.p.phase_index}</span>
-                  <span class="nc-dgraph-node-dur ${isUnscheduled ? 'is-unscheduled' : ''}">${durLabel}</span>
-                </div>
-                <div class="nc-dgraph-node-title">${escHtml(n.p.stage_name || 'Phase')}</div>
-                ${n.p.tripwire_test ? `<div class="nc-dgraph-node-sub">${escHtml(n.p.tripwire_test)}</div>` : ''}
-              </div>
-            `;
-          }).join('')}
-
-          <button class="nc-w-add nc-dgraph-addphase" id="rpm-add-blank">+ Add phase</button>
         </div>
       </div>
     `;
 
     $('#rpm-add-blank')?.addEventListener('click', _addBlankPhase);
-    $$('.nc-dgraph-node-card').forEach(node => {
+    $$('.nc-dgraph-block').forEach(node => {
       const handler = (e) => {
         e.stopPropagation();
         const p = state.phases.find(x => x.id === node.dataset.nodeId);
