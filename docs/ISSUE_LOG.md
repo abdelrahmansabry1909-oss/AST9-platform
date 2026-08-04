@@ -408,3 +408,67 @@
   `<body>` default, that all 44 nav elements carry exactly one lane class, and
   that the lane rules stay scoped under the body classes. Verified by removing
   the class and watching the test fail.
+
+## 20. Account deletion had never worked for a real user (resolved 2026-08-02)
+- **Symptoms:** Deleting a user account raised a raw foreign-key error. Deleting a
+  freshly created test account worked, which is why it went unnoticed.
+- **Root cause:** 20 foreign keys referencing user-owned data carried no
+  `ON DELETE` clause. The SQL default is `NO ACTION`, so any user with a program,
+  workout log, assessment or comment was a hard block. This was never a partial
+  failure - deletion was impossible for anyone who had actually used the product.
+- **The subtle part:** 5 of the 20 were **transitive** blockers one level down a
+  cascade chain. Auditing only the FKs that point directly at `profiles` or
+  `auth.users` finds 15 and moves the failure one table along rather than fixing
+  it. The audit has to follow each cascade to its leaves.
+- **Fix:** PR #180 - `20260806000000_user_delete_fk_rules.sql`, 4 `CASCADE` and
+  16 `SET NULL`.
+- **Verified:** Applied to production. 0 `NO ACTION` FKs remain; 75 CASCADE /
+  68 SET NULL / 1 RESTRICT; all 144 constraints validated.
+- **Remaining:** One real end-to-end account deletion by the owner, on an account
+  that owns data, to confirm the cascade behaves as intended in the app rather
+  than only in the catalog.
+
+## 21. Every Sentry event reported the same release (resolved 2026-08-02)
+- **Symptoms:** Sentry could not distinguish which deploy an error came from;
+  every issue carried release `20260702b`.
+- **Root cause:** `js/monitoring.js` hardcoded `APP_VERSION`. It is a classic IIFE
+  served as a plain `<script src>`, so Vite never parses it and no build-time
+  substitution reached it.
+- **Fix:** PR #178 - a Vite `inject-build-stamp` plugin head-prepends
+  `window.AST9_BUILD_ID` (commit SHA) before the script runs; monitoring reads it.
+- **Verified:** The deployed page carries the real SHA.
+- **Trap for the next person:** `app.html` bounces signed-out visitors to the
+  landing page, which never loads `monitoring.js`. Checking `window.Sentry` after
+  that redirect produces a false negative - snapshot with `addInitScript` instead.
+
+## 22. A delegated frontend change shipped a file that did not parse (caught pre-merge, 2026-08-03)
+- **Symptoms:** None in CI. `npm run build` succeeded and all 163 unit tests
+  passed. The delivered `js/rpm/graph-builder.js` was nevertheless a **syntax
+  error** and the entire Reactive Graph tab would have been dead on arrival.
+- **Root cause:** A new function was pasted into the middle of an unterminated
+  template literal, leaving two `_renderDiagonalGraph` declarations and a call to
+  a `_renderEmptyState` that existed nowhere in the file.
+- **Why no gate caught it:** `graph-builder.js` is loaded as a plain
+  `<script src>` at `app.html`. It is **not in the Vite module graph**, so the
+  build never parses it, and no unit test imports it. `node --check` was the only
+  thing that found it.
+- **Fix:** Rejected before merge and returned for repair; the merged result
+  (PR #190) parses and was measured in a browser.
+- **Remaining:** The class of defect is still uncaught by CI. See
+  KNOWN_LIMITATIONS L15.
+
+## 23. Supabase CLI dry-run printed a live credential (incident, 2026-08-02)
+- **Symptoms:** `supabase db dump --dry-run` printed a freshly minted
+  `cli_login_*` user and password to stdout, along with the host.
+- **Root cause:** The CLI **ignores `SUPABASE_DB_URL`** and silently falls back to
+  the currently linked project when no explicit target flag is given. The dry-run
+  mints and displays real credentials rather than a placeholder.
+- **Who caused it:** Claude, while designing the backup script. Reported
+  immediately; the credential was not reused and the linked project was not
+  touched afterwards.
+- **Fix:** The backup script was redesigned around `supabase db dump --linked`, so
+  no credential passes through argv or the environment at all, plus
+  `sanitizeOutput()` redaction and `assertLinkedProjectIsProduction`. PRs #177,
+  #181.
+- **Remaining:** **Owner must rotate the exposed `cli_login_*` token.** Until that
+  is done this issue is open.
