@@ -226,15 +226,22 @@ the wizard. So the live path is unexercised: `_renderLadder` firing, phase click
 are trustworthy; the interaction path is not yet evidence-backed. One coach
 session with the RPM Graph Builder open closes this.
 
-## L15 - No gate parses the plain `<script src>` JavaScript
+## L15 - No gate parses the plain `<script src>` JavaScript (RESOLVED 2026-08-04)
 `npm run build` only parses what is in the Vite module graph, and `test:unit`
 only parses what it imports. Several shipped files are neither - they are classic
 IIFEs loaded directly by `app.html`, including `js/rpm/graph-builder.js` and
-`js/monitoring.js`. A syntax error in any of them passes every current CI gate
-and reaches production as a dead feature; this happened on 2026-08-03 and was
-caught only by a manual `node --check` (ISSUE_LOG #22).
-**Cheapest fix:** a unit test that runs `node --check` over every `js/**/*.js`
-file referenced by a `<script src>` tag in `app.html`. Not yet implemented.
+`js/monitoring.js`. A syntax error in any of them passed every CI gate and
+reached production as a dead feature; this happened on 2026-08-03 and was caught
+only by a manual `node --check` (ISSUE_LOG #22).
+
+**Closed by `tests/unit/html-script-parse.test.js`**, which parses all 56 local
+scripts referenced by `app.html` and `index.html` against the goal the browser
+will actually use - `vm.Script` (sloppy mode) for classic tags, `node --check`
+for `type="module"`. Proven by mutation: reintroducing the exact 2026-08-03
+defect fails the test while `npm run build` still reports success.
+**Residual gap:** this proves each file *parses*, not that it *behaves*. A
+runtime error inside a correctly-parsed file is still only caught by L14's
+missing authenticated smoke.
 
 ## L16 - The Sentry alert rule exists only in the dashboard
 The issue alert rule (new issue -> `environment:production` -> email, 30-minute
