@@ -921,21 +921,31 @@
       node.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') handler(e); });
     });
     $('#nc-dgraph')?.addEventListener('click', (e) => {
-      if (!e.target.closest('.nc-dgraph-node-card') && !e.target.closest('.nc-dgraph-popup')) _closeNodePopup();
+      if (!e.target.closest('.nc-dgraph-block') && !e.target.closest('.nc-dgraph-popup')) _closeNodePopup();
     });
   }
 
+  let _activePopupCloseHandlers = null;
+
   function _closeNodePopup() {
     if (_popupEl) { _popupEl.remove(); _popupEl = null; }
-    $$('.nc-dgraph-node-card.selected').forEach(n => n.classList.remove('selected'));
+    $$('.nc-dgraph-block.selected').forEach(n => n.classList.remove('selected'));
+    if (_activePopupCloseHandlers) {
+      _activePopupCloseHandlers();
+      _activePopupCloseHandlers = null;
+    }
   }
 
   function _showNodePopup(phase, nodeEl) {
     _closeNodePopup();
     nodeEl.classList.add('selected');
+
+    const canvas = document.getElementById('nc-dgraph');
+    if (!canvas) return;
+
     const exCount = (phase.exercises || []).length;
     const statusBadge = phase.status && phase.status !== 'locked'
-      ? `<span style="color:var(--emerald-500, #10B981)">${phase.status}</span>` : '';
+      ? `<span style="color:var(--emerald-700, #047857)">${phase.status}</span>` : '';
     const durVal = _getPhaseDuration(phase);
     const durStr = durVal != null ? `${durVal} ${durVal === 1 ? 'week' : 'weeks'}` : 'Unscheduled';
 
@@ -957,21 +967,65 @@
       </div>
       <button class="nc-dgraph-popup-expand" data-act="expand">⤢ Expand &amp; edit phase</button>
     `;
-    pop.style.left = nodeEl.style.left;
-    pop.style.top  = `calc(${nodeEl.style.top} + 30px)`;
-    $('#nc-dgraph')?.appendChild(pop);
+
+    canvas.appendChild(pop);
     _popupEl = pop;
+
+    const realW = pop.offsetWidth || 256.6;
+    const realH = pop.offsetHeight || 171;
+
+    const cRect = canvas.getBoundingClientRect();
+    const nRect = nodeEl.getBoundingClientRect();
+
+    const blockCenterX = nRect.left - cRect.left + nRect.width / 2;
+    const blockBottomY = nRect.bottom - cRect.top;
+    const blockTopY = nRect.top - cRect.top;
+    const PADDING = 12;
+
+    let popLeft = blockCenterX - realW / 2;
+    const minLeft = PADDING;
+    const maxLeft = Math.max(minLeft, cRect.width - realW - PADDING);
+    popLeft = Math.max(minLeft, Math.min(popLeft, maxLeft));
+
+    const arrowLeft = Math.max(16, Math.min(blockCenterX - popLeft, realW - 16));
+
+    let isFlipped = false;
+    let popTop = blockBottomY + 8;
+    if (popTop + realH > cRect.height - PADDING && blockTopY - realH - 8 >= PADDING) {
+      isFlipped = true;
+      popTop = blockTopY - realH - 8;
+      pop.classList.add('nc-dgraph-popup--flipped');
+    }
+
+    pop.style.left = `${popLeft}px`;
+    pop.style.top  = `${popTop}px`;
+    pop.style.setProperty('--arrow-left', `${arrowLeft}px`);
 
     pop.querySelector('[data-act="close"]').addEventListener('click', _closeNodePopup);
     pop.querySelector('[data-act="expand"]').addEventListener('click', () => {
       _closeNodePopup();
       _openPhaseEditor(phase);
     });
+
+    const trackContainer = canvas.querySelector('.nc-dgraph-track-container');
+    const onScrollOrResize = () => _closeNodePopup();
+
+    trackContainer?.addEventListener('scroll', onScrollOrResize, { passive: true });
+    window.addEventListener('resize', onScrollOrResize, { passive: true });
+
+    _activePopupCloseHandlers = () => {
+      trackContainer?.removeEventListener('scroll', onScrollOrResize);
+      window.removeEventListener('resize', onScrollOrResize);
+    };
   }
 
   function _openPhaseEditor(phase) {
     _closePhaseEditor();
     _editorPhaseId = phase.id;
+
+    const durVal = _getPhaseDuration(phase);
+    const durStr = durVal != null ? `${durVal} ${durVal === 1 ? 'week' : 'weeks'}` : 'Unscheduled';
+
     const ov = document.createElement('div');
     ov.className = 'nc-dgraph-editor-overlay';
     ov.id = 'nc-phase-editor';
