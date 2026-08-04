@@ -1188,3 +1188,38 @@ Verification legend:
   script in BK1.
 - **Recorded here** only so every merged PR in the 2026-08-02/03 window is
   traceable from this log. No code shipped in any of the three.
+
+---
+
+## T1 - Parse guard for the plain `<script src>` JavaScript
+
+- **Date:** 2026-08-04
+- **Closes:** KNOWN_LIMITATIONS L15. Related: ISSUE_LOG #22.
+- **Problem:** `npm run build` parses only what is in the Vite module graph and
+  `test:unit` parses only what it imports. Most of the app is neither - 56 local
+  scripts are loaded by `app.html` and `index.html` as plain `<script src>` tags.
+  On 2026-08-03 one of them shipped as a syntax error, the file never parsed, the
+  Reactive Graph tab was dead on arrival, and **every CI gate passed it**.
+- **Change:** `tests/unit/html-script-parse.test.js` reads both HTML entry
+  points, collects every local script reference, strips the `?v=` cache-bust
+  token, and parses each file.
+- **Parse goal is per-tag, and this matters.** `package.json` declares
+  `"type": "module"`, so a bare `node --check` would parse the classic IIFEs as
+  ESM - strict mode - and could fail files the browser accepts. Each file is
+  checked against the goal the browser will use:
+  - `<script src>` -> classic script, via `new vm.Script(...)` (compiles, never
+    executes)
+  - `<script type="module" src>` -> ES module, via `node --check`
+- **Also asserts** that every referenced script exists on disk (a 404 is the same
+  dead feature by another route), and that at least 50 references were found - so
+  a regex that silently matches nothing cannot make the suite pass vacuously.
+- **Proven by mutation, not by assertion.** Reintroducing the exact 2026-08-03
+  defect - a function pasted inside an unterminated template literal - fails the
+  test with the offending line number, while `npm run build` on the same broken
+  tree still reports success. The file was then restored and verified identical.
+  The suite also contains a self-check that the parser rejects known-bad source,
+  because a check that cannot fail is not a check.
+- **Coverage:** 163 -> 223 unit tests.
+- **What this does not do:** it proves each file parses, not that it behaves. A
+  runtime error inside a syntactically valid file still requires the
+  authenticated smoke that L14 records as missing.
