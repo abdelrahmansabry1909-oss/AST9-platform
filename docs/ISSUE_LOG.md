@@ -472,3 +472,53 @@
   #181.
 - **Remaining:** **Owner must rotate the exposed `cli_login_*` token.** Until that
   is done this issue is open.
+
+## 24. Clicking a phase put the popup off the canvas (resolved 2026-08-04)
+- **Symptoms:** Clicking any phase on the Reactive Graph showed the detail popup
+  jammed at the left edge and mostly clipped - identically for every phase - so
+  the "Expand & edit phase" action was effectively unreachable.
+- **Root cause:** `_showNodePopup` positioned from the block's **inline** style:
+  `pop.style.left = nodeEl.style.left`. That worked for the old diagonal nodes,
+  which carried inline `left`/`top`. Horizontal-timeline blocks carry only
+  `width`/`min-width`/`flex`, so `left` resolved to `''` and `top` became the
+  invalid `calc( + 30px)`. Both declarations were dropped and the popup fell back
+  to its static position. **Measured: x = -99.3px for every phase at every
+  viewport.**
+- **Compounding cause:** even after the JS was corrected, `.nc-dgraph-popup`
+  still carried `transform: translate(-50%, 12px)`, centring the popup a second
+  time and pushing it back outside the canvas.
+- **Fix:** PR #193 - position from `getBoundingClientRect()` relative to
+  `#nc-dgraph`, append before measuring so the real `offsetWidth`/`offsetHeight`
+  drive the clamp and flip, and delete the duplicate CSS block carrying the
+  translate.
+- **Verified:** 15 cases (5 phases x canvas 1072 and 420, plain and rich
+  popups), measured after entry animations settle: zero popups outside the
+  canvas, every popup tracking its block centre, clamping engaging on the narrow
+  canvas.
+- **Remaining:** No authenticated smoke - the measurements use the real
+  stylesheet and real markup but never sign in. See KNOWN_LIMITATIONS L14. This
+  bug is exactly what that gap allows through.
+- **Why it shipped:** introduced by the diagonal-to-timeline migration (#190).
+  The migration was verified for geometry, contrast and reachability, but the
+  probe never *clicked* a phase - and the file parses fine, so the new parse
+  guard would not have caught it either.
+
+## 25. backdrop-filter had never rendered anywhere in the app (resolved 2026-08-04)
+- **Symptoms:** Every frosted-glass surface rendered flat. No blur, in any
+  release. Not a regression - it had never worked.
+- **Root cause:** the source declared the standard property first and the
+  `-webkit-` form second. CSS resolves duplicates last-wins and the minifier
+  keeps the last of a prefixed/standard pair, so the build emitted **only**
+  `-webkit-backdrop-filter`. Chrome 151 does not support that alias:
+  `CSS.supports('-webkit-backdrop-filter', 'blur(8px)')` is `false`, and an
+  element with only the prefixed declaration computes `backdrop-filter: none`.
+- **Fix:** PR #194 - 37 declaration pairs reordered to prefix-first across 5
+  stylesheets. Pure reorder, identical line multisets, zero value drift.
+- **Verified:** built CSS went from 21 standard / 64 prefixed to 63 / 64, and the
+  editor scrim that computed `none` now computes `blur(12px)` on the deployed
+  site.
+- **Guarded:** `tests/unit/css-vendor-prefix-order.test.js` fails on any
+  standard-first pair.
+- **Dead ends recorded so they are not retried:** `browserslist` has no effect
+  (Vite 8 ignores it for CSS); `build.cssTarget` does not restore the standard
+  property; `cssMinify: false` works but costs 240KB.

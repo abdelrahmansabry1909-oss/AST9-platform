@@ -234,7 +234,7 @@ IIFEs loaded directly by `app.html`, including `js/rpm/graph-builder.js` and
 reached production as a dead feature; this happened on 2026-08-03 and was caught
 only by a manual `node --check` (ISSUE_LOG #22).
 
-**Closed by `tests/unit/html-script-parse.test.js`**, which parses all 56 local
+**Closed by `tests/unit/html-script-parse.test.js`** (PR #192), which parses all 56 local
 scripts referenced by `app.html` and `index.html` against the goal the browser
 will actually use - `vm.Script` (sloppy mode) for classic tags, `node --check`
 for `type="module"`. Proven by mutation: reintroducing the exact 2026-08-03
@@ -256,3 +256,23 @@ destination inside the repo, or a destination inside any git tree) but **no real
 backup and no real restore has been performed**. A backup path that has not been
 restored from is an assumption, not a recovery capability. The owner must run
 `npx supabase link --project-ref <prod>`, take one backup, and restore it once.
+
+## L18 - The popup's flip-above path is unexercised
+When a phase popup would extend past the canvas bottom it flips above the block.
+That branch has never fired in any measurement: the canvas is
+`clamp(480px, 62vh, 760px)` and a rich popup is about 249px, so on every tested
+viewport the popup fits below. It becomes reachable only when milestone or
+tripwire text wraps enough to push the popup materially taller.
+
+There is also a narrow residual: if a popup fits **neither** below nor above,
+the guard `blockTopY - realH - 8 >= PADDING` correctly declines to flip, so it
+stays below and the overflow is clipped by the canvas. That case is not handled
+and has not been observed.
+
+## L19 - Measuring animated UI immediately after insert reports transient values
+`.nc-dgraph-editor` animates `scale(0.98) -> 1` and `.nc-dgraph-popup`
+`scale(0.95) -> 1`. Reading `getBoundingClientRect` or `getComputedStyle` right
+after insertion returns mid-animation numbers - a 44px control measures 43.1px,
+and the popup's transform reads as `matrix(0.95, ...)`. This produced a
+false-positive defect report on 2026-08-04. Any automated visual check of this
+app must wait for the entry animation before asserting a size or a transform.

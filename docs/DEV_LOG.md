@@ -1223,3 +1223,102 @@ Verification legend:
 - **What this does not do:** it proves each file parses, not that it behaves. A
   runtime error inside a syntactically valid file still requires the
   authenticated smoke that L14 records as missing.
+
+---
+
+## RPM3 - Phase popup positioning and the porcelain phase editor
+
+- **Date:** 2026-08-04
+- **PR:** #193.
+- **Problem:** Clicking any phase put the popup at the canvas's left edge,
+  identically for every phase, where `overflow: hidden` clipped it. The editor
+  behind it was unreachable in practice.
+- **Root cause:** `_showNodePopup` positioned from the block's **inline** style
+  (`nodeEl.style.left` / `.top`). Diagonal nodes carried inline `left`/`top`;
+  timeline blocks carry only `width`/`min-width`/`flex`. So `left` was `''` and
+  `top` became the invalid `calc( + 30px)` - both dropped, leaving the popup at
+  its static position. **Measured before: x = -99.3px for every phase at every
+  viewport.**
+- **Fix:** Position derives from `getBoundingClientRect()` relative to
+  `#nc-dgraph`, which handles the track's horizontal scroll for free because
+  both rects are viewport-relative. The popup is appended **first** so its real
+  `offsetWidth`/`offsetHeight` drive the clamp and the flip - the real height
+  ranges 171px to 249px depending on whether milestone and tripwire rows are
+  present, so the fixed estimate an earlier draft used mispositioned the flip by
+  up to 69px.
+- **The second bug behind the first:** the old `.nc-dgraph-popup` still carried
+  `transform: translate(-50%, 12px)`, which centred the popup a second time on
+  top of the JS centring and pushed it back outside the canvas. Removed; the JS
+  is now the sole positioner.
+- **Editor:** was still dark-theme code in a porcelain app - near-black
+  `rgba(3,16,11,0.85)` scrim, pure-black `rgba(0,0,0,0.65)` shadow, dark fallback
+  literals, flat emerald wash on the header. Now an ink-tinted scrim and layered
+  ink-tinted shadows, `--r-lg`, a `--bg-raised` header with an emerald-700 index
+  disc on white ink at 5.48:1, an 18px dominant title, and a 44x44 close target.
+- **Duplicate rule blocks** for `.nc-dgraph-popup`, `.nc-dgraph-editor` and
+  `.nc-dgraph-editor-overlay` collapsed to one each, so source order can no
+  longer decide which design wins.
+- **Verified** after entry animations settle, 5 phases x canvas 1072 and 420,
+  plain and rich popups: computed transform is the identity matrix, every popup
+  tracks its block centre, **zero popups outside the canvas in all 15 cases**,
+  clamping engages on the narrow canvas, and the editor renders the intended
+  scrim/shadow/radius/header with the close button at exactly 44.0 x 44.0.
+- **Review cost:** four rounds. Three of them failed on the same mechanical
+  cause - new CSS was prepended while the old block remained later in source
+  order and won. `git diff --numstat` showing `+N / -0` for a stylesheet during
+  a redesign is the tell.
+
+---
+
+## CSS1 - Vendor prefixes must precede the standard property
+
+- **Date:** 2026-08-04
+- **PR:** #194.
+- **Problem:** **Every `backdrop-filter` in the app rendered nothing**, in every
+  release. Not a regression - it had never worked.
+- **Root cause:** the source declared the standard property first and the
+  prefixed form second. CSS resolves duplicates last-wins and the minifier keeps
+  the last of a prefixed/standard pair, so the build emitted **only**
+  `-webkit-backdrop-filter`. Chrome 151 does not support that alias at all:
+  `CSS.supports('-webkit-backdrop-filter', 'blur(8px)')` returns `false`, and an
+  element carrying only the prefixed declaration computes `none`.
+- **Measured:** built CSS **21 standard / 64 prefixed** before, **63 / 64**
+  after. The editor scrim that computed `none` now computes `blur(12px)`.
+- **Change:** 37 declaration pairs reordered across 5 stylesheets - 29
+  `backdrop-filter`, 8 `mask-image`. Pure reorder: the removed and added line
+  multisets are identical, zero value drift. The `mask-image` pairs were latent
+  rather than broken (Chrome honours both mask forms and both already survived
+  the build) and were corrected so the convention holds everywhere.
+- **Dead ends, measured, do not repeat:** `browserslist` in `package.json` has
+  **no effect** - Vite 8 does not consult it for CSS. `build.cssTarget` does
+  **not** restore the standard property; it only changes how many prefixes are
+  added. `cssMinify: false` does keep both forms but costs **240KB**.
+- **Guard:** `tests/unit/css-vendor-prefix-order.test.js` fails if a pair is ever
+  written standard-first again, and carries a self-check proving it detects the
+  wrong order. It found the 4 `mask-image` cases the backdrop sweep had missed.
+  Coverage 223 -> 232 unit tests.
+- **Method note worth keeping:** the first `cssTarget` matrix appeared to show
+  "no effect" for every value. The patch had silently failed to apply, because
+  `vite.config.js` has CRLF line endings and the anchor string used `\n`. Every
+  row was the unmodified baseline. Assert that a patch applied before trusting
+  any row of a matrix.
+
+---
+
+## DOC2 - Control-baseline documentation refresh
+
+- **Date:** 2026-08-04
+- **PR:** #191.
+- **Problem:** Every PR merged on 2026-08-02 and 08-03 was undocumented except
+  one. A developer reading the control-baseline docs would have seen a project
+  that stopped on 2026-07-30, with no record that three migrations had been
+  applied to production, that alerting had gone live, or that the RPM graph had
+  been rewritten. Measured: **22 of 23 PRs (#168-#190) appeared in no `.md`
+  file**; afterwards, 0.
+- **Change:** DEV_LOG gained O2, BK1, FK1, D11/L12, DS1, RPM2, BIZ1 and DOC1.
+  ISSUE_LOG gained #20-#23. KNOWN_LIMITATIONS gained L14-L17. DECISIONS gained
+  D12-D14. PROJECT_INDEX was refreshed and its agent-boundary table corrected -
+  it was two revisions stale, still describing Claude as read-only and Codex as
+  the backend owner. PROJECT_STATUS stopped presenting a 2026-06-19 snapshot as
+  current state and now points at the maintained docs.
+- **Note:** the parse guard that closed L15 shipped separately as PR #192.
