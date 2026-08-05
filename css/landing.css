@@ -141,8 +141,8 @@ button { font: inherit; cursor: pointer; border: none; background: none; color: 
     linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
   background-size: 56px 56px;
-  mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, #000 30%, transparent 80%);
   -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, #000 30%, transparent 80%);
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, #000 30%, transparent 80%);
   pointer-events: none;
   z-index: 0;
 }
@@ -211,8 +211,8 @@ button { font: inherit; cursor: pointer; border: none; background: none; color: 
   border: 1px solid var(--nc-border);
   border-radius: var(--nc-r-full);
   background: rgba(255,255,255,0.03);
-  backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
   font-size: 12px;
   font-weight: 500;
   color: var(--nc-text-secondary);
@@ -300,8 +300,8 @@ button { font: inherit; cursor: pointer; border: none; background: none; color: 
 
 .nc-nav.scrolled {
   background: rgba(7, 17, 26, 0.72);
-  backdrop-filter: blur(24px) saturate(180%);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
   border-bottom-color: var(--nc-border);
   padding: var(--nc-sp-3) 0;
 }
@@ -523,8 +523,8 @@ button { font: inherit; cursor: pointer; border: none; background: none; color: 
 .nc-floating-card {
   position: absolute;
   background: var(--nc-bg-card);
-  backdrop-filter: blur(20px) saturate(160%);
   -webkit-backdrop-filter: blur(20px) saturate(160%);
+  backdrop-filter: blur(20px) saturate(160%);
   border: 1px solid var(--nc-border);
   border-radius: var(--nc-r-lg);
   padding: var(--nc-sp-4);
@@ -650,8 +650,8 @@ button { font: inherit; cursor: pointer; border: none; background: none; color: 
   border-radius: var(--nc-r-2xl);
   padding: clamp(24px, 4vw, 64px);
   box-shadow: var(--nc-shadow-xl);
-  backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
 }
 
 .nc-tab-panel.active { display: grid; animation: nc-fade-up 0.5s var(--nc-ease) both; }
@@ -854,8 +854,8 @@ button { font: inherit; cursor: pointer; border: none; background: none; color: 
   right: var(--nc-sp-6);
   padding: var(--nc-sp-5);
   background: var(--nc-bg-card);
-  backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
   border: 1px solid var(--nc-border);
   border-radius: var(--nc-r-lg);
   z-index: 2;
@@ -888,8 +888,8 @@ button { font: inherit; cursor: pointer; border: none; background: none; color: 
     linear-gradient(rgba(20,184,166,0.06) 1px, transparent 1px),
     linear-gradient(90deg, rgba(20,184,166,0.06) 1px, transparent 1px);
   background-size: 40px 40px;
-  mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, #000, transparent 80%);
   -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, #000, transparent 80%);
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, #000, transparent 80%);
   pointer-events: none;
 }
 
@@ -919,8 +919,8 @@ button { font: inherit; cursor: pointer; border: none; background: none; color: 
   display: flex; align-items: center; gap: var(--nc-sp-2);
   padding: 6px 12px;
   background: var(--nc-bg-card);
-  backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
   border: 1px solid var(--nc-border-glow);
   border-radius: var(--nc-r-full);
   font-size: 12px;
@@ -1140,8 +1140,8 @@ button { font: inherit; cursor: pointer; border: none; background: none; color: 
     linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
   background-size: 48px 48px;
-  mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, #000, transparent 80%);
   -webkit-mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, #000, transparent 80%);
+  mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, #000, transparent 80%);
   pointer-events: none;
 }
 
@@ -1279,8 +1279,8 @@ button { font: inherit; cursor: pointer; border: none; background: none; color: 
   border: 1px solid var(--nc-border-strong);
   border-radius: var(--nc-r-lg);
   box-shadow: var(--nc-shadow-xl), 0 0 0 1px rgba(20,184,166,0.10);
-  backdrop-filter: blur(20px) saturate(160%);
   -webkit-backdrop-filter: blur(20px) saturate(160%);
+  backdrop-filter: blur(20px) saturate(160%);
   z-index: 120;
   opacity: 0;
   visibility: hidden;
@@ -1378,8 +1378,8 @@ button:focus-visible,
   width: 280px;
   padding: var(--nc-sp-5);
   background: var(--nc-bg-card);
-  backdrop-filter: blur(24px) saturate(160%);
   -webkit-backdrop-filter: blur(24px) saturate(160%);
+  backdrop-filter: blur(24px) saturate(160%);
   border: 1px solid var(--nc-border-strong);
   border-radius: var(--nc-r-xl);
   box-shadow: var(--nc-shadow-xl), 0 0 40px rgba(20, 184, 166, 0.08);
@@ -1762,16 +1762,16 @@ body.nc-body {
 /* 2. Light white/80 Glass Navigation */
 .nc-nav {
   background: rgba(255, 255, 255, 0.80) !important;
-  backdrop-filter: blur(12px) !important;
   -webkit-backdrop-filter: blur(12px) !important;
+  backdrop-filter: blur(12px) !important;
   border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
   padding: 16px 0 !important;
   transition: all 0.3s ease !important;
 }
 .nc-nav.scrolled {
   background: rgba(255, 255, 255, 0.80) !important;
-  backdrop-filter: blur(12px) !important;
   -webkit-backdrop-filter: blur(12px) !important;
+  backdrop-filter: blur(12px) !important;
   border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
   padding: 12px 0 !important;
 }
