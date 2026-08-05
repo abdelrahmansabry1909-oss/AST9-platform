@@ -28,8 +28,8 @@
     padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
     background: rgba(14, 26, 36, 0.94);          /* --nc-bg-secondary, translucent */
     border-top: 1px solid var(--nc-border, rgba(255,255,255,0.08));
-    backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
   }
 
   /* Keep scroll content clear of the fixed bar. */

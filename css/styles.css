@@ -1717,8 +1717,8 @@ body.nc-bright .mob-nav-btn.active {
   background: var(--nc-glass);
   border: 0.5px solid var(--nc-border);
   border-radius: 10px;
-  backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
   box-shadow: 0 0 22px rgba(0,212,255,0.07),
               0 0 1px rgba(0,212,255,0.28) inset;
   color: var(--nc-text);
@@ -1866,8 +1866,8 @@ body.nc-bright .mob-nav-btn.active {
 /* ── GLASSMORPHISM CARD ────────────────────────────────── */
 .glass-card {
   background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
   border: 1px solid var(--glass-border);
   border-radius: var(--r-xl);
 }
@@ -1908,8 +1908,8 @@ body.nc-bright .mob-nav-btn.active {
     linear-gradient(var(--nc-fg-05) 1px, transparent 1px),
     linear-gradient(90deg, var(--nc-fg-05) 1px, transparent 1px);
   background-size: 40px 40px;
-  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, #000 30%, transparent 80%);
   -webkit-mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, #000 30%, transparent 80%);
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, #000 30%, transparent 80%);
   pointer-events: none;
 }
 
@@ -1993,8 +1993,8 @@ body.nc-bright .mob-nav-btn.active {
 .pop-panel,
 .assessment-pop-panel {
   background: var(--glass-bg-strong) !important;
-  backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
   border: 1px solid var(--glass-border) !important;
   border-radius: var(--r-lg) !important;
   box-shadow: var(--glow-teal), var(--shadow-xl) !important;
@@ -2014,8 +2014,8 @@ body.nc-bright .mob-nav-btn.active {
 /* Standalone kinesis-card (no inline spring → use keyframe) */
 .kinesis-card {
   background: var(--glass-bg-strong);
-  backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
   border: 1px solid var(--glass-border);
   border-radius: var(--r-lg);
   box-shadow: var(--glow-teal), var(--shadow-xl);
@@ -2130,8 +2130,8 @@ body.nc-bright .mob-nav-btn.active {
     linear-gradient(var(--nc-fg-05) 1px, transparent 1px),
     linear-gradient(90deg, var(--nc-fg-05) 1px, transparent 1px);
   background-size: 56px 56px;
-  mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, #000 30%, transparent 80%);
   -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, #000 30%, transparent 80%);
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, #000 30%, transparent 80%);
   pointer-events: none;
 }
 
@@ -2153,8 +2153,8 @@ body.nc-bright .mob-nav-btn.active {
   max-width: 440px;
   padding: 44px 40px 36px;
   background: var(--glass-bg-strong);
-  backdrop-filter: blur(24px) saturate(160%);
   -webkit-backdrop-filter: blur(24px) saturate(160%);
+  backdrop-filter: blur(24px) saturate(160%);
   border: 1px solid var(--glass-border);
   border-radius: 24px;
   box-shadow: var(--glow-teal), 0 32px 100px rgba(0,0,0,0.65);
@@ -2351,8 +2351,8 @@ body.nc-bright .mob-nav-btn.active {
   color: var(--text-secondary);
   font-size: 13px;
   text-decoration: none;
-  backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
   transition: all 0.22s var(--ease-out);
 }
 .nc-login-back:hover { color: var(--nc-cyan); border-color: var(--nc-teal); }
@@ -2427,8 +2427,8 @@ body.nc-bright .mob-nav-btn.active {
   color: var(--text-primary);
   display: inline-flex; align-items: center; justify-content: center;
   transition: all 0.25s var(--ease-out);
-  backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
   cursor: pointer;
 }
 .nc-carousel-btn:hover:not(:disabled) {
@@ -2637,8 +2637,8 @@ body.nc-bright .mob-nav-btn.active {
   align-items: center;
   justify-content: center;
   background: var(--nc-fg-20);
-  backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
   border: 1px solid var(--nc-fg-20);
   color: #fff;
   margin-bottom: 18px;
@@ -2873,8 +2873,8 @@ body.nc-bright .mob-nav-btn.active {
   justify-content: center;
   padding: 24px;
   background: rgba(4, 10, 20, 0.78);
-  backdrop-filter: blur(12px) saturate(140%);
   -webkit-backdrop-filter: blur(12px) saturate(140%);
+  backdrop-filter: blur(12px) saturate(140%);
 }
 .nc-visitor-modal.open { display: flex; animation: nc-modal-fade 0.25s var(--ease-out); }
 @keyframes nc-modal-fade { from { opacity: 0; } to { opacity: 1; } }
@@ -4531,8 +4531,8 @@ body.nc-bright .mob-nav-btn.active {
   justify-content: center;
   padding: 20px;
   background: rgba(4, 10, 20, 0.78);
-  backdrop-filter: blur(12px) saturate(140%);
   -webkit-backdrop-filter: blur(12px) saturate(140%);
+  backdrop-filter: blur(12px) saturate(140%);
 }
 .nc-fb-overlay.open { display: flex; animation: nc-modal-fade 0.22s var(--ease-out); }
 
@@ -4800,8 +4800,8 @@ body.nc-bright .mob-nav-btn.active {
     linear-gradient(rgba(20,184,166,0.05) 1px, transparent 1px),
     linear-gradient(90deg, rgba(20,184,166,0.05) 1px, transparent 1px);
   background-size: 32px 32px;
-  mask-image: radial-gradient(ellipse 65% 65% at 50% 45%, #000, transparent 80%);
   -webkit-mask-image: radial-gradient(ellipse 65% 65% at 50% 45%, #000, transparent 80%);
+  mask-image: radial-gradient(ellipse 65% 65% at 50% 45%, #000, transparent 80%);
   pointer-events: none;
 }
 .nc-rpm-bodymap-title {
@@ -5428,8 +5428,8 @@ body.nc-bright .mob-nav-btn.active {
   padding: 40px 20px;
   overflow-y: auto;
   background: rgba(3,16,11,0.85);
-  backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
 }
 .nc-dgraph-editor {
   width: 100%;
@@ -5922,8 +5922,8 @@ body.nc-bright .mob-nav-btn.active {
   border: 1px solid rgba(255,255,255,0.08) !important;
   background: rgba(255, 255, 255, 0.02) !important;
   color: var(--nc-text-primary) !important;
-  backdrop-filter: blur(12px) !important;
   -webkit-backdrop-filter: blur(12px) !important;
+  backdrop-filter: blur(12px) !important;
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 .nc-btn--ghost:hover {
@@ -5995,8 +5995,8 @@ body.nc-bright .mob-nav-btn.active {
     linear-gradient(rgba(20, 184, 166, 0.012) 1px, transparent 1px),
     linear-gradient(90deg, rgba(20, 184, 166, 0.012) 1px, transparent 1px);
   background-size: 40px 40px;
-  mask-image: radial-gradient(circle 400px at 50% 50%, #000, transparent);
   -webkit-mask-image: radial-gradient(circle 400px at 50% 50%, #000, transparent);
+  mask-image: radial-gradient(circle 400px at 50% 50%, #000, transparent);
   pointer-events: none;
 }
 
@@ -6170,8 +6170,8 @@ body.nc-bright .mob-nav-btn.active {
   border-radius: 12px;
   padding: 18px;
   box-shadow: 0 16px 40px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.05);
-  backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
   color: #F8FAFC;
   flex-shrink: 0;
 }

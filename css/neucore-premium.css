@@ -161,8 +161,8 @@ body.nc-bright:not(.nc-client) .card-active {
 
 body.nc-bright:not(.nc-client) .glass-card {
   background: rgba(255,255,255,0.80);
-  backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
   border: 1px solid rgba(0,0,0,0.06);
   border-radius: 12px;
 }
@@ -1121,8 +1121,8 @@ body.nc-bright:not(.nc-client) .subs-filter-btn.active {
 /* Modal visual style & entrance keyframe override */
 body.nc-bright:not(.nc-client) .modal-overlay {
   background: rgba(13, 24, 40, 0.48) !important;
-  backdrop-filter: blur(12px) saturate(1.2) !important;
   -webkit-backdrop-filter: blur(12px) saturate(1.2) !important;
+  backdrop-filter: blur(12px) saturate(1.2) !important;
   animation: nc-modal-fade-in var(--nc-dur-fast) ease-out both;
 }
 @keyframes nc-modal-fade-in {
@@ -2349,8 +2349,8 @@ body.service-athletic .nc-ai-chip::before {
     linear-gradient(rgba(16, 185, 129, 0.015) 1px, transparent 1px),
     linear-gradient(90deg, rgba(16, 185, 129, 0.015) 1px, transparent 1px) !important;
   background-size: 64px 64px !important;
-  mask-image: radial-gradient(circle 500px at 50% 50%, #000 40%, transparent 100%) !important;
   -webkit-mask-image: radial-gradient(circle 500px at 50% 50%, #000 40%, transparent 100%) !important;
+  mask-image: radial-gradient(circle 500px at 50% 50%, #000 40%, transparent 100%) !important;
   pointer-events: none !important;
   z-index: 1 !important;
   opacity: 0.4 !important;
@@ -3098,8 +3098,8 @@ body.nc-bright:not(.nc-client) #modal-ex-video.modal-overlay.hidden,
 @media (max-width: 639.98px) {
   body.nc-bright:not(.nc-client) .modal-overlay,
   .modal-overlay {
-    backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
   }
 }
 
@@ -3350,8 +3350,8 @@ body.nc-bright:not(.nc-client) .sidebar .nc-sidebar-wordmark .nc-sidebar-mark {
 body.nc-bright:not(.nc-client) .topbar {
   background: #FFFFFF !important;
   border-bottom: 1px solid var(--nc-border) !important;
-  backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
 }
 body.nc-bright:not(.nc-client) .topbar .page-title {
   color: var(--nc-text-primary) !important;

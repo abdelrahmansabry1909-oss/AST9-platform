@@ -489,8 +489,8 @@ body.nc-bright:not(.nc-client) .nc-dashboard-hero {
    .nc-glass--hairline  + gradient hairline edge (mask-composite) */
 .nc-glass {
   background: var(--nc-glass-bg);
-  backdrop-filter: blur(var(--nc-glass-blur));
   -webkit-backdrop-filter: blur(var(--nc-glass-blur));
+  backdrop-filter: blur(var(--nc-glass-blur));
   border-radius: var(--nc-r-lg);
   box-shadow: var(--nc-elev-floating);
   position: relative;
