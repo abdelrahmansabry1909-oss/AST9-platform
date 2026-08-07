@@ -276,3 +276,38 @@ after insertion returns mid-animation numbers - a 44px control measures 43.1px,
 and the popup's transform reads as `matrix(0.95, ...)`. This produced a
 false-positive defect report on 2026-08-04. Any automated visual check of this
 app must wait for the entry animation before asserting a size or a transform.
+
+## L20 - The Pages artifact silently drops hidden files
+`actions/upload-pages-artifact` stopped including dotfiles in v4.0.0 and the
+exclusion is the default. Its v5 archive step runs
+
+```
+--exclude=.git --exclude=.github --exclude=.[^/]*
+```
+
+so **anything in `dist/` whose name starts with a dot never reaches the
+deployed site**, and the build does not warn - `tar` just does not add it. The
+symptom is a path that 404s on the live site while existing locally and in
+`dist/`.
+
+This is inert today: a fresh `npm run build` produces **zero** dotfiles
+anywhere in `dist/`, measured 2026-08-07. It becomes live the moment the app
+needs one - `.nojekyll`, or a `.well-known/` entry for domain verification or
+an app-site-association file, both realistic for a SaaS.
+
+The switch is an explicit opt-in on the upload step in
+`.github/workflows/deploy.yml`:
+
+```yaml
+- name: Upload Pages artifact
+  uses: actions/upload-pages-artifact@v5
+  with:
+    path: dist
+    include-hidden-files: true   # required for .nojekyll, .well-known/, etc.
+```
+
+`.git` and `.github` stay excluded regardless of that input, so enabling it
+does not leak repository internals into the deployed bundle.
+
+**Applies once PR #149 (`upload-pages-artifact` v3 -> v5) is merged.** The
+pinned v3 still includes dotfiles, so nothing is dropped before that lands.
