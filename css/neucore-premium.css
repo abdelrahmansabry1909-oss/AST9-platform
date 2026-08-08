@@ -1136,7 +1136,20 @@ body.nc-bright:not(.nc-client) .modal {
   border-radius: 20px !important;
   box-shadow: 0 24px 60px rgba(13, 24, 40, 0.16) !important;
   animation: nc-modal-scale-in var(--nc-dur-base) var(--nc-ease-spring) both;
+  /* `overflow:hidden` clips children to the 20px radius, but it also beat the
+     base `.modal { overflow-y:auto }` in styles.css — so on any viewport where
+     the content exceeded `max-height:90vh` the surplus was clipped away with no
+     way to scroll to it, taking the footer's primary action with it. Keep the
+     clipping, but move the scroll to `.modal-body`: header and footer stay
+     pinned, only the body scrolls. */
   overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+/* The chrome must never shrink — it is what the body scrolls between. */
+body.nc-bright:not(.nc-client) .modal-header,
+body.nc-bright:not(.nc-client) .modal-footer {
+  flex: 0 0 auto !important;
 }
 body.nc-bright:not(.nc-client) .modal::before {
   background: linear-gradient(90deg, var(--nc-indigo) 0%, var(--nc-teal) 100%) !important;
@@ -1160,6 +1173,11 @@ body.nc-bright:not(.nc-client) .modal-header h3 {
 }
 body.nc-bright:not(.nc-client) .modal-body {
   padding: 24px !important;
+  /* `min-height:0` is required: a flex child's default `min-height:auto`
+     refuses to shrink below its content, which would push the footer back out
+     of the panel and re-create the bug. */
+  overflow-y: auto !important;
+  min-height: 0 !important;
 }
 body.nc-bright:not(.nc-client) .modal-footer {
   padding: 16px 24px !important;
