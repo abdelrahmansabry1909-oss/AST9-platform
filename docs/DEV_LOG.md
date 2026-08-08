@@ -1322,3 +1322,55 @@ Verification legend:
   the backend owner. PROJECT_STATUS stopped presenting a 2026-06-19 snapshot as
   current state and now points at the maintained docs.
 - **Note:** the parse guard that closed L15 shipped separately as PR #192.
+
+---
+
+## CI1 - GitHub Pages actions moved to v5
+
+- **Date:** 2026-08-08
+- **PRs:** #150 (`actions/deploy-pages` v4 -> v5), #149
+  (`actions/upload-pages-artifact` v3 -> v5), #196 (the L20 entry).
+- **Why:** both actions still ran on the **node20** runtime, which GitHub is
+  deprecating. Deferring meant taking the breakage on GitHub's schedule instead
+  of ours. node24 was already proven safe on these runners - `checkout@v7` and
+  `setup-node@v7` are both `using: node24`, already merged, and every deploy
+  since has been green.
+- **#150 is a pure runtime bump.** Inputs are identical across v4 and v5
+  (`token`, `timeout`, `error_count`, `reporting_interval`, `artifact_name`,
+  `preview` -> `page_url`), and the artifact-lookup library barely moves
+  (`@actions/artifact` `^2.1.3` -> `^2.1.8`, same major).
+- **#149 carries a real breaking change** - v4.0.0 stopped including hidden
+  files and the exclusion is the default. Measured inert here: a fresh
+  `npm run build` produces **zero** dotfiles anywhere in `dist/`. Recorded as
+  KNOWN_LIMITATIONS **L20** so the silent-drop behaviour is on record before the
+  app ever needs `.nojekyll` or a `.well-known/` entry.
+- **Merge order mattered, and was deliberate.** #150 first, because the
+  intermediate state it produces - `upload-pages-artifact@v3` +
+  `deploy-pages@v5` - is *exactly* GitHub's current Pages starter-workflow
+  pairing, so the waypoint is one GitHub itself validates. Merging #149 first
+  would have parked `main` on upload-v5 + deploy-v4, a combination GitHub ships
+  nowhere. Both orders end at v5/v5; only one has a validated midpoint.
+- **Neither PR's CI exercised the changed lines.** The required check is
+  `Playwright smoke (Chromium)` from `smoke-tests.yml`; `deploy.yml` is
+  `on: push: branches: [main]` and never runs on a pull request. The green check
+  said nothing about whether the deploy worked - **the first execution of both
+  new versions was on `main`, against the live site.** Hence one merge at a
+  time, with the deploy watched between them.
+- **Verified live, not just green:** the injected `AST9_BUILD_ID` on the
+  deployed `app.html` reads `ade1e74…`, matching `origin/main` exactly, so the
+  bundle came from the right commit. `dist/` was rebuilt at that SHA and **all
+  70 files probed 200 on the live site** - including the 6 legal pages and both
+  `models/` assets. Nothing was dropped.
+- **Residual risk, accepted knowingly:** `upload-artifact@v7` writes with
+  `@actions/artifact ^6.2.0` while `deploy-pages` reads with `^2.1.8`. Wire
+  compatibility across that split cannot be proven from release archaeology.
+  GitHub maintains both actions and ships the v5/v5 pair with the read side
+  deliberately on 2.1.x, and the first real deploy passed - which is the
+  evidence that matters.
+- **Not verified:** no authenticated smoke. This confirms the pipeline and the
+  bundle, not that sign-in or role routing behave correctly. See
+  KNOWN_LIMITATIONS L14.
+- **Rollback path if a future bump breaks a deploy:** Pages keeps serving the
+  last *successful* deployment, so a red run freezes the site rather than taking
+  it down. A revert PR also touches `.github/workflows/`, so it needs a browser
+  merge from the owner - the repo token has no `workflow` scope.
