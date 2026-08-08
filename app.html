@@ -1824,6 +1824,10 @@
             <div class="setting-label"><h4>Change Password</h4><p>Update your account password</p></div>
             <button class="btn btn-ghost btn-sm" onclick="Dashboard.openModal('modal-change-password')">Change</button>
           </div>
+          <div class="setting-row">
+            <div class="setting-label"><h4>Onboarding Tour</h4><p>Replay the product walkthrough for your role</p></div>
+            <button class="btn btn-ghost btn-sm" onclick="Tour.start()" style="min-width:44px;min-height:44px">Replay Tour</button>
+          </div>
         </div>
         <div class="card">
           <div class="card-header"><span class="card-title">Platform</span></div>
@@ -1959,6 +1963,13 @@
               <p>Update your account password.</p>
             </div>
             <button class="btn btn-primary btn-sm" onclick="Dashboard.openModal('modal-change-password')">Change</button>
+          </div>
+          <div class="setting-row">
+            <div class="setting-label">
+              <h4>Onboarding Tour</h4>
+              <p>Replay the product walkthrough for your role.</p>
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="Tour.start()" style="min-width:44px;min-height:44px">Replay Tour</button>
           </div>
         </div>
         <div class="card glass-card">
@@ -4251,11 +4262,12 @@ const UI = {
     // Task 7: deep-link from landing.html (#start-assessment)
     UI._handleLandingHash();
 
-    // Phase 4 — first-login onboarding tour for new self-signup coaches.
+    // Phase 4 — first-login onboarding tour for new self-signup coaches & clients.
     setTimeout(() => {
       try {
         const p = Auth.getProfile?.();
-        if (typeof Tour !== 'undefined' && Auth.getRole?.() === 'coach'
+        const r = Auth.getRole?.();
+        if (typeof Tour !== 'undefined' && (r === 'coach' || r === 'client')
             && p && !p.onboarding_completed_at) {
           Tour.start();
         }
