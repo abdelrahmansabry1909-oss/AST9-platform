@@ -309,5 +309,8 @@ The switch is an explicit opt-in on the upload step in
 `.git` and `.github` stay excluded regardless of that input, so enabling it
 does not leak repository internals into the deployed bundle.
 
-**Applies once PR #149 (`upload-pages-artifact` v3 -> v5) is merged.** The
-pinned v3 still includes dotfiles, so nothing is dropped before that lands.
+**In force since 2026-08-08** (PR #149, `upload-pages-artifact` v3 -> v5, merge
+`ade1e74`). The first deploy on v5 was verified complete: all **70** files in
+`dist/` returned 200 on the live site, and the injected `AST9_BUILD_ID` matched
+the deployed commit. Nothing was dropped - because there was nothing hidden to
+drop. See DEV_LOG CI1.
