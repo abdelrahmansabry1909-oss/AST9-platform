@@ -72,39 +72,39 @@
       id: 'today',
       name: 'Today',
       steps: [
-        { sel: '#nav-dashboard', title: 'Today’s view', body: 'Your daily dashboard — see your active tasks, progress, and upcoming sessions.' }
+        { sel: '#section-dashboard', section: 'dashboard', title: 'Today’s view', body: 'Your daily dashboard — see your active tasks, progress, and upcoming sessions.' }
       ]
     },
     {
       id: 'program',
       name: 'Your program',
       steps: [
-        { sel: '#nav-client-train', title: 'Your training plan', body: 'Find your active training program prescribed by your coach.' },
-        { sel: '#nav-client-train', title: 'Starting a session', body: 'Open your current workout phase to follow guided exercises and log reps.' }
+        { sel: '#section-client-train', section: 'client-train', title: 'Your training plan', body: 'Find your active training program prescribed by your coach.' },
+        { sel: '#section-client-train', section: 'client-train', title: 'Starting a session', body: 'Open your current workout phase to follow guided exercises and log reps.' }
       ]
     },
     {
       id: 'progress',
       name: 'Seeing it work',
       steps: [
-        { sel: '#nav-client-progress', title: 'Progress tracking', body: 'Track your movement scores, adherence trends, and recovery over time.' },
-        { sel: '#nav-my-graph', title: 'Your Body Map', body: 'Visualize joint mobility and regional load changes as you improve.' }
+        { sel: '#section-client-progress', section: 'client-progress', title: 'Progress tracking', body: 'Track your movement scores, adherence trends, and recovery over time.' },
+        { sel: '#section-my-graph', section: 'my-graph', title: 'Your Body Map', body: 'Visualize joint mobility and regional load changes as you improve.' }
       ]
     },
     {
       id: 'coach',
       name: 'Your coach',
       steps: [
-        { sel: '#nav-client-coach', title: 'Coach check-ins', body: 'Connect with your coach, view feedback, and stay aligned on your goals.' },
-        { sel: '#nav-community', title: 'Community feed', body: 'Stay connected with fellow members and view practice announcements.' }
+        { sel: '#section-client-coach', section: 'client-coach', title: 'Coach check-ins', body: 'Connect with your coach, view feedback, and stay aligned on your goals.' },
+        { sel: '#section-community', section: 'community', title: 'Community feed', body: 'Stay connected with fellow members and view practice announcements.' }
       ]
     },
     {
       id: 'rest',
       name: 'The rest',
       steps: [
-        { sel: '#nav-nutrition-plan', title: 'Nutrition guidance', body: 'View prescribed nutritional plans and hydration targets.' },
-        { sel: '#nav-client-settings', title: 'Account settings', body: 'Update your profile, notification preferences, or replay this tour anytime.' }
+        { sel: '#section-nutrition-plan', section: 'nutrition-plan', title: 'Nutrition guidance', body: 'View prescribed nutritional plans and hydration targets.' },
+        { sel: '#section-client-settings', section: 'client-settings', title: 'Account settings', body: 'Update your profile, notification preferences, or replay this tour anytime.' }
       ]
     }
   ];
@@ -287,7 +287,26 @@
     const visible = target && target.offsetParent !== null && target.getBoundingClientRect().width > 0;
     const card = _els.card, ring = _els.ring;
 
-    if (!visible) {
+    // Some steps point at a whole screen rather than a control. Client steps do
+    // this by necessity: a client has no sidebar — it is `display:none` at every
+    // width — so there is no icon to ring, and the section itself is the
+    // subject. Ringing a screen draws a border around everything and leaves the
+    // card no room but on top of what it is pointing at (measured: 12-34% of the
+    // target covered). Dim the page and centre the card instead.
+    //
+    // Section containers are recognised by what they are, not by how big they
+    // happen to be, so the behaviour does not change with viewport or content.
+    // The area rule is a backstop for any other target that grows to fill the
+    // screen.
+    const DOMINATES_SCREEN = 0.6;
+    let isScreenTarget = false;
+    if (visible) {
+      const b = target.getBoundingClientRect();
+      isScreenTarget = target.classList.contains('section')
+        || (b.width * b.height) / (window.innerWidth * window.innerHeight) > DOMINATES_SCREEN;
+    }
+
+    if (!visible || isScreenTarget) {
       ring.style.display = 'none';
       card.style.left = '50%';
       card.style.top = '50%';

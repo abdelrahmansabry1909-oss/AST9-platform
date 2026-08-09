@@ -228,3 +228,27 @@ test('no tour step anchors to an element the stylesheet only reveals on hover', 
     );
   }
 });
+
+test('client steps target their section, because a client has no sidebar', () => {
+  // `body.nc-client #sidebar` is display:none at every width — mobile-shell.css
+  // covers <=768px and neucore-premium.css covers >=769px — so every client
+  // step that anchored a `#nav-*` item spotlighted nothing at all. Client steps
+  // point at their section instead, and the tour treats a section as a screen:
+  // it dims and centres rather than drawing a border around everything.
+  const clientSteps = tourStepsWithSections(tourSource).filter((s) => s.role === 'client');
+  assert.ok(clientSteps.length >= 8, `expected the client step set, found ${clientSteps.length}`);
+  for (const s of clientSteps) {
+    assert.ok(
+      s.sel.startsWith('#section-'),
+      `client step "${s.sel}" must anchor its section — a client never sees the sidebar`
+    );
+    assert.ok(
+      appHtml.includes(`id="${s.sel.slice(1)}"`),
+      `client step anchors ${s.sel}, which does not exist in app.html`
+    );
+  }
+  assert.ok(
+    /classList\.contains\('section'\)/.test(tourSource),
+    'the positioner must treat a section target as a screen, not ring it'
+  );
+});
