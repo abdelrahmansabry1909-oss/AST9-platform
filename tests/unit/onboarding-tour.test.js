@@ -102,6 +102,153 @@ test('tour CSS does not set display: ... !important on shell-toggled elements', 
 
 test('tour start is guarded against starting over gate screens (_isGateVisible)', () => {
   assert.ok(tourSource.includes('_isGateVisible'), 'Tour must include gate screen visibility check');
-  assert.ok(tourSource.includes('screen-login'), 'Tour gate check must inspect #screen-login');
-  assert.ok(tourSource.includes('screen-legal-required'), 'Tour gate check must inspect #screen-legal-required');
+  // The guard requires the app screen to be up and every other screen down,
+  // rather than naming individual gates. An earlier version listed two of the
+  // five and tested an `#app` element that does not exist, so its third clause
+  // could never fire.
+  assert.ok(tourSource.includes('screen-app'), 'gate check must require #screen-app to be visible');
+  assert.ok(/\[id\^="screen-"\]/.test(tourSource), 'gate check must sweep every #screen-* element, not a hand-written list');
+  assert.ok(!/getElementById\('app'\)/.test(tourSource), "gate check must not test #app — no such element exists in app.html");
+});
+
+test('every gate screen the guard must cover exists in app.html', () => {
+  const screens = [...new Set([...appHtml.matchAll(/id="(screen-[a-z-]+)"/g)].map((m) => m[1]))];
+  assert.ok(screens.includes('screen-app'), 'app.html must contain #screen-app');
+  // Recorded so a future screen shows up here rather than silently escaping.
+  assert.ok(screens.length >= 5, `expected the full set of gate screens, found ${screens.join(', ')}`);
+});
+
+// ── Navigation (added when the tour learned to open the screens it describes) ──
+//
+// The tour originally only ringed sidebar icons and never changed section, so
+// it described screens the user never saw — and the "+ Add Client" step, whose
+// anchor lives inside #section-clients, had no anchor to ring at all and fell
+// back to a centred card with no spotlight.
+//
+// A step's section is derived from its `#nav-x` anchor and may be overridden
+// with an explicit `section`. These guard the two ways that can break: naming a
+// section that does not exist, and routing a client somewhere they may not go.
+
+/** Every step, with the section it will open (null = stays put). */
+function tourStepsWithSections(source) {
+  const steps = [];
+  for (const key of ['COACH_CHAPTERS', 'CLIENT_CHAPTERS']) {
+    const at = source.indexOf(`const ${key} = [`);
+    if (at === -1) continue;
+    let depth = 0, end = -1;
+    const from = source.indexOf('[', at);
+    for (let i = from; i < source.length; i++) {
+      if (source[i] === '[') depth++;
+      else if (source[i] === ']') { depth--; if (!depth) { end = i; break; } }
+    }
+    for (const line of source.slice(from, end).split('\n')) {
+      const sel = /sel:\s*'([^']+)'/.exec(line);
+      if (!sel) continue;
+      const explicit = /section:\s*'([^']+)'/.exec(line);
+      const derived = /^#nav-([a-z0-9-]+)$/.exec(sel[1]);
+      steps.push({
+        role: key === 'CLIENT_CHAPTERS' ? 'client' : 'coach',
+        sel: sel[1],
+        section: explicit ? explicit[1] : (derived ? derived[1] : null),
+      });
+    }
+  }
+  return steps;
+}
+
+test('every section a tour step opens exists in app.html', () => {
+  const steps = tourStepsWithSections(tourSource);
+  assert.ok(steps.length >= 20, `expected the full step set, found ${steps.length}`);
+  for (const s of steps) {
+    if (!s.section) continue;
+    assert.ok(
+      appHtml.includes(`id="section-${s.section}"`),
+      `step "${s.sel}" opens section "${s.section}", which has no #section-${s.section} in app.html`
+    );
+  }
+});
+
+test('no client tour step opens a section outside CLIENT_SAFE_SECTIONS', () => {
+  for (const s of tourStepsWithSections(tourSource).filter((x) => x.role === 'client' && x.section)) {
+    assert.ok(
+      clientSafeSections.has(s.section),
+      `client step "${s.sel}" opens "${s.section}", which is not client-safe`
+    );
+  }
+});
+
+test('a step whose anchor is not a nav item names its section explicitly', () => {
+  // Otherwise the anchor cannot be found: it only renders once its own section
+  // is active, which is exactly the bug this navigation work fixed.
+  for (const s of tourStepsWithSections(tourSource)) {
+    if (/^#nav-[a-z0-9-]+$/.test(s.sel) || s.sel === '#notif-bell') continue;
+    assert.ok(s.section, `step "${s.sel}" is not a nav anchor and must declare a section`);
+  }
+});
+
+test('the tour navigates and restores, without gaining write access', () => {
+  assert.ok(/Dashboard\.showSection\(/.test(tourSource), 'tour must open the section each step describes');
+  assert.ok(/_returnSection/.test(tourSource), 'tour must restore the section the user started on');
+  // Navigation must not have smuggled in mutation.
+  assert.ok(!/openModal\(|\.click\(\)|\.submit\(/i.test(tourSource), 'navigation must not open modals or press controls');
+});
+
+test('no tour step anchors to an element the stylesheet only reveals on hover', () => {
+  // `#notif-bell` is `display:none !important` above 901px unless the sidebar is
+  // :hover or :focus-within. During a tour the cursor sits on the card, so that
+  // step spotlighted nothing and the card floated centred — the same symptom as
+  // an anchor inside a closed section, from a different cause.
+  const css = ['neucore-premium.css', 'styles.css', 'neucore-design-system.css']
+    .map((f) => {
+      try { return readFileSync(new URL(`../../css/${f}`, import.meta.url), 'utf8'); }
+      catch { return ''; }
+    })
+    .join('\n');
+
+  const rules = [...css.matchAll(/([^{}]+)\{([^}]*)\}/g)]
+    .map((m) => ({ sel: m[1].replace(/\s+/g, ' ').trim(), decls: m[2] }));
+
+  const hoverGated = (id) => {
+    const mentions = rules.filter((r) => r.sel.includes('#' + id));
+    const hiddenByDefault = mentions.some(
+      (r) => /display\s*:\s*none/i.test(r.decls) && !/:hover|:focus-within/.test(r.sel)
+    );
+    const shownOnHover = mentions.some(
+      (r) => /:hover|:focus-within/.test(r.sel) && /display\s*:\s*(?!none)/i.test(r.decls)
+    );
+    return hiddenByDefault && shownOnHover;
+  };
+
+  for (const s of tourStepsWithSections(tourSource)) {
+    const id = /^#([a-z0-9-]+)$/.exec(s.sel)?.[1];
+    if (!id) continue;
+    assert.ok(
+      !hoverGated(id),
+      `step anchors to #${id}, which the stylesheet hides unless hovered — it would spotlight nothing`
+    );
+  }
+});
+
+test('client steps target their section, because a client has no sidebar', () => {
+  // `body.nc-client #sidebar` is display:none at every width — mobile-shell.css
+  // covers <=768px and neucore-premium.css covers >=769px — so every client
+  // step that anchored a `#nav-*` item spotlighted nothing at all. Client steps
+  // point at their section instead, and the tour treats a section as a screen:
+  // it dims and centres rather than drawing a border around everything.
+  const clientSteps = tourStepsWithSections(tourSource).filter((s) => s.role === 'client');
+  assert.ok(clientSteps.length >= 8, `expected the client step set, found ${clientSteps.length}`);
+  for (const s of clientSteps) {
+    assert.ok(
+      s.sel.startsWith('#section-'),
+      `client step "${s.sel}" must anchor its section — a client never sees the sidebar`
+    );
+    assert.ok(
+      appHtml.includes(`id="${s.sel.slice(1)}"`),
+      `client step anchors ${s.sel}, which does not exist in app.html`
+    );
+  }
+  assert.ok(
+    /classList\.contains\('section'\)/.test(tourSource),
+    'the positioner must treat a section target as a screen, not ring it'
+  );
 });

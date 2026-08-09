@@ -15,7 +15,10 @@
       name: 'Your bench',
       steps: [
         { sel: '#nav-dashboard', title: 'Your command center', body: 'Your dashboard overview — KPIs, recovery pulse alerts, and practice activity at a glance.' },
-        { sel: '#notif-bell', title: 'Alerts & activity', body: 'Stay updated on approvals, client updates, and clinical notifications.' }
+        // Anchored to the sidebar item, not `#notif-bell`. Above 901px the bell
+        // is `display:none` unless the sidebar is hovered or focused, and during
+        // a tour the cursor is on the card — so it would spotlight nothing.
+        { sel: '#nav-notifications', title: 'Alerts & activity', body: 'Stay updated on approvals, client updates, and clinical notifications.' }
       ]
     },
     {
@@ -23,7 +26,9 @@
       name: 'A client arrives',
       steps: [
         { sel: '#nav-clients', title: 'Client roster', body: 'View and manage your client roster, active plans, and intake details.' },
-        { sel: '[onclick*="modal-add-client"]', title: 'Add new client', body: 'Onboard a new client directly from your roster toolbar.' },
+        // Not a nav item — the button lives inside #section-clients, so the
+        // section it needs has to be named rather than derived.
+        { sel: '[onclick*="modal-add-client"]', section: 'clients', title: 'Add new client', body: 'Onboard a new client directly from your roster toolbar.' },
         { sel: '#nav-subscriptions', title: 'Client slots & access', body: 'Manage active access passes, seat allocations, and client tier limits.' }
       ]
     },
@@ -67,39 +72,39 @@
       id: 'today',
       name: 'Today',
       steps: [
-        { sel: '#nav-dashboard', title: 'Today’s view', body: 'Your daily dashboard — see your active tasks, progress, and upcoming sessions.' }
+        { sel: '#section-dashboard', section: 'dashboard', title: 'Today’s view', body: 'Your daily dashboard — see your active tasks, progress, and upcoming sessions.' }
       ]
     },
     {
       id: 'program',
       name: 'Your program',
       steps: [
-        { sel: '#nav-client-train', title: 'Your training plan', body: 'Find your active training program prescribed by your coach.' },
-        { sel: '#nav-client-train', title: 'Starting a session', body: 'Open your current workout phase to follow guided exercises and log reps.' }
+        { sel: '#section-client-train', section: 'client-train', title: 'Your training plan', body: 'Find your active training program prescribed by your coach.' },
+        { sel: '#section-client-train', section: 'client-train', title: 'Starting a session', body: 'Open your current workout phase to follow guided exercises and log reps.' }
       ]
     },
     {
       id: 'progress',
       name: 'Seeing it work',
       steps: [
-        { sel: '#nav-client-progress', title: 'Progress tracking', body: 'Track your movement scores, adherence trends, and recovery over time.' },
-        { sel: '#nav-my-graph', title: 'Your Body Map', body: 'Visualize joint mobility and regional load changes as you improve.' }
+        { sel: '#section-client-progress', section: 'client-progress', title: 'Progress tracking', body: 'Track your movement scores, adherence trends, and recovery over time.' },
+        { sel: '#section-my-graph', section: 'my-graph', title: 'Your Body Map', body: 'Visualize joint mobility and regional load changes as you improve.' }
       ]
     },
     {
       id: 'coach',
       name: 'Your coach',
       steps: [
-        { sel: '#nav-client-coach', title: 'Coach check-ins', body: 'Connect with your coach, view feedback, and stay aligned on your goals.' },
-        { sel: '#nav-community', title: 'Community feed', body: 'Stay connected with fellow members and view practice announcements.' }
+        { sel: '#section-client-coach', section: 'client-coach', title: 'Coach check-ins', body: 'Connect with your coach, view feedback, and stay aligned on your goals.' },
+        { sel: '#section-community', section: 'community', title: 'Community feed', body: 'Stay connected with fellow members and view practice announcements.' }
       ]
     },
     {
       id: 'rest',
       name: 'The rest',
       steps: [
-        { sel: '#nav-nutrition-plan', title: 'Nutrition guidance', body: 'View prescribed nutritional plans and hydration targets.' },
-        { sel: '#nav-client-settings', title: 'Account settings', body: 'Update your profile, notification preferences, or replay this tour anytime.' }
+        { sel: '#section-nutrition-plan', section: 'nutrition-plan', title: 'Nutrition guidance', body: 'View prescribed nutritional plans and hydration targets.' },
+        { sel: '#section-client-settings', section: 'client-settings', title: 'Account settings', body: 'Update your profile, notification preferences, or replay this tour anytime.' }
       ]
     }
   ];
@@ -108,16 +113,46 @@
   let _running = false;
   let _els = null;
   let _flatSteps = [];
+  let _returnSection = null;   // where the user was before the tour moved them
 
+  // The tour may only run on the app screen itself. Rather than listing the
+  // gates — there are five `#screen-*` elements and the previous list named two
+  // of them, plus an `#app` that does not exist, so that clause never fired —
+  // require the app screen to be showing and every other screen to be hidden.
+  // A new gate screen is then covered the day it is added.
   function _isGateVisible() {
-    // Guard: start only when no login/legal gate screen is visible
-    const loginScreen = document.getElementById('screen-login');
-    if (loginScreen && !loginScreen.classList.contains('hidden') && loginScreen.offsetParent !== null) return true;
-    const legalScreen = document.getElementById('screen-legal-required');
-    if (legalScreen && !legalScreen.classList.contains('hidden') && legalScreen.offsetParent !== null) return true;
-    const appEl = document.getElementById('app');
-    if (appEl && appEl.classList.contains('hidden')) return true;
+    const shown = (el) => !!el && !el.classList.contains('hidden') && el.offsetParent !== null;
+
+    const app = document.getElementById('screen-app');
+    if (!shown(app)) return true;                       // app not on screen yet
+
+    for (const screen of document.querySelectorAll('[id^="screen-"]')) {
+      if (screen !== app && shown(screen)) return true; // some gate is up
+    }
     return false;
+  }
+
+  // Which section a step wants on screen. Nav anchors map 1:1 (`#nav-clients`
+  // -> section `clients`), so deriving it beats annotating every step: the two
+  // can never drift apart. Anything else — the header bell, a button inside a
+  // section — declares `section` explicitly, or nothing to stay put.
+  function _sectionFor(step) {
+    if (step.section) return step.section;
+    const m = /^#nav-([a-z0-9-]+)$/.exec(step.sel || '');
+    return m ? m[1] : null;
+  }
+
+  // Navigation only. `Dashboard.showSection` reads and swaps `.active`; it
+  // writes nothing. It also enforces its own role guard, so a client can never
+  // be routed somewhere they may not go, whatever a step asks for.
+  function _showSectionFor(step) {
+    const id = _sectionFor(step);
+    if (!id) return;
+    try {
+      if (typeof Dashboard !== 'undefined' && Dashboard.showSection) Dashboard.showSection(id);
+    } catch (e) {
+      console.warn('[tour] could not open section', id, e.message);
+    }
   }
 
   function start() {
@@ -143,6 +178,11 @@
     });
 
     if (!_flatSteps.length) return;
+
+    // Remember the current screen so Finish/Skip can return to it. `.section`
+    // ids are prefixed (`section-clients`); showSection takes the bare name.
+    const active = document.querySelector('.section.active');
+    _returnSection = active ? active.id.replace(/^section-/, '') : 'dashboard';
 
     _running = true;
     _i = 0;
@@ -216,7 +256,12 @@
     const skipChBtn = _els.card.querySelector('[data-tour="skip-chapter"]');
     if (skipChBtn) skipChBtn.onclick = _skipChapter;
 
-    _reposition();
+    // Put the screen this step describes on display, then measure. The anchor
+    // may only exist once its section is active — "+ Add Client" lives inside
+    // #section-clients — so positioning before the swap would spotlight nothing
+    // and drop the card in the middle of the viewport.
+    _showSectionFor(step);
+    requestAnimationFrame(() => requestAnimationFrame(_reposition));
   }
 
   function _skipChapter() {
@@ -242,7 +287,26 @@
     const visible = target && target.offsetParent !== null && target.getBoundingClientRect().width > 0;
     const card = _els.card, ring = _els.ring;
 
-    if (!visible) {
+    // Some steps point at a whole screen rather than a control. Client steps do
+    // this by necessity: a client has no sidebar — it is `display:none` at every
+    // width — so there is no icon to ring, and the section itself is the
+    // subject. Ringing a screen draws a border around everything and leaves the
+    // card no room but on top of what it is pointing at (measured: 12-34% of the
+    // target covered). Dim the page and centre the card instead.
+    //
+    // Section containers are recognised by what they are, not by how big they
+    // happen to be, so the behaviour does not change with viewport or content.
+    // The area rule is a backstop for any other target that grows to fill the
+    // screen.
+    const DOMINATES_SCREEN = 0.6;
+    let isScreenTarget = false;
+    if (visible) {
+      const b = target.getBoundingClientRect();
+      isScreenTarget = target.classList.contains('section')
+        || (b.width * b.height) / (window.innerWidth * window.innerHeight) > DOMINATES_SCREEN;
+    }
+
+    if (!visible || isScreenTarget) {
       ring.style.display = 'none';
       card.style.left = '50%';
       card.style.top = '50%';
@@ -292,6 +356,16 @@
 
   async function _complete() {
     _teardown();
+    // The tour moved the user around; put them back where they started rather
+    // than abandoning them on whatever chapter happened to be last.
+    try {
+      if (_returnSection && typeof Dashboard !== 'undefined' && Dashboard.showSection) {
+        Dashboard.showSection(_returnSection);
+      }
+    } catch (e) {
+      console.warn('[tour] could not restore section:', e.message);
+    }
+    _returnSection = null;
     try {
       if (typeof sb !== 'undefined' && sb.rpc) {
         await sb.rpc('complete_onboarding');
