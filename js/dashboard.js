@@ -2071,6 +2071,71 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
     document.getElementById(id)?.classList.add('hidden');
   }
 
+  // ── Themed dialogs ──────────────────────────────────────────────
+  // `window.prompt` and `window.confirm` draw the browser's own dialog, which
+  // sits outside the page entirely and cannot be styled — so every one of them
+  // breaks out of the porcelain shell. These build the same thing from the
+  // app's modal markup, so they inherit the real theme, radii and 44px targets.
+  //
+  // Both resolve a Promise: askText → string | null, askConfirm → boolean.
+  // Cancel, Escape and a backdrop click all resolve the "declined" value, so a
+  // caller can keep the `if (!answer) return;` shape it used with the native
+  // dialog.
+  function _dialog({ title, message, kind, defaultValue, confirmLabel, cancelLabel, danger, inputAttrs }) {
+    return new Promise((resolve) => {
+      const overlay = document.createElement('div');
+      overlay.className = 'modal-overlay';
+      const inputId = 'nc-dlg-input';
+      overlay.innerHTML = `
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="nc-dlg-title">
+          <div class="modal-header"><h3 id="nc-dlg-title"></h3></div>
+          <div class="modal-body">
+            <p class="nc-dlg-msg" style="margin:0;white-space:pre-line"></p>
+            ${kind === 'text' ? `<div class="form-group" style="margin-top:14px">
+              <input id="${inputId}" class="form-input" ${inputAttrs || ''}>
+            </div>` : ''}
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-ghost" data-dlg="cancel"></button>
+            <button type="button" class="btn btn-primary" data-dlg="ok"${danger ? ' style="background:var(--rose-700,#BE123C);border-color:var(--rose-700,#BE123C)"' : ''}></button>
+          </div>
+        </div>`;
+      // textContent, not innerHTML — these strings carry client names.
+      overlay.querySelector('#nc-dlg-title').textContent = title || '';
+      overlay.querySelector('.nc-dlg-msg').textContent = message || '';
+      overlay.querySelector('[data-dlg="cancel"]').textContent = cancelLabel || 'Cancel';
+      overlay.querySelector('[data-dlg="ok"]').textContent = confirmLabel || 'Confirm';
+      document.body.appendChild(overlay);
+
+      const input = overlay.querySelector('#' + inputId);
+      if (input && defaultValue != null) input.value = defaultValue;
+
+      const declined = kind === 'text' ? null : false;
+      let settled = false;
+      const finish = (value) => {
+        if (settled) return;
+        settled = true;
+        document.removeEventListener('keydown', onKey, true);
+        overlay.remove();
+        resolve(value);
+      };
+      function onKey(e) {
+        if (e.key === 'Escape') { e.preventDefault(); finish(declined); }
+        else if (e.key === 'Enter' && kind === 'text') { e.preventDefault(); finish(input ? input.value : ''); }
+      }
+      overlay.querySelector('[data-dlg="cancel"]').onclick = () => finish(declined);
+      overlay.querySelector('[data-dlg="ok"]').onclick = () => finish(kind === 'text' ? (input ? input.value : '') : true);
+      overlay.onclick = (e) => { if (e.target === overlay) finish(declined); };
+      document.addEventListener('keydown', onKey, true);
+
+      (input || overlay.querySelector('[data-dlg="ok"]')).focus();
+      if (input) input.select();
+    });
+  }
+
+  const askText = (opts) => _dialog({ ...opts, kind: 'text' });
+  const askConfirm = (opts) => _dialog({ ...opts, kind: 'confirm' });
+
   function calcSubEndDate() {
     const start  = document.getElementById('sub-start')?.value;
     const months = parseInt(document.getElementById('sub-plan')?.value || '3');
@@ -2152,7 +2217,7 @@ pre{font-family:'JetBrains Mono','Courier New',monospace;font-size:13px;line-hei
     fillClientFromSelect,
     openClientInfoTab,
     submitPhaseUpgrade, showCelebration, closeCelebration,
-    openModal, closeModal, calcSubEndDate,
+    openModal, closeModal, askText, askConfirm, calcSubEndDate,
     submitChangePassword,
     populateProgressClientSelect,
     toast,
