@@ -245,8 +245,14 @@
     listEl.querySelectorAll('[data-notif-row]').forEach((el) => {
       const id  = el.dataset.notifRow;
       const row = rows.find((r) => r.id === id);
-      el.querySelector('[data-act="open"]').onclick = () => _openRow(row);
-      el.querySelector('[data-act="archive"]').onclick = async (ev) => {
+      // `data-act="open"` is on this element, not inside it, and querySelector
+      // only searches descendants — so the old lookup returned null and setting
+      // .onclick threw on the first row. That aborted the whole forEach, which
+      // is why no notification could be opened or archived, and why the unread
+      // badge never cleared.
+      el.onclick = () => _openRow(row);
+      const archiveBtn = el.querySelector('[data-act="archive"]');
+      if (archiveBtn) archiveBtn.onclick = async (ev) => {
         ev.stopPropagation();
         await archive(id);
         el.remove();

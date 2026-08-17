@@ -982,7 +982,13 @@ const Clients = (() => {
   // Reactivate — verified reactivate_subscription() RPC (it self-enforces
   // admin-or-assigned-coach permission; the button only shows for lapsed subs).
   async function reactivateClient(clientId, name) {
-    const input = window.prompt(`Reactivate ${name}'s subscription — how many months?`, '3');
+    const input = await Dashboard.askText({
+      title: 'Reactivate subscription',
+      message: `How many months of access should ${name} get?`,
+      defaultValue: '3',
+      confirmLabel: 'Reactivate',
+      inputAttrs: 'type="number" min="1" max="24" step="1" placeholder="3"',
+    });
     if (input == null) return;
     const months = parseInt(input, 10);
     if (!Number.isFinite(months) || months < 1 || months > 24) {

@@ -254,7 +254,12 @@ const Subscriptions = (() => {
       Dashboard.toast('SubscriptionService not loaded', 'error');
       return;
     }
-    if (!confirm(`Reactivate this client for ${months} more month${months === 1 ? '' : 's'}?`)) return;
+    const ok = await Dashboard.askConfirm({
+      title: 'Reactivate subscription',
+      message: `This client will regain full access for ${months} more month${months === 1 ? '' : 's'}.`,
+      confirmLabel: 'Reactivate',
+    });
+    if (!ok) return;
     try {
       await SubscriptionService.reactivate(clientId, { months });
       await _sendEmail('subscription_activated', clientId, {
