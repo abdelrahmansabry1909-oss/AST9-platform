@@ -4253,7 +4253,14 @@ const UI = {
       // Feature 3 — wire the notifications bell + run idempotent
       // subscription-notification check for the current client.
       if (typeof Notifications !== 'undefined') {
+        // Bind every bell in the shell. The sidebar bell (#notif-bell) is
+        // display:none above 901px unless the sidebar is hovered, so binding
+        // only that one left the unread badge effectively invisible; the
+        // topbar bell is the one users actually see.
         Notifications.bindBell(document.getElementById('notif-bell'));
+        Notifications.bindBell(
+          document.getElementById('topbar-badge-notifications')?.closest('.nc-topbar-icon-btn')
+        );
         if (Auth.getRole?.() === 'client') {
           Notifications.ensureSubscriptionForCurrent();
         }
