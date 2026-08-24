@@ -180,8 +180,10 @@
   // ── UI — BELL + BADGE ───────────────────────────────────────────
   function bindBell(el) {
     if (!el) return;
-    // Badge child
-    let badge = el.querySelector('.notif-badge');
+    // Reuse a badge the markup already provides — the topbar bell ships
+    // `#topbar-badge-notifications`. Creating a second one would leave two
+    // badges stacked on the same button, only one of them tracking unread.
+    let badge = el.querySelector('.notif-badge, .nc-topbar-badge');
     if (!badge) {
       badge = document.createElement('span');
       badge.className = 'notif-badge';
@@ -198,6 +200,10 @@
     });
     subscribe(() => {
       badge.textContent = _unread > 99 ? '99+' : String(_unread);
+      // The markup badge hides via `.hidden`, which is `display:none !important`
+      // — an inline `display` cannot beat it. Toggle the class as well, or the
+      // badge stays stuck in whichever state it started in.
+      badge.classList.toggle('hidden', _unread === 0);
       badge.style.display = _unread > 0 ? 'flex' : 'none';
     });
     unreadCount();

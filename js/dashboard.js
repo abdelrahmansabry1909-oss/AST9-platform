@@ -599,18 +599,12 @@ const Dashboard = (() => {
       el.textContent = '0';
       _animateNumber(el, parseInt(val) || 0);
     }
-    // Sync with topbar badge for alerts (Phase R1G)
-    if (id === 'stat-alerts') {
-      const tbBadge = document.getElementById('topbar-badge-notifications');
-      if (tbBadge) {
-        tbBadge.textContent = val;
-        if (parseInt(val) > 0) {
-          tbBadge.classList.remove('hidden');
-        } else {
-          tbBadge.classList.add('hidden');
-        }
-      }
-    }
+    // `stat-alerts` counts clients needing attention. It used to be copied into
+    // the topbar bell badge, which made that badge show a client metric while
+    // wearing a notification icon — so it never responded to reading or
+    // clearing notifications, and no amount of "mark all read" could move it.
+    // The bell now belongs to Notifications.bindBell; the count still has its
+    // own KPI tile on the dashboard.
   }
 
   function handleGlobalSearch(query) {

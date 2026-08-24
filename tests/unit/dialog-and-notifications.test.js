@@ -86,3 +86,58 @@ test('reactivate no longer uses a native browser dialog', () => {
   assert.ok(!/(?:^|[^.\w])confirm\(/.test(rbody), 'subscriptions reactivate must not call confirm');
   assert.ok(/Dashboard\.askConfirm\(/.test(rbody), 'subscriptions reactivate must use the themed dialog');
 });
+
+// ── The badge was showing the wrong number entirely ─────────────────
+//
+// Reported after the first fix: the red count still would not clear, and
+// "Mark all read" appeared to do nothing. Those use different code paths, so a
+// shared cause was implied — and the shared cause was that the visible badge
+// was never a notification count.
+//
+// `stat-alerts` counts clients needing attention. `_setStat` copied it into
+// `#topbar-badge-notifications`, so the bell displayed a client metric behind a
+// notification icon. Reading or clearing notifications could not move it.
+//
+// Meanwhile the real badge was bound to `#notif-bell`, the sidebar bell, which
+// is display:none above 901px unless the sidebar is hovered — so the number
+// that did track unread was effectively invisible.
+const appHtmlSrc = read('app.html');
+
+test('the dashboard alerts KPI no longer drives the notification bell', () => {
+  assert.ok(
+    !/topbar-badge-notifications/.test(dashboard),
+    'dashboard.js must not write to the notification badge — stat-alerts is a client metric, not an unread count'
+  );
+  assert.ok(
+    /stat-alerts/.test(dashboard),
+    'the alerts KPI itself should still exist; only the badge hijack was removed'
+  );
+});
+
+test('the visible topbar bell is bound to the notification service', () => {
+  assert.ok(
+    /bindBell\(\s*\n?\s*document\.getElementById\('topbar-badge-notifications'\)\?\.closest/.test(appHtmlSrc),
+    'the topbar bell must be bound — it is the one users can actually see'
+  );
+  assert.ok(
+    /bindBell\(document\.getElementById\('notif-bell'\)\)/.test(appHtmlSrc),
+    'the sidebar bell should stay bound too, for when the sidebar is expanded'
+  );
+});
+
+test('bindBell reuses a badge the markup already provides', () => {
+  assert.ok(
+    /querySelector\('\.notif-badge, \.nc-topbar-badge'\)/.test(notif),
+    'bindBell must adopt #topbar-badge-notifications rather than appending a second badge'
+  );
+});
+
+test('the badge clears via the class, not only inline display', () => {
+  // `.hidden` is `display:none !important`; an inline display cannot beat it,
+  // so a badge that starts hidden would never appear, and one that starts
+  // visible would never clear.
+  assert.ok(
+    /badge\.classList\.toggle\('hidden', _unread === 0\)/.test(notif),
+    'the unread badge must toggle .hidden as well as inline display'
+  );
+});
