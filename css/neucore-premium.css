@@ -2086,6 +2086,51 @@ body.service-athletic .nav-section.athletic-only {
   display: block !important;
 }
 
+/* Lane separation has to outrank the Porcelain sidebar reskin.
+   Every rule above is (0,2,1) or (0,3,1). The reskin declares layout on the
+   same property further down the file — `.sidebar .nav-item` and
+   `.sidebar .nav-section` under `body.nc-bright:not(.nc-client)`, both (0,4,1),
+   the first of them setting display:flex !important — and since both sides are
+   !important the cascade is decided on specificity, so the reskin won.
+   `_showApp()` puts `nc-bright` on every authenticated user,
+   so every signed-in coach and admin saw the whole Athletic nav group inside the
+   Rehab lane, and the Rehab nav inside the Athletic lane.
+
+   These rules are (0,6,1) and, critically, each carries its own lane class. A
+   version scoped only to `.nc-bright` (no lane) also outranks
+   `body.service-athletic .athletic-only`, which hides the Athletic nav inside
+   the Athletic lane — fixing the Rehab sidebar by breaking the Performance
+   platform. Any change here must be measured in BOTH lanes.
+
+   Clients are not involved: `.role-coach-admin` items get an inline
+   `display:none !important` from setRoleVisibility, and inline important beats
+   external important.
+
+   The structural class (.nav-item / .nav-section) is carried deliberately to
+   reach (0,6,1). At (0,5,1) these rules TIE with the rail's text-reveal rules
+   near the end of this file, which set display:inline-block !important on
+   `.sidebar:hover .nav-section` under the same body prefix — and a tie is
+   broken by source order, which those win by being declared later. That left
+   the section header alone still leaking while all ten nav items hid correctly.
+   Winning on specificity instead of position keeps this correct no matter where
+   the bundler puts these rules. */
+body.nc-bright.service-rehab:not(.nc-client) .sidebar .nav-item.athletic-only,
+body.nc-bright.service-rehab:not(.nc-client) .sidebar .nav-section.athletic-only {
+  display: none !important;
+}
+body.nc-bright.service-athletic:not(.nc-client) .sidebar .nav-item.rehab-only,
+body.nc-bright.service-athletic:not(.nc-client) .sidebar .nav-section.rehab-only {
+  display: none !important;
+}
+
+/* Same collision, applied to the no-lane fallback above (ISSUE_LOG #19). That
+   net is (0,3,1) and was equally outranked, so the one state it exists to make
+   safe — a JS failure before setService() runs — still leaked Athletic nav. */
+body.nc-bright:not(.service-rehab):not(.service-athletic):not(.nc-client) .sidebar .nav-item.athletic-only,
+body.nc-bright:not(.service-rehab):not(.service-athletic):not(.nc-client) .sidebar .nav-section.athletic-only {
+  display: none !important;
+}
+
 /* =================================================================
    ATHLETIC PERFORMANCE LANE — RUBY GEMSTONE LUXURY SPORTS LAB THEME
    ================================================================= */
