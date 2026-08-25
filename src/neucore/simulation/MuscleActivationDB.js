@@ -1,5 +1,14 @@
 // src/neucore/simulation/MuscleActivationDB.js
-// Source: Neumann — Kinesiology of the Musculoskeletal System 3rd Ed. 2017
+//
+// Adapted from Neumann, Kinesiology of the Musculoskeletal System — gait chapter.
+// Values are interpolated to a 7-phase keyframe model, not transcribed from a table.
+//
+// EDITION UNVERIFIED. This previously claimed "3rd Ed. 2017". The copy on hand is
+// ISBN 978-0-8151-6349-7 (1st ed, Mosby, 607pp) and these values only partially
+// match its Ch.15: knee flexion at pre-swing (35°) and peak hip extension (10°)
+// agree, but peak knee flexion is 65 here against ~60 in the text, and peak ankle
+// dorsiflexion is 15 against ≤10. Do not assert an edition until confirmed, and do
+// not change the numbers without clinical sign-off — they drive the 3D simulation.
 
 export const GAIT_PHASES = [
   'loading_response',
