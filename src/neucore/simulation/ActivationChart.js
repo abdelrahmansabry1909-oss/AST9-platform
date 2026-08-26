@@ -54,7 +54,7 @@ export class ActivationChart {
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
           <div>
             <div class="nc-label" style="color:${labelColor}">Muscle Activation</div>
-            <div style="font-size:12px;color:${subColor}">Source: Neumann 3rd Ed.</div>
+            <div style="font-size:12px;color:${subColor}">Source: Adapted from Neumann — Kinesiology of the Musculoskeletal System</div>
           </div>
           <div id="phase-indicator" style="
             font-size:11px;font-weight:500;padding:4px 12px;border-radius:99px;
