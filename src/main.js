@@ -419,6 +419,15 @@ function _clearHoverLabel() {
 }
 
 // ── 6. Collect full assessment from form ─────────────────────────
+// The foot selects are categorical, but GaitRules thresholds them numerically
+// at >10. A chosen positive finding maps to 15 and a chosen negative to 5;
+// an untouched select stays undefined, because a blank field is not evidence
+// of a normal foot — it used to return 5, which read as "assessed, normal".
+function _footFinding(selected, positiveOption) {
+  if (selected == null || selected === '') return undefined;
+  return selected === positiveOption ? 15 : 5;
+}
+
 function _collectAssessment() {
   const g = id => {
     const el = document.getElementById(id);
@@ -433,12 +442,17 @@ function _collectAssessment() {
   return {
     ankle_dorsiflexion_left_cm:  g('ns-ankle-df-l'),
     ankle_dorsiflexion_right_cm: g('ns-ankle-df-r'),
-    ankle_pronation_left:        g('ns-pronation-l') === 'over' ? 15 : 5,
-    ankle_pronation_right:       g('ns-pronation-r') === 'over' ? 15 : 5,
-    ankle_supination_left:       g('ns-supination-l') === 'stuck' ? 15 : 5,
-    ankle_supination_right:      g('ns-supination-r') === 'stuck' ? 15 : 5,
+    // The supination select emits 'stuck_supinated'; this compared against
+    // 'stuck', which no option produces, so the value was always 5 and
+    // GaitRules' stuck_supination rule could never fire.
+    ankle_pronation_left:        _footFinding(g('ns-pronation-l'), 'over'),
+    ankle_pronation_right:       _footFinding(g('ns-pronation-r'), 'over'),
+    ankle_supination_left:       _footFinding(g('ns-supination-l'), 'stuck_supinated'),
+    ankle_supination_right:      _footFinding(g('ns-supination-r'), 'stuck_supinated'),
     hip_ir_left:       g('ns-hip-ir-l'),
     hip_ir_right:      g('ns-hip-ir-r'),
+    hip_er_left:       g('ns-hip-er-l'),
+    hip_er_right:      g('ns-hip-er-r'),
     hip_extension_left:  g('ns-hip-ext-l'),
     hip_extension_right: g('ns-hip-ext-r'),
     hip_flexion_left:  g('ns-hip-flex-l'),
@@ -450,9 +464,16 @@ function _collectAssessment() {
     bal_ec_l:   g('ns-bal-ec-l'),
     bal_ec_r:   g('ns-bal-ec-r'),
     oh_squat_forward_lean: (g('ns-oh-squat') != null ? parseInt(g('ns-oh-squat')) <= 1 : false),
-    sl_rdl_trunk_rotation: !!(g('ns-sl-rdl-rotation')),
     sh_ir_left:  g('ns-sh-ir-l'),
     sh_ir_right: g('ns-sh-ir-r'),
+
+    // ── Fields the parity rules need ──────────────────────────────
+    // GaitRules gained the five rules js/gaitEngine.js already had. Thoracic
+    // rotation is the one that needed a new measurement; the rest were on the
+    // form and simply never collected.
+    thoracic_rotation_left:  g('ns-thor-rot-l'),
+    thoracic_rotation_right: g('ns-thor-rot-r'),
+    thoracic_extension:      g('ns-thor-ext'),
 
     // ── Fields ScoringEngine scores but nothing was supplying ──────────
     // ScoringEngine (src/neucore/scoring/ScoringEngine.js) reads the names
