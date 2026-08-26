@@ -756,6 +756,53 @@ textarea.form-input { resize: vertical; min-height: 88px; line-height: 1.6; }
 .card-accent-amber::after { content: ''; position: absolute; top: 0; left: 20px; right: 20px; height: 1px; background: linear-gradient(90deg, transparent, var(--amber), transparent); opacity: 0.5; }
 .card-accent-rose::after  { content: ''; position: absolute; top: 0; left: 20px; right: 20px; height: 1px; background: linear-gradient(90deg, transparent, var(--rose), transparent); opacity: 0.5; }
 
+/* ── Panel fold (js/panelFold.js) ─────────────────────────────
+   The closed state hides .nc-fold-body — a wrapper the fold owns and nothing
+   else styles — so it never has to out-shout a `display` rule the app already
+   set. Competing display rules are what produced the stuck-visible bugs in
+   PR #105, PR #108 and the 2026-08-24 lane leak. */
+.nc-fold-collapsed > .nc-fold-body { display: none; }
+
+/* The whole bar is the target; `user-select` stops a double-click selecting the
+   title instead of opening the panel. */
+.nc-fold-head { cursor: pointer; user-select: none; }
+
+/* Padded to a 24px target (WCAG 2.5.8) without growing the glyph — a bare
+   arrow is a 10x12 hit area, which is a miserable thing to aim at on a laptop
+   trackpad and worse on touch. */
+.nc-fold-chevron {
+  background: none;
+  border: 0;
+  padding: 6px;
+  min-width: 24px;
+  margin-left: var(--sp-2);
+  color: var(--text-tertiary);
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+}
+.nc-fold-chevron:hover { color: var(--text-primary); }
+.nc-fold-chevron > span { display: inline-block; transition: transform var(--t-base); }
+.nc-fold-collapsed .nc-fold-chevron > span { transform: rotate(-90deg); }
+
+/* The headers are `justify-content: space-between` with two children. An auto
+   margin on the first one absorbs the free space before space-between can
+   redistribute it, so adding the chevron leaves the title and the badge exactly
+   where they were instead of spreading three items across the row. */
+.card-header:has(> .nc-fold-chevron) > .card-title,
+.gait-header-flex:has(> .nc-fold-chevron) > .gait-header-copy { margin-right: auto; }
+
+/* A shut card should not leave its header divider hanging over empty space. */
+.nc-fold-collapsed > .card-header {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nc-fold-chevron > span { transition: none; }
+}
+
 /* ═══════════════════════════════════════════════════════════════
    STAT CARDS
 ═══════════════════════════════════════════════════════════════ */

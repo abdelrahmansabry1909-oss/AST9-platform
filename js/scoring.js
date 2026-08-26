@@ -34,7 +34,29 @@ const ScoringEngine = (() => {
   };
 
   // Asymmetry penalty thresholds (degrees / cm)
-  const ASYM = { hip: 15, shoulder: 10, tibia: 5, ankle_df: 3 };
+  // elbow/wrist/cervical use the same 10° band the fallback already applied to
+  // any unlisted joint — named here so the value is a decision rather than a
+  // default nobody chose. These are tolerance bands, not clinical norms.
+  const ASYM = {
+    hip: 15, shoulder: 10, tibia: 5, ankle_df: 3,
+    elbow: 10, wrist: 10, cerv: 10,
+  };
+
+  // ── REGION MAP ────────────────────────────────────────────
+  // Which body region each scored norm belongs to. The composite is unchanged —
+  // this only lets the report say WHERE a limitation is, instead of blending
+  // every joint into one number that reads as "lower body" by weight of count.
+  const REGION_OF = {
+    shoulder_flexion: 'upper', shoulder_extension: 'upper',
+    shoulder_ir:      'upper', shoulder_er:        'upper',
+    elbow_flex:       'upper', elbow_ext:          'upper',
+    wrist_flex:       'upper', wrist_ext:          'upper',
+    cerv_rotation:    'spine',
+    hip_ir:      'lower', hip_er:        'lower', hip_flexion: 'lower',
+    hip_extension: 'lower', hip_abduction: 'lower',
+    tibia_ir:    'lower', ankle_df:      'lower',
+  };
+  const REGION_LABEL = { upper: 'Upper', spine: 'Spine / Neck', lower: 'Lower' };
 
   // Load test score → percentage map
   const LOAD_MAP = { 3: 100, 2: 66, 1: 33, 0: 0 };
@@ -107,6 +129,17 @@ const ScoringEngine = (() => {
       sh_ir_r:    gi('ns-sh-ir-r'),
       sh_er_l:    gi('ns-sh-er-l'),
       sh_er_r:    gi('ns-sh-er-r'),
+      sh_abd_l:   gi('ns-sh-abd-l'),
+      sh_abd_r:   gi('ns-sh-abd-r'),
+
+      // Thoracic — read by the integration engine, which needs a number here.
+      // A stiff-but-painless thoracic spine is invisible to the pain checkboxes
+      // in the Spine card, and it is the joint that lets the shoulder girdle
+      // counter-rotate against the pelvis.
+      thor_rot_l: gi('ns-thor-rot-l'),
+      thor_rot_r: gi('ns-thor-rot-r'),
+      thor_ext:   gi('ns-thor-ext'),
+      thor_flex:  gi('ns-thor-flex'),
 
       // Load tolerance (0-3)
       sl_squat_l: gi('ns-sl-squat-l'),
@@ -139,6 +172,11 @@ const ScoringEngine = (() => {
       cerv_rot_r:    gi('ns-cerv-rot-r'),
       lumb_flex:     g('ns-lumb-flex'),
       lumb_ext:      g('ns-lumb-ext'),
+      // Those two are free-text and have been since they were added, so they
+      // hold things like "45", "45°" or "45 deg". Parsed rather than retyped as
+      // number inputs, which would discard whatever coaches have already keyed.
+      lumb_flex_deg: _firstNumber(g('ns-lumb-flex')),
+      lumb_ext_deg:  _firstNumber(g('ns-lumb-ext')),
       si_pain:       g('ns-si-pain'),
     };
   }
@@ -156,6 +194,15 @@ const ScoringEngine = (() => {
     return v === 'p' || v.includes('pain');
   }
 
+  // First number in a free-text field, or null. "45°" and "approx 45" both
+  // give 45; "limited" gives null rather than 0, because 0 would read as a
+  // measured full restriction.
+  function _firstNumber(text) {
+    if (!text) return null;
+    const m = String(text).match(/-?\d+(?:\.\d+)?/);
+    return m ? parseFloat(m[0]) : null;
+  }
+
   // Direct checkbox reader
   function _spCb(id) {
     const el = document.getElementById(id);
@@ -171,14 +218,34 @@ const ScoringEngine = (() => {
     if (!norm) return { score: null, asymmetryFlag: null };
     if (left  === -1 || right === -1) return { score: 0, asymmetryFlag: null, pain: true };
 
-    const sL = left  != null ? Math.min((left  / norm.min) * 100, 100) : null;
-    const sR = right != null ? Math.min((right / norm.min) * 100, 100) : null;
+    // `elbow_ext` has min:0, so the usual (value / norm.min) is a division by
+    // zero: 0/0 is NaN — which then silently poisons the ROM average, since NaN
+    // survives every arithmetic step without throwing — and any positive value
+    // yields Infinity, clamping to a perfect 100 for what may be a deficit.
+    //
+    // A min of 0 means "reaching neutral is full marks", which is how the form
+    // reads it (`ns-elbow-ext` placeholder is "0–10°", i.e. neutral through
+    // hyperextension). So >= 0 scores 100. A negative value is a flexion
+    // contracture, scaled against the 30° mark Neumann gives as the point where
+    // functional reach starts falling away sharply (Ch.6). The current form
+    // cannot express a contracture, so this branch is defensive.
+    const scoreOne = (v) => {
+      if (v == null) return null;
+      if (norm.min === 0) return v >= 0 ? 100 : Math.max(0, 100 * (1 - Math.abs(v) / 30));
+      return Math.min((v / norm.min) * 100, 100);
+    };
+
+    const sL = scoreOne(left);
+    const sR = scoreOne(right);
 
     if (sL === null && sR === null) return { score: null, asymmetryFlag: null };
 
     // Determine asymmetry threshold for this norm key
     const thresh = normKey.startsWith('hip') ? ASYM.hip
       : normKey.startsWith('shoulder') ? ASYM.shoulder
+      : normKey.startsWith('elbow') ? ASYM.elbow
+      : normKey.startsWith('wrist') ? ASYM.wrist
+      : normKey.startsWith('cerv')  ? ASYM.cerv
       : normKey === 'tibia_ir' ? ASYM.tibia
       : normKey === 'ankle_df' ? ASYM.ankle_df : 10;
 
@@ -211,12 +278,30 @@ const ScoringEngine = (() => {
       [a.sh_ext_l,   a.sh_ext_r,   'shoulder_extension'],
       [a.sh_ir_l,    a.sh_ir_r,    'shoulder_ir'],
       [a.sh_er_l,    a.sh_er_r,    'shoulder_er'],
+
+      // Collected by readForm() and given norms since Task 8, but never scored —
+      // the coach measured these, the values were parsed, and then nothing read
+      // them. Wiring them in needs no new normative data: every threshold below
+      // already exists in NORMS.
+      [a.elbow_flex_l, a.elbow_flex_r, 'elbow_flex'],
+      [a.elbow_ext_l,  a.elbow_ext_r,  'elbow_ext'],
+      [a.wrist_flex_l, a.wrist_flex_r, 'wrist_flex'],
+      [a.wrist_ext_l,  a.wrist_ext_r,  'wrist_ext'],
+      [a.cerv_rot_l,   a.cerv_rot_r,   'cerv_rotation'],
     ];
+
+    // Per-region tallies alongside the flat list. The flat list still drives the
+    // composite exactly as before; regions are reporting only.
+    const byRegion = { upper: [], spine: [], lower: [] };
 
     joints.forEach(([L, R, key]) => {
       const { score, asymmetryFlag, pain } = _bilateralScore(L, R, key);
       if (pain) painFlags.push(`Pain in ${key.replace(/_/g,' ')} — manual therapy referral required`);
-      if (score !== null) scores.push(score);
+      if (score !== null) {
+        scores.push(score);
+        const region = REGION_OF[key];
+        if (region) byRegion[region].push(score);
+      }
       if (asymmetryFlag) asymFlags.push(asymmetryFlag);
     });
 
@@ -237,8 +322,20 @@ const ScoringEngine = (() => {
       ? scores.reduce((s, v) => s + v, 0) / scores.length
       : 100;
 
+    // A region with no measurements stays null, never 0. Reporting an
+    // unmeasured region as 0% reads as a total deficit rather than "not
+    // assessed", which is the opposite of what the coach should act on.
+    const region_scores = {};
+    for (const key of Object.keys(byRegion)) {
+      const vals = byRegion[key];
+      region_scores[key] = vals.length
+        ? parseFloat((vals.reduce((s, v) => s + v, 0) / vals.length).toFixed(1))
+        : null;
+    }
+
     return {
       rom_score:      parseFloat(Math.min(rom, 100).toFixed(1)),
+      region_scores,
       pain_flags:     painFlags,
       asymmetry_flags: asymFlags,
     };
@@ -330,7 +427,7 @@ const ScoringEngine = (() => {
   function calculate(assessment) {
     const a = assessment;
 
-    const { rom_score, pain_flags, asymmetry_flags } = _calcROM(a);
+    const { rom_score, region_scores, pain_flags, asymmetry_flags } = _calcROM(a);
     const control_score   = _calcControl(a);
     const force_score     = _calcForce(a, control_score);
     const neurology_score = _calcNeurology(a);
@@ -341,6 +438,7 @@ const ScoringEngine = (() => {
 
     return {
       rom_score,
+      region_scores,
       control_score,
       force_score,
       neurology_score,
@@ -387,6 +485,8 @@ const ScoringEngine = (() => {
           ${_scoreItem('Neurology', scores.neurology_score, 'var(--blue)')}
         </div>
 
+        ${_regionRow(scores.region_scores)}
+
         <div style="background:var(--bg-raised);border-radius:var(--r-md);padding:14px">
           <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-tertiary);margin-bottom:8px">Composite Score</div>
           ${bar(scores.composite_score, phaseColor)}
@@ -410,6 +510,40 @@ const ScoringEngine = (() => {
       </div>`;
 
     panel.classList.remove('hidden');
+  }
+
+  // ROM broken out by body region. Uses the same _scoreItem card as the four
+  // component scores above it — same tokens, same type, no new component.
+  // An unmeasured region shows the words "Not assessed" rather than a number,
+  // so it cannot be misread as a deficit (and carries a label, not just a
+  // colour, per the No Colour-Only rule).
+  function _regionRow(regions) {
+    if (!regions) return '';
+    const order = ['upper', 'spine', 'lower'];
+    if (order.every((k) => regions[k] == null)) return '';
+
+    const cell = (key) => {
+      const val = regions[key];
+      const label = REGION_LABEL[key];
+      if (val == null) {
+        return `
+        <div style="background:var(--bg-raised);border-radius:var(--r-sm);padding:12px">
+          <div style="font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-tertiary);margin-bottom:6px">${label}</div>
+          <div style="font-family:var(--font-display);font-size:15px;font-weight:600;color:var(--text-tertiary);letter-spacing:-0.2px">Not assessed</div>
+          <div style="height:3px;border-radius:2px;background:var(--border-default);margin-top:8px"></div>
+        </div>`;
+      }
+      const color = val >= 75 ? 'var(--lime)' : val >= 50 ? 'var(--amber)' : 'var(--rose)';
+      return _scoreItem(label, val, color);
+    };
+
+    return `
+      <div style="margin-bottom:14px">
+        <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-tertiary);margin-bottom:8px">Range of Motion by Region</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+          ${order.map(cell).join('')}
+        </div>
+      </div>`;
   }
 
   function _scoreItem(label, val, color) {

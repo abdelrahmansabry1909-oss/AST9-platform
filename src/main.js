@@ -244,6 +244,20 @@ function runMovementAnalysis() {
     document.getElementById('score-panel')?.classList.remove('hidden');
     document.getElementById('gait-panel')?.classList.remove('hidden');
     document.getElementById('gait-phase-strip')?.classList.remove('hidden');
+
+    // Cross-region compensation. Reads the same form the other two engines
+    // read, but reports how one region's restriction is paid for elsewhere
+    // rather than scoring regions in isolation.
+    if (typeof IntegrationEngine !== 'undefined') {
+      IntegrationEngine.renderIntegration(IntegrationEngine.analyze(legacyAssessment));
+      document.getElementById('integration-panel')?.classList.remove('hidden');
+    }
+
+    // Fold them shut. Both renderers rewrite innerHTML on every run, so this
+    // has to follow the render rather than being set up once at boot.
+    _foldCard('score-panel');
+    _foldCard('integration-panel');
+    _foldCard('gait-panel');
   }
 
   // Load 3D skeleton simulation
@@ -254,10 +268,28 @@ function runMovementAnalysis() {
 
     gaitPage?.destroy();
     gaitPage = new GaitAnalysisPage(gaitWrap, neucoreAssessment);
+
+    // The chevron goes on .gait-header-flex (the flex row) while the collapsed
+    // class goes on .gait-page (the grid) — see js/panelFold.js on why this one
+    // cannot use a body wrapper.
+    window.PanelFold?.attach(gaitWrap, {
+      headerSelector: '.gait-header-flex',
+      regionSelector: '.gait-page',
+      bodyMode: 'css',
+    });
   }
 
   window._lastMovementAnalysisSignature = _getAssessmentSignature();
   return true;
+}
+
+// Both legacy panels wrap their content in a `.card` whose `.card-header` is
+// already the box's title bar, so the fold hangs off that.
+function _foldCard(panelId) {
+  window.PanelFold?.attach(document.getElementById(panelId), {
+    headerSelector: '.card-header',
+    bodyMode: 'wrap',
+  });
 }
 
 // Expose globally for other scripts
@@ -387,6 +419,15 @@ function _clearHoverLabel() {
 }
 
 // ── 6. Collect full assessment from form ─────────────────────────
+// The foot selects are categorical, but GaitRules thresholds them numerically
+// at >10. A chosen positive finding maps to 15 and a chosen negative to 5;
+// an untouched select stays undefined, because a blank field is not evidence
+// of a normal foot — it used to return 5, which read as "assessed, normal".
+function _footFinding(selected, positiveOption) {
+  if (selected == null || selected === '') return undefined;
+  return selected === positiveOption ? 15 : 5;
+}
+
 function _collectAssessment() {
   const g = id => {
     const el = document.getElementById(id);
@@ -401,12 +442,17 @@ function _collectAssessment() {
   return {
     ankle_dorsiflexion_left_cm:  g('ns-ankle-df-l'),
     ankle_dorsiflexion_right_cm: g('ns-ankle-df-r'),
-    ankle_pronation_left:        g('ns-pronation-l') === 'over' ? 15 : 5,
-    ankle_pronation_right:       g('ns-pronation-r') === 'over' ? 15 : 5,
-    ankle_supination_left:       g('ns-supination-l') === 'stuck' ? 15 : 5,
-    ankle_supination_right:      g('ns-supination-r') === 'stuck' ? 15 : 5,
+    // The supination select emits 'stuck_supinated'; this compared against
+    // 'stuck', which no option produces, so the value was always 5 and
+    // GaitRules' stuck_supination rule could never fire.
+    ankle_pronation_left:        _footFinding(g('ns-pronation-l'), 'over'),
+    ankle_pronation_right:       _footFinding(g('ns-pronation-r'), 'over'),
+    ankle_supination_left:       _footFinding(g('ns-supination-l'), 'stuck_supinated'),
+    ankle_supination_right:      _footFinding(g('ns-supination-r'), 'stuck_supinated'),
     hip_ir_left:       g('ns-hip-ir-l'),
     hip_ir_right:      g('ns-hip-ir-r'),
+    hip_er_left:       g('ns-hip-er-l'),
+    hip_er_right:      g('ns-hip-er-r'),
     hip_extension_left:  g('ns-hip-ext-l'),
     hip_extension_right: g('ns-hip-ext-r'),
     hip_flexion_left:  g('ns-hip-flex-l'),
@@ -418,9 +464,34 @@ function _collectAssessment() {
     bal_ec_l:   g('ns-bal-ec-l'),
     bal_ec_r:   g('ns-bal-ec-r'),
     oh_squat_forward_lean: (g('ns-oh-squat') != null ? parseInt(g('ns-oh-squat')) <= 1 : false),
-    sl_rdl_trunk_rotation: !!(g('ns-sl-rdl-rotation')),
     sh_ir_left:  g('ns-sh-ir-l'),
     sh_ir_right: g('ns-sh-ir-r'),
+
+    // ── Fields the parity rules need ──────────────────────────────
+    // GaitRules gained the five rules js/gaitEngine.js already had. Thoracic
+    // rotation is the one that needed a new measurement; the rest were on the
+    // form and simply never collected.
+    thoracic_rotation_left:  g('ns-thor-rot-l'),
+    thoracic_rotation_right: g('ns-thor-rot-r'),
+    thoracic_extension:      g('ns-thor-ext'),
+
+    // ── Fields ScoringEngine scores but nothing was supplying ──────────
+    // ScoringEngine (src/neucore/scoring/ScoringEngine.js) reads the names
+    // below. This function was returning `sh_ir_*` — a different measurement
+    // under a different name — so shoulder never reached the engine at all,
+    // and hip abduction, SL RDL and overhead squat reached nothing either.
+    // Measured before the fix: a client with perfect legs and 60°/180°
+    // shoulders scored a flawless 100 composite, and 10°/45° hip abduction
+    // still scored Force 100. Seven of the engine's twenty inputs were
+    // permanently undefined; nulls are filtered from the averages, so the
+    // gaps raised every score instead of throwing.
+    shoulder_flexion_left:  g('ns-sh-flex-l'),
+    shoulder_flexion_right: g('ns-sh-flex-r'),
+    hip_abduction_left:     g('ns-hip-abd-l'),
+    hip_abduction_right:    g('ns-hip-abd-r'),
+    sl_rdl_l: g('ns-sl-rdl-l') != null ? parseInt(g('ns-sl-rdl-l')) : undefined,
+    sl_rdl_r: g('ns-sl-rdl-r') != null ? parseInt(g('ns-sl-rdl-r')) : undefined,
+    oh_squat: g('ns-oh-squat') != null ? parseInt(g('ns-oh-squat')) : undefined,
     sp_flex_pain: !!(document.getElementById('ns-sp-flex-pain')?.checked),
     sp_ext_pain:  !!(document.getElementById('ns-sp-ext-pain')?.checked),
     sp_rotl_pain: !!(document.getElementById('ns-sp-rotl-pain')?.checked),

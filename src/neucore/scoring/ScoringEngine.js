@@ -37,14 +37,22 @@ export class ScoringEngine {
     return this._avg(vals);
   }
 
+  // Load-tolerance selects in app.html offer 3/2/1/0 — 3 is the best a coach
+  // can record. Dividing by 5 made a flawless result score 60 instead of 100,
+  // and no input could ever reach the top of the scale. js/scoring.js maps the
+  // same field with LOAD_MAP { 3:100, 2:66, 1:33, 0:0 }, so the two engines
+  // disagreed on identical data.
+  static LOAD_MAX = 3;
+
   _controlScore() {
     const a = this.a;
+    const max = ScoringEngine.LOAD_MAX;
     const vals = [
-      this._scale(a.sl_squat_l, 5),
-      this._scale(a.sl_squat_r, 5),
-      this._scale(a.sl_rdl_l,   5),
-      this._scale(a.sl_rdl_r,   5),
-      this._scale(a.oh_squat,   5),
+      this._scale(a.sl_squat_l, max),
+      this._scale(a.sl_squat_r, max),
+      this._scale(a.sl_rdl_l,   max),
+      this._scale(a.sl_rdl_r,   max),
+      this._scale(a.oh_squat,   max),
     ].filter(v => v != null);
     return this._avg(vals);
   }
@@ -99,9 +107,11 @@ export class ScoringEngine {
     return Math.min(100, Math.round((parseFloat(val) / norm) * 100));
   }
 
+  // Clamped like _pct. Without it a value above `max` yields over 100 and drags
+  // the component average above the scale it is measured on.
   _scale(val, max) {
     if (val == null || val === '') return null;
-    return Math.round((parseFloat(val) / max) * 100);
+    return Math.min(100, Math.round((parseFloat(val) / max) * 100));
   }
 
   _balScore(val) {

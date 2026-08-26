@@ -180,6 +180,10 @@ export class BodyCanvas {
   _onResize() {
     const w = this.container.clientWidth;
     const h = this.container.clientHeight;
+    // The viewport has no box while its panel is folded shut (js/panelFold.js),
+    // and resizing to zero leaves the camera with a NaN aspect. The fold re-
+    // fires resize when it reopens, so skipping here loses nothing.
+    if (!w || !h) return;
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(w, h);
