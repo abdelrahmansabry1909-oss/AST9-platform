@@ -1289,6 +1289,9 @@
               <div style="font-size:11px;color:var(--text-secondary)">ER</div>
               <input id="ns-sh-er-l" type="number" class="form-input" placeholder="80–100°"/>
               <input id="ns-sh-er-r" type="number" class="form-input" placeholder="80–100°"/>
+              <div style="font-size:11px;color:var(--text-secondary)">Abd</div>
+              <input id="ns-sh-abd-l" type="number" class="form-input" placeholder="180°"/>
+              <input id="ns-sh-abd-r" type="number" class="form-input" placeholder="180°"/>
             </div>
           </div>
 
@@ -1336,6 +1339,26 @@
               <div style="font-size:11px;color:var(--text-secondary)">Ext</div>
               <input id="ns-wrist-ext-l" type="number" class="form-input" placeholder="70°"/>
               <input id="ns-wrist-ext-r" type="number" class="form-input" placeholder="70°"/>
+            </div>
+          </div>
+
+          <!-- THORACIC SPINE — the hinge between the shoulder girdle and the pelvis.
+               Rotation here is what lets the shoulder girdle counter-rotate against
+               the pelvis in gait; without a number for it, a stiff-but-painless
+               thoracic spine is invisible to the analysis. -->
+          <div class="card" data-zone="spine">
+            <div class="assess-section-head">🫁 Thoracic Spine (degrees)</div>
+            <div style="display:grid;grid-template-columns:auto 1fr 1fr;gap:8px;align-items:end;margin-bottom:4px">
+              <div></div>
+              <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-tertiary)">Left</div>
+              <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-tertiary)">Right</div>
+              <div style="font-size:11px;color:var(--text-secondary)">Rotation</div>
+              <input id="ns-thor-rot-l" type="number" class="form-input" placeholder="30°"/>
+              <input id="ns-thor-rot-r" type="number" class="form-input" placeholder="30°"/>
+            </div>
+            <div class="input-row">
+              <div class="form-group"><label class="form-label">Extension</label><input id="ns-thor-ext" type="number" class="form-input" placeholder="20–25°"/></div>
+              <div class="form-group"><label class="form-label">Flexion</label><input id="ns-thor-flex" type="number" class="form-input" placeholder="30–40°"/></div>
             </div>
           </div>
 
@@ -1565,6 +1588,9 @@
 
         <!-- ── SCORE PANEL (rendered by ScoringEngine.renderScores) -->
         <div id="score-panel" class="card hidden" style="margin-bottom:var(--sp-4)"></div>
+
+        <!-- ── INTEGRATED CHAIN ANALYSIS (rendered by IntegrationEngine) -->
+        <div id="integration-panel" class="card hidden" style="margin-bottom:var(--sp-4)"></div>
 
         <!-- ── NEUCORE GAIT ANALYSIS PAGE (ES module, rendered by GaitAnalysisPage) -->
         <div id="neucore-gait-container" class="hidden" style="margin-bottom:var(--sp-4)"></div>
@@ -3969,8 +3995,9 @@ setInterval(() => { if (!document.hidden) _refreshApprovalsBadge(); }, 60_000);
 <script src="js/paymentUI.js?v=20260802c"></script>
 <script src="js/billing.js?v=20260802b"></script>
 <script src="js/tour.js"></script>
-<script src="js/scoring.js?v=20260826a"></script>
+<script src="js/scoring.js?v=20260826b"></script>
 <script src="js/gaitEngine.js"></script>
+<script src="js/integrationEngine.js?v=20260826a"></script>
 <script src="js/panelFold.js?v=20260826a"></script>
 <script src="js/programGenerator.js"></script>
 <script src="js/dailyRoutine.js"></script>

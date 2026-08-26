@@ -245,9 +245,18 @@ function runMovementAnalysis() {
     document.getElementById('gait-panel')?.classList.remove('hidden');
     document.getElementById('gait-phase-strip')?.classList.remove('hidden');
 
+    // Cross-region compensation. Reads the same form the other two engines
+    // read, but reports how one region's restriction is paid for elsewhere
+    // rather than scoring regions in isolation.
+    if (typeof IntegrationEngine !== 'undefined') {
+      IntegrationEngine.renderIntegration(IntegrationEngine.analyze(legacyAssessment));
+      document.getElementById('integration-panel')?.classList.remove('hidden');
+    }
+
     // Fold them shut. Both renderers rewrite innerHTML on every run, so this
     // has to follow the render rather than being set up once at boot.
     _foldCard('score-panel');
+    _foldCard('integration-panel');
     _foldCard('gait-panel');
   }
 

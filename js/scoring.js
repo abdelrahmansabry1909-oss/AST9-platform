@@ -129,6 +129,17 @@ const ScoringEngine = (() => {
       sh_ir_r:    gi('ns-sh-ir-r'),
       sh_er_l:    gi('ns-sh-er-l'),
       sh_er_r:    gi('ns-sh-er-r'),
+      sh_abd_l:   gi('ns-sh-abd-l'),
+      sh_abd_r:   gi('ns-sh-abd-r'),
+
+      // Thoracic — read by the integration engine, which needs a number here.
+      // A stiff-but-painless thoracic spine is invisible to the pain checkboxes
+      // in the Spine card, and it is the joint that lets the shoulder girdle
+      // counter-rotate against the pelvis.
+      thor_rot_l: gi('ns-thor-rot-l'),
+      thor_rot_r: gi('ns-thor-rot-r'),
+      thor_ext:   gi('ns-thor-ext'),
+      thor_flex:  gi('ns-thor-flex'),
 
       // Load tolerance (0-3)
       sl_squat_l: gi('ns-sl-squat-l'),
@@ -161,6 +172,11 @@ const ScoringEngine = (() => {
       cerv_rot_r:    gi('ns-cerv-rot-r'),
       lumb_flex:     g('ns-lumb-flex'),
       lumb_ext:      g('ns-lumb-ext'),
+      // Those two are free-text and have been since they were added, so they
+      // hold things like "45", "45°" or "45 deg". Parsed rather than retyped as
+      // number inputs, which would discard whatever coaches have already keyed.
+      lumb_flex_deg: _firstNumber(g('ns-lumb-flex')),
+      lumb_ext_deg:  _firstNumber(g('ns-lumb-ext')),
       si_pain:       g('ns-si-pain'),
     };
   }
@@ -176,6 +192,15 @@ const ScoringEngine = (() => {
     if (!el) return false;
     const v = el.value.trim().toLowerCase();
     return v === 'p' || v.includes('pain');
+  }
+
+  // First number in a free-text field, or null. "45°" and "approx 45" both
+  // give 45; "limited" gives null rather than 0, because 0 would read as a
+  // measured full restriction.
+  function _firstNumber(text) {
+    if (!text) return null;
+    const m = String(text).match(/-?\d+(?:\.\d+)?/);
+    return m ? parseFloat(m[0]) : null;
   }
 
   // Direct checkbox reader
