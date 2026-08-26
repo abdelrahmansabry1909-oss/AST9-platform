@@ -421,6 +421,24 @@ function _collectAssessment() {
     sl_rdl_trunk_rotation: !!(g('ns-sl-rdl-rotation')),
     sh_ir_left:  g('ns-sh-ir-l'),
     sh_ir_right: g('ns-sh-ir-r'),
+
+    // ── Fields ScoringEngine scores but nothing was supplying ──────────
+    // ScoringEngine (src/neucore/scoring/ScoringEngine.js) reads the names
+    // below. This function was returning `sh_ir_*` — a different measurement
+    // under a different name — so shoulder never reached the engine at all,
+    // and hip abduction, SL RDL and overhead squat reached nothing either.
+    // Measured before the fix: a client with perfect legs and 60°/180°
+    // shoulders scored a flawless 100 composite, and 10°/45° hip abduction
+    // still scored Force 100. Seven of the engine's twenty inputs were
+    // permanently undefined; nulls are filtered from the averages, so the
+    // gaps raised every score instead of throwing.
+    shoulder_flexion_left:  g('ns-sh-flex-l'),
+    shoulder_flexion_right: g('ns-sh-flex-r'),
+    hip_abduction_left:     g('ns-hip-abd-l'),
+    hip_abduction_right:    g('ns-hip-abd-r'),
+    sl_rdl_l: g('ns-sl-rdl-l') != null ? parseInt(g('ns-sl-rdl-l')) : undefined,
+    sl_rdl_r: g('ns-sl-rdl-r') != null ? parseInt(g('ns-sl-rdl-r')) : undefined,
+    oh_squat: g('ns-oh-squat') != null ? parseInt(g('ns-oh-squat')) : undefined,
     sp_flex_pain: !!(document.getElementById('ns-sp-flex-pain')?.checked),
     sp_ext_pain:  !!(document.getElementById('ns-sp-ext-pain')?.checked),
     sp_rotl_pain: !!(document.getElementById('ns-sp-rotl-pain')?.checked),
