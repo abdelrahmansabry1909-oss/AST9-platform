@@ -4763,6 +4763,26 @@ body.nc-bright:not(.nc-client) #neucore-gait-container .gait-data-column {
   min-width: 0 !important;
 }
 
+/* Collapsed simulation page (js/panelFold.js).
+   These columns are grid children of .gait-page, so they cannot be moved into
+   an .nc-fold-body wrapper the way the card panels are — that would destroy the
+   grid. They are hidden by selector instead, and the selector has to WIN rather
+   than merely exist: the two rules above are `display: flex !important` at
+   (1,3,1), so the hide is written at (1,5,1). Beating them on specificity
+   instead of source order is what stops the bundler reordering the fix away.
+   The unprefixed pair covers the base (non-Porcelain) stylesheet.
+
+   Only these two: nothing else JS toggles may be hidden with an !important
+   display, and #worst-case-panel is driven by `wcPanel.style.display`. It needs
+   no rule here — it is a hold-to-reveal control, so it can only be on while the
+   pointer is down on a button in the expanded header. */
+.gait-page.nc-fold-collapsed > .gait-stage-column,
+.gait-page.nc-fold-collapsed > .gait-data-column,
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-page.nc-fold-collapsed > .gait-stage-column,
+body.nc-bright:not(.nc-client) #neucore-gait-container .gait-page.nc-fold-collapsed > .gait-data-column {
+  display: none !important;
+}
+
 /* 3D Viewport */
 body.nc-bright:not(.nc-client) #neucore-gait-container .gait-viewport {
   flex: 1 !important;

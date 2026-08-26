@@ -244,6 +244,11 @@ function runMovementAnalysis() {
     document.getElementById('score-panel')?.classList.remove('hidden');
     document.getElementById('gait-panel')?.classList.remove('hidden');
     document.getElementById('gait-phase-strip')?.classList.remove('hidden');
+
+    // Fold them shut. Both renderers rewrite innerHTML on every run, so this
+    // has to follow the render rather than being set up once at boot.
+    _foldCard('score-panel');
+    _foldCard('gait-panel');
   }
 
   // Load 3D skeleton simulation
@@ -254,10 +259,28 @@ function runMovementAnalysis() {
 
     gaitPage?.destroy();
     gaitPage = new GaitAnalysisPage(gaitWrap, neucoreAssessment);
+
+    // The chevron goes on .gait-header-flex (the flex row) while the collapsed
+    // class goes on .gait-page (the grid) — see js/panelFold.js on why this one
+    // cannot use a body wrapper.
+    window.PanelFold?.attach(gaitWrap, {
+      headerSelector: '.gait-header-flex',
+      regionSelector: '.gait-page',
+      bodyMode: 'css',
+    });
   }
 
   window._lastMovementAnalysisSignature = _getAssessmentSignature();
   return true;
+}
+
+// Both legacy panels wrap their content in a `.card` whose `.card-header` is
+// already the box's title bar, so the fold hangs off that.
+function _foldCard(panelId) {
+  window.PanelFold?.attach(document.getElementById(panelId), {
+    headerSelector: '.card-header',
+    bodyMode: 'wrap',
+  });
 }
 
 // Expose globally for other scripts
