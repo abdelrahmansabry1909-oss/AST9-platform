@@ -20,8 +20,22 @@ vanilla-JS single-page authenticated shell (`app.html`) backed by Supabase
 
 ## 2. Current production status
 
-> **As of 2026-08-03**, `origin/main` @ `9763c02` · 71 migrations · 11 edge
-> functions · 163 unit tests. Deployed to GitHub Pages on merge.
+> **As of 2026-08-26**, `origin/main` @ `cb6a553` · 72 migrations · 11 edge
+> functions · 361 unit tests. Deployed to GitHub Pages on merge.
+
+**Landed 2026-08-26** (PR #207 merge `b07a8b4`, PR #208 merge `cb6a553`,
+PR #209) — frontend only, no database, edge-function or auth change:
+
+- **Full-body movement analysis.** The analysis had been lower-body-only because
+  the two gait engines had drifted apart and the missing rules were every spine
+  and shoulder rule — not, as previously recorded, because of a source-scope
+  limit. Engines levelled, three dead-on-supply rules repaired, upper-body fields
+  delivered to scoring, and a new cross-region integration engine added. Visible
+  deficit cards went from 4 to 10. See [ISSUE_LOG.md](ISSUE_LOG.md) #26.
+- **Folding result panels**, toggled by the whole panel header.
+- **Scapular activation chart** (PR #209) — the upper-body activation axis.
+- **Known gap:** the new upper-body measurements are scored and charted but
+  **never stored** — see [KNOWN_LIMITATIONS.md](KNOWN_LIMITATIONS.md) L21.
 
 **Landed 2026-08-02 → 08-03** (see [DEV_LOG.md](DEV_LOG.md) O2, BK1, FK1, DS1,
 RPM2, BIZ1 for the detail):

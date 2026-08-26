@@ -15,7 +15,13 @@
 | `js/` | Frontend modules (IIFE `window.*` globals). See [TECH_STACK.md](TECH_STACK.md). |
 | `js/dashboard.js` | Role routing, service switcher, section gating (incl. Athletic admin-only lock — PR #72). |
 | `js/athleticService.js` | Athletic assessment/movement frontend module; **runtime-locked to admin** via dashboard gating. |
+| `js/scoring.js` | Legacy movement scoring (classic IIFE). `readForm()` is the supply boundary — a field it does not deliver is invisible to every downstream engine. |
+| `js/gaitEngine.js` | Legacy gait rules. Must stay level with `src/neucore/gait/GaitRules.js` — enforced by `tests/unit/gait-engine-parity.test.js`. |
+| `js/integrationEngine.js` | Cross-region analysis: how one region's restriction is paid for by another. Neumann values pinned in-file; a missing input yields `not_assessed`, never a computed finding. |
+| `js/panelFold.js` | Turns a panel's own header into a fold control (`window.PanelFold`). Used by the movement-analysis result panels. |
 | `src/main.js` | Vite module entry pulled into `app.html`. |
+| `src/neucore/gait/` | Gait analysis page, phase strip, and the ES-module gait rules that drive the simulation deficit cards. |
+| `src/neucore/simulation/` | Activation data + charts. `MuscleActivationDB` is keyed to the seven gait phases; `ShoulderActivation*` is the upper-body axis (abduction angle), because upper-body muscles have no gait-phase profile. |
 | `supabase/migrations/` | Forward DB migrations (timestamped). |
 | `supabase/rollbacks/` | One of two historical locations for paired rollback scripts. |
 | `supabase/migrations/rollbacks/` | Second historical location for paired rollback scripts. |

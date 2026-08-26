@@ -1,14 +1,20 @@
 # FEATURE_STATUS.md — NeuCore Platform
 
-## ▶ CURRENT (2026-06-19)
+## ▶ CURRENT (2026-08-26)
 
 The per-feature detail below covers the legacy **Feature 1–8 (F-N)** era and is
 historical. The current product is tracked by **`Phase N`** — see the
 **Phase ledger** at the top of [`PROJECT_STATUS.md`](./PROJECT_STATUS.md) for the
-authoritative shipped-to-`main` list (Phases 1–13 + Antigravity's Phase A), and
+authoritative shipped-to-`main` list, and
 `PHASE12_EMAIL_AUTH_PRODUCTIONIZATION.md` / `PHASE13_SYSTEM_EXERCISE_LIBRARY.md`
-for the newest write-ups. Live on `origin/main` @ `1f4dc4d`; Supabase
-`byquokhcbagofshsclfy` (48 migrations, 11 edge functions, owner-only admin).
+for the newest write-ups. Live on `origin/main` @ `cb6a553`; Supabase
+`byquokhcbagofshsclfy` (72 migrations, 11 edge functions, owner-only admin).
+
+The movement-analysis arc (2026-08-26, PR #207/#208 merged, #209 open) is
+recorded in [`docs/DEV_LOG.md`](docs/DEV_LOG.md) under *NeuCore movement
+scoring*, with the root-cause history in [`docs/ISSUE_LOG.md`](docs/ISSUE_LOG.md)
+#26–#28 and the storage gap in
+[`docs/KNOWN_LIMITATIONS.md`](docs/KNOWN_LIMITATIONS.md) L21.
 
 > The F1–F8 sections that follow are accurate for their era but were last
 > revised 2026-06-06 — do not treat them as the current feature inventory.

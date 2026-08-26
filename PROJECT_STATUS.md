@@ -1,14 +1,14 @@
 # PROJECT_STATUS.md — NeuCore Platform
 
-## ▶ CURRENT STATE (2026-08-03)
+## ▶ CURRENT STATE (2026-08-26)
 
 > **Start here instead:** [`docs/PROJECT_INDEX.md`](docs/PROJECT_INDEX.md) is the
 > maintained entry point, with [`docs/DEV_LOG.md`](docs/DEV_LOG.md) for what
 > shipped and [`docs/KNOWN_LIMITATIONS.md`](docs/KNOWN_LIMITATIONS.md) for what is
 > missing. This file is kept for its historical phase ledger.
 
-**Live:** `origin/main` @ `9763c02` · GitHub Pages <https://abdelrahmansabry1909-oss.github.io/AST9_HUB/> (auto-deployed by `.github/workflows/deploy.yml`).
-**Supabase:** `byquokhcbagofshsclfy` (eu-central-1, Postgres 17) · **71 migrations** · **11 edge functions** · **163 unit tests** · **owner-only admin verified live (`admin_count = 1`)**.
+**Live:** `origin/main` @ `cb6a553` · GitHub Pages <https://abdelrahmansabry1909-oss.github.io/AST9_HUB/> (auto-deployed by `.github/workflows/deploy.yml`).
+**Supabase:** `byquokhcbagofshsclfy` (eu-central-1, Postgres 17) · **72 migrations** · **11 edge functions** · **361 unit tests** · **owner-only admin verified live (`admin_count = 1`)**.
 
 > The detailed body below this section is an older **handoff snapshot (2026-06-09)** written in the legacy `Feature 1–8 (F-N)` numbering and frozen at the F1–F6 era. Everything from **Phase 2 onward** uses the newer `Phase N` scheme summarized here. When the two disagree, trust this section + the per-phase docs.
 
@@ -31,6 +31,7 @@
 | 12 | Email-auth productionization + edge CORS resync (Resend SMTP, redirect allow-list, leaked-pw, branded templates) | `PHASE12_EMAIL_AUTH_PRODUCTIONIZATION.md` (PR #45) |
 | 13 | System Exercise Library (152 David Grey rows) + coach region/preview UI + `video_url` snapshot + client Train video + PDF links | `20260619000000_system_exercise_library.sql`; `PHASE13_SYSTEM_EXERCISE_LIBRARY.md` (PR #47, #48) |
 | A | Frontend surface polish — **Antigravity** | PR #49 (merged → `1f4dc4d`) |
+| MA | Full-body movement analysis — levelled gait engines, cross-region integration engine, folding result panels, scapular activation chart. Frontend only; no DB/edge/auth change. **Implemented by Claude at the owner's direct instruction**, which is a deliberate exception to the agent split above. | PR #207 (`b07a8b4`), PR #208 (`cb6a553`), PR #209; `js/integrationEngine.js`, `js/panelFold.js`, `src/neucore/simulation/ShoulderActivation*.js`; DEV_LOG *NeuCore movement scoring*; ISSUE_LOG #26–#28; KNOWN_LIMITATIONS L21–L22 |
 
 Also live: community privacy + realtime scoping (`20260614040000_community_privacy_realtime.sql`).
 
