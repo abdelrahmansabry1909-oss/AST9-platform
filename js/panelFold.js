@@ -19,6 +19,7 @@ const PanelFold = (() => {
   const COLLAPSED = 'nc-fold-collapsed';
   const BODY      = 'nc-fold-body';
   const CHEVRON   = 'nc-fold-chevron';
+  const HEADER    = 'nc-fold-head';
 
   let bodyIdSeq = 0;
 
@@ -47,9 +48,21 @@ const PanelFold = (() => {
     if (header.querySelector(`:scope > .${CHEVRON}`)) return region;
 
     const bodyId = config.bodyMode === 'wrap' ? _wrapAfter(header) : null;
+    const title  = _titleOf(header);
+    const chevron = _buildChevron(region, bodyId, title);
 
     region.classList.add(COLLAPSED);
-    header.appendChild(_buildChevron(region, bodyId, _titleOf(header)));
+    header.classList.add(HEADER);
+    header.appendChild(chevron);
+
+    // The whole bar toggles, not just the arrow. Aiming at a 24px chevron is
+    // the wrong thing to ask of someone reading a report — the bar is what
+    // reads as clickable. The arrow stays as the labelled control for keyboard
+    // and screen-reader users; this is the pointer affordance around it.
+    header.addEventListener('click', (event) => {
+      if (event.target.closest('button, a, input, select, textarea, label')) return;
+      _toggle(region, chevron, title);
+    });
     return region;
   }
 

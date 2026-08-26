@@ -763,6 +763,10 @@ textarea.form-input { resize: vertical; min-height: 88px; line-height: 1.6; }
    PR #105, PR #108 and the 2026-08-24 lane leak. */
 .nc-fold-collapsed > .nc-fold-body { display: none; }
 
+/* The whole bar is the target; `user-select` stops a double-click selecting the
+   title instead of opening the panel. */
+.nc-fold-head { cursor: pointer; user-select: none; }
+
 /* Padded to a 24px target (WCAG 2.5.8) without growing the glyph — a bare
    arrow is a 10x12 hit area, which is a miserable thing to aim at on a laptop
    trackpad and worse on touch. */

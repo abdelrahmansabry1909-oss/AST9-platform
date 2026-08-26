@@ -196,6 +196,19 @@ test('the chevron animation respects prefers-reduced-motion', () => {
   );
 });
 
+test('the whole header bar toggles, not only the arrow', () => {
+  // Asking someone to hit a 24px chevron in a report header is the wrong
+  // target: people aim at the bar. Owner-reported as "the minimize button
+  // doesn't work" — they were clicking the title.
+  assert.match(FOLD_JS, /header\.addEventListener\('click'/, 'the header bar is not clickable');
+  assert.match(
+    FOLD_JS,
+    /closest\('button, a, input, select, textarea, label'\)/,
+    'clicks on controls inside the header must not toggle the fold',
+  );
+  assert.match(STYLES, /\.nc-fold-head\s*\{[^}]*cursor:\s*pointer/, 'the bar does not read as clickable');
+});
+
 test('the chevron is a 24px target, not a bare 10x12 glyph', () => {
   // WCAG 2.5.8. Measured 24x24 in the browser; pinned here so a later tidy-up
   // of the padding cannot silently shrink it back.
