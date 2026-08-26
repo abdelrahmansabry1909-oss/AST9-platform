@@ -359,6 +359,65 @@ Verification legend:
 
 ## NeuCore movement scoring
 
+### Scapular activation across the arc of elevation
+- **Date:** 2026-08-26 · branch `feat/shoulder-activation-chart` · PR #209
+- **What:** The simulation page had nothing to say about a shoulder, because
+  `MuscleActivationDB` is keyed to the seven gait phases and upper-body muscles
+  have no gait-phase profile. Added a second activation axis — arm abduction
+  angle instead of percent of gait cycle — plotting upper trapezius, serratus
+  anterior and lower trapezius demand through the arc, with the client's measured
+  reach drawn as a cutoff band over the range they do not currently own.
+- **Provenance:** curves were **read off the plotted lines in Neumann Fig. 5-51**
+  (data from Bagg & Forrest 1986); the values are not tabulated anywhere in the
+  source. They are carried as graph readings accurate to about ±5 %MVIC and the
+  panel says so to the coach. Deltoid and supraspinatus are deliberately **not
+  plotted** — the text describes them but plots no curve, so a curve would have
+  been invented; their described behaviour is surfaced as text instead.
+- **Files:** `src/neucore/simulation/ShoulderActivationDB.js` (new),
+  `src/neucore/simulation/ShoulderActivationChart.js` (new), `src/main.js`,
+  `app.html` (one panel div), `tests/unit/shoulder-activation.test.js` (new),
+  `package.json` (test manifest). No DB/RLS/auth/edge/CSS change.
+- **Verification:** `npm run test:unit` 361/361; `npm run build` green; browser
+  run at 1366×768 and 1280×800 — zero console errors, 86,613 painted pixels,
+  cutoff band resolving to `--bg-raised`, identical repaint across a fold cycle,
+  no horizontal overflow, 24×24 chevron hit target. Both test guards
+  mutation-proven to fail on the regressions they exist for. **Real
+  authenticated smoke was not performed.**
+- **Discovered (deferred):** none new; the persistence gap below still applies —
+  shoulder abduction is scored and charted but never stored.
+
+### Full-body movement analysis, folding panels, and level gait engines
+- **Date:** 2026-08-26 · PR #207 (merge `b07a8b4`) and PR #208 (merge `cb6a553`)
+- **What:** The movement analysis was reported as "all lower body". The cause was
+  **not** the source-scope limit previously recorded — it was engine drift plus
+  dead supply:
+  1. The two gait engines had diverged. `js/gaitEngine.js` carried 15 rules;
+     `src/neucore/gait/GaitRules.js`, which drives the simulation page's deficit
+     cards, carried 10 — and the five missing ones were **every** spine and
+     shoulder rule. Levelling them took the visible deficit cards from 4 to 10.
+  2. Three more rules were dead on supply: a `select` compared against a value no
+     option emits, an element id not present on the form, and a field with no
+     numeric input at all.
+  3. Upper-body fields were collected by the form and then dropped before
+     scoring. `readForm()` now delivers shoulder abduction, thoracic rotation,
+     flexion and extension, and parses the lumbar placeholders.
+- **Also:** the four analysis panels now fold shut by default, with the **whole
+  header** as the toggle (the first cut made only the chevron clickable — people
+  aim at the bar); and a new cross-region engine reports how one region's
+  restriction is paid for by another (lumbopelvic rhythm, thoracic-shoulder
+  rhythm, axial rotation budget, reciprocal curves, gait counter-rotation, and
+  the foot-to-pelvis rotation chain), each pinned to a Neumann value and citation.
+  A missing input yields a `not_assessed` entry, never a computed finding.
+- **Files:** `js/panelFold.js` (new), `js/integrationEngine.js` (new),
+  `js/scoring.js`, `src/neucore/gait/GaitRules.js`, `src/main.js`,
+  `src/neucore/core/BodyCanvas.js`, `css/styles.css`,
+  `css/neucore-premium.css`, `app.html`, plus three new unit test files.
+- **Verification:** deploy runs succeeded; live build stamp
+  `cb6a553bd8765f715b828cff1e4e0c9999b6c930` matches the merge commit; deployed
+  JS byte-identical to the committed blobs **and executed in a `vm` sandbox** to
+  prove it computes, not merely that it shipped. **Real authenticated smoke was
+  not performed.**
+
 ### Gait Simulation Loop & Simulator Shell Polish
 - **Date:** 2026-07-12 · branch `feat/gait-loop-and-simulator-shell-polish`
 - **What:** Refined the NeuCore Movement Simulation to fix gait animation jumps/reversals and polish the simulator shell:

@@ -117,3 +117,43 @@
   reachability from `elementFromPoint`; parse status from `node --check`. "Build
   passed" is only evidence for files the build actually parses.
 - **Status:** In force. See ISSUE_LOG #22 and KNOWN_LIMITATIONS L15.
+
+## D15 — Normative curves are plotted; described muscles are written, not drawn
+- **Rationale:** Neumann Fig. 5-51 plots three scapular upward rotators (upper
+  trapezius, serratus anterior, lower trapezius). The surrounding text also
+  describes the middle deltoid, supraspinatus and middle trapezius — their onset,
+  their peak near 90°, their share of the abduction torque — but plots **no
+  curve** for any of them. A shoulder chart without a deltoid looks incomplete; a
+  shoulder chart with an invented deltoid curve is worse, because it is
+  indistinguishable from a measured one.
+- **Consequence:** the chart carries exactly the three curves the source plots.
+  The described muscles appear beneath it in a "Described, not plotted" block, so
+  the chart is not silently mistaken for the whole picture. Values read off a
+  plot are labelled as graph readings accurate to about ±5 %MVIC and never
+  presented as tabulated data.
+- **Status:** In force (PR #209). Guarded by `tests/unit/shoulder-activation.test.js`,
+  which fails if a `deltoid` or `supraspinatus` curve ever appears.
+
+## D16 — The client's own EMG is not drawn, because we cannot measure it
+- **Rationale:** The obvious shape for an activation chart is normative-versus-client.
+  The source gives graded normative curves but no graded client-side modifiers for
+  these muscles — only paralysis cases — so a "client" series would be invented
+  data wearing the same visual language as the measured one.
+- **Consequence:** what the assessment *can* state is where the arc **stops**, so
+  that is what is drawn: a cutoff band over the range the client does not own,
+  plus implications that each cite the page they came from. A short arc with a
+  stiff thorax blames the thorax and **not** the serratus, because only one of
+  those has evidence behind it.
+- **Status:** In force (PR #209). If client-side EMG is ever measured for real,
+  this decision is the thing to revisit — not the chart.
+
+## D17 — Two engines that must agree are pinned by a parity test, not by discipline
+- **Rationale:** `js/gaitEngine.js` and `src/neucore/gait/GaitRules.js` encode the
+  same clinical rules for different consumers. They drifted to 15 rules versus 10
+  without anything failing, and the 5 that went missing were every spine and
+  shoulder rule — which is why the analysis read as lower-body-only for months.
+  Nothing in the build, the type system or the test suite could notice.
+- **Consequence:** duplicated clinical knowledge gets a parity test that fails on
+  divergence. Preferred order is still to have one engine; until that
+  consolidation is scoped, the test is what makes the duplication survivable.
+- **Status:** In force (PR #208). See ISSUE_LOG #26.

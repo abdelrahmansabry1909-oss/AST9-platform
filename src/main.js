@@ -10,6 +10,7 @@ import { ObjectiveSync }    from './neucore/core/ObjectiveSync.js';
 import { FXLayer }          from './neucore/core/FXLayer.js';
 import { AssessmentPanel }  from './neucore/panels/AssessmentPanel.js';
 import { GaitAnalysisPage } from './neucore/gait/GaitAnalysisPage.js';
+import { ShoulderActivationChart } from './neucore/simulation/ShoulderActivationChart.js';
 import { bus }              from './neucore/core/JointBus.js';
 import { JOINT_LABELS }     from './neucore/core/JointRegistry.js';
 import { painToColor }      from './neucore/core/MaterialFactory.js';
@@ -44,6 +45,7 @@ let mainFX        = null;
 let assessPanel   = null;
 let assessStore   = {};   // jointKey → { pain_scale, rom fields, location[] }
 let gaitPage      = null;
+let shoulderChart = null;
 let objectiveSync = null; // two-way bind: Objective form ↔ 3D body map
 let zoneStage     = null; // E3 glass restage of the Objective form
 
@@ -253,10 +255,21 @@ function runMovementAnalysis() {
       document.getElementById('integration-panel')?.classList.remove('hidden');
     }
 
+    // Scapular upward-rotator demand against the arc of elevation. The gait
+    // activation chart is keyed to gait phases and has nothing to say about a
+    // shoulder; this is the upper-body axis.
+    const shoulderWrap = document.getElementById('shoulder-activation-panel');
+    if (shoulderWrap) {
+      shoulderChart?.destroy();
+      shoulderChart = new ShoulderActivationChart(shoulderWrap, legacyAssessment);
+      shoulderWrap.classList.remove('hidden');
+    }
+
     // Fold them shut. Both renderers rewrite innerHTML on every run, so this
     // has to follow the render rather than being set up once at boot.
     _foldCard('score-panel');
     _foldCard('integration-panel');
+    _foldCard('shoulder-activation-panel');
     _foldCard('gait-panel');
   }
 

@@ -53,3 +53,34 @@
 - **Approved / phase:** Owner — F3B movement observations design.
 - **Do not change:** do not add scoring/normative/ML fields to athletic tables
   without an explicit, approved phase.
+
+## 6. The shoulder chart has no deltoid curve and no client line
+- **Behavior:** The scapular activation chart plots exactly three muscles (upper
+  trapezius, serratus anterior, lower trapezius) and draws no client-specific
+  EMG series. The middle deltoid, supraspinatus and middle trapezius appear only
+  as text under a "Described, not plotted" heading.
+- **Why intended:** Both absences are the product rule in #5 applied to the rehab
+  lane. Neumann Fig. 5-51 plots curves for those three muscles only; the others
+  are described in prose with no plotted data, so a curve for them would be
+  invented. Likewise the source gives graded normative curves but no graded
+  client-side modifiers — only paralysis cases — so a client EMG line would be
+  fabricated data drawn in the same visual language as the measured curves. What
+  the assessment can honestly state is where the arc **stops**, so that is what
+  is drawn, as a cutoff band.
+- **Approved / phase:** [DECISIONS.md](DECISIONS.md) D15 and D16 (PR #209).
+- **Do not change:** do not add a deltoid/supraspinatus curve or a client EMG
+  series. `tests/unit/shoulder-activation.test.js` fails if either appears. If
+  real client EMG is ever measured, revisit D16 first — not the chart.
+
+## 7. The analysis panels start folded shut
+- **Behavior:** After a movement analysis runs, the score, integration, scapular
+  activation and gait panels all render collapsed. The whole panel header is the
+  toggle, not just the chevron.
+- **Why intended:** The four panels together are far longer than a viewport, so
+  an expanded default buried the rest of the page. The header is the hit target
+  because the first version made only the chevron clickable and the owner
+  reported the control as not working — people aim at the bar.
+- **Approved / phase:** Owner-directed, PR #208.
+- **Do not change:** a chart inside a folded panel must be built on reveal, never
+  on construction — see [ISSUE_LOG.md](ISSUE_LOG.md) #27 for why Chart.js cannot
+  recover from a first paint in a hidden box.

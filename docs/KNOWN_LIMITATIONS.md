@@ -314,3 +314,41 @@ does not leak repository internals into the deployed bundle.
 `dist/` returned 200 on the live site, and the injected `AST9_BUILD_ID` matched
 the deployed commit. Nothing was dropped - because there was nothing hidden to
 drop. See DEV_LOG CI1.
+
+## L21 - The upper-body measurements are scored but never stored
+
+The full-body analysis work (PR #208, PR #209) added form inputs for thoracic
+rotation, thoracic flexion, thoracic extension and shoulder abduction. They are
+collected, scored, fed to the integration engine and charted — and then
+**discarded when the assessment is saved**. `rehab_objective_assessments` has no
+column for any of them, verified against
+`supabase/baseline/production_public_schema.sql`:
+
+- shoulder columns are `shoulder_flexion_*`, `shoulder_extension_*`,
+  `shoulder_ir_*`, `shoulder_er_*` — there is **no `shoulder_abduction_*`**,
+  which is the motion Neumann Fig. 5-51 actually measured and the one the
+  scapular chart prefers;
+- spine columns are generic `spine_*_range` **text** buckets, not numeric
+  degrees, and none of them are thoracic-specific;
+- there are no cervical, elbow, or wrist columns at all.
+
+**Consequence:** the analysis is correct for the session in which it is entered
+and cannot be reproduced afterwards. A reassessment comparison (Phase R2D) will
+show lower-body change over time and nothing above the pelvis.
+
+Closing this needs a migration adding the columns plus the read/write paths —
+**backend work, outside the frontend lane this was built in**. It has not been
+scoped or approved, and no migration exists. Until then, treat every upper-body
+finding as transient.
+
+## L22 - The lumbar placeholders contradict the engine's own norms
+
+`ns-lumb-flex` and `ns-lumb-ext` carry placeholder ranges of 40–60° and 20–35°,
+while `js/integrationEngine.js` pins Neumann's values of 50° and 15° and scores
+against them. The same screen therefore shows a coach a "normal" hint that the
+engine beside it will score as restricted at the top of the placeholder range.
+
+Left as-is deliberately: choosing between the two is a **clinical source
+decision for the owner**, not a code fix, and changing either one silently would
+move scores. See also the note in `reference_neumann_source_scope` that
+`cerv_rotation` 70 is likewise on the low side.

@@ -5,6 +5,16 @@ Companion to **SYSTEM_REVIEW.md**. Every case has: **Objective · Preconditions 
 Categories: **U** unit · **INT** integration · **E2E** end-to-end · **SEC** security · **REG** regression.
 Status column intentionally omitted (read-only audit) — these are specifications to execute, not results.
 
+> **Currency (2026-08-26).** This document is a **point-in-time specification**,
+> not a live inventory of the suite. It has not tracked the test files added
+> since it was written — `css-vendor-prefix-order`, `monitoring-release-stamp`,
+> `fullbody-rom-scoring`, `panel-fold`, `gait-engine-parity`,
+> `integration-chain-analysis` and `shoulder-activation` are all absent from it,
+> among others. The authoritative list of what actually runs is the `test:unit`
+> script in `package.json` (**361 tests** as of 2026-08-26), enforced against
+> orphans by `tests/unit/test-manifest.test.js`. Read this file for the cases it
+> specifies; do not read it as coverage.
+
 ---
 
 ## 1. Unit tests (U)

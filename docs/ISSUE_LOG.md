@@ -522,3 +522,75 @@
 - **Dead ends recorded so they are not retried:** `browserslist` has no effect
   (Vite 8 ignores it for CSS); `build.cssTarget` does not restore the standard
   property; `cssMinify: false` works but costs 240KB.
+
+## 26. The movement analysis was lower-body only (resolved 2026-08-26)
+- **Symptoms:** The owner reported "still there is no full body analysis, it is
+  all lower body". The simulation page's deficit cards, the score panel and the
+  activation chart all described hips, knees, ankles and feet, and said nothing
+  about the spine or shoulder — for every client, regardless of what was entered.
+- **Previously recorded cause — WRONG.** This was on file as a *source-scope
+  limit*: the reference book was assumed to cover the lower body only, so the
+  analysis was assumed to be as complete as the source allowed. That verdict
+  explained the activation chart alone and was carried over to the whole feature
+  without being re-checked. The source has extensive axial, shoulder and gait
+  material (Table 9-11, Figs 9-54/55/56/66, Ch. 5 2:1 scapulohumeral rhythm,
+  Ch. 15 excursions).
+- **Actual root cause — three independent failures, all inside our own code:**
+  1. **Engine drift.** Two gait engines exist. `js/gaitEngine.js` carried 15
+     rules; `src/neucore/gait/GaitRules.js` — the one that actually drives the
+     simulation page — carried 10, and the 5 it was missing were **every** spine
+     and shoulder rule. Nothing reported the divergence.
+  2. **Rules dead on supply.** Three more never fired at all: one compared a
+     `select` against a value no `<option>` emits, one read an element id absent
+     from the form, and one needed a numeric input the form did not have.
+  3. **Collected and dropped.** `readForm()` gathered upper-body fields and then
+     did not pass them on, so scoring never saw them.
+- **Fix:** PR #208 — engines levelled, dead rules repaired, `readForm()` extended
+  (shoulder abduction, thoracic rotation/flexion/extension, parsed lumbar
+  values), and a new cross-region `js/integrationEngine.js` reporting how one
+  region's restriction is paid for by another. Visible deficit cards went from
+  **4 to 10** on the same input.
+- **Guarded:** `tests/unit/gait-engine-parity.test.js` fails if the two engines'
+  rule sets diverge again; `tests/unit/integration-chain-analysis.test.js` pins
+  the Neumann values and asserts a missing input yields `not_assessed` rather
+  than a computed finding.
+- **Lesson (recorded because it cost the most):** *check collected-and-dropped
+  before blaming the source.* A plausible external explanation was accepted for
+  an internal defect, and it suppressed the investigation for a long time.
+
+## 27. Chart.js cannot recover from a first paint inside a folded panel (2026-08-26)
+- **Symptoms:** The new scapular activation chart rendered a blank canvas. The
+  canvas reported plausible dimensions and threw nothing; it simply had zero
+  painted pixels — 0 in the page against 48,836 in an isolated probe.
+- **Root cause:** Chart.js defers its first paint to an animation frame. The
+  analysis panels fold shut on the line after the chart is constructed, so that
+  frame landed in a `display:none` box. Once that happens the instance is dead:
+  it is never retina-scaled, and `resize()`, `render()` and `update()` all leave
+  it blank.
+- **Dead ends recorded so they are not retried:** dispatching a window resize and
+  calling `chart.resize()`; adding `update('none')`; deferring construction by
+  one `requestAnimationFrame`; observing the **canvas** with a `ResizeObserver`
+  (Chart.js pins the canvas's inline width, so its own box never changes and the
+  observer never fires); and guarding on the panel element (wrong node — the fold
+  hides a wrapper *inside* the card, so the panel keeps a box).
+- **Fix:** rebuild on every hidden→visible transition, triggered by the fold's
+  window resize plus a `ResizeObserver` on the canvas **wrapper**. Measured
+  207,295 painted pixels, surviving repeated fold cycles.
+- **Guarded:** `tests/unit/shoulder-activation.test.js` asserts `_initChart` has
+  exactly **one** call site and that it sits inside `_ensureChart`.
+- **The guard's own near-miss:** the first version of that test sliced the file
+  from `constructor(` to the first mention of `_ensureChart` and so never looked
+  at `_build()`, which was still calling `_initChart()` directly. **The test
+  passed while the defect it exists to catch was live.** It was rewritten to
+  count call sites and then re-run against the real defect to prove it fails.
+
+## 28. A category axis was addressed by value, so the cutoff band never drew (2026-08-26)
+- **Symptoms:** The shaded "beyond this client's arc" band was silently absent.
+  No error, no visual artifact — just nothing.
+- **Root cause:** on a Chart.js **category** scale, `getPixelForValue` takes an
+  **index**, not a data value. Passing `120` (degrees) resolved far off the right
+  edge of the plot, and the fill was clipped away.
+- **Fix:** interpolate the client's angle into index space, then across the
+  plotted width between `getPixelForValue(0)` and `getPixelForValue(last)`.
+- **Verified:** the band pixel now samples `246,250,248` — exactly `--bg-raised`
+  in the bright theme — inside the band, and fully transparent before the cutoff.
