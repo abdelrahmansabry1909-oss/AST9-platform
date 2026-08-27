@@ -4,6 +4,26 @@
    Stack: vanilla HTML/CSS/JS (matches existing project)
 ═══════════════════════════════════════════════════════════════ */
 
+/* ── CROSS-PAGE FADE ────────────────────────────────────────────
+   Matches css/landing-v2.css. A cross-document view transition only
+   runs when BOTH documents opt in, so this is what lets index.html
+   fade to and from the six pages under public/legal/ that link this
+   file. Durations are kept identical to landing-v2.css so the fade
+   feels the same in either direction. Unsupported browsers just
+   navigate as before.                                              */
+@view-transition { navigation: auto; }
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 260ms;
+  animation-timing-function: ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) { animation: none; }
+}
+
 /* ── DESIGN TOKENS ──────────────────────────────────────────── */
 :root {
   /* Core palette — Royal Premium (royal-navy surfaces, parity with the app) */
