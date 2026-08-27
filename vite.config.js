@@ -69,12 +69,28 @@ export default defineConfig(({ command }) => ({
       // legacy IIFE layer — are left untouched in the emitted HTML, so
       // the entire `js/` directory must be present alongside `dist/app.html`
       // for those tags to resolve. Copy it on every build.
-      name: 'copy-legacy-js',
+      //
+      // `css/` needs the same treatment for a different reason: the six
+      // pages under `public/legal/` are copied verbatim by Vite (public/
+      // is never processed), so their `../css/landing.css` and
+      // `../css/styles.css` links are emitted untouched and must find
+      // real files. Without this they 404 and every legal page — terms,
+      // privacy, medical disclaimer, health-data consent, refund, cookie
+      // policy — renders with no stylesheet at all. Verified 404 in
+      // production on 2026-08-27.
+      //
+      // Whole directories rather than a file list, so adding a stylesheet
+      // link to a legal page later cannot silently start 404ing again.
+      // Unreferenced files cost nothing at runtime; they are only fetched
+      // if something links them.
+      name: 'copy-legacy-assets',
       apply: 'build',
       closeBundle() {
-        const src = resolve(__dirname, 'js');
-        const dst = resolve(__dirname, 'dist', 'js');
-        if (existsSync(src)) cpSync(src, dst, { recursive: true });
+        for (const dir of ['js', 'css']) {
+          const src = resolve(__dirname, dir);
+          const dst = resolve(__dirname, 'dist', dir);
+          if (existsSync(src)) cpSync(src, dst, { recursive: true });
+        }
       },
     },
   ],
