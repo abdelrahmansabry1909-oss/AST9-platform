@@ -850,7 +850,7 @@ button { font: inherit; }
 .ws-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 24px;
+  gap: 16px;
   align-items: stretch;
 }
 
@@ -858,31 +858,44 @@ button { font: inherit; }
   background: var(--surface);
   border: 1px solid var(--line-light);
   border-radius: var(--r-lg);
-  padding: 26px 24px 24px;
+  padding: 16px 14px 14px;
   display: flex;
   flex-direction: column;
 }
 .ws-icon {
-  width: 40px; height: 40px; border-radius: 11px;
+  width: 26px; height: 26px; border-radius: 8px;
   background: #E4F3EA; color: var(--green-deep);
-  display: grid; place-items: center; margin-bottom: 20px;
+  display: grid; place-items: center; margin-bottom: 8px;
 }
-.ws-icon svg { width: 19px; height: 19px; }
-.ws h3 { font-size: 18px; font-weight: 700; margin: 0 0 4px; color: var(--on-light); letter-spacing: -0.01em; }
-.ws .sub { font-size: 13.5px; color: var(--on-light-2); margin: 0 0 22px; }
+.ws-icon svg { width: 14px; height: 14px; }
+/* The dark card is `.ws--dark` with no `.ws` class, so it never matched a
+   bare `.ws h3` and fell back to the UA default — 18.72px type with 18.72px
+   margins top AND bottom, against 15px/0/3px on its siblings. That stray
+   ~69px is what made it the row-height driver. Both card types now share
+   one type scale. */
+.ws h3, .ws--dark h3 {
+  font-size: 15px; font-weight: 700; margin: 0 0 3px;
+  color: var(--on-light); letter-spacing: -0.01em;
+}
+.ws .sub, .ws--dark .sub { font-size: 12.5px; color: var(--on-light-2); margin: 0 0 14px; }
 .ws .btn { margin-top: auto; width: 100%; }
+
+/* The shared .btn is 56px tall, which is right for the hero but oversized
+   inside a card. Scoped down here rather than changed globally. */
+.ws .btn,
+.ws--dark .btn { padding: 11px 16px; font-size: 13px; }   /* 45px — clears the 44px touch floor */
 
 .ws-k {
   font-size: 10px; font-weight: 700; letter-spacing: 0.13em;
   text-transform: uppercase; color: var(--on-light-2);
   display: flex; justify-content: space-between; align-items: center;
-  margin-bottom: 14px;
+  margin-bottom: 9px;
 }
-.ws-k b { font-size: 16px; color: var(--on-light); letter-spacing: 0; }
+.ws-k b { font-size: 15px; color: var(--on-light); letter-spacing: 0; }
 
-.client { display: flex; align-items: center; gap: 10px; margin-bottom: 13px; }
+.client { display: flex; align-items: center; gap: 9px; margin-bottom: 8px; }
 .avatar {
-  width: 27px; height: 27px; border-radius: 50%;
+  width: 24px; height: 24px; border-radius: 50%;
   background: #DCEFE4; color: var(--green-deep);
   font-size: 10px; font-weight: 700;
   display: grid; place-items: center; flex: none;
@@ -892,38 +905,40 @@ button { font: inherit; }
 .bar i { display: block; height: 100%; background: var(--green-strong); border-radius: 3px; }
 .client-pct { font-size: 12px; font-weight: 700; color: var(--on-light); width: 30px; text-align: right; flex: none; }
 
-.ring-wrap { display: grid; place-items: center; margin-bottom: 6px; }
-.ring { position: relative; width: 130px; height: 130px; }
-.ring svg { transform: rotate(-90deg); }
+.ring-wrap { display: grid; place-items: center; margin-bottom: 4px; }
+/* The inline <svg> is authored at 130 with a viewBox, so shrinking the
+   wrapper and letting the svg fill it scales the whole dial cleanly. */
+.ring { position: relative; width: 66px; height: 66px; }
+.ring svg { transform: rotate(-90deg); width: 100%; height: 100%; }
 .ring-mid {
   position: absolute; inset: 0;
   display: grid; place-items: center; text-align: center;
 }
-.ring-mid .n { font-size: 30px; font-weight: 800; color: var(--green-deep); line-height: 1; }
-.ring-mid .l { font-size: 10px; color: var(--on-light-2); }
+.ring-mid .n { font-size: 21px; font-weight: 800; color: var(--green-deep); line-height: 1; }
+.ring-mid .l { font-size: 8.5px; color: var(--on-light-2); }
 .ws-center { text-align: center; }
-.ws-center .t { font-size: 12.5px; color: var(--on-light-2); margin-top: 12px; }
-.ws-center .b { font-size: 17px; font-weight: 700; color: var(--on-light); margin-bottom: 20px; }
+.ws-center .t { font-size: 11.5px; color: var(--on-light-2); margin-top: 7px; }
+.ws-center .b { font-size: 14.5px; font-weight: 700; color: var(--on-light); margin-bottom: 4px; }
 
-.stat-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 12px; margin-bottom: 16px; }
-.stat-k { font-size: 11px; color: var(--on-light-2); margin-bottom: 2px; }
-.stat-v { font-size: 24px; font-weight: 800; color: var(--on-light); line-height: 1.1; }
-.stat-v.ok { font-size: 14px; font-weight: 600; color: var(--green-strong); display: flex; align-items: center; gap: 6px; }
+.stat-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; margin-bottom: 10px; }
+.stat-k { font-size: 10.5px; color: var(--on-light-2); margin-bottom: 1px; }
+.stat-v { font-size: 19px; font-weight: 800; color: var(--on-light); line-height: 1.1; }
+.stat-v.ok { font-size: 12.5px; font-weight: 600; color: var(--green-strong); display: flex; align-items: center; gap: 5px; }
 
 .ws--dark {
   background: linear-gradient(160deg, #0C1512 0%, #050908 100%);
   border: 1px solid rgba(255,255,255,0.08);
   border-radius: var(--r-xl);
-  padding: 8px;
+  padding: 6px;
   display: flex;
 }
-/* Outer 8 + inner 18/16/16 puts the content on exactly the same 26/24/24
-   inset as the light cards, so the CTA lands on their baseline instead of
-   19px above it. The accent ring survives, just tighter. */
+/* Outer 6 + inner 10/8/8 puts the content on exactly the same 16/14/14
+   inset as the light cards, so the CTA lands on their baseline. The accent
+   ring survives, just tighter. */
 .ws-dark-inner {
   border: 1px solid rgba(52, 211, 153, 0.18);
   border-radius: var(--r-lg);
-  padding: 18px 16px 16px;
+  padding: 10px 8px 8px;
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -953,7 +968,7 @@ button { font: inherit; }
      ~440px whole cards next to it. The cap holds the figure at a readable
      size without touching the desktop layout, where the column is narrower
      than this anyway. */
-  max-width: 240px;
+  max-width: 118px;
   width: 100%;
   border-radius: var(--r-md);
   aspect-ratio: 640 / 670;
@@ -973,7 +988,7 @@ button { font: inherit; }
   transform: translateY(-30.78%);
 }
 /* Keeps a real gap under the runner once the auto margins are consumed. */
-.ws--dark .btn { margin-top: 18px; }
+.ws--dark .btn { margin-top: 12px; }
 .lock { width: 13px; height: 13px; color: var(--green); }
 
 /* ── Coming-soon modal extras (shell comes from .vm/.vm-card) ── */
