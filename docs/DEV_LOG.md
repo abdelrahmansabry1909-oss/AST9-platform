@@ -359,6 +359,61 @@ Verification legend:
 
 ## NeuCore movement scoring
 
+### A failed assessment save stops looking like a successful one
+- **Date:** 2026-08-27 · PR #212 (merge `73be2be`) · `?v=20260827b`
+- **What:** A coach saw "Program generated!" whether or not anything reached the
+  database. Four independent silences made that possible, and the fourth is what
+  made the others lethal: **`supabase-js` returns `{ error }` rather than
+  throwing**, and none of the five inserts destructured it, so an RLS denial or
+  an unknown column raised no exception and the `try/catch` never ran. The other
+  three — no `await` on the caller, a bare `console.warn` at the end, and
+  `if (!aRow) return` skipping every dependent insert — only mattered because
+  this one let every failure through first.
+- **Fix:** every insert checks its returned error and names the failing stage;
+  the empty-row case reports instead of returning past; the caller awaits; a
+  warning toast tells the coach what was not stored, that the program is still
+  on screen and exportable, and to keep the tab open. Failures reach Sentry
+  tagged `area: 'assessment_save'`, wrapped so monitoring cannot itself throw.
+  A failed save deliberately does **not** discard the program — see DECISIONS D18.
+- **Files:** `js/dashboard.js`, `app.html` (`?v=` bump),
+  `tests/unit/assessment-save-reporting.test.js` (new, 10 cases),
+  `tests/unit/upper-body-rom-columns.test.js`, `package.json`,
+  `docs/ISSUE_LOG.md` (#29 closed).
+- **Verification:** 390/390 unit; build green; `node --check` clean. The real
+  `js/dashboard.js` was loaded in a browser and the real `toast` called with the
+  real failure message — renders as `toast warning` on existing amber tokens,
+  ⚠ icon, full text un-truncated, 304×115, inside the viewport, **no new colour
+  or style**. All five guards mutation-proven. Live verification 10/10: the
+  deployed file is byte-identical to the committed blob and 5/5 named errors are
+  checked and acted on in it.
+- **Not verified:** nobody has made a save fail on purpose, or succeed. **Real
+  authenticated smoke was not performed.**
+
+### The write path — final piece of L21
+- **Date:** 2026-08-27 · PR #211 (merge `7d90139`) · `?v=20260827a`
+- **What:** The insert went from 45 to **70 columns**. Twenty-one are the ones
+  migration `20260809000000` added. The other **four are older than this entire
+  work stream**: `shoulder_extension_left/right` and
+  `ankle_supination_left/right` have had columns since the table was created,
+  the form collects them, `js/scoring.js` reads them — `shoulder_extension` is
+  even scored — and the insert simply omitted them. Every value typed into those
+  four had been discarded on save for as long as the table has existed.
+- **Verified against the live database, not the repo:** 70/70 written columns
+  exist in production; no `NOT NULL`-without-default is left unwritten; an
+  insert of the exact payload shape was accepted inside a rolled-back
+  transaction with every value round-tripping, including
+  `elbow_extension_left = 0` (a real reading, not a missing one); 17 rows before
+  and after. The FK on `assessment_id` correctly rejected a synthetic id first,
+  which is the constraint working.
+- **PostgREST schema cache reloaded.** It caches table schemas and rejects a
+  brand-new column with "column not found" — indistinguishable from the column
+  not existing, and combined with the then-unfixed swallow it would have failed
+  every save behind a success toast. `NOTIFY pgrst, 'reload schema'`.
+- **Guard added:** the inverse of the existing hazard test — it fails if a
+  migration adds a column that nothing writes, which is exactly the state
+  `shoulder_extension` sat in, indistinguishable from working storage when
+  reading the schema alone.
+
 ### Wiring the upper body to the 3D body map, and one lumbar norm
 - **Date:** 2026-08-26 · branch `feat/persist-upper-body-rom`
 - **What:** The same 21 fields that had no database column were also unbound

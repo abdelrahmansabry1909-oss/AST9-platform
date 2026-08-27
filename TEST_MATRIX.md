@@ -5,15 +5,23 @@ Companion to **SYSTEM_REVIEW.md**. Every case has: **Objective · Preconditions 
 Categories: **U** unit · **INT** integration · **E2E** end-to-end · **SEC** security · **REG** regression.
 Status column intentionally omitted (read-only audit) — these are specifications to execute, not results.
 
-> **Currency (2026-08-26).** This document is a **point-in-time specification**,
+> **Currency (2026-08-27).** This document is a **point-in-time specification**,
 > not a live inventory of the suite. It has not tracked the test files added
 > since it was written — `css-vendor-prefix-order`, `monitoring-release-stamp`,
 > `fullbody-rom-scoring`, `panel-fold`, `gait-engine-parity`,
-> `integration-chain-analysis` and `shoulder-activation` are all absent from it,
-> among others. The authoritative list of what actually runs is the `test:unit`
-> script in `package.json` (**361 tests** as of 2026-08-26), enforced against
-> orphans by `tests/unit/test-manifest.test.js`. Read this file for the cases it
-> specifies; do not read it as coverage.
+> `integration-chain-analysis`, `shoulder-activation`, `objective-sync-bindings`,
+> `upper-body-rom-columns` and `assessment-save-reporting` are all absent from
+> it, among others. The authoritative list of what actually runs is the
+> `test:unit` script in `package.json` (**390 tests across 33 files** as of
+> 2026-08-27), enforced against orphans by `tests/unit/test-manifest.test.js`.
+> Read this file for the cases it specifies; do not read it as coverage.
+>
+> Note also what these specs cannot cover. The suite is entirely static — it
+> reads source and asserts about it. Nothing in it signs in, saves an
+> assessment, or renders a chart. Several defects fixed in 2026-08-26/27 passed
+> a fully green suite for months (see ISSUE_LOG #26–#29), which is the argument
+> for the mutation-testing habit now used on every new guard: a guard that
+> cannot be made to fail is not evidence.
 
 ---
 
