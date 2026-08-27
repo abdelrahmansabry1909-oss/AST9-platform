@@ -595,10 +595,9 @@
 - **Verified:** the band pixel now samples `246,250,248` — exactly `--bg-raised`
   in the bright theme — inside the band, and fully transparent before the cutoff.
 
-## 29. An objective assessment can fail to save with the coach told it succeeded (open, found 2026-08-26)
-- **Status:** OPEN. Found while auditing the L21 persistence gap; **not fixed**,
-  because changing it alters what coaches see and is a product decision, not a
-  wiring fix. Documented here so the next person does not rediscover it.
+## 29. An objective assessment can fail to save with the coach told it succeeded (RESOLVED 2026-08-27)
+- **Status:** FIXED, owner-approved. Found while auditing the L21 persistence
+  gap and initially left alone because surfacing it changes what coaches see.
 - **Symptoms:** none visible — that is the problem. The coach sees
   "Program generated!" whether or not anything reached the database.
 - **Mechanism**, three independent layers in `js/dashboard.js`:
@@ -624,6 +623,26 @@
 - **Not "non-fatal":** the comment calls the failure non-fatal, and for the
   legacy `sessions` row it arguably is. For `rehab_objective_assessments` it is
   the loss of the entire assessment the coach just performed.
-- **Suggested fix when scoped:** `await` the save, and surface a distinct
-  warning toast on failure the way the AI-narrative leg beside it already does
-  — that path is honest about degradation; this one is not.
+- **A fourth silence, found while fixing it — and the one that mattered most:**
+  `supabase-js` **returns** `{ error }` rather than throwing, and none of the
+  five inserts destructured it. `await sb.from('sessions').insert({...})` looks
+  complete and discards the error entirely. So an RLS denial, a constraint
+  violation or an unknown column raised **no exception at all** and the
+  `try/catch` never ran — the catch was largely decorative. The other three
+  layers only mattered because this one let every failure through first.
+- **Fix (2026-08-27):** every insert now destructures and checks its returned
+  error; each failure returns `{ ok:false, stage, message }` naming the stage
+  that failed; the empty-row case returns a failure instead of `return`; the
+  caller **awaits** the save; and a failure raises a warning toast telling the
+  coach plainly that nothing was stored, that the program is still on screen
+  and exportable, and to keep the tab open. Failures also reach Sentry tagged
+  `area: 'assessment_save'`, wrapped so monitoring can never itself throw and
+  turn a reported failure into an unreported one.
+- **Deliberately not changed:** a failed save does **not** block or discard the
+  program. It is generated locally and stays valid; only storage failed, and
+  telling a coach their work is gone while it is on screen would be its own
+  dishonesty.
+- **Guarded:** `tests/unit/assessment-save-reporting.test.js` — 10 cases,
+  mutation-proven against all five regressions (a discarded error, a checked
+  error not acted on, a dropped `await`, the restored `console.warn` swallow,
+  and an unwrapped Sentry call).
