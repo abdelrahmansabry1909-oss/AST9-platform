@@ -1,237 +1,246 @@
 /* ═══════════════════════════════════════════════════════════════
-   NEUCORE LANDING — INTERACTIONS
-   - Sticky nav scroll state
-   - Feature tabs
-   - Case studies carousel (snap + drag + dots + arrows)
-   - Scroll-reveal via IntersectionObserver
-   - Animated stats counter
-═══════════════════════════════════════════════════════════════ */
+   NeuCore Landing — behaviour
+   ───────────────────────────────────────────────────────────────
+   Three jobs only: the nav's scrolled state, the mobile menu, and
+   the footer year. The previous version also drove a tab strip and
+   a drag carousel; the 2026 rebuild has neither, so that code is
+   gone rather than left dead.
+
+   Loaded as a classic script (not a module) so it runs on the
+   static page without a build step.
+   ═══════════════════════════════════════════════════════════════ */
 
 (() => {
   'use strict';
 
-  /* ── 1. Year ─────────────────────────────────────────────── */
-  const yearEl = document.getElementById('nc-year');
-  if (yearEl) yearEl.textContent = new Date().getFullYear();
+  // ── Scroll reveal ──────────────────────────────────────────
+  // Each tagged block gets one entrance the first time it comes into
+  // view. Groups reveal their children on a short stagger so a grid
+  // reads as a single arrival instead of four separate events.
+  const groups  = Array.from(document.querySelectorAll('[data-reveal-group]'));
+  const singles = Array.from(document.querySelectorAll('[data-reveal]'))
+    .filter((el) => !el.closest('[data-reveal-group]'));
+  const revealTargets = [...groups, ...singles];
 
-  /* ── 2. Sticky nav ───────────────────────────────────────── */
+  if (revealTargets.length) {
+    const root = document.documentElement;
+
+    if (!('IntersectionObserver' in window)) {
+      // No observer: show everything rather than hide it forever.
+      root.classList.remove('js-reveal');
+    } else {
+      for (const group of groups) {
+        Array.from(group.children).forEach((child, i) => {
+          // Capped so a long grid never leaves the last card waiting.
+          child.style.setProperty('--reveal-delay', `${Math.min(i, 5) * 70}ms`);
+        });
+      }
+
+      const io = new IntersectionObserver((entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          entry.target.classList.add('is-in');
+          io.unobserve(entry.target);  // one-shot: replaying on scroll-up is noise
+        }
+      }, { rootMargin: '0px 0px -10% 0px', threshold: 0.08 });
+
+      for (const el of revealTargets) io.observe(el);
+    }
+  }
+
+  // ── Nav follows the section in view ────────────────────────
+  // The margins collapse the observer's window to a band across the
+  // middle of the viewport, so exactly one section is ever current.
+  const navLinks = Array.from(document.querySelectorAll('.nav-link[href^="#"]'));
+  const spied = navLinks
+    .map((link) => ({ link, el: document.querySelector(link.getAttribute('href')) }))
+    .filter((pair) => pair.el);
+
+  if (spied.length && 'IntersectionObserver' in window) {
+    const setCurrent = (hit) => {
+      for (const pair of spied) {
+        const on = pair === hit;
+        pair.link.classList.toggle('is-current', on);
+        if (on) pair.link.setAttribute('aria-current', 'true');
+        else pair.link.removeAttribute('aria-current');
+      }
+    };
+
+    const spy = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        setCurrent(spied.find((pair) => pair.el === entry.target));
+      }
+    }, { rootMargin: '-45% 0px -45% 0px' });
+
+    for (const pair of spied) spy.observe(pair.el);
+  }
+
+  // ── Footer year ────────────────────────────────────────────
+  const yearEl = document.getElementById('nc-year');
+  if (yearEl) yearEl.textContent = String(new Date().getFullYear());
+
+  // ── Nav border appears once the page has moved ─────────────
   const nav = document.getElementById('nc-nav');
   if (nav) {
-    const onScroll = () => {
-      if (window.scrollY > 24) nav.classList.add('scrolled');
-      else nav.classList.remove('scrolled');
-    };
+    const onScroll = () => nav.classList.toggle('scrolled', window.scrollY > 24);
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
   }
 
-  /* ── 3. Feature tabs ─────────────────────────────────────── */
-  const tabTriggers = document.querySelectorAll('.nc-tab-trigger');
-  const tabPanels   = document.querySelectorAll('.nc-tab-panel');
+  // ── Mobile menu ────────────────────────────────────────────
+  // The panel is real and this handler is what makes the toggle a
+  // control rather than decoration. A hamburger with no menu once
+  // shipped here and left phone users with no way to reach Sign In,
+  // so if the button is visible it must open something.
+  const toggle = document.getElementById('nc-nav-toggle');
+  const panel  = document.getElementById('nc-nav-panel');
 
-  tabTriggers.forEach((trigger) => {
-    trigger.addEventListener('click', () => {
-      const target = trigger.dataset.tab;
+  if (toggle && panel) {
+    const setOpen = (open) => {
+      panel.classList.toggle('open', open);
+      toggle.setAttribute('aria-expanded', String(open));
+    };
 
-      tabTriggers.forEach((t) => {
-        const isActive = t === trigger;
-        t.classList.toggle('active', isActive);
-        t.setAttribute('aria-selected', isActive ? 'true' : 'false');
-      });
-
-      tabPanels.forEach((p) => {
-        p.classList.toggle('active', p.dataset.panel === target);
-      });
+    toggle.addEventListener('click', () => {
+      setOpen(!panel.classList.contains('open'));
     });
-  });
 
-  /* ── 4. Case studies carousel ────────────────────────────── */
-  const viewport  = document.getElementById('nc-carousel');
-  const track     = document.getElementById('nc-carousel-track');
-  const prevBtn   = document.getElementById('nc-carousel-prev');
-  const nextBtn   = document.getElementById('nc-carousel-next');
-  const dotsHost  = document.getElementById('nc-carousel-dots');
+    // Any navigation from inside the panel closes it.
+    panel.addEventListener('click', (e) => {
+      if (e.target.closest('a')) setOpen(false);
+    });
 
-  if (viewport && track) {
-    const slides = Array.from(track.children);
-    let currentIndex = 0;
+    // Escape closes it, and returns focus to the control that opened it.
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && panel.classList.contains('open')) {
+        setOpen(false);
+        toggle.focus();
+      }
+    });
 
-    // Build dots
-    if (dotsHost) {
-      slides.forEach((_, i) => {
-        const dot = document.createElement('button');
-        dot.className = 'nc-dot' + (i === 0 ? ' active' : '');
-        dot.setAttribute('aria-label', `Go to slide ${i + 1}`);
-        dot.addEventListener('click', () => goTo(i));
-        dotsHost.appendChild(dot);
-      });
-    }
+    // Leaving the mobile breakpoint must not strand an open panel
+    // behind a hidden toggle.
+    const wide = window.matchMedia('(min-width: 961px)');
+    const onChange = (e) => { if (e.matches) setOpen(false); };
+    if (wide.addEventListener) wide.addEventListener('change', onChange);
+    else if (wide.addListener) wide.addListener(onChange);
+  }
 
-    const getSlideStep = () => {
-      if (slides.length < 2) return 0;
-      const a = slides[0].getBoundingClientRect();
-      const b = slides[1].getBoundingClientRect();
-      return b.left - a.left; // slide width + gap
-    };
+  // ── Movement Intelligence: one joint, several surfaces ─────
+  // A joint can be represented four ways at once: a hotspot on the
+  // composed photo, an outline over the card art painted into that
+  // photo, a dot on the SVG figure, and a real telemetry card. Only
+  // one presentation is on screen at a given width, but they share
+  // a single selection so the behaviour never depends on which.
+  const section = document.getElementById('visual');
 
-    const maxIndex = () => {
-      const step = getSlideStep();
-      if (!step) return 0;
-      const visible = Math.max(1, Math.floor(viewport.clientWidth / step));
-      return Math.max(0, slides.length - visible);
-    };
+  if (section) {
+    const pick = (sel) => Array.from(section.querySelectorAll(sel));
+    const hotspots = pick('.hot[data-joint]');        // photo, ≥961px
+    const outlines = pick('.hot-card[data-joint]');   // photo card art
+    const markers  = pick('#holo-stage [data-joint]'); // SVG echo, pointer only
+    const cards    = pick('#joint-list [data-joint]'); // live layout, ≤960px
 
-    const updateControls = () => {
-      const max = maxIndex();
-      if (prevBtn) prevBtn.disabled = currentIndex <= 0;
-      if (nextBtn) nextBtn.disabled = currentIndex >= max;
-      if (dotsHost) {
-        Array.from(dotsHost.children).forEach((d, i) =>
-          d.classList.toggle('active', i === currentIndex)
-        );
+    const controls = [...hotspots, ...cards];         // take clicks + keys
+    const styled   = [...hotspots, ...cards, ...markers];
+    const mine = (el, joint) => el.dataset.joint === joint;
+
+    let selected = null;
+
+    const paint = (joint, cls, on) => {
+      for (const el of styled) {
+        if (mine(el, joint)) el.classList.toggle(cls, on);
+      }
+      for (const el of outlines) {
+        if (mine(el, joint)) el.classList.toggle('is-lit', on);
       }
     };
 
-    const applyTranslate = () => {
-      const offset = currentIndex * getSlideStep();
-      track.style.transform = `translateX(${-offset}px)`;
+    const hover = (joint, on) => {
+      // A pinned joint keeps its selected styling; hover must not fight it.
+      if (joint === selected) return;
+      paint(joint, 'is-hot', on);
     };
 
-    const goTo = (i) => {
-      const max = maxIndex();
-      currentIndex = Math.max(0, Math.min(i, max));
-      applyTranslate();
-      updateControls();
+    const select = (joint) => {
+      const next = selected === joint ? null : joint;
+      if (selected) { paint(selected, 'is-selected', false); paint(selected, 'is-hot', false); }
+      for (const el of controls) el.setAttribute('aria-pressed', String(mine(el, next)));
+      if (next) { paint(next, 'is-hot', false); paint(next, 'is-selected', true); }
+      selected = next;
     };
 
-    if (prevBtn) prevBtn.addEventListener('click', () => goTo(currentIndex - 1));
-    if (nextBtn) nextBtn.addEventListener('click', () => goTo(currentIndex + 1));
+    for (const el of styled) {
+      const { joint } = el.dataset;
+      el.addEventListener('mouseenter', () => hover(joint, true));
+      el.addEventListener('mouseleave', () => hover(joint, false));
+      el.addEventListener('click', () => select(joint));
+    }
 
-    // Drag to scroll
-    let dragStartX = 0;
-    let dragStartTranslate = 0;
-    let isDragging = false;
-
-    const getTranslateX = () => {
-      const m = track.style.transform.match(/-?\d+(\.\d+)?/);
-      return m ? parseFloat(m[0]) * (track.style.transform.includes('-') ? -1 : 1) : 0;
-    };
-
-    const onPointerDown = (e) => {
-      isDragging = true;
-      dragStartX = e.clientX;
-      dragStartTranslate = currentIndex * getSlideStep();
-      track.style.transition = 'none';
-      viewport.setPointerCapture?.(e.pointerId);
-    };
-
-    const onPointerMove = (e) => {
-      if (!isDragging) return;
-      const dx = e.clientX - dragStartX;
-      track.style.transform = `translateX(${-(dragStartTranslate - dx)}px)`;
-    };
-
-    const onPointerUp = (e) => {
-      if (!isDragging) return;
-      isDragging = false;
-      track.style.transition = '';
-      const dx = e.clientX - dragStartX;
-      const step = getSlideStep();
-      const moved = Math.round(-dx / step);
-      goTo(currentIndex + moved);
-      viewport.releasePointerCapture?.(e.pointerId);
-    };
-
-    viewport.addEventListener('pointerdown', onPointerDown);
-    viewport.addEventListener('pointermove', onPointerMove);
-    viewport.addEventListener('pointerup', onPointerUp);
-    viewport.addEventListener('pointercancel', onPointerUp);
-    viewport.addEventListener('pointerleave', (e) => { if (isDragging) onPointerUp(e); });
-
-    // Keep alignment correct on resize
-    let resizeTimer;
-    window.addEventListener('resize', () => {
-      clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(() => {
-        const max = maxIndex();
-        if (currentIndex > max) currentIndex = max;
-        applyTranslate();
-        updateControls();
-      }, 120);
-    });
-
-    // Initial state
-    requestAnimationFrame(() => {
-      applyTranslate();
-      updateControls();
-    });
-  }
-
-  /* ── 5. Scroll reveal ────────────────────────────────────── */
-  const reveals = document.querySelectorAll('.nc-reveal');
-  if ('IntersectionObserver' in window && reveals.length) {
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('in-view');
-          io.unobserve(entry.target);
-        }
+    for (const el of controls) {
+      const { joint } = el.dataset;
+      el.addEventListener('focus', () => hover(joint, true));
+      el.addEventListener('blur',  () => hover(joint, false));
+      // A real <button> fires click from Enter/Space on its own; the
+      // telemetry card is an <article role="button"> and does not.
+      if (el.tagName === 'BUTTON') continue;
+      el.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
+        e.preventDefault();   // Space would otherwise scroll the page
+        select(joint);
       });
-    }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
-
-    reveals.forEach((el) => io.observe(el));
-  } else {
-    reveals.forEach((el) => el.classList.add('in-view'));
+    }
   }
 
-  /* ── 6. Animated stat counter (reveal-once) ──────────────── */
-  const stats = document.querySelectorAll('.nc-stat-value');
-  if ('IntersectionObserver' in window && stats.length) {
-    const animateNumber = (el) => {
-      const raw = el.textContent.trim();
-      const match = raw.match(/^([\d.]+)(.*)$/);
-      if (!match) return;
-      const target = parseFloat(match[1]);
-      const suffix = match[2] || '';
-      const duration = 1400;
-      const start = performance.now();
+  // ── Athletic Performance: coming-soon dialog ───────────────
+  // The lane is gated to admin in the app, so the landing card must
+  // not send anyone to a sign-in they cannot use.
+  const soon = document.getElementById('soon-modal');
 
-      const tick = (now) => {
-        const t = Math.min(1, (now - start) / duration);
-        const eased = 1 - Math.pow(1 - t, 3);
-        const value = target * eased;
-        const formatted = target % 1 === 0
-          ? Math.round(value).toLocaleString()
-          : value.toFixed(1);
-        el.textContent = formatted + suffix;
-        if (t < 1) requestAnimationFrame(tick);
-      };
-      requestAnimationFrame(tick);
+  if (soon) {
+    const FOCUSABLE = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+    const focusables = () => Array.from(soon.querySelectorAll(FOCUSABLE))
+      .filter((el) => el.getClientRects().length > 0);
+
+    let opener = null;
+
+    const openSoon = (trigger) => {
+      opener = trigger;
+      soon.classList.add('open');
+      document.body.style.overflow = 'hidden';
+      focusables()[0]?.focus();
     };
 
-    const statObs = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          animateNumber(entry.target);
-          statObs.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.5 });
+    const closeSoon = () => {
+      soon.classList.remove('open');
+      // Another .vm may still be up; only hand scrolling back if none is.
+      if (!document.querySelector('.vm.open')) document.body.style.overflow = '';
+      opener?.focus();   // send the keyboard back where it came from
+      opener = null;
+    };
 
-    stats.forEach((s) => statObs.observe(s));
-  }
+    for (const trigger of document.querySelectorAll('[data-soon]')) {
+      trigger.addEventListener('click', () => openSoon(trigger));
+    }
+    for (const btn of soon.querySelectorAll('[data-soon-close]')) {
+      btn.addEventListener('click', closeSoon);
+    }
+    // The backdrop dismisses; a click inside the card must not.
+    soon.addEventListener('click', (e) => { if (e.target === soon) closeSoon(); });
 
-  /* ── 7. Smooth-scroll for in-page anchors (header offset) ─ */
-  document.querySelectorAll('a[href^="#"]').forEach((a) => {
-    a.addEventListener('click', (e) => {
-      const id = a.getAttribute('href');
-      if (!id || id === '#') return;
-      const target = document.querySelector(id);
-      if (!target) return;
-      e.preventDefault();
-      const navHeight = nav ? nav.offsetHeight : 0;
-      const top = target.getBoundingClientRect().top + window.scrollY - navHeight - 12;
-      window.scrollTo({ top, behavior: 'smooth' });
+    document.addEventListener('keydown', (e) => {
+      if (!soon.classList.contains('open')) return;
+      if (e.key === 'Escape') { closeSoon(); return; }
+      if (e.key !== 'Tab') return;
+
+      // A dialog the keyboard can walk out of is not actually modal.
+      const items = focusables();
+      if (!items.length) return;
+      const first = items[0];
+      const last  = items[items.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
     });
-  });
+  }
 })();

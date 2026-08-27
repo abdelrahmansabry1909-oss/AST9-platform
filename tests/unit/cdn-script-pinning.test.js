@@ -45,9 +45,10 @@ test('every external script is pinned to an exact version', () => {
     /\/latest\//,
   ];
 
+  let total = 0;
   for (const page of PAGES) {
     const scripts = externalScripts(html(page));
-    assert.ok(scripts.length > 0, `${page}: expected at least one external script`);
+    total += scripts.length;
 
     for (const { src } of scripts) {
       for (const pattern of floating) {
@@ -56,6 +57,13 @@ test('every external script is pinned to an exact version', () => {
       }
     }
   }
+
+  // A page with no external scripts satisfies this rule trivially and is the
+  // safer state, so it is not required to have one — index.html dropped its
+  // supabase-js tag when the landing page stopped needing a database client.
+  // The suite-level count still has to be non-zero, otherwise deleting every
+  // external script everywhere would make this test pass vacuously.
+  assert.ok(total > 0, 'no external scripts found on any page — test would pass vacuously');
 });
 
 test('every external script carries an SRI hash and crossorigin', () => {
@@ -76,14 +84,27 @@ test('supabase-js is pinned identically on every page that loads it', () => {
   // clients against one database.
   const seen = new Map();
   for (const page of PAGES) {
-    const match = html(page).match(
+    const source = html(page);
+
+    // "every page that loads it" is the contract — a page that does not load
+    // supabase-js at all is out of scope rather than in violation. index.html
+    // is exactly that case: the landing page talks to the visitor-survey edge
+    // function over plain fetch and needs no database client, so shipping the
+    // highest-privilege third-party script there would be a step backwards.
+    // Pages that DO load it are still held to the full pinning rule below.
+    if (!/@supabase\/supabase-js/.test(source)) continue;
+
+    const match = source.match(
       /<script\b[^>]*\bsrc="(https:\/\/cdn\.jsdelivr\.net\/npm\/@supabase\/supabase-js@([^/"]+)\/[^"]+)"[^>]*\bintegrity="([^"]+)"/);
-    assert.ok(match, `${page}: no pinned supabase-js script tag found`);
+    assert.ok(match, `${page}: references supabase-js but has no pinned, SRI-locked script tag`);
     const [, , version, integrity] = match;
     assert.match(version, /^\d+\.\d+\.\d+$/,
       `${page}: supabase-js version must be exact, got "${version}"`);
     seen.set(page, { version, integrity });
   }
+
+  // Guards against the whole check going quiet if the tag is dropped everywhere.
+  assert.ok(seen.size > 0, 'no page loads supabase-js — expected at least app.html to');
 
   const values = [...seen.values()];
   for (const { version, integrity } of values) {
