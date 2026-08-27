@@ -156,10 +156,22 @@ test('the four long-unwritten legacy columns are now written too', () => {
 test('changing js/dashboard.js moved its cache-bust token', () => {
   // js/*.js is served static and unhashed, so without a bump the browser keeps
   // the old copy and the new columns are never written by the deployed app.
+  //
+  // A static test cannot see that the file changed, so it cannot prove the
+  // token moved WITH it. What it can do is refuse any token already shipped:
+  // add the outgoing value here whenever you bump, and the list keeps the
+  // mistake from being repeated silently.
+  const ALREADY_SHIPPED = [
+    '20260704b',  // before the write path
+    '20260827a',  // write path, before the swallowed-save fix
+  ];
   const token = appHtml.match(/js\/dashboard\.js\?v=([\w-]+)/)?.[1];
   assert.ok(token, 'js/dashboard.js has no ?v= token in app.html');
-  assert.notEqual(token, '20260704b',
-    'js/dashboard.js changed but its ?v= token is still the pre-write-path value');
+  assert.ok(
+    !ALREADY_SHIPPED.includes(token),
+    `js/dashboard.js?v=${token} has already been deployed. Bump it, or returning `
+    + 'browsers keep the cached copy and none of these changes take effect.',
+  );
 });
 
 test('the deployment-order hazard is documented in the migration', () => {

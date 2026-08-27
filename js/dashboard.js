@@ -918,9 +918,13 @@ Keep output clean, structured, and professionally precise.`;
       // tab) can rebuild the report without an extra DB round-trip.
       _lastBundle = { name, assessment, scores, gait, program, aiText, clientId: activeClientId };
 
-      // ── STEP 6: Persist to Supabase (non-blocking) ───────────
+      // ── STEP 6: Persist to Supabase ──────────────────────────
       // Client is the one selected in the active session (Client Info tab).
-      _saveToSupabase(activeClientId, scores, program, aiText, gait, assessment);
+      // AWAITED on purpose. This used to be fire-and-forget with the success
+      // toast on the very next line, so the coach was told the program was
+      // generated before the save had even been attempted — and a failed save
+      // looked exactly like a successful one (ISSUE_LOG #29).
+      const saved = await _saveToSupabase(activeClientId, scores, program, aiText, gait, assessment);
 
       // Reliability Sweep / Priority B — honest toasts. Program is
       // always "generated" (engines + JSON are local), but if the
@@ -930,6 +934,14 @@ Keep output clean, structured, and professionally precise.`;
       if (aiUnavailable) {
         toast('AI narrative unavailable — program structure still generated. '
             + 'Check the GEMINI_API_KEY secret on the edge function.', 'warning', 6000);
+      }
+      // The same honesty, applied to the leg that actually loses data. The
+      // program is on screen and still exportable; what failed is storing it.
+      if (!saved?.ok) {
+        toast(`Not saved — the ${saved?.stage || 'assessment'} could not be stored. `
+            + 'The program is still on screen and can be exported, but this assessment '
+            + 'is not in the client record. Keep this tab open and try again.',
+            'warning', 12000);
       }
 
     } catch(e) {
@@ -1083,28 +1095,60 @@ Keep output clean, structured, and professionally precise.`;
     }
   }
 
+  // Persists the assessment. Returns { ok:true } or { ok:false, stage, message }.
+  //
+  // It deliberately does NOT throw: the program on screen is generated locally
+  // and stays valid whether or not the save lands. But it must not be silent
+  // either. Every failure is reported to the caller, which tells the coach.
+  //
+  // Four things used to make a failed save invisible (ISSUE_LOG #29):
+  //   1. the caller never awaited this, and toasted success on the next line;
+  //   2. one try/catch around everything ended in a bare console.warn;
+  //   3. `if (!aRow) return` exited silently, skipping every dependent insert;
+  //   4. the real one — supabase-js RETURNS `{ error }` rather than throwing,
+  //      and none of these calls destructured it. An RLS denial or an unknown
+  //      column produced no exception at all, so the catch never even ran.
+  // Every insert below is therefore checked for its returned error, matching
+  // how the rest of this file already handles Supabase results.
   async function _saveToSupabase(clientId, scores, program, aiOutput, gait, assessment) {
+    const fail = (stage, err) => {
+      const message = err?.message || String(err);
+      console.error(`[dashboard] assessment save failed at "${stage}":`, message);
+      // Silent data loss deserves an alert, not just a console line.
+      try {
+        window.Sentry?.captureException?.(
+          err instanceof Error ? err : new Error(message),
+          { tags: { area: 'assessment_save', stage } },
+        );
+      } catch { /* monitoring must never break the save path */ }
+      return { ok: false, stage, message };
+    };
+
     try {
       const coachId = Auth.getUser()?.id;
       const phase   = _gv('ns-phase');
       const goal    = _gv('ns-goal');
 
       // Always write to legacy sessions (preserves existing dashboard stats)
-      await sb.from('sessions').insert({
+      const { error: sessionErr } = await sb.from('sessions').insert({
         client_id: clientId, coach_id: coachId, phase, goal, output: aiOutput,
       });
+      if (sessionErr) return fail('session', sessionErr);
 
       // Write structured assessment
-      const { data: aRow } = await sb.from('assessments').insert({
+      const { data: aRow, error: assessErr } = await sb.from('assessments').insert({
         client_id: clientId, coach_id: coachId,
         session_date: new Date().toISOString().split('T')[0], goals: goal,
       }).select().single();
 
-      if (!aRow) return;
+      if (assessErr) return fail('assessment', assessErr);
+      if (!aRow) return fail('assessment', new Error('the assessment row came back empty'));
 
-      // Objective assessment + computed scores
+      // Objective assessment + computed scores. This is the one whose loss
+      // actually matters: it is the assessment the coach just performed, and
+      // the values exist nowhere else once this tab is closed.
       const a = assessment;
-      await sb.from('rehab_objective_assessments').insert({
+      const { error: objectiveErr } = await sb.from('rehab_objective_assessments').insert({
         assessment_id:        aRow.id,
         toe_touch_score:      a.toe_touch_score,
         ankle_df_left_cm:     a.ankle_df_l,  ankle_df_right_cm:    a.ankle_df_r,
@@ -1156,9 +1200,10 @@ Keep output clean, structured, and professionally precise.`;
         gait_flags:       gait.exercise_priorities?.slice(0, 5) || [],
         referral_required: scores.referral_required,
       });
+      if (objectiveErr) return fail('objective assessment', objectiveErr);
 
       // Gait assessment
-      await sb.from('gait_assessments').insert({
+      const { error: gaitErr } = await sb.from('gait_assessments').insert({
         client_id:          clientId,
         assessment_id:      aRow.id,
         phase_deficiencies: gait.phase_deficiencies,
@@ -1167,14 +1212,19 @@ Keep output clean, structured, and professionally precise.`;
         exercise_priorities: gait.exercise_priorities,
       });
 
+      if (gaitErr) return fail('gait assessment', gaitErr);
       // Body map state
-      await sb.from('body_map_states').insert({
+      const { error: bodyMapErr } = await sb.from('body_map_states').insert({
         client_id: clientId, assessment_id: aRow.id,
         joint_data: {}, animation_state: 'idle',
       });
+      if (bodyMapErr) return fail('body map', bodyMapErr);
 
+      return { ok: true };
     } catch(e) {
-      console.warn('Supabase save (non-fatal):', e.message);
+      // supabase-js returns errors rather than throwing, so reaching here means
+      // something unexpected broke — a network failure, or a bug above.
+      return fail('unexpected', e);
     }
   }
 
