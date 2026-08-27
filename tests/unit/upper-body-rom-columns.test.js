@@ -128,6 +128,40 @@ test('THE HAZARD: every column the frontend writes exists somewhere', () => {
   );
 });
 
+test('THE INVERSE: every column this migration adds is actually written', () => {
+  // shoulder_extension_left/right sat unwritten for months while their columns
+  // existed, so the values a coach typed were silently discarded on save. A
+  // column nothing writes is dead storage and looks identical to a working one
+  // from the schema alone.
+  const written = new Set(insertedColumns());
+  const unwritten = added.filter((c) => !written.has(c));
+  assert.deepEqual(
+    unwritten,
+    [],
+    `column(s) added by the migration but never written by js/dashboard.js: ${unwritten.join(', ')}. `
+    + 'A coach can type these and they will be discarded on save.',
+  );
+});
+
+test('the four long-unwritten legacy columns are now written too', () => {
+  // These predate the upper-body work: the columns existed, the form collected
+  // them, js/scoring.js read them, and the insert simply omitted them.
+  const written = new Set(insertedColumns());
+  for (const col of ['shoulder_extension_left', 'shoulder_extension_right',
+                     'ankle_supination_left', 'ankle_supination_right']) {
+    assert.ok(written.has(col), `${col} has a column and a form input but is still not written`);
+  }
+});
+
+test('changing js/dashboard.js moved its cache-bust token', () => {
+  // js/*.js is served static and unhashed, so without a bump the browser keeps
+  // the old copy and the new columns are never written by the deployed app.
+  const token = appHtml.match(/js\/dashboard\.js\?v=([\w-]+)/)?.[1];
+  assert.ok(token, 'js/dashboard.js has no ?v= token in app.html');
+  assert.notEqual(token, '20260704b',
+    'js/dashboard.js changed but its ?v= token is still the pre-write-path value');
+});
+
 test('the deployment-order hazard is documented in the migration', () => {
   // The next person to touch this needs to know before they ship the frontend.
   assert.match(forward, /DEPLOYMENT ORDER MATTERS/,

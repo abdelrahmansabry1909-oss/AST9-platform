@@ -364,10 +364,34 @@ the real form (22/22 cases). Two of the 21 — elbow extension left/right — sy
 and store but drive **no colour**, because their norm is 0° and the deficit
 formula has no scale for a contracture below zero; see NOT_A_BUG #8.
 
-**Status:** migration `20260809000000_upper_body_rom_columns.sql` and its paired
-rollback are **written, but applied to NO database**, and the frontend **write
-path is still not wired**. L21 stays open until both are done. The body-map
-wiring is independent of persistence and is already live.
+**Status:** migration `20260809000000_upper_body_rom_columns.sql` is **APPLIED TO
+PRODUCTION** (2026-08-27, owner-approved, via `execute_sql` with the version
+pinned by hand — never `db push`). The table went 72 → 93 columns; the 17
+existing rows were verified byte-identical either side by data hash, and the 2
+policies / 2 indexes / 9 constraints were unchanged. Advisors report **no new
+finding** for this table.
+
+The frontend **write path is now wired** (`js/dashboard.js`, `?v=20260827a`):
+the insert carries **70** columns — the 21 new ones plus
+`shoulder_extension_left/right` and `ankle_supination_left/right`, which had
+columns all along and were being dropped on every save since the table was
+created.
+
+Verified against the live production schema, not just the repo: all 70 written
+columns exist, no `NOT NULL`-without-default column is left unwritten, and a
+full-shape insert was accepted inside a rolled-back transaction with every
+value round-tripping (including `elbow_extension_left = 0`, a real reading
+rather than a missing one). PostgREST's schema cache was reloaded after the
+DDL, since a stale cache rejects new columns exactly like missing ones.
+
+**L21 closes when this deploys.** Until then production still runs the old
+bundle and still discards these values.
+
+⚠ **The rollback is now the dangerous direction.** It is still safe *today*
+because every new column is empty, but the moment the write path ships it
+becomes destructive: dropping those columns discards data that exists nowhere
+else. Rehearsed on a fixture 2026-08-27 — a value inserted, rolled back and
+re-applied came back NULL, which is exactly the loss it warns about.
 
 ⚠ **The two halves must land in this order, and the reason is nasty.** The
 objective assessment is one INSERT; PostgREST rejects the whole statement if any
