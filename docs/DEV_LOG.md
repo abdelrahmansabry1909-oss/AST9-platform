@@ -429,8 +429,29 @@ Verification legend:
   migration-inventory guard green. All three new guards mutation-proven — a
   frontend write with no column, a rollback that forgets a column, and a
   speculative column with no form input each fail the suite.
-- **NOT applied to any database.** No `execute_sql`, no `db push`, no staging
-  run. L21 stays open until the migration is applied and the frontend is wired.
+- **Applied to production 2026-08-27** (owner-approved), via MCP `execute_sql`
+  in one transaction with the `supabase_migrations.schema_migrations` row
+  pinned by hand — **never `db push`**, because repo and prod migration history
+  have diverged (see [ISSUE_LOG.md](ISSUE_LOG.md) #18).
+  - **Pre-flight:** 72 columns, **0** of the 21 already present, 17 rows, 2
+    policies, 2 indexes, 9 constraints, version unpinned and correctly next
+    after `20260808000000`.
+  - **Post:** 93 columns (16 integer + 5 text, all nullable), 4 comments with
+    correct quote escaping, RLS still enabled, policies/indexes/constraints
+    unchanged at 2/2/9, all new columns NULL.
+  - **Data integrity proven, not assumed:** a hash over the original columns was
+    taken inside the same transaction before and after —
+    `8cf95ba531a30e596b6e4191f5e09052` both sides, 17 rows either side.
+  - **Advisors:** no new finding for this table. The existing warnings
+    (anon-executable role predicates, the app's own definer RPCs, leaked-password
+    protection) are all pre-existing and known.
+- **Staging could not host the rehearsal.** Its public schema is a 9-table
+  load-test fixture that has never included `rehab_objective_assessments`. The
+  migration was instead rehearsed against a fixture built from
+  `supabase/baseline/production_public_schema.sql`: 72 → 93 → rollback → 72 →
+  93, idempotent re-run a no-op, comments landing, and the rollback's data loss
+  demonstrated. The fixture was dropped afterwards; staging is back to its 9
+  tables with its 500 auth users untouched.
 
 ### Scapular activation across the arc of elevation
 - **Date:** 2026-08-26 · branch `feat/shoulder-activation-chart` · PR #209
