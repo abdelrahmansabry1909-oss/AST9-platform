@@ -594,3 +594,36 @@
   plotted width between `getPixelForValue(0)` and `getPixelForValue(last)`.
 - **Verified:** the band pixel now samples `246,250,248` — exactly `--bg-raised`
   in the bright theme — inside the band, and fully transparent before the cutoff.
+
+## 29. An objective assessment can fail to save with the coach told it succeeded (open, found 2026-08-26)
+- **Status:** OPEN. Found while auditing the L21 persistence gap; **not fixed**,
+  because changing it alters what coaches see and is a product decision, not a
+  wiring fix. Documented here so the next person does not rediscover it.
+- **Symptoms:** none visible — that is the problem. The coach sees
+  "Program generated!" whether or not anything reached the database.
+- **Mechanism**, three independent layers in `js/dashboard.js`:
+  1. `_saveToSupabase(...)` is `async` but is called **without `await`**
+     (line ~923). The success toast on the next line fires before the save has
+     even finished, let alone succeeded.
+  2. The whole function body — four inserts: `sessions`, `assessments`,
+     `rehab_objective_assessments`, `gait_assessments`, `body_map_states` — sits
+     in one `try` whose `catch` does nothing but
+     `console.warn('Supabase save (non-fatal):', e.message)`.
+  3. `if (!aRow) return;` exits silently when the parent `assessments` insert
+     comes back empty, warning nobody, and every dependent insert is skipped.
+- **Why it matters beyond L21:** an RLS denial, a network blip, a constraint
+  violation or a paused project all currently look identical to success. There
+  is no way to know from the UI, and no way to know afterwards from the data —
+  the row is simply absent.
+- **Why it makes the L21 ordering dangerous:** PostgREST rejects an entire
+  insert if one column is unknown. So shipping the frontend that writes the new
+  upper-body columns *before* the migration is applied would silently discard
+  every objective assessment, lower body included, with a success toast on
+  screen. That specific ordering is guarded by
+  `tests/unit/upper-body-rom-columns.test.js`; the general swallow is not.
+- **Not "non-fatal":** the comment calls the failure non-fatal, and for the
+  legacy `sessions` row it arguably is. For `rehab_objective_assessments` it is
+  the loss of the entire assessment the coach just performed.
+- **Suggested fix when scoped:** `await` the save, and surface a distinct
+  warning toast on failure the way the AI-narrative leg beside it already does
+  — that path is honest about degradation; this one is not.

@@ -52,7 +52,56 @@ const BINDINGS = [
   { field: 'ns-sp-lfr-pain',  joint: 'LumbarSpine',   kind: 'checkbox' },
   { field: 'ns-sp-rotl-pain', joint: 'ThoracicSpine', kind: 'checkbox' },
   { field: 'ns-sp-rotr-pain', joint: 'ThoracicSpine', kind: 'checkbox' },
+
+  // ── Shoulder abduction ──
+  // The motion Neumann Fig. 5-51 measured, and the one the scapular
+  // activation chart prefers. JOINT_NORMATIVE already carried abduction: 180
+  // for both shoulders; only the binding was missing.
+  { field: 'ns-sh-abd-l',   joint: 'LeftShoulder', rom: 'shoulder_abduction_left',  norm: 180, kind: 'rom' },
+  { field: 'ns-sh-abd-r',   joint: 'RightShoulder',rom: 'shoulder_abduction_right', norm: 180, kind: 'rom' },
+
+  // ── Thoracic spine ──
+  // Norms are the Neumann values js/integrationEngine.js already scores
+  // against (Table 9-11), so the colour on the body map and the finding in
+  // the integration panel cannot disagree about what "restricted" means.
+  { field: 'ns-thor-rot-l', joint: 'ThoracicSpine', rom: 'thoracic_rotation_left',  norm: 30, kind: 'rom' },
+  { field: 'ns-thor-rot-r', joint: 'ThoracicSpine', rom: 'thoracic_rotation_right', norm: 30, kind: 'rom' },
+  { field: 'ns-thor-ext',   joint: 'ThoracicSpine', rom: 'thoracic_extension',      norm: 20, kind: 'rom' },
+  { field: 'ns-thor-flex',  joint: 'ThoracicSpine', rom: 'thoracic_flexion',        norm: 30, kind: 'rom' },
+
+  // ── Cervical spine ──
+  // 70 is the floor of the range the form itself shows the coach ("70–90°").
+  // JOINT_NORMATIVE still says 60; that divergence is unresolved and is left
+  // for the owner rather than changed here.
+  { field: 'ns-cerv-rot-l', joint: 'CervicalSpine', rom: 'cervical_rotation_left',  norm: 70, kind: 'rom' },
+  { field: 'ns-cerv-rot-r', joint: 'CervicalSpine', rom: 'cervical_rotation_right', norm: 70, kind: 'rom' },
+  { field: 'ns-cerv-flex',  joint: 'CervicalSpine', kind: 'flag' },
+  { field: 'ns-cerv-ext',   joint: 'CervicalSpine', kind: 'flag' },
+
+  // ── Lumbar / sacrum ──
+  // Neumann 50° flexion / 15° extension (owner ruling, 2026-08-26), matching
+  // js/integrationEngine.js. This replaced three disagreeing sources — see
+  // KNOWN_LIMITATIONS L22.
+  { field: 'ns-lumb-flex',  joint: 'LumbarSpine', rom: 'lumbar_flexion',   norm: 50, kind: 'rom' },
+  { field: 'ns-lumb-ext',   joint: 'LumbarSpine', rom: 'lumbar_extension', norm: 15, kind: 'rom' },
+  { field: 'ns-si-pain',    joint: 'LumbarSpine', kind: 'flag' },
+
+  // ── Elbow / wrist ──
+  // Elbow extension is bound so the panel and the form stay in step, but its
+  // norm is 0 and it therefore drives no colour — see _fieldDeficit.
+  { field: 'ns-elbow-flex-l', joint: 'LeftElbow',  rom: 'elbow_flexion_left',    norm: 145, kind: 'rom' },
+  { field: 'ns-elbow-flex-r', joint: 'RightElbow', rom: 'elbow_flexion_right',   norm: 145, kind: 'rom' },
+  { field: 'ns-elbow-ext-l',  joint: 'LeftElbow',  rom: 'elbow_extension_left',  norm: 0,   kind: 'rom' },
+  { field: 'ns-elbow-ext-r',  joint: 'RightElbow', rom: 'elbow_extension_right', norm: 0,   kind: 'rom' },
+  { field: 'ns-wrist-flex-l', joint: 'LeftWrist',  rom: 'wrist_flexion_left',    norm: 80,  kind: 'rom' },
+  { field: 'ns-wrist-flex-r', joint: 'RightWrist', rom: 'wrist_flexion_right',   norm: 80,  kind: 'rom' },
+  { field: 'ns-wrist-ext-l',  joint: 'LeftWrist',  rom: 'wrist_extension_left',  norm: 70,  kind: 'rom' },
+  { field: 'ns-wrist-ext-r',  joint: 'RightWrist', rom: 'wrist_extension_right', norm: 70,  kind: 'rom' },
 ];
+
+// Values that mean "positive / painful" on the free-text and select fields.
+// Matched as whole values, never as substrings, so "NP" is not caught by "P".
+const POSITIVE_FLAGS = new Set(['p', 'pain', 'painful', 'yes', 'y', 'positive', '+']);
 
 const clamp01 = (v) => Math.max(0, Math.min(1, v));
 
@@ -95,9 +144,21 @@ export class ObjectiveSync {
     if (b.kind === 'checkbox') return el.checked ? 0.85 : 0;
     const raw = el.value;
     if (raw === '' || raw == null) return 0;
+    // Not every finding is a number. Cervical flexion/extension are free text
+    // ("P" / "NP") and SI provocation is a yes/no select, so they report
+    // presence rather than degrees — same weight as the pain checkboxes.
+    if (b.kind === 'flag') return POSITIVE_FLAGS.has(String(raw).trim().toLowerCase()) ? 0.85 : 0;
     const v = parseFloat(raw);
     if (isNaN(v)) return 0;
     if (b.kind === 'score') return clamp01((3 - v) / 3);   // 3 = clean, 0 = pain
+    // A norm of 0 — elbow extension, where 0° IS the normal — has no
+    // "less is worse" scale. The real deficit is a contracture below zero,
+    // which this formula cannot express and for which the app has no severity
+    // scale; dividing by the norm would also be a divide-by-zero. Keep the
+    // field bidirectional so the panel and form stay in step, and drive no
+    // colour rather than invent a severity. Knee extension (norm 0) has always
+    // been left unbound for the same reason.
+    if (!b.norm) return 0;
     return clamp01((b.norm - v) / b.norm);                 // rom / time: low = deficit
   }
 

@@ -84,3 +84,23 @@
 - **Do not change:** a chart inside a folded panel must be built on reveal, never
   on construction — see [ISSUE_LOG.md](ISSUE_LOG.md) #27 for why Chart.js cannot
   recover from a first paint in a hidden box.
+
+## 8. Elbow extension changes no colour on the body map
+- **Behavior:** Typing an elbow extension value syncs it to the joint pop-out
+  panel and stores it, but the elbow never changes colour — unlike every other
+  ROM field beside it.
+- **Why intended:** The deficit formula is `(norm - value) / norm`, which
+  assumes less is worse. Elbow extension's norm is **0°** — zero *is* normal,
+  the form itself hints "0–10°", and the real impairment is a contracture at
+  *negative* values. That formula cannot express it, and dividing by a norm of
+  zero yields `NaN`/`Infinity`, which would paint garbage. The app has no
+  agreed severity scale for a contracture, so inventing one (say, "10° = maximum
+  severity") would have been fabricated clinical content.
+- **Precedent:** knee extension has the same 0° norm and has always been
+  unbound for the same reason.
+- **Approved / phase:** PR wiring the 21 upper-body fields to the body map
+  (2026-08-26). Guarded by `tests/unit/objective-sync-bindings.test.js`, which
+  fails if the zero-norm guard is removed.
+- **Do not change:** do not "fix" this by giving elbow extension a non-zero
+  norm — that would make a normal 0° reading register as a total deficit and
+  light every healthy elbow. A real fix needs an agreed contracture scale first.

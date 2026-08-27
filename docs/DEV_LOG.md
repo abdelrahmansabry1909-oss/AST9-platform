@@ -359,6 +359,79 @@ Verification legend:
 
 ## NeuCore movement scoring
 
+### Wiring the upper body to the 3D body map, and one lumbar norm
+- **Date:** 2026-08-26 · branch `feat/persist-upper-body-rom`
+- **What:** The same 21 fields that had no database column were also unbound
+  from the hologram. Typing a thoracic, cervical, lumbar, shoulder-abduction,
+  elbow or wrist value recoloured nothing; the spine's pop-out panel offered
+  only the inert `spine_*_range` text fields, and `CervicalSpine` — listed in
+  `ALL_INTERACTIVE_JOINTS` — had no entry in `JOINT_ASSESSMENT_MAP` at all, so
+  clicking the neck opened a panel with a pain slider and nothing else.
+- **One cause, three symptoms.** These inputs were added to the form and wired
+  into *scoring* only — never into persistence, never into the 3D map. The
+  unbound set and the missing-column set are the same 21 fields, exactly.
+- **Owner ruling on the lumbar norm:** **Neumann 50° flexion / 15° extension.**
+  Three sources disagreed (placeholders 40–60/20–35, `JOINT_NORMATIVE` 60/25,
+  the engine 50/15) so a coach could be shown a "normal" hint that the finding
+  beside it called restricted. Now aligned in all four places and pinned by test.
+- **Two deliberate non-colour cases:** elbow extension left/right sync and store
+  but drive no colour — their norm is 0° and the deficit formula has no scale
+  for a contracture below zero (NOT_A_BUG #8). Two norm divergences were left
+  unruled rather than changed on an instruction that named only the lumbar
+  values: `ThoracicSpine.rotation` 35 vs the engine's 30, and
+  `CervicalSpine.rotation` 60 vs the form's stated 70–90 (KNOWN_LIMITATIONS L22).
+- **Files:** `src/neucore/core/ObjectiveSync.js` (19 bindings, a `flag` kind for
+  the P/NP and yes/no fields, a zero-norm guard), `src/neucore/core/JointRegistry.js`,
+  `src/neucore/skeleton/BoneDefinitions.js`, `app.html` (two placeholders),
+  `tests/unit/objective-sync-bindings.test.js` (new), `package.json`.
+  No `js/*.js` changed, so no `?v=` bump applies — all touched modules are
+  Vite-hashed.
+- **Verification:** `npm run test:unit` 377/377; `npm run build` green; and a
+  browser probe driving the **real** `ObjectiveSync` against the **real**
+  `app.html` markup with a stubbed skeleton — **22/22** cases, every value
+  finite, `NP`→0 and `P`→8.5, elbow extension 0° and 10° both finite 0. All five
+  guards mutation-proven (dead binding, panel-unreachable rom, lumbar norm
+  drift, removed zero-norm guard, `np` treated as pain).
+- **Not verified:** the actual painted colour on the WebGL skeleton. The preview
+  pane does not composite, so `requestAnimationFrame` never fires; the probe
+  captures the `setJointPain` calls the renderer would consume rather than
+  reading pixels. **Real authenticated smoke was not performed.**
+
+### Upper-body ROM columns (schema half of L21)
+- **Date:** 2026-08-26 · branch `feat/persist-upper-body-rom`
+- **What:** Adds 21 nullable columns to `rehab_objective_assessments` so the
+  upper-body measurements the form has always collected have somewhere to live —
+  shoulder abduction, thoracic ×4, cervical ×4, elbow ×4, wrist ×4, lumbar ×2,
+  SI joint pain. Additive only; no existing column, constraint, policy, function
+  or row is modified.
+- **Audit first, and it changed the design.** Comparing every form input against
+  the insert in `js/dashboard.js` and the production baseline split L21 in two:
+  21 fields have **no column** (this migration), while
+  `shoulder_extension_left/right` and `ankle_supination_left/right` **already
+  have columns and are simply never written** — a wiring bug needing no
+  migration, and one that predates the movement-analysis work. Conversely
+  `hip_adduction_*`, the `*_notes` columns and `toe_touch_observations` have no
+  form input feeding them, so no column was added for them: storing them would
+  have been speculative. The 13 vestigial `spine_*` text columns were left alone
+  rather than overloaded with numeric degrees.
+- **⚠ Deployment order is load-bearing.** The objective assessment is a single
+  INSERT; PostgREST rejects the whole statement on an unknown column, and that
+  insert sits in a `catch` that only `console.warn`s. Shipping the frontend
+  write before this migration is applied would discard **every** objective
+  assessment — lower body included — silently, behind a success toast. Migration
+  applied first, frontend wired second. The swallow itself is now ISSUE_LOG #29.
+- **Files:** `supabase/migrations/20260809000000_upper_body_rom_columns.sql`
+  (new), its paired rollback (new),
+  `tests/unit/upper-body-rom-columns.test.js` (new), `package.json`,
+  `docs/MIGRATION_ROLLBACK_INVENTORY.md`, `docs/KNOWN_LIMITATIONS.md` (L21
+  amended), `docs/ISSUE_LOG.md` (#29). **No frontend change in this phase.**
+- **Verification:** `npm run test:unit` 368/368; `npm run build` green;
+  migration-inventory guard green. All three new guards mutation-proven — a
+  frontend write with no column, a rollback that forgets a column, and a
+  speculative column with no form input each fail the suite.
+- **NOT applied to any database.** No `execute_sql`, no `db push`, no staging
+  run. L21 stays open until the migration is applied and the frontend is wired.
+
 ### Scapular activation across the arc of elevation
 - **Date:** 2026-08-26 · branch `feat/shoulder-activation-chart` · PR #209
 - **What:** The simulation page had nothing to say about a shoulder, because
