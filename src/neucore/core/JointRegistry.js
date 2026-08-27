@@ -14,7 +14,11 @@ export const JOINT_NORMATIVE = {
   RightElbow:   { flexion: 145, extension: 0 },
   LeftWrist:    { flexion: 80, extension: 70 },
   RightWrist:   { flexion: 80, extension: 70 },
-  LumbarSpine:  { flexion: 60, extension: 25, rotation: 30, latFlex: 25 },
+  // Flexion/extension are Neumann's 50°/15° (owner ruling, 2026-08-26), which
+  // js/integrationEngine.js already scores against. They previously read 60/25
+  // here while the form hinted 40–60/20–35 — three disagreeing sources for one
+  // number. See KNOWN_LIMITATIONS L22.
+  LumbarSpine:  { flexion: 50, extension: 15, rotation: 30, latFlex: 25 },
   ThoracicSpine:{ rotation: 35, latFlex: 25 },
   CervicalSpine:{ flexion: 45, extension: 45, rotation: 60, latFlex: 45 },
   Pelvis:       { anteriorTilt: 10, posteriorTilt: 10 },

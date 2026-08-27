@@ -186,8 +186,19 @@ export const JOINT_ASSESSMENT_MAP = {
   RightKnee:    ['sl_squat_score','sl_rdl_score','tibia_ir_right'],
   LeftAnkle:    ['ankle_dorsiflexion_left_cm','ankle_pronation_left','ankle_supination_left'],
   RightAnkle:   ['ankle_dorsiflexion_right_cm','ankle_pronation_right','ankle_supination_right'],
-  LumbarSpine:  ['spine_flexion_range','spine_extension_range','spine_rotation_left_range','spine_rotation_right_range'],
-  ThoracicSpine:['spine_lat_flex_left_range','spine_lat_flex_right_range'],
-  LeftShoulder: ['shoulder_flexion_left','shoulder_ir_left','shoulder_er_left','shoulder_extension_left'],
-  RightShoulder:['shoulder_flexion_right','shoulder_ir_right','shoulder_er_right','shoulder_extension_right'],
+  // The `*_range` entries below are the older free-text spine fields. They have
+  // no form input and are never persisted, so they are inert; they are kept
+  // rather than deleted because removing them was not asked for. The numeric
+  // entries beside them are the live ones, bound in core/ObjectiveSync.js.
+  LumbarSpine:  ['lumbar_flexion','lumbar_extension',
+                 'spine_flexion_range','spine_extension_range','spine_rotation_left_range','spine_rotation_right_range'],
+  ThoracicSpine:['thoracic_rotation_left','thoracic_rotation_right','thoracic_extension','thoracic_flexion',
+                 'spine_lat_flex_left_range','spine_lat_flex_right_range'],
+  CervicalSpine:['cervical_rotation_left','cervical_rotation_right'],
+  LeftShoulder: ['shoulder_flexion_left','shoulder_ir_left','shoulder_er_left','shoulder_extension_left','shoulder_abduction_left'],
+  RightShoulder:['shoulder_flexion_right','shoulder_ir_right','shoulder_er_right','shoulder_extension_right','shoulder_abduction_right'],
+  LeftElbow:    ['elbow_flexion_left','elbow_extension_left'],
+  RightElbow:   ['elbow_flexion_right','elbow_extension_right'],
+  LeftWrist:    ['wrist_flexion_left','wrist_extension_left'],
+  RightWrist:   ['wrist_flexion_right','wrist_extension_right'],
 };

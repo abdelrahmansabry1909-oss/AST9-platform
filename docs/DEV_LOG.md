@@ -359,6 +359,44 @@ Verification legend:
 
 ## NeuCore movement scoring
 
+### Wiring the upper body to the 3D body map, and one lumbar norm
+- **Date:** 2026-08-26 · branch `feat/persist-upper-body-rom`
+- **What:** The same 21 fields that had no database column were also unbound
+  from the hologram. Typing a thoracic, cervical, lumbar, shoulder-abduction,
+  elbow or wrist value recoloured nothing; the spine's pop-out panel offered
+  only the inert `spine_*_range` text fields, and `CervicalSpine` — listed in
+  `ALL_INTERACTIVE_JOINTS` — had no entry in `JOINT_ASSESSMENT_MAP` at all, so
+  clicking the neck opened a panel with a pain slider and nothing else.
+- **One cause, three symptoms.** These inputs were added to the form and wired
+  into *scoring* only — never into persistence, never into the 3D map. The
+  unbound set and the missing-column set are the same 21 fields, exactly.
+- **Owner ruling on the lumbar norm:** **Neumann 50° flexion / 15° extension.**
+  Three sources disagreed (placeholders 40–60/20–35, `JOINT_NORMATIVE` 60/25,
+  the engine 50/15) so a coach could be shown a "normal" hint that the finding
+  beside it called restricted. Now aligned in all four places and pinned by test.
+- **Two deliberate non-colour cases:** elbow extension left/right sync and store
+  but drive no colour — their norm is 0° and the deficit formula has no scale
+  for a contracture below zero (NOT_A_BUG #8). Two norm divergences were left
+  unruled rather than changed on an instruction that named only the lumbar
+  values: `ThoracicSpine.rotation` 35 vs the engine's 30, and
+  `CervicalSpine.rotation` 60 vs the form's stated 70–90 (KNOWN_LIMITATIONS L22).
+- **Files:** `src/neucore/core/ObjectiveSync.js` (19 bindings, a `flag` kind for
+  the P/NP and yes/no fields, a zero-norm guard), `src/neucore/core/JointRegistry.js`,
+  `src/neucore/skeleton/BoneDefinitions.js`, `app.html` (two placeholders),
+  `tests/unit/objective-sync-bindings.test.js` (new), `package.json`.
+  No `js/*.js` changed, so no `?v=` bump applies — all touched modules are
+  Vite-hashed.
+- **Verification:** `npm run test:unit` 377/377; `npm run build` green; and a
+  browser probe driving the **real** `ObjectiveSync` against the **real**
+  `app.html` markup with a stubbed skeleton — **22/22** cases, every value
+  finite, `NP`→0 and `P`→8.5, elbow extension 0° and 10° both finite 0. All five
+  guards mutation-proven (dead binding, panel-unreachable rom, lumbar norm
+  drift, removed zero-norm guard, `np` treated as pain).
+- **Not verified:** the actual painted colour on the WebGL skeleton. The preview
+  pane does not composite, so `requestAnimationFrame` never fires; the probe
+  captures the `setJointPain` calls the renderer would consume rather than
+  reading pixels. **Real authenticated smoke was not performed.**
+
 ### Upper-body ROM columns (schema half of L21)
 - **Date:** 2026-08-26 · branch `feat/persist-upper-body-rom`
 - **What:** Adds 21 nullable columns to `rehab_objective_assessments` so the

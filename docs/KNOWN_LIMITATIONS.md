@@ -355,9 +355,19 @@ columns and `toe_touch_observations` are also never written, but **no form input
 feeds them**, so there is nothing to store. The 13 vestigial `spine_*` text
 columns are likewise left alone rather than overloaded with numeric degrees.
 
+**A third piece, now done.** The same 21 fields were also unbound from the 3D
+body map — typing a thoracic or cervical number recoloured nothing, and the
+spine's pop-out panel offered only the inert `spine_*_range` text fields.
+`CervicalSpine` had no panel entry at all. All 21 are now wired in
+`src/neucore/core/ObjectiveSync.js` and `JOINT_ASSESSMENT_MAP`, verified against
+the real form (22/22 cases). Two of the 21 — elbow extension left/right — sync
+and store but drive **no colour**, because their norm is 0° and the deficit
+formula has no scale for a contracture below zero; see NOT_A_BUG #8.
+
 **Status:** migration `20260809000000_upper_body_rom_columns.sql` and its paired
-rollback are **written and merged, but applied to NO database**, and the
-frontend write path is **not yet wired**. L21 stays open until both are done.
+rollback are **written, but applied to NO database**, and the frontend **write
+path is still not wired**. L21 stays open until both are done. The body-map
+wiring is independent of persistence and is already live.
 
 ⚠ **The two halves must land in this order, and the reason is nasty.** The
 objective assessment is one INSERT; PostgREST rejects the whole statement if any
@@ -367,14 +377,29 @@ discard **every** objective assessment — lower body included — silently, wit
 the coach seeing a successful save. Migration first, frontend second. Guarded by
 `tests/unit/upper-body-rom-columns.test.js`. See also ISSUE_LOG #29.
 
-## L22 - The lumbar placeholders contradict the engine's own norms
+## L22 - The lumbar norms disagreed across three sources (RESOLVED 2026-08-26)
 
-`ns-lumb-flex` and `ns-lumb-ext` carry placeholder ranges of 40–60° and 20–35°,
-while `js/integrationEngine.js` pins Neumann's values of 50° and 15° and scores
-against them. The same screen therefore shows a coach a "normal" hint that the
-engine beside it will score as restricted at the top of the placeholder range.
+**Owner ruling: Neumann 50° flexion / 15° extension.** Applied everywhere.
 
-Left as-is deliberately: choosing between the two is a **clinical source
-decision for the owner**, not a code fix, and changing either one silently would
-move scores. See also the note in `reference_neumann_source_scope` that
-`cerv_rotation` 70 is likewise on the low side.
+Three sources used to give three different answers for one number: the form
+placeholders hinted 40–60° / 20–35°, `JOINT_NORMATIVE.LumbarSpine` said 60 / 25,
+and `js/integrationEngine.js` scored against Neumann's 50 / 15. A coach could be
+shown a "normal" hint, have the body map agree, and have the finding text beside
+it call the same value restricted.
+
+Now aligned in all four places — the ObjectiveSync binding norms, `JOINT_NORMATIVE`,
+the integration engine, and the placeholders the coach actually reads — and
+pinned by `tests/unit/objective-sync-bindings.test.js`, which fails if any one of
+them drifts.
+
+**Two norm divergences remain, deliberately unruled:**
+
+- `JOINT_NORMATIVE.ThoracicSpine.rotation` is **35**, while the integration
+  engine scores thoracic rotation against Neumann's **30**. The body-map
+  bindings use 30 so colour and finding agree; only the value the pop-out panel
+  displays as "normative" still reads 35.
+- `JOINT_NORMATIVE.CervicalSpine.rotation` is **60**, while the form shows the
+  coach "70–90°". The bindings use **70**, the floor of what the form states.
+
+Both are one-line changes once a source is chosen. They were left alone rather
+than changed on the same instruction that only named the lumbar values.
