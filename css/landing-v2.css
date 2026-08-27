@@ -844,9 +844,12 @@ button { font: inherit; }
 }
 
 /* ═══ WORKSPACES (light) ════════════════════════════════════ */
+/* Four peer cards share one rhythm. The fourth used to be pinned at 320px
+   against ~275px siblings, which read as oversized next to them — the dark
+   treatment already sets it apart without extra width. */
 .ws-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr)) 320px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 24px;
   align-items: stretch;
 }
@@ -911,13 +914,16 @@ button { font: inherit; }
   background: linear-gradient(160deg, #0C1512 0%, #050908 100%);
   border: 1px solid rgba(255,255,255,0.08);
   border-radius: var(--r-xl);
-  padding: 18px;
+  padding: 8px;
   display: flex;
 }
+/* Outer 8 + inner 18/16/16 puts the content on exactly the same 26/24/24
+   inset as the light cards, so the CTA lands on their baseline instead of
+   19px above it. The accent ring survives, just tighter. */
 .ws-dark-inner {
   border: 1px solid rgba(52, 211, 153, 0.18);
   border-radius: var(--r-lg);
-  padding: 24px 22px;
+  padding: 18px 16px 16px;
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -930,11 +936,25 @@ button { font: inherit; }
    so the frame windows onto the region x160–800, y470–1140 and the
    image is oversized and offset to bring that region into view.
    Percentages keep the crop locked as the card resizes.            */
+/* `flex: 1` and `aspect-ratio` were fighting here: the ratio won, the grow
+   did nothing, and the leftover space collected under the button instead.
+   The runner now takes its natural size and `margin: auto 0` splits the
+   slack evenly above and below it, so the card breathes symmetrically and
+   the CTA still lands on the bottom edge with its siblings.            */
 .ws-runner {
-  flex: 1;
+  flex: none;
   position: relative;
   overflow: hidden;
-  margin: 8px 0 18px;
+  /* `auto` on all four sides: the block centres horizontally and the
+     leftover vertical space splits evenly above and below it. */
+  margin: auto;
+  /* The crop is roughly square, so in a single-column layout it would grow
+     with the card and tower over its siblings — 296px tall at 375px, against
+     ~440px whole cards next to it. The cap holds the figure at a readable
+     size without touching the desktop layout, where the column is narrower
+     than this anyway. */
+  max-width: 240px;
+  width: 100%;
   border-radius: var(--r-md);
   aspect-ratio: 640 / 670;
 }
@@ -943,9 +963,17 @@ button { font: inherit; }
   width: 160.94%;      /* 1030 / 640 */
   height: auto;
   max-width: none;     /* beats the global `img { max-width: 100% }` */
-  left: -25%;          /* -160 / 640 */
-  top: -70.15%;        /* -470 / 640, resolved against the 670-tall box */
+  left: -25%;          /* -160 / 640, resolved against the container width */
+  top: 0;
+  /* A `top` percentage resolves against the container HEIGHT, so the crop
+     used to shift the moment the box changed height. A transform percentage
+     resolves against the IMAGE's own height instead, which is derived purely
+     from the container width — so this holds the window at source y470
+     whatever height the card ends up. 470 / 1527 = 30.78%.             */
+  transform: translateY(-30.78%);
 }
+/* Keeps a real gap under the runner once the auto margins are consumed. */
+.ws--dark .btn { margin-top: 18px; }
 .lock { width: 13px; height: 13px; color: var(--green); }
 
 /* ── Coming-soon modal extras (shell comes from .vm/.vm-card) ── */
