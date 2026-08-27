@@ -1118,12 +1118,33 @@ Keep output clean, structured, and professionally precise.`;
         shoulder_flexion_left: a.sh_flex_l, shoulder_flexion_right: a.sh_flex_r,
         shoulder_ir_left:     a.sh_ir_l,   shoulder_ir_right:      a.sh_ir_r,
         shoulder_er_left:     a.sh_er_l,   shoulder_er_right:      a.sh_er_r,
+        // These four have had columns since the table was created and were
+        // never written, so the values were discarded on every save long
+        // before the upper-body work. Not new columns — just never wired.
+        shoulder_extension_left: a.sh_ext_l, shoulder_extension_right: a.sh_ext_r,
+        ankle_supination_left: a.supination_l, ankle_supination_right: a.supination_r,
+        // Upper body and spine (columns added 20260809000000). Collected,
+        // scored, charted and previously thrown away — see KNOWN_LIMITATIONS L21.
+        shoulder_abduction_left: a.sh_abd_l,   shoulder_abduction_right: a.sh_abd_r,
+        thoracic_rotation_left:  a.thor_rot_l, thoracic_rotation_right:  a.thor_rot_r,
+        thoracic_extension:      a.thor_ext,   thoracic_flexion:         a.thor_flex,
+        cervical_rotation_left:  a.cerv_rot_l, cervical_rotation_right:  a.cerv_rot_r,
+        // Free text ("P" / "NP"), stored as written rather than coerced into a
+        // boolean that would lose the coach's qualifier.
+        cervical_flexion_note:   a.cerv_flex,  cervical_extension_note:  a.cerv_ext,
+        elbow_flexion_left:      a.elbow_flex_l, elbow_flexion_right:    a.elbow_flex_r,
+        elbow_extension_left:    a.elbow_ext_l,  elbow_extension_right:  a.elbow_ext_r,
+        wrist_flexion_left:      a.wrist_flex_l, wrist_flexion_right:    a.wrist_flex_r,
+        wrist_extension_left:    a.wrist_ext_l,  wrist_extension_right:  a.wrist_ext_r,
+        // Stored verbatim so the engine's number-parse stays re-runnable.
+        lumbar_flexion_range:    a.lumb_flex,  lumbar_extension_range:   a.lumb_ext,
         sl_squat_left_score:  a.sl_squat_l, sl_squat_right_score:  a.sl_squat_r,
         sl_rdl_left_score:    a.sl_rdl_l,  sl_rdl_right_score:     a.sl_rdl_r,
         oh_squat_score:       a.oh_squat,
         sl_balance_eo_left:   a.bal_eo_l,  sl_balance_eo_right:    a.bal_eo_r,
         sl_balance_ec_left:   a.bal_ec_l,  sl_balance_ec_right:    a.bal_ec_r,
         sl_reach_left:        a.reach_l,   sl_reach_right:         a.reach_r,
+        si_joint_pain:           a.si_pain,
         rom_score:        scores.rom_score,
         control_score:    scores.control_score,
         force_score:      scores.force_score,

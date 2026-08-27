@@ -371,10 +371,21 @@ existing rows were verified byte-identical either side by data hash, and the 2
 policies / 2 indexes / 9 constraints were unchanged. Advisors report **no new
 finding** for this table.
 
-The frontend **write path is still not wired**, so the columns are all NULL and
-nothing writes them yet. L21 stays open until that lands — along with
-`shoulder_extension_left/right` and `ankle_supination_left/right`, which have
-had columns all along and are still being dropped on save.
+The frontend **write path is now wired** (`js/dashboard.js`, `?v=20260827a`):
+the insert carries **70** columns — the 21 new ones plus
+`shoulder_extension_left/right` and `ankle_supination_left/right`, which had
+columns all along and were being dropped on every save since the table was
+created.
+
+Verified against the live production schema, not just the repo: all 70 written
+columns exist, no `NOT NULL`-without-default column is left unwritten, and a
+full-shape insert was accepted inside a rolled-back transaction with every
+value round-tripping (including `elbow_extension_left = 0`, a real reading
+rather than a missing one). PostgREST's schema cache was reloaded after the
+DDL, since a stale cache rejects new columns exactly like missing ones.
+
+**L21 closes when this deploys.** Until then production still runs the old
+bundle and still discards these values.
 
 ⚠ **The rollback is now the dangerous direction.** It is still safe *today*
 because every new column is empty, but the moment the write path ships it
