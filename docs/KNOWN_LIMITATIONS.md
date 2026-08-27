@@ -336,10 +336,36 @@ column for any of them, verified against
 and cannot be reproduced afterwards. A reassessment comparison (Phase R2D) will
 show lower-body change over time and nothing above the pelvis.
 
-Closing this needs a migration adding the columns plus the read/write paths —
-**backend work, outside the frontend lane this was built in**. It has not been
-scoped or approved, and no migration exists. Until then, treat every upper-body
-finding as transient.
+**Amended 2026-08-26 — the gap is wider than first recorded.** A full audit of
+the form against the insert in `js/dashboard.js` found two distinct problems,
+not one:
+
+1. **Columns that do not exist** (needs a migration): shoulder abduction,
+   thoracic ×4, cervical ×4, elbow ×4, wrist ×4, lumbar ×2, SI joint pain —
+   **21 fields**, every one of them backed by a live input a coach can fill.
+2. **Columns that already exist and are simply never written** (needs no
+   migration at all — pure wiring): `shoulder_extension_left/right` and
+   `ankle_supination_left/right`. The form collects them, `js/scoring.js` reads
+   them — `shoulder_extension` is even scored — and the insert just omits them.
+   This half of the loss has been happening since long before the movement
+   analysis work.
+
+Not included, deliberately: `hip_adduction_left/right`, the three `*_notes`
+columns and `toe_touch_observations` are also never written, but **no form input
+feeds them**, so there is nothing to store. The 13 vestigial `spine_*` text
+columns are likewise left alone rather than overloaded with numeric degrees.
+
+**Status:** migration `20260809000000_upper_body_rom_columns.sql` and its paired
+rollback are **written and merged, but applied to NO database**, and the
+frontend write path is **not yet wired**. L21 stays open until both are done.
+
+⚠ **The two halves must land in this order, and the reason is nasty.** The
+objective assessment is one INSERT; PostgREST rejects the whole statement if any
+column is unknown, and that insert sits in a `catch` that only `console.warn`s.
+Shipping the frontend write before the migration is applied would therefore
+discard **every** objective assessment — lower body included — silently, with
+the coach seeing a successful save. Migration first, frontend second. Guarded by
+`tests/unit/upper-body-rom-columns.test.js`. See also ISSUE_LOG #29.
 
 ## L22 - The lumbar placeholders contradict the engine's own norms
 

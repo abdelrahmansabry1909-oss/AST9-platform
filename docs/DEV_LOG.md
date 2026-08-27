@@ -359,6 +359,41 @@ Verification legend:
 
 ## NeuCore movement scoring
 
+### Upper-body ROM columns (schema half of L21)
+- **Date:** 2026-08-26 · branch `feat/persist-upper-body-rom`
+- **What:** Adds 21 nullable columns to `rehab_objective_assessments` so the
+  upper-body measurements the form has always collected have somewhere to live —
+  shoulder abduction, thoracic ×4, cervical ×4, elbow ×4, wrist ×4, lumbar ×2,
+  SI joint pain. Additive only; no existing column, constraint, policy, function
+  or row is modified.
+- **Audit first, and it changed the design.** Comparing every form input against
+  the insert in `js/dashboard.js` and the production baseline split L21 in two:
+  21 fields have **no column** (this migration), while
+  `shoulder_extension_left/right` and `ankle_supination_left/right` **already
+  have columns and are simply never written** — a wiring bug needing no
+  migration, and one that predates the movement-analysis work. Conversely
+  `hip_adduction_*`, the `*_notes` columns and `toe_touch_observations` have no
+  form input feeding them, so no column was added for them: storing them would
+  have been speculative. The 13 vestigial `spine_*` text columns were left alone
+  rather than overloaded with numeric degrees.
+- **⚠ Deployment order is load-bearing.** The objective assessment is a single
+  INSERT; PostgREST rejects the whole statement on an unknown column, and that
+  insert sits in a `catch` that only `console.warn`s. Shipping the frontend
+  write before this migration is applied would discard **every** objective
+  assessment — lower body included — silently, behind a success toast. Migration
+  applied first, frontend wired second. The swallow itself is now ISSUE_LOG #29.
+- **Files:** `supabase/migrations/20260809000000_upper_body_rom_columns.sql`
+  (new), its paired rollback (new),
+  `tests/unit/upper-body-rom-columns.test.js` (new), `package.json`,
+  `docs/MIGRATION_ROLLBACK_INVENTORY.md`, `docs/KNOWN_LIMITATIONS.md` (L21
+  amended), `docs/ISSUE_LOG.md` (#29). **No frontend change in this phase.**
+- **Verification:** `npm run test:unit` 368/368; `npm run build` green;
+  migration-inventory guard green. All three new guards mutation-proven — a
+  frontend write with no column, a rollback that forgets a column, and a
+  speculative column with no form input each fail the suite.
+- **NOT applied to any database.** No `execute_sql`, no `db push`, no staging
+  run. L21 stays open until the migration is applied and the frontend is wired.
+
 ### Scapular activation across the arc of elevation
 - **Date:** 2026-08-26 · branch `feat/shoulder-activation-chart` · PR #209
 - **What:** The simulation page had nothing to say about a shoulder, because
