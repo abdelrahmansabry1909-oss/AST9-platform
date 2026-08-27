@@ -315,7 +315,15 @@ does not leak repository internals into the deployed bundle.
 the deployed commit. Nothing was dropped - because there was nothing hidden to
 drop. See DEV_LOG CI1.
 
-## L21 - The upper-body measurements are scored but never stored
+## L21 - The upper-body measurements were scored but never stored (RESOLVED 2026-08-27)
+
+**Closed.** All three pieces are live: the columns exist on production, the
+write path ships them, and the same fields drive the 3D body map. The history
+below is kept because the diagnosis was wrong twice before it was right.
+
+**Still true, and the reason this is not yet *proven*:** no assessment has been
+saved since the write path deployed, so production holds **0 rows with
+upper-body data**. Nobody has signed in and round-tripped one. See L23.
 
 The full-body analysis work (PR #208, PR #209) added form inputs for thoracic
 rotation, thoracic flexion, thoracic extension and shoulder abduction. They are
@@ -384,8 +392,10 @@ value round-tripping (including `elbow_extension_left = 0`, a real reading
 rather than a missing one). PostgREST's schema cache was reloaded after the
 DDL, since a stale cache rejects new columns exactly like missing ones.
 
-**L21 closes when this deploys.** Until then production still runs the old
-bundle and still discards these values.
+**Deployed 2026-08-27** (PR #211, merge `7d90139`, `?v=20260827a`; superseded by
+`?v=20260827b` in PR #212). Verified live: the deployed `js/dashboard.js` is
+byte-identical to the committed blob and all 25 columns sit inside the insert
+payload, not merely in a comment.
 
 ⚠ **The rollback is now the dangerous direction.** It is still safe *today*
 because every new column is empty, but the moment the write path ships it
@@ -427,3 +437,39 @@ them drifts.
 
 Both are one-line changes once a source is chosen. They were left alone rather
 than changed on the same instruction that only named the lumbar values.
+
+## L23 - The whole assessment arc has never been exercised by a signed-in coach
+
+Six PRs merged on 2026-08-26/27 (#207–#212) changed what the movement analysis
+computes, what it stores, what it draws on the 3D body map, and what it tells a
+coach when saving fails. **Not one of those behaviours has been observed by a
+signed-in user.**
+
+Everything was verified at a level below the UI:
+
+- **schema-level** — column existence, types, an insert of the real payload
+  shape accepted inside a rolled-back transaction against production;
+- **asset-level** — the deployed bytes hash-identical to the committed blobs,
+  cache-bust tokens moved, string markers present in the shipped bundles;
+- **harness-level** — the real modules loaded in a browser with stubbed
+  dependencies (`ObjectiveSync` against the real form markup, the real `toast`
+  with the real failure message, the chart's `setJointPain` calls captured).
+
+Each of those is real evidence, and none of them is a coach completing an
+assessment. Four things in particular rest on inference:
+
+1. an assessment saving with upper-body values that come back on reassessment;
+2. the hologram recolouring when a thoracic or cervical number is typed;
+3. the scapular activation chart painting through its natural reveal — the
+   preview pane never composites, so `requestAnimationFrame` never fires and the
+   chart was only ever driven by an explicit `draw()` (see
+   ISSUE_LOG #27 and the note in DEV_LOG);
+4. the save-failure warning appearing when a save actually fails.
+
+Production currently holds **0 rows with upper-body data**, because no
+assessment has been saved since the write path deployed. The first real
+assessment is the test.
+
+**This is an owner action.** Claude has no credentials and must not obtain any.
+One assessment run end to end would close all four at once — or find something
+no instrument used here could reach, which is the more valuable outcome.

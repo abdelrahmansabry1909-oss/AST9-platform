@@ -1,20 +1,25 @@
 # FEATURE_STATUS.md — NeuCore Platform
 
-## ▶ CURRENT (2026-08-26)
+## ▶ CURRENT (2026-08-27)
 
 The per-feature detail below covers the legacy **Feature 1–8 (F-N)** era and is
 historical. The current product is tracked by **`Phase N`** — see the
 **Phase ledger** at the top of [`PROJECT_STATUS.md`](./PROJECT_STATUS.md) for the
 authoritative shipped-to-`main` list, and
 `PHASE12_EMAIL_AUTH_PRODUCTIONIZATION.md` / `PHASE13_SYSTEM_EXERCISE_LIBRARY.md`
-for the newest write-ups. Live on `origin/main` @ `cb6a553`; Supabase
-`byquokhcbagofshsclfy` (72 migrations, 11 edge functions, owner-only admin).
+for the newest write-ups. Live on `origin/main` @ `73be2be`; Supabase
+`byquokhcbagofshsclfy` (73 migrations, 11 edge functions, owner-only admin).
 
-The movement-analysis arc (2026-08-26, PR #207/#208 merged, #209 open) is
-recorded in [`docs/DEV_LOG.md`](docs/DEV_LOG.md) under *NeuCore movement
-scoring*, with the root-cause history in [`docs/ISSUE_LOG.md`](docs/ISSUE_LOG.md)
-#26–#28 and the storage gap in
-[`docs/KNOWN_LIMITATIONS.md`](docs/KNOWN_LIMITATIONS.md) L21.
+The movement-analysis arc (2026-08-26/27, PRs #207–#212, all merged) is recorded
+in [`docs/DEV_LOG.md`](docs/DEV_LOG.md) under *NeuCore movement scoring*, with
+the root-cause history in [`docs/ISSUE_LOG.md`](docs/ISSUE_LOG.md) #26–#29. It
+began as "the analysis is all lower body" and ended four layers down: the two
+gait engines had drifted, the upper-body measurements had nowhere to be stored,
+four columns had existed all along and were discarded on every save, and the
+save itself could fail without anyone being told. Each was invisible from the
+layer above. [`docs/KNOWN_LIMITATIONS.md`](docs/KNOWN_LIMITATIONS.md) L21 and
+L22 are both closed; **no assessment has been saved since, so none of it has
+been exercised by a real coach** (L23).
 
 > The F1–F8 sections that follow are accurate for their era but were last
 > revised 2026-06-06 — do not treat them as the current feature inventory.

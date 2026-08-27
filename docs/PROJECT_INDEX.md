@@ -20,11 +20,28 @@ vanilla-JS single-page authenticated shell (`app.html`) backed by Supabase
 
 ## 2. Current production status
 
-> **As of 2026-08-26**, `origin/main` @ `cb6a553` · 72 migrations · 11 edge
-> functions · 361 unit tests. Deployed to GitHub Pages on merge.
+> **As of 2026-08-27**, `origin/main` @ `73be2be` · 73 migrations · 11 edge
+> functions · 390 unit tests. Deployed to GitHub Pages on merge.
+
+**Landed 2026-08-27** (PR #210 `fe86f45`, PR #211 `7d90139`, PR #212 `73be2be`)
+— the assessment now survives being saved:
+
+- **21 columns added to `rehab_objective_assessments`** and applied to
+  production (migration `20260809000000`, version pinned by hand). 72 → 93
+  columns, 17 rows hash-verified unchanged.
+- **The write path now ships 70 columns**, up from 45 — including
+  `shoulder_extension_left/right` and `ankle_supination_left/right`, which had
+  columns since the table was created and were discarded on every save.
+- **The upper body drives the 3D body map**, and lumbar norms are Neumann
+  50°/15° across all four sources (owner ruling).
+- **A failed save is no longer silent.** `supabase-js` returns `{ error }`
+  rather than throwing and no insert checked it, so an RLS denial looked
+  identical to success. See [ISSUE_LOG.md](ISSUE_LOG.md) #29.
+- **Open:** no assessment has been saved since, so production holds 0 rows with
+  upper-body data. Nobody has signed in — [KNOWN_LIMITATIONS.md](KNOWN_LIMITATIONS.md) L23.
 
 **Landed 2026-08-26** (PR #207 merge `b07a8b4`, PR #208 merge `cb6a553`,
-PR #209) — frontend only, no database, edge-function or auth change:
+PR #209 merge `b98bf9a`) — frontend only, no database, edge-function or auth change:
 
 - **Full-body movement analysis.** The analysis had been lower-body-only because
   the two gait engines had drifted apart and the missing rules were every spine
@@ -98,9 +115,12 @@ Nothing below is a hidden defect — each is tracked. Full detail in
 2. **The backup has never been restored** (L17). A backup path with no restore
    behind it is an assumption, not a recovery capability. Needs `supabase link`,
    one backup, one restore.
-3. **No authenticated smoke anywhere** (L1, L14). Playwright never signs in, so
-   every write path — including the timeline canvas just shipped — is verified by
-   backend reproduction and DOM measurement, not by a real session.
+3. **No authenticated smoke anywhere** (L1, L14, **L23**). Playwright never signs
+   in, so every write path — including the timeline canvas and the whole
+   2026-08-27 assessment arc — is verified by backend reproduction and DOM
+   measurement, not by a real session. L23 is the sharpest current instance:
+   six merged PRs changed what the assessment computes, stores, draws and says
+   when saving fails, and none of it has been seen by a signed-in coach.
 4. **Legal text still needs a lawyer** (L3). The enforcement machinery is done and
    live; the words are not.
 5. **No payment provider is live** (L4). Manual InstaPay approval only.

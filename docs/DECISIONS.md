@@ -157,3 +157,40 @@
   divergence. Preferred order is still to have one engine; until that
   consolidation is scoped, the test is what makes the duplication survivable.
 - **Status:** In force (PR #208). See ISSUE_LOG #26.
+
+## D18 — A failed save is reported, but never destroys the work it failed to save
+- **Rationale:** The assessment save was silent in four independent ways at once
+  (ISSUE_LOG #29), the load-bearing one being that `supabase-js` **returns**
+  `{ error }` rather than throwing, so five inserts discarded their errors and
+  the surrounding `try/catch` never ran. A coach saw "Program generated!"
+  whether or not anything reached the database. Once the upper-body columns
+  started carrying data, that silence lost a whole assessment rather than a
+  legacy stats row.
+- **Consequence, two halves.** Every insert now checks its returned error and
+  names the stage that failed; the caller awaits the save and tells the coach
+  plainly that nothing was stored. But a failed save **does not** block, discard
+  or roll back the program — it is generated locally and remains valid and
+  exportable, and telling a coach their work is gone while it is on screen would
+  be its own dishonesty. The message says what was lost (the record), what
+  survives (the program), and what to do (keep the tab open, retry).
+- **Also:** failures reach Sentry tagged `area: 'assessment_save'`, wrapped in
+  their own `try/catch` — a throw from inside the error reporter would convert a
+  reported failure back into an unreported one, which is the original bug one
+  level up.
+- **Status:** In force (PR #212). Guarded by
+  `tests/unit/assessment-save-reporting.test.js`, mutation-proven against all
+  five regressions. **Never reintroduce a bare `await sb.from(x).insert({...})`
+  in a write path** — it looks complete and discards the error.
+
+## D19 — A guard that cannot be made to fail is not evidence
+- **Rationale:** Twice in one session a test passed while the exact defect it
+  existed to catch was live. The shoulder-chart guard sliced the file from
+  `constructor(` to the first mention of `_ensureChart` and so never looked at
+  `_build()`, which was calling `_initChart()` directly. And several of the
+  defects fixed in ISSUE_LOG #26–#29 had survived months of a fully green suite.
+- **Consequence:** every new guard is mutation-tested before it is trusted —
+  reintroduce the defect, watch the suite go red, restore, watch it go green.
+  The mutation scripts live in the scratchpad, not the repo; what matters is
+  that the check was performed and reported, not that it is kept.
+- **Status:** In force since 2026-08-26. Applied to all 23 guards added across
+  PRs #208–#212.
