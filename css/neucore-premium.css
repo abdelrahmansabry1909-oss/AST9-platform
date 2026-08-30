@@ -4011,6 +4011,14 @@ body.nc-bright:not(.nc-client) #section-dashboard .nc-dash-first-fold {
   grid-template-columns: 1.25fr 0.75fr !important;
   gap: 20px !important;
   margin-bottom: 24px !important;
+  /* Without this the row defaults to `stretch`, so the welcome panel is
+     pulled to the height of the Client Overview list beside it. The panel
+     holds far less content, and `.nc-quickstart-bar-integrated` carries
+     `margin-top: auto`, so the surplus collected as a ~256px void between
+     the intro copy and the workflow steps. Sizing the panel to its content
+     removes the void; the two columns simply have different natural
+     heights, which is what a dashboard row normally looks like. */
+  align-items: start !important;
 }
 
 @media (max-width: 900px) {
