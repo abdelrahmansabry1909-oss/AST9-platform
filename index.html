@@ -498,14 +498,15 @@
                 <circle cx="65" cy="65" r="56" fill="none" stroke="#0B4B34" stroke-width="11"
                         stroke-linecap="round" stroke-dasharray="351.9" stroke-dashoffset="77.4"/>
               </svg>
-              <span class="ring-mid">
-                <span>
-                  <span class="n">78%</span><br>
-                  <span class="l">Session Progress</span>
-                </span>
-              </span>
+              <!-- Only the number lives inside the dial. "Session Progress"
+                   used to sit in here too and wrapped onto four lines at
+                   8.5px once the ring shrank — it reads as a caption below
+                   instead, where it has room at a legible size. -->
+              <span class="ring-mid"><span class="n">78%</span></span>
             </div>
           </div>
+          <p class="ring-label">Session progress</p>
+
           <p class="t">Today's workout</p>
           <p class="b">3 / 5 completed</p>
         </div>
