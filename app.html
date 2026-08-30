@@ -25,7 +25,10 @@
 <script src="js/monitoring.js?v=20260802a"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- Inter is added to the SAME request rather than a second one; it is used
+     only by the boot splash, which mirrors the landing page's identity. The
+     app shell itself stays on Hanken Grotesk. -->
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800&family=Inter:wght@500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css?v=20260704a"/>
   <link rel="stylesheet" href="css/styles_holographic.css"/>
   <link rel="stylesheet" href="css/neucore-design-system.css"/>
@@ -44,32 +47,20 @@
      finish. Declaring the default here closes both windows. -->
 <body class="service-rehab">
 
-<!-- LOADING — Royal Premium transition screen -->
+<!-- LOADING — brand transition screen.
+     Carries the landing identity so the hand-off from index.html into the
+     app does not change palette mid-flight: the same "N" mark, Inter, the
+     ink ground and one green accent. The old navy/cyan SVG mark is gone;
+     the mark is now CSS, matching .brand-mark on the landing.
+     Dismissed by _hideLoading() via opacity + remove(), never display — so
+     nothing here may carry `opacity`/`display` !important. -->
 <div id="loading-overlay">
-  <!-- Subtle backgrid for tech vibe -->
   <div class="nc-loader-grid"></div>
-  <!-- Centered container -->
   <div class="nc-loader-content">
     <div class="nc-loader-brand">
-      <span class="nc-loader-mark" aria-hidden="true">
-        <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="NeuCore">
-          <defs>
-            <linearGradient id="ncRoyalLd" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
-              <stop stop-color="#0f172a"/><stop offset="1" stop-color="#020617"/>
-            </linearGradient>
-            <linearGradient id="ncRoyalLdG" x1="10" y1="9" x2="30" y2="31" gradientUnits="userSpaceOnUse">
-              <stop stop-color="#38BDF8"/><stop offset=".5" stop-color="#0EA5E9"/><stop offset="1" stop-color="#0284c7"/>
-            </linearGradient>
-          </defs>
-          <rect x="1.5" y="1.5" width="37" height="37" rx="11" fill="url(#ncRoyalLd)"/>
-          <rect x="2.5" y="2.5" width="35" height="35" rx="10" fill="none" stroke="url(#ncRoyalLdG)" stroke-width="1" opacity=".75"/>
-          <path d="M13 28V13l14 14V12" fill="none" stroke="url(#ncRoyalLdG)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
-          <circle cx="27" cy="12" r="2.6" fill="#2DD4BF"/>
-          <circle cx="27" cy="12" r="5" fill="none" stroke="#2DD4BF" stroke-width="1" opacity=".5"/>
-        </svg>
-      </span>
+      <span class="nc-loader-mark" aria-hidden="true">N</span>
       <div class="nc-loader-titles">
-        <div class="nc-loader-word">NEU<span style="color:#38BDF8">CORE</span></div>
+        <div class="nc-loader-word">NEU<span class="nc-loader-word-accent">CORE</span></div>
         <div class="nc-loader-sub">Movement Operating System</div>
       </div>
     </div>

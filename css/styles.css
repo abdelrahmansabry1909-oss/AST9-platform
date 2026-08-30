@@ -6095,13 +6095,39 @@ body.nc-bright .mob-nav-btn.active {
 }
 
 /* ── 4 · Transition Boot Screen Overlay ── */
+/* ══ BOOT SPLASH ═══════════════════════════════════════════════
+   Carries the landing identity (css/landing-v2.css) so the hand-off
+   from index.html into the app does not change palette mid-flight:
+   Inter, the ink ground, one green accent.
+
+   Two things to know before editing:
+
+   1. An EARLIER #loading-overlay block near the top of this file
+      still cascades (gold/navy era). Every property it sets is
+      restated here, or its stale value leaks through. The nastiest
+      is .nc-loader-word-accent, which sets
+      `-webkit-text-fill-color: transparent` for a gold gradient —
+      overriding `color` alone leaves "CORE" invisible.
+
+   2. _hideLoading() dismisses this overlay with opacity + remove(),
+      never display. Nothing here may carry `opacity` or `display`
+      !important or the fade-out breaks.
+
+   Tokens are declared locally so none of this can reach the shell. */
 #loading-overlay {
+  --ld-ink:    #010807;
+  --ld-green:  #43D39B;
+  --ld-on:     #F1F5F3;
+  --ld-on-2:   #A4B1AD;
+  --ld-on-3:   #71807B;
+
   position: fixed; inset: 0; z-index: 9999;
   display: flex; align-items: center; justify-content: center;
-  background: #03060b !important;
+  flex-direction: column; gap: 0;
+  background: var(--ld-ink) !important;
   background-image:
-    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(20, 184, 166, 0.15), transparent 70%),
-    radial-gradient(circle 800px at 50% 50%, rgba(103, 232, 249, 0.05), transparent 60%) !important;
+    radial-gradient(ellipse 85% 55% at 50% -5%, rgba(67, 211, 155, 0.13), transparent 70%),
+    radial-gradient(circle 760px at 50% 55%, rgba(67, 211, 155, 0.045), transparent 62%) !important;
   overflow: hidden;
   transition: opacity 400ms cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
@@ -6109,8 +6135,8 @@ body.nc-bright .mob-nav-btn.active {
 .nc-loader-grid {
   position: absolute; inset: 0;
   background-image:
-    linear-gradient(rgba(20, 184, 166, 0.012) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(20, 184, 166, 0.012) 1px, transparent 1px);
+    linear-gradient(rgba(67, 211, 155, 0.016) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(67, 211, 155, 0.016) 1px, transparent 1px);
   background-size: 40px 40px;
   -webkit-mask-image: radial-gradient(circle 400px at 50% 50%, #000, transparent);
   mask-image: radial-gradient(circle 400px at 50% 50%, #000, transparent);
@@ -6136,29 +6162,51 @@ body.nc-bright .mob-nav-btn.active {
   text-align: left;
 }
 
+/* The mark is now CSS, mirroring .brand-mark on the landing: a green
+   rounded rect with a dark "N". The old navy/cyan SVG is gone, so the
+   `.nc-loader-mark svg` rule above it no longer matches anything. */
 .nc-loader-mark {
-  width: 52px; height: 52px;
-  filter: drop-shadow(0 8px 24px rgba(20, 184, 166, 0.25)) !important;
+  width: 58px; height: 48px;
+  margin-bottom: 0;
+  border-radius: 13px;
+  background: var(--ld-green);
+  color: #04120E;
+  display: grid; place-items: center;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 26px; font-weight: 800; line-height: 1;
+  filter: drop-shadow(0 10px 28px rgba(67, 211, 155, 0.28)) !important;
   animation: nc-loader-pulse 2s ease-in-out infinite alternate;
 }
 @keyframes nc-loader-pulse {
-  from { transform: scale(1); filter: drop-shadow(0 8px 24px rgba(20, 184, 166, 0.2)); }
-  to { transform: scale(1.03); filter: drop-shadow(0 12px 32px rgba(20, 184, 166, 0.35)); }
+  from { transform: scale(1);    filter: drop-shadow(0 8px 24px rgba(67, 211, 155, 0.22)); }
+  to   { transform: scale(1.03); filter: drop-shadow(0 12px 32px rgba(67, 211, 155, 0.38)); }
 }
 
 .nc-loader-word {
-  font-family: var(--font-display) !important;
-  font-size: 28px; font-weight: 700; letter-spacing: 0.12em;
-  color: #F8FAFC; line-height: 1;
+  font-family: 'Inter', system-ui, sans-serif !important;
+  font-size: 28px; font-weight: 800; letter-spacing: 0.055em;
+  color: var(--ld-on); line-height: 1;
+  padding-left: 0;
+}
+
+/* Resets the earlier gold gradient in full — background-clip and
+   -webkit-text-fill-color both have to go, or the text stays invisible. */
+.nc-loader-word-accent {
+  background: none;
+  -webkit-background-clip: border-box; background-clip: border-box;
+  -webkit-text-fill-color: var(--ld-green);
+  color: var(--ld-green);
 }
 
 .nc-loader-sub {
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 10px; font-weight: 600; letter-spacing: 0.24em; text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.4); margin-top: 6px;
+  color: var(--ld-on-3); opacity: 1; margin-top: 7px;
 }
 
 .loader-bar {
   width: 200px; height: 3px;
+  margin-top: 26px;
   background: rgba(255, 255, 255, 0.06);
   border-radius: 999px; overflow: hidden;
   position: relative;
@@ -6168,9 +6216,10 @@ body.nc-bright .mob-nav-btn.active {
   content: '';
   display: block; height: 100%;
   width: 50%;
-  background: linear-gradient(90deg, var(--lime), var(--cyan));
+  background: linear-gradient(90deg, rgba(67, 211, 155, 0), var(--ld-green));
   border-radius: 999px;
   animation: loader-sweep-fast 1.2s infinite cubic-bezier(0.25, 1, 0.5, 1);
+  transform-origin: left;
   position: absolute; left: 0; top: 0;
 }
 @keyframes loader-sweep-fast {
@@ -6180,8 +6229,16 @@ body.nc-bright .mob-nav-btn.active {
 }
 
 .nc-loader-status {
-  font-size: 12px; font-weight: 500; color: rgba(255,255,255,0.45);
-  letter-spacing: 0.02em; margin-top: 4px;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 12px; font-weight: 500; color: var(--ld-on-2);
+  letter-spacing: 0.02em; margin-top: 14px;
+}
+
+/* The splash animates two things at rest. Both stop for reduced motion;
+   the bar keeps a static filled state so it still reads as progress. */
+@media (prefers-reduced-motion: reduce) {
+  .nc-loader-mark { animation: none; }
+  .loader-bar::after { animation: none; width: 100%; }
 }
 
 /* ── 5 · Landing Page Hero & Section Overrides ── */
