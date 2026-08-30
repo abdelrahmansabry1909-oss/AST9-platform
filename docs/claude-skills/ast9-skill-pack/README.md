@@ -22,10 +22,11 @@ These are **separate** from the general-purpose marketplace guard skills already
 from `amElnagdy/guard-skills` and are tracked by `skills-lock.json`. The AST9 pack is
 project-specific and authored in-repo.
 
-## 2. The seven skills
+## 2. The eight skills
 
 | Skill | Scope |
 |---|---|
+| `ast9-decision-journal` | **Cross-cutting.** Forces the reasoning behind an action to be stated *before* it, and corrected in `docs/DECISION_JOURNAL.md` after it is proven wrong. Governs reasoning; the others govern mechanics. |
 | `ast9-auth-routing-guard` | Auth/session/client-login routing, the client subscription gate, the `SIGNED_OUT` listener, boot routing, cache-bust tokens. |
 | `ast9-agent-boundary-git-guard` | Git/branch/PR/merge flow + Claude(audit), Codex(backend), and Antigravity(frontend) ownership boundaries. |
 | `ast9-frontend-launch-guard` | Landing page, mobile nav, Sign-In reachability, public/auth entry visibility. |
@@ -35,6 +36,16 @@ project-specific and authored in-repo.
 | `ast9-frontend-delivery-guard` | Writing and reporting frontend changes: prove every identifier exists, edit minimally, test in a browser, and never label an unrun check as passed. |
 
 ## 3. Which AST9 failure each skill prevents
+
+- **`ast9-decision-journal`** — the recurring shape behind most of the rest: a confident,
+  well-measured claim resting on the wrong evidence. Eight logged cases in
+  [`docs/DECISION_JOURNAL.md`](../../DECISION_JOURNAL.md), including a grep for `supabase/client`
+  that could never match `./client.js` (understating a deletion from 1 file to 4), a sidebar
+  quoted as 248px that was really a 64px collapsing rail, a card silently on UA-default margins
+  that survived three clean measurement passes, and a 24px prediction sitting inside its own
+  ±50px error bar. Enforces: state the evidence *method* and its error bar before acting, name
+  the blast radius, say what would falsify the claim and whether you can run it — and write the
+  correction into the journal, the PR body and memory rather than only into chat.
 
 - **`ast9-auth-routing-guard`** — the client-login **landing-bounce** bug (PR #53): the subscription
   gate's `sb.auth.signOut()` fired `SIGNED_OUT`, whose global listener redirected to `index.html`,
