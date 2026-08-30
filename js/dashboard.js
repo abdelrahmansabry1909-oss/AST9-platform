@@ -654,7 +654,7 @@ const Dashboard = (() => {
       return;
     }
     el.innerHTML = data.map(c => `
-      <div class="flex items-center gap-3" style="padding:11px 0;border-bottom:1px solid var(--border-subtle)">
+      <div class="flex items-center gap-3" style="padding:8px 0;border-bottom:1px solid var(--border-subtle)">
         <div class="avatar avatar-sm">${(c.full_name||c.email||'?')[0].toUpperCase()}</div>
         <div class="flex-1 truncate">
           <div style="font-size:13px;font-weight:600;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.full_name||c.email}</div>
