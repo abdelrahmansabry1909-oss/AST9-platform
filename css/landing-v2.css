@@ -908,17 +908,29 @@ button { font: inherit; }
 .ring-wrap { display: grid; place-items: center; margin-bottom: 4px; }
 /* The inline <svg> is authored at 130 with a viewBox, so shrinking the
    wrapper and letting the svg fill it scales the whole dial cleanly. */
-.ring { position: relative; width: 66px; height: 66px; }
+.ring { position: relative; width: 70px; height: 70px; }
 .ring svg { transform: rotate(-90deg); width: 100%; height: 100%; }
 .ring-mid {
   position: absolute; inset: 0;
   display: grid; place-items: center; text-align: center;
 }
-.ring-mid .n { font-size: 21px; font-weight: 800; color: var(--green-deep); line-height: 1; }
-.ring-mid .l { font-size: 8.5px; color: var(--on-light-2); }
+.ring-mid .n { font-size: 20px; font-weight: 800; color: var(--green-deep); line-height: 1; }
+
+/* The dial's caption. Nothing here goes below 11px — 8.5px was unreadable,
+   and it only existed because the text was trapped inside a 55px hole. */
+.ring-label {
+  font-size: 11px; font-weight: 600;
+  color: var(--on-light-2);
+  margin: 0 0 9px;
+  letter-spacing: 0.01em;
+}
+
+/* Two distinct readings share this block — the dial (session progress) and
+   today's workout — so the pairs are spaced to group rather than run
+   together: caption tight to its dial, a clear gap before the next pair. */
 .ws-center { text-align: center; }
-.ws-center .t { font-size: 11.5px; color: var(--on-light-2); margin-top: 7px; }
-.ws-center .b { font-size: 14.5px; font-weight: 700; color: var(--on-light); margin-bottom: 4px; }
+.ws-center .t { font-size: 11.5px; color: var(--on-light-2); margin: 0 0 1px; }
+.ws-center .b { font-size: 15px; font-weight: 700; color: var(--on-light); margin: 0; }
 
 .stat-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; margin-bottom: 10px; }
 .stat-k { font-size: 10.5px; color: var(--on-light-2); margin-bottom: 1px; }
