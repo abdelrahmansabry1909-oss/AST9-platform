@@ -642,8 +642,12 @@ const Dashboard = (() => {
     if (!el) return;
     if (!Auth.isAdminOrCoach()) { el.innerHTML = ''; return; }
 
+    // Three, not five: this card sits beside the welcome panel in the first
+    // fold, and at five rows it ran ~230px taller, leaving the left column
+    // stranded in whitespace. Three brings the two columns within ~70px.
+    // The "All ↗" header link already carries the full roster.
     const { data } = await sb.from('profiles').select('*')
-      .eq('role','client').order('created_at', { ascending: false }).limit(5);
+      .eq('role','client').order('created_at', { ascending: false }).limit(3);
 
     if (!data?.length) {
       el.innerHTML = _emptyState('◉', 'No clients yet', 'Add your first client to get started.');
