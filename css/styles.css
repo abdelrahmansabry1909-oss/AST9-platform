@@ -691,7 +691,9 @@ textarea.form-input { resize: vertical; min-height: 88px; line-height: 1.6; }
 .main-content {
   margin-left: var(--sidebar-w);
   min-height: 100vh;
-  padding: var(--sp-8) var(--sp-8);
+  /* 24, not 32: the page gutter is the single largest piece of chrome on
+     every screen, so it sets how zoomed-in the whole app reads. */
+  padding: var(--sp-6) var(--sp-6);
   position: relative;
 }
 
@@ -2795,8 +2797,8 @@ body.nc-bright .mob-nav-btn.active {
 
 /* ── PHASE 1 NEW TOKENS ──────────────────────────────────── */
 :root {
-  --sidebar-w-collapsed: 64px;
-  --sidebar-w-expanded:  260px;
+  --sidebar-w-collapsed: 56px;
+  --sidebar-w-expanded:  248px;
   --sidebar-transition:  0.28s var(--ease-out);
 }
 
@@ -2827,19 +2829,24 @@ body.nc-bright .mob-nav-btn.active {
   .sidebar .nav-item {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 11px 18px;
+    gap: 10px;
+    padding: 8px 14px;
     white-space: nowrap;
     overflow: hidden;
   }
+  /* 22px in a 56px rail rather than 28 in 64. The old icon filled 44% of the
+     rail width, which is what made the navigation read as the heaviest thing
+     on the screen. This is a pointer-driven desktop rail — the 38px row still
+     clears the 24px AA target size comfortably; the 44px AAA figure applies
+     to the touch nav, which is a different component. */
   .sidebar .nav-item-icon {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 28px; height: 28px;
+    width: 22px; height: 22px;
     flex-shrink: 0;
-    font-size: 16px;
-    border-radius: 8px;
+    font-size: 14px;
+    border-radius: 6px;
     transition: background var(--sidebar-transition), color var(--sidebar-transition);
   }
   .sidebar .nav-item > *:not(.nav-item-icon):not(.nav-badge) {
