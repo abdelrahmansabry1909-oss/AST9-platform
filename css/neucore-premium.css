@@ -321,7 +321,7 @@ body.nc-bright:not(.nc-client) .glass-card {
   background: var(--nc-teal, #14B8A6);
 }
 .nc-section-sub {
-  font-size: 12px; color: var(--nc-text-muted); font-weight: 500;
+  font-size: 12px; color: var(--nc-text-muted); font-weight: 600;
   margin-top: 2px;
 }
 .nc-section-link {
@@ -367,9 +367,9 @@ body.nc-bright:not(.nc-client) .glass-card {
   padding: 11px 0; border-bottom: 1px solid var(--nc-border);
 }
 .nc-biz-row:last-child { border-bottom: none; }
-.nc-biz-k { font-size: 13px; color: var(--nc-text-secondary); font-weight: 500; }
+.nc-biz-k { font-size: 13px; color: var(--nc-text-secondary); font-weight: 600; }
 .nc-biz-v { font-size: 18px; font-weight: 700; color: var(--nc-text-primary); font-variant-numeric: tabular-nums; }
-.nc-biz-v small { font-size: 12px; font-weight: 500; color: var(--nc-text-muted); }
+.nc-biz-v small { font-size: 12px; font-weight: 600; color: var(--nc-text-muted); }
 
 /* ── 5 · BRANDMARK (theme-adaptive) ─────────────────────────────
    The mark is an inline SVG badge (teal→indigo) carrying an "N" motion
@@ -990,7 +990,7 @@ body.nc-bright:not(.nc-client) .form-error {
   font-size: 12px !important;
   color: var(--nc-rose) !important;
   margin-top: 5px !important;
-  font-weight: 500 !important;
+  font-weight: 600 !important;
 }
 
 /* Form disabled controls */
@@ -2626,7 +2626,7 @@ body.nc-bright:not(.nc-client) .sidebar .nc-sidebar-sub {
   color: #49454F !important;
   font-family: 'Hanken Grotesk', sans-serif !important;
   font-size: 11px !important;
-  font-weight: 500 !important;
+  font-weight: 600 !important;
   letter-spacing: 0.05em !important;
   margin-top: 4px !important;
 }
@@ -2657,7 +2657,7 @@ body.nc-bright:not(.nc-client) .sidebar .nc-service-btn {
   color: #49454F !important;
   font-family: 'Hanken Grotesk', sans-serif !important;
   font-size: 12px !important;
-  font-weight: 500 !important;
+  font-weight: 600 !important;
   border-radius: 6px !important;
 }
 body.nc-bright:not(.nc-client) .sidebar .nc-service-btn:hover:not(.active) {
@@ -2678,7 +2678,7 @@ body.nc-bright:not(.nc-client) .sidebar .nav-item {
   color: #49454F !important;
   font-family: 'Hanken Grotesk', sans-serif !important;
   font-size: 14px !important;
-  font-weight: 500 !important;
+  font-weight: 600 !important;
   padding: 12px 16px !important;
   border-radius: 8px !important;
   margin-bottom: 4px !important;
@@ -2718,7 +2718,7 @@ body.nc-bright:not(.nc-client) .sidebar .user-role-tag {
   background: rgba(4, 57, 39, 0.08) !important;
   color: #043927 !important;
   font-size: 11px !important;
-  font-weight: 500 !important;
+  font-weight: 600 !important;
   border-radius: 4px !important;
   padding: 2px 6px !important;
 }
@@ -2761,7 +2761,9 @@ body.nc-bright:not(.nc-client) .sidebar .logout-icon:hover {
   width: 100%;
   padding: 8px 12px 8px 32px;
   font-size: 13.5px;
-  font-weight: 500;
+  /* 400, not the 600 the rest of the retired-500 tier folded into: this text
+     is typed by the user and reads as content, not as chrome. */
+  font-weight: 400;
   border: 1px solid var(--nc-border);
   border-radius: 10px;
   background: var(--nc-bg-elevated);
@@ -2888,7 +2890,7 @@ body.nc-bright:not(.nc-client) .sidebar .logout-icon:hover {
   align-items: center;
   gap: 12px;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--nc-text-secondary);
 }
 .nc-status-banner-content .badge {
@@ -2977,7 +2979,7 @@ body.nc-bright:not(.nc-client) .sidebar .logout-icon:hover {
 .nc-dash-welcome-compact .nc-dash-subtitle {
   font-size: 12px;
   color: var(--nc-text-muted);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 /* Tighter KPI styles (Phase R1G-Visual-2) */
@@ -3706,7 +3708,7 @@ body.nc-bright:not(.nc-client) #tab-objective .form-hint {
   color: var(--nc-text-muted) !important;
   font-size: 11px !important;
   margin-top: 4px !important;
-  font-weight: 500 !important;
+  font-weight: 600 !important;
 }
 
 /* 3D skeleton sidebar styling in bright mode */
@@ -4001,7 +4003,7 @@ body.nc-bright:not(.nc-client) #section-dashboard .nc-status-banner {
 body.nc-bright:not(.nc-client) #section-dashboard .nc-status-banner .nc-status-banner-content {
   color: var(--dash-text-secondary) !important;
   font-size: 12px !important;
-  font-weight: 500 !important;
+  font-weight: 600 !important;
 }
 
 body.nc-bright:not(.nc-client) #section-dashboard .page-header {
@@ -4210,7 +4212,7 @@ body.nc-bright:not(.nc-client) #section-dashboard .nc-kpi-value {
 body.nc-bright:not(.nc-client) #section-dashboard .nc-kpi-sub {
   font-size: 11px !important;
   color: var(--dash-text-secondary) !important;
-  font-weight: 500 !important;
+  font-weight: 600 !important;
   margin-top: 0 !important;
 }
 
@@ -4764,7 +4766,7 @@ body.nc-bright:not(.nc-client) #neucore-gait-container .nc-toolbar-btn {
   height: 36px !important;
   padding: 0 16px !important;
   font-size: 12px !important;
-  font-weight: 500 !important;
+  font-weight: 600 !important;
   border-radius: 6px !important;
   border: 1px solid rgba(24, 28, 50, 0.08) !important;
   background: #FFFFFF !important;
@@ -4924,7 +4926,7 @@ body.nc-bright:not(.nc-client) #neucore-gait-container .gait-phase-cell {
 
 body.nc-bright:not(.nc-client) #neucore-gait-container .gait-phase-label {
   font-size: 9px !important;
-  font-weight: 500 !important;
+  font-weight: 600 !important;
   letter-spacing: .05em !important;
   text-transform: uppercase !important;
   color: #7E8299 !important; /* Muted text */
@@ -5149,7 +5151,7 @@ body.nc-bright:not(.nc-client) #neucore-gait-container .gait-score-referral {
   border-radius: 6px !important;
   background: rgba(239, 68, 68, 0.06) !important;
   border: 1px solid rgba(239, 68, 68, 0.16) !important;
-  font-weight: 500 !important;
+  font-weight: 600 !important;
 }
 
 /* Activation Chart Panel Wrapper (transparent - no nested borders/padding/shadow) */
@@ -5430,7 +5432,7 @@ body.nc-bright:not(.nc-client) .nc-btn--ghost {
   border: 1px solid #E2E2E6 !important;
   padding: 12px 24px !important;
   border-radius: 8px !important;
-  font-weight: 500 !important;
+  font-weight: 600 !important;
   box-shadow: none !important;
   transform: none !important;
   transition: all 200ms ease !important;
@@ -5530,7 +5532,7 @@ body.nc-bright:not(.nc-client) .nc-badge {
   padding: 4px 12px !important;
   border-radius: 9999px !important;
   font-size: 12px !important;
-  font-weight: 500 !important;
+  font-weight: 600 !important;
   border: none !important;
 }
 body.nc-bright:not(.nc-client) .badge-success,
@@ -5566,7 +5568,7 @@ body.nc-bright:not(.nc-client) .neu-chip {
   padding: 8px 16px !important;
   border-radius: 9999px !important;
   font-size: 14px !important;
-  font-weight: 500 !important;
+  font-weight: 600 !important;
   background: #FFFFFF !important;
   border: 1px solid #E2E2E6 !important;
   color: #5c5f61 !important;
