@@ -2738,8 +2738,8 @@ body.nc-bright:not(.nc-client) .sidebar .logout-icon:hover {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 16px 0;
-    margin-bottom: 24px;
+    padding: 11px 0;
+    margin-bottom: 18px;
     border-bottom: 1px solid var(--nc-border);
     background: transparent;
   }
@@ -2775,6 +2775,7 @@ body.nc-bright:not(.nc-client) .sidebar .logout-icon:hover {
   border-color: var(--nc-indigo);
   box-shadow: 0 0 0 3px rgba(91, 108, 255, 0.12);
 }
+
 .nc-topbar-right {
   display: flex;
   align-items: center;
@@ -3760,14 +3761,19 @@ body.nc-bright:not(.nc-client) #section-new-session input[type="checkbox"] {
     justify-content: center !important;
     width: 100% !important;
   }
+  /* 38, not 44. This is the rule that actually sets the rail's rhythm — the
+     nav item is a centred square button, so its size plus its margin is the
+     vertical pitch, and at 44+4 the navigation was the heaviest thing on
+     screen across 38 items. Pointer-driven desktop rail; well clear of the
+     24px AA target size. */
   body.nc-bright:not(.nc-client) .sidebar .nav-item {
-    width: 44px !important;
-    height: 44px !important;
+    width: 38px !important;
+    height: 38px !important;
     padding: 0 !important;
-    margin: 4px auto !important;
+    margin: 3px auto !important;
     justify-content: center !important;
     align-items: center !important;
-    border-radius: 12px !important;
+    border-radius: 10px !important;
     box-sizing: border-box !important;
   }
   body.nc-bright:not(.nc-client) .sidebar .nav-item-icon {
@@ -3870,7 +3876,7 @@ body.nc-bright:not(.nc-client) .nc-dash-first-fold {
 body.nc-bright:not(.nc-client) .nc-dash-welcome-panel {
   display: flex !important;
   flex-direction: column !important;
-  padding: 32px !important;
+  padding: 22px !important;
   background: #FFFFFF !important;
   border-radius: 12px !important;
   border: 1px solid var(--nc-border) !important;
@@ -4163,7 +4169,9 @@ body.nc-bright:not(.nc-client) #section-dashboard .nc-kpi {
   background: var(--dash-surface) !important;
   border: 1px solid var(--dash-border) !important;
   border-radius: 10px !important;
-  padding: 15px !important;
+  /* 12, not 15: the card was 107px tall to show one number and two short
+     labels, so nearly a third of it was padding. */
+  padding: 12px !important;
   box-shadow: var(--dash-shadow) !important;
   position: relative !important;
   display: flex !important;
@@ -5501,6 +5509,17 @@ body.nc-bright:not(.nc-client) .neu-textarea {
   height: auto !important;
   min-height: 90px !important;
   padding: 12px 16px !important;
+}
+
+/* The topbar search is chrome, not a form field. At the 48px above it was
+   setting an 81px topbar on every screen in the app. It sits here, after
+   the shared control rule rather than up with the other topbar styles,
+   because that rule is what it has to beat — every form in the product
+   depends on the 48px, so the field is shrunk on its own instead. */
+body.nc-bright:not(.nc-client) .nc-topbar-search input {
+  height: 38px !important;
+  padding: 0 14px 0 32px !important;
+  font-size: 13px !important;
 }
 body.nc-bright:not(.nc-client) .input:focus,
 body.nc-bright:not(.nc-client) .neu-input:focus,
