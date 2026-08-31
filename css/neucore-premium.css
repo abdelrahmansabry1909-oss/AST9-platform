@@ -286,14 +286,25 @@ body.nc-bright:not(.nc-client) .glass-card {
   display: flex; flex-direction: column; gap: 18px; min-width: 0;
 }
 
-/* Panel — the dashboard surface for grouped intelligence */
+/* Panel — the app's grouped-content surface, used by the coach dashboard,
+   the athletic dashboard and the athlete profile.
+
+   It resolves at three densities, and this is the only place that changed
+   between them, so all three now live together rather than being scattered:
+
+     base (dark skin, and any client view)  pad 24  ·  r22  ·  no margin
+     + body.nc-bright:not(.nc-client)       pad 24  ·  r18  ·  margin 24
+     + #section-dashboard                   pad 18  ·  r12  ·  margin 16
+
+   Each variant below states its density in full. Read the one whose scope
+   matches the screen you are on; do not add a fourth. */
 .nc-panel {
   position: relative;
   border: 1px solid var(--nc-border);
-  border-radius: 20px;
+  border-radius: 22px;
   background: var(--nc-bg-card);
   box-shadow: var(--nc-shadow-card);
-  padding: 20px 22px;
+  padding: 24px;
 }
 .nc-section-head {
   display: flex; align-items: center; justify-content: space-between;
@@ -492,7 +503,6 @@ body.nc-bright:not(.nc-client) .nc-card-eyebrow, body.nc-bright:not(.nc-client) 
 .nc-kpi-grid   { gap: 18px; margin-bottom: 26px; }
 .nc-dash-grid  { gap: 22px; }
 .nc-dash-main, .nc-dash-rail { gap: 22px; }
-.nc-panel      { padding: 24px; border-radius: 22px; }
 .nc-dash-welcome { margin-bottom: 30px; }
 
 /* KPI refinement — larger value, calmer label, faint top wash */
@@ -4204,9 +4214,10 @@ body.nc-bright:not(.nc-client) #section-dashboard .nc-kpi-sub {
   margin-top: 0 !important;
 }
 
-/* General Card/Panel Polish */
+/* General Card Polish. .nc-panel is deliberately NOT in this group — it
+   carries its own density and would only have to be overridden again
+   twenty lines below. Its dashboard variant is the rule further down. */
 body.nc-bright:not(.nc-client) #section-dashboard .card,
-body.nc-bright:not(.nc-client) #section-dashboard .nc-panel,
 body.nc-bright:not(.nc-client) #section-dashboard .stat-card {
   border-radius: 12px !important;
   padding: 24px !important;
@@ -4231,14 +4242,19 @@ body.nc-bright:not(.nc-client) #section-dashboard .nc-section-head {
   padding-bottom: 14px !important;
 }
 
-/* The global .nc-panel (24px padding, 18px radius) is shared by every
-   screen in the app. Tightening it there would move Clients, Programs and
-   the rest — none of which this pass has looked at — so the dashboard gets
-   its own override and the global rule is left alone. */
+/* Dashboard density — the tightest of the three, and the complete rule for
+   it. It used to be split across this block and the card group above, so
+   the effective padding could only be worked out by reading both; now the
+   surface, the border, the shadow and the density are all stated here.
+   The lighter densities are on .nc-panel itself, near the top of the file. */
 body.nc-bright:not(.nc-client) #section-dashboard .nc-panel {
   padding: 18px !important;
   border-radius: 12px !important;
   margin-bottom: 16px !important;
+  background: var(--dash-surface) !important;
+  border: 1px solid var(--dash-border) !important;
+  box-shadow: var(--dash-shadow) !important;
+  box-sizing: border-box !important;
 }
 
 body.nc-bright:not(.nc-client) #section-dashboard .nc-section-title {
@@ -4302,6 +4318,35 @@ body.nc-bright:not(.nc-client) #section-dashboard .nc-dash-rail {
   display: flex !important;
   flex-direction: column !important;
   gap: 24px !important;
+}
+
+/* The rail follows you down the page instead of ending in dead space.
+   The two columns are not the same length and cannot be made so by moving
+   panels between them: the main column runs several hundred pixels longer
+   once its lists are populated, so the bottom of the right-hand side is
+   empty no matter which panel sits where. Moving a panel across only
+   relocates the gap. Pinning the rail fills that space with the schedule
+   and quick actions rather than with nothing.
+
+   Both gates are load-bearing, not defensive:
+   - min-width 1025px — below it the grid is a single column (see the
+     max-width:1024px rule above) and there is no rail to pin.
+   - min-height 820px — the rail is 763px tall and deterministic (2 static
+     schedule items, exactly 3 business rows from _renderBusinessGrowth,
+     4 quick actions), so it needs 763 + 24 top = 787px of viewport. Below
+     that a top-pinned rail would strand its own bottom off-screen, so it
+     stays in normal flow. Re-measure this number if a rail panel is added.
+
+   align-self is the precondition for the whole thing: a stretched grid item
+   fills its area and has no room to move. .nc-dash-grid already sets
+   align-items:start, and this restates it locally so a change up there
+   cannot silently turn the pinning off. */
+@media (min-width: 1025px) and (min-height: 820px) {
+  body.nc-bright:not(.nc-client) #section-dashboard .nc-dash-rail {
+    position: sticky;
+    top: 24px;
+    align-self: start;
+  }
 }
 
 /* Telemetry & Compliance Pulse (Intelligence Modules) */
