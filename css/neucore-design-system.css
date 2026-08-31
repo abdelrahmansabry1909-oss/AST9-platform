@@ -191,7 +191,7 @@
 .neu-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: var(--nc-sp-4); }
 .neu-label {
   font-family: var(--nc-font-display);
-  font-size: 12px; font-weight: 500;
+  font-size: 12px; font-weight: 600;
   color: var(--nc-text-secondary);
   letter-spacing: 0.02em;
 }
@@ -310,7 +310,7 @@ textarea {
 /* Tab buttons — match landing aesthetic */
 .tab-btn {
   font-family: var(--nc-font-display);
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: -0.005em;
   transition: color var(--nc-dur-fast) var(--nc-ease),
               border-color var(--nc-dur-fast) var(--nc-ease);
@@ -339,7 +339,7 @@ textarea {
   padding: 10px 14px;
   border-radius: var(--nc-r-md);
   font-family: var(--nc-font-display);
-  font-size: 14px; font-weight: 500;
+  font-size: 14px; font-weight: 600;
   color: var(--nc-text-secondary);
   cursor: pointer;
   transition: background var(--nc-dur-fast) var(--nc-ease),
