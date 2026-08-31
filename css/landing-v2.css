@@ -435,12 +435,32 @@ button { font: inherit; }
    fall-off and a vignette. */
 .hero-visual { position: relative; width: 480px; }
 
+/* The photo dissolves into the page instead of ending at a clipped edge.
+   Two things used to give it away as a pasted rectangle: the container's
+   own #060F0D ground, a shade lighter than the #020D0B page behind it, and
+   the fact that a darkening ::after overlay cannot remove an edge — it
+   only shades up to one. The alpha mask does, because the pixels
+   themselves go transparent.
+
+   The mask is on the container, not the img, so the ::after overlay and
+   the telemetry SVG fade with it as one object. The three .tel-card
+   siblings live in .hero-visual and are deliberately outside it, so they
+   stay fully opaque over the fade.
+
+   Left stops at 6%: the tablet begins around 5% of the frame and a longer
+   ramp would eat the product the shot exists to show. */
 .hero-photo {
   position: relative;
   height: 649px;
-  border-radius: 14px;
-  overflow: hidden;
-  background: #060F0D;
+  background: transparent;
+  -webkit-mask-image:
+    linear-gradient(90deg, transparent 0%, #000 6%, #000 88%, transparent 100%),
+    linear-gradient(180deg, transparent 0%, #000 6%, #000 92%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(90deg, transparent 0%, #000 6%, #000 88%, transparent 100%),
+    linear-gradient(180deg, transparent 0%, #000 6%, #000 92%, transparent 100%);
+  mask-composite: intersect;
 }
 /* The frame is portrait (480x649) and the source is landscape
    (1535x1024), so `cover` overflows horizontally by ~493px and
@@ -750,10 +770,33 @@ button { font: inherit; }
 }
 
 .intel-photo { position: relative; display: none; }
+/* Same dissolve as the hero, but this source fights back. The 1440x802
+   composition carries its own rounded frame painted into the pixels at
+   about x=88 and x=1325, with flat black letterbox bars outside them, so
+   a CSS radius on top produced a frame inside a frame. The radius is gone.
+
+   The side ramps are not linear, because a linear one cannot win here:
+   the painted frame sits at 6.1% and the nearest real content — the status
+   card — starts at 10.3%, so a straight fade reaching full opacity after
+   the card still leaves the frame line at about two-thirds opacity. The
+   extra stop holds the mask near-transparent through the frame and then
+   climbs steeply, clearing it before the card. The right side mirrors it:
+   cards end at 85.9%, the painted frame is at 92%. */
 .intel-photo img {
   display: block;
   width: 100%; height: auto;
-  border-radius: var(--r-lg);
+  -webkit-mask-image:
+    linear-gradient(90deg, transparent 0%, rgba(0,0,0,.10) 6.8%, #000 10.2%,
+                    #000 86%, rgba(0,0,0,.10) 93%, transparent 100%),
+    linear-gradient(180deg, transparent 0%, rgba(0,0,0,.14) 2.4%, #000 5%,
+                    #000 94%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(90deg, transparent 0%, rgba(0,0,0,.10) 6.8%, #000 10.2%,
+                    #000 86%, rgba(0,0,0,.10) 93%, transparent 100%),
+    linear-gradient(180deg, transparent 0%, rgba(0,0,0,.14) 2.4%, #000 5%,
+                    #000 94%, transparent 100%);
+  mask-composite: intersect;
 }
 
 .hot {
