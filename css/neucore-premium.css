@@ -4193,13 +4193,20 @@ body.nc-bright:not(.nc-client) #section-dashboard .nc-kpi-top {
   display: flex !important;
   align-items: center !important;
   gap: 7px !important;
-  margin-bottom: 9px !important;
+  margin-bottom: 7px !important;
   color: var(--dash-text-secondary) !important;
 }
 
-body.nc-bright:not(.nc-client) #section-dashboard .nc-kpi-top span.material-symbols-outlined {
-  color: var(--dash-brand) !important;
-  font-size: 17px !important;
+/* This icon is an inline <svg>, not a material-symbols <span>. The rule that
+   used to sit here selected the span and so matched nothing, leaving the icon
+   at the 20px of its width/height attributes — the tallest thing in a row
+   whose label is 12px, which set the row's height on its own. 16px is what
+   the only other dashboard icon (.nc-quick-btn svg) already uses. Size only:
+   the colour keeps coming from `.nc-kpi-top svg { color: var(--kpi) }` above,
+   which resolves to #047857 here — measured identical before and after. */
+body.nc-bright:not(.nc-client) #section-dashboard .nc-kpi-top svg {
+  width: 16px !important;
+  height: 16px !important;
 }
 
 body.nc-bright:not(.nc-client) #section-dashboard .nc-kpi-label {
@@ -4209,7 +4216,11 @@ body.nc-bright:not(.nc-client) #section-dashboard .nc-kpi-label {
 }
 
 body.nc-bright:not(.nc-client) #section-dashboard .nc-kpi-value {
-  font-size: 24px !important;
+  /* 22, not 24: at 24 this stat outranked the page title (19px) and the
+     welcome heading (21px) and was the largest type on the screen. 22px is
+     the size the rail's own stat numbers (.val) already use, so the dashboard
+     now shows one number size rather than two. */
+  font-size: 22px !important;
   font-weight: 700 !important;
   color: var(--dash-brand) !important;
   line-height: 1.1 !important;
